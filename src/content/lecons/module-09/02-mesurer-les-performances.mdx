@@ -41,7 +41,7 @@ quiz:
       - texte: La mémoire utilisée par les textures
     explication: "Le Script Profiler enregistre le temps processeur (CPU) de chaque appel de fonction. Il n’enregistre pas les fils qui dorment ou attendent : un `task.wait(10)` ne coûte presque rien et n’y apparaît pas."
   - type: trouve-le-bug
-    question: "Ce script ajoute une étiquette au MicroProfiler autour d’un calcul. Dans certains cas, l’étiquette « déborde » sur la suite du programme. Où est le bug ?"
+    question: "Ce Script serveur ajoute une étiquette au MicroProfiler autour d’un calcul. Dans certains cas, l’étiquette « déborde » sur la suite du programme. Où est le bug ?"
     code: |
       local Players = game:GetService("Players")
 
@@ -56,13 +56,15 @@ quiz:
       	return hauteur
       end
 
-      print(calculerHauteur(Players:GetPlayers()[1]))
+      Players.PlayerAdded:Connect(function(joueur)
+      	print(calculerHauteur(joueur))
+      end)
     options:
       - texte: "Ligne 4 : `debug.profilebegin` n’accepte pas de texte"
       - texte: "Ligne 7 : on quitte la fonction sans appeler `debug.profileend`, l’étiquette n’est jamais fermée"
         correct: true
       - texte: "Ligne 9 : `GetPivot` n’existe pas sur un Model"
-    explication: "Chaque `debug.profilebegin` doit être suivi d’un `debug.profileend`, sur **tous** les chemins du code. Ici, quand le joueur n’a pas de personnage, le `return 0` sort de la fonction sans fermer l’étiquette. Il faut appeler `debug.profileend()` juste avant ce `return`."
+    explication: "Chaque `debug.profilebegin` doit être suivi d’un `debug.profileend`, sur **tous** les chemins du code. Ici, quand le joueur n’a pas encore de personnage (c’est souvent le cas au moment de `PlayerAdded`), le `return 0` sort de la fonction sans fermer l’étiquette. Il faut appeler `debug.profileend()` juste avant ce `return`."
   - type: vrai-faux
     question: Avant d’optimiser, il faut noter des mesures de référence (FPS, mémoire, temps de chargement) pour pouvoir comparer après chaque changement.
     reponse: true
@@ -139,7 +141,7 @@ Le **MicroProfiler** est l’outil le plus précis. Il montre, image par image, 
 
 ### L’ouvrir
 
-- Dans le client sur ordinateur et dans Studio : <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>F6</kbd> sur Mac). Certaines pages de la documentation indiquent aussi <kbd>Ctrl</kbd> + <kbd>F6</kbd> : si un raccourci ne marche pas, essaie l’autre.
+- Dans le client sur ordinateur et dans Studio : <kbd>Ctrl</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>F6</kbd> sur Mac). C’est le raccourci de la page consacrée au MicroProfiler, la plus récemment mise à jour (octobre 2026). D’autres pages de la documentation (« Identify performance issues », « Test on hardware », le pas-à-pas du MicroProfiler) indiquent encore <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>F6</kbd>), l’ancien raccourci : si l’un ne marche pas, essaie l’autre.
 - Sur mobile : dans le menu **Settings**, passe **MicroProfiler** sur **On**. Le téléphone affiche une adresse IP et un port. Depuis un ordinateur **sur le même réseau Wi-Fi**, tape cette adresse dans un navigateur (par exemple `172.18.56.105:1338`) : tu vois les dernières images du téléphone.
 
 La documentation insiste : le téléphone est souvent le meilleur endroit pour profiler, car un PC puissant masque les problèmes.

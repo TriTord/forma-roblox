@@ -25,7 +25,7 @@
 | 06 | FAIT | en cours | |
 | 07 | FAIT | FAIT (11 corrections) | en cours |
 | 08 | FAIT | FAIT (11 corrections) | FAIT (9 corr.) ✅ |
-| 09 | FAIT | en cours | |
+| 09 | FAIT | FAIT (15 corrections) | en cours |
 | 10 | FAIT | FAIT (24 corrections) | en cours |
 
 ## Outils

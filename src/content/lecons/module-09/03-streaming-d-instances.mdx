@@ -23,13 +23,13 @@ quiz:
       - texte: Les objets de StarterGui
     explication: "Les BaseParts (et ce qu’elles contiennent) arrivent progressivement selon la distance. Un Folder sans pièce dans Workspace est envoyé dès l’arrivée, mais ses Parts enfants, elles, sont streamées. ReplicatedStorage n’est jamais concerné par le streaming."
   - type: qcm
-    question: Tu veux qu’un LocalScript accède à toutes les pièces d’un modèle « Porte » dès que ce modèle est là, sans `WaitForChild` sur chaque Part. Quel `ModelStreamingMode` choisir ?
+    question: Tu veux qu’un LocalScript accède à toutes les pièces d’un modèle « Porte » dès que ce modèle est là, sans `WaitForChild` sur chaque Part, tout en laissant le streaming décharger la porte quand le joueur est loin. Quel `ModelStreamingMode` choisir ?
     options:
       - texte: "`Atomic`"
         correct: true
       - texte: "`Nonatomic`"
       - texte: "`Persistent`, pour être tranquille"
-    explication: "Un modèle `Atomic` arrive d’un bloc avec tous ses descendants initiaux. Il suffit d’attendre le modèle lui-même avec `WaitForChild`. `Persistent` marcherait aussi, mais il garde le modèle en mémoire en permanence : la documentation le réserve à de très rares cas."
+    explication: "Un modèle `Atomic` arrive d’un bloc avec tous ses descendants initiaux. Il suffit d’attendre le modèle lui-même avec `WaitForChild`. `Persistent` arrive aussi d’un bloc, mais il n’est **jamais** déchargé : il ne répond donc pas à la demande, et la documentation le réserve à de très rares cas. `Nonatomic` laisse arriver les Parts une par une."
   - type: qcm
     question: À quoi sert `Player:RequestStreamAroundAsync` ?
     options:
@@ -81,7 +81,7 @@ Le streaming ne concerne **que les descendants de `Workspace`**. `ReplicatedStor
 Quand un joueur arrive, le contenu de `Workspace` lui est envoyé, **sauf** :
 
 - les **BaseParts** (les `Part` et `MeshPart`) ;
-- les modèles réglés en mode atomique ou persistant (voir plus bas) ;
+- les modèles réglés en mode atomique ou persistant (voir plus bas), ainsi que les modèles « normaux » si `ModelStreamingBehavior` est réglé sur `Improved` (le réglage recommandé) ;
 - tout ce qui se trouve **à l’intérieur** de ces objets.
 
 Ceux-là arrivent ensuite, selon la position du joueur, les performances de son appareil et d’autres conditions. Concrètement pour l’obby : le Folder `Workspace.Checkpoints` est là dès l’arrivée, mais les Parts `"1"`, `"2"`, `"3"`… n’arrivent que lorsqu’elles sont assez proches.
@@ -107,7 +107,7 @@ Toutes ces propriétés se règlent **dans Studio**, sur l’objet `Workspace` :
 | :--- | :--- | :--- | :--- |
 | `StreamingMinRadius` | Rayon (en studs) chargé en priorité maximale, jamais déchargé | 64 | garder 64 |
 | `StreamingTargetRadius` | Distance maximale à laquelle le contenu est envoyé | 1024 | garder 1024 |
-| `StreamingIntegrityMode` | Que faire si le joueur entre dans une zone pas encore chargée | `Default` | `PauseOutsideLoadedArea` |
+| `StreamingIntegrityMode` | Que faire si le joueur entre dans une zone pas encore chargée | `Default` (comportement non détaillé par la doc) | `PauseOutsideLoadedArea` |
 | `StreamOutBehavior` | Quand décharger le contenu lointain | `LowMemory` | `Opportunistic` |
 | `ModelStreamingBehavior` | Façon de streamer les modèles « normaux » | `Legacy` | `Improved` |
 | `PredictiveStreamingMode` | Anticiper les zones dont le joueur aura bientôt besoin (réapparition…) | `Default` (se comporte comme `Disabled`) | `Enabled` en option |
@@ -115,7 +115,7 @@ Toutes ces propriétés se règlent **dans Studio**, sur l’objet `Workspace` :
 Quelques explications :
 
 - **Les deux rayons.** `StreamingTargetRadius` doit rester plus grand que `StreamingMinRadius` : l’espace entre les deux sert de tampon si le réseau a un raté. Augmenter les rayons coûte plus de mémoire et de bande passante.
-- **`StreamingIntegrityMode`.** Ses valeurs sont `Default`, `Disabled` (jamais de pause), `MinimumRadiusPause` (pause si le rayon minimum n’est pas chargé) et `PauseOutsideLoadedArea` (pause si le personnage sort de la zone chargée). Avec ce dernier mode, recommandé, le joueur ne tombe pas à travers une plateforme pas encore arrivée : le jeu se met brièvement en pause et Roblox affiche un message.
+- **`StreamingIntegrityMode`.** Ses valeurs sont `Default` (que la référence API décrit seulement comme un « comportement par défaut, susceptible de changer » : ne compte pas dessus, choisis explicitement un mode), `Disabled` (jamais de pause), `MinimumRadiusPause` (pause si le rayon minimum n’est pas chargé) et `PauseOutsideLoadedArea` (pause si le personnage sort de la zone chargée). Avec ce dernier mode, recommandé, le joueur ne tombe pas à travers une plateforme pas encore arrivée : le jeu se met brièvement en pause et Roblox affiche un message.
 - **`StreamOutBehavior`.** Avec `LowMemory`, le client ne décharge que s’il manque de mémoire. Avec `Opportunistic`, il peut décharger ce qui dépasse le rayon cible même sans manque de mémoire, ce qui réduit fortement la consommation et aide à éviter les plantages.
 
 <Astuce titre="Voir le streaming en direct">
@@ -132,7 +132,7 @@ Chaque `Model` a une propriété `ModelStreamingMode` qui décide comment il est
 - **`PersistentPerPlayer`** : persistant seulement pour les joueurs ajoutés avec `Model:AddPersistentPlayer()`, atomique pour les autres.
 
 <Erreur titre="Tout passer en Persistent pour que « ça marche »">
-Mettre tous ses modèles en `Persistent` revient à désactiver le streaming : tout reste en mémoire pour toujours. La documentation réserve ce mode à de très rares cas, quand quelques Parts doivent absolument rester présentes pour un script client. Préfère `Atomic` et des scripts qui tolèrent l’absence d’un objet.
+Mettre tous ses modèles en `Persistent` revient à contourner le streaming : ces modèles restent en mémoire pour toujours. La documentation précise que ce mode n’est pas fait pour contourner le streaming, que son abus peut nuire aux performances, et le réserve à de très rares cas, quand quelques Parts doivent absolument rester présentes pour un script client. Préfère `Atomic` et des scripts qui tolèrent l’absence d’un objet.
 </Erreur>
 
 ## Adapter tes LocalScripts

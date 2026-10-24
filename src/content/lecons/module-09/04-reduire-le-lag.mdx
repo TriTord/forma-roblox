@@ -277,8 +277,8 @@ Pour une `MeshPart`, la propriété `CollisionFidelity` choisit la forme utilis�
 
 - **`Box`** : une simple boîte autour du maillage. La plus légère en mémoire.
 - **`Hull`** : l’enveloppe convexe du maillage (comme un emballage tendu autour).
-- **`Default`** : une décomposition plus détaillée, plus coûteuse.
-- **`PreciseConvexDecomposition`** : la plus fidèle, mais la plus coûteuse en calcul et en mémoire.
+- **`Default`** : une décomposition en plusieurs enveloppes (à base de voxels), plus fidèle que `Hull` mais imprécise sur les trous et les creux ; elle consomme nettement plus de mémoire que `Box` et `Hull`.
+- **`PreciseConvexDecomposition`** : la plus fidèle pour les objets complexes, mais coûteuse en calcul et en mémoire.
 
 Les conseils de la documentation : `Box` pour les petits objets ou ceux avec lesquels on n’interagit pas ; `Box` ou `Hull` pour les objets moyens ; pour un objet ancré et petit, `Box` est en général sans risque. Et pour un objet sans collision, choisis quand même `Box` ou `Hull` : la géométrie de collision reste stockée en mémoire. Pour repérer les maillages trop précis, tape le filtre `CollisionFidelity=PreciseConvexDecomposition` dans la barre de recherche de l’Explorer, ou active **Collision fidelity** dans les options de visualisation, en haut à droite de la vue 3D.
 
@@ -294,7 +294,7 @@ Le rendu ne concerne que le client : c’est lui qui dessine l’image.
 - **Réutiliser les mêmes maillages.** Roblox regroupe en un seul appel de dessin les MeshParts qui partagent le même maillage et la même apparence (*instancing*). Importe un maillage une fois, puis duplique-le dans Studio : ne réimporte pas dix copies identiques avec dix identifiants différents.
 - **`RenderFidelity`.** Sa valeur par défaut, `Automatic`, réduit les détails avec la distance : détail maximal sous 250 studs, moyen entre 250 et 500, minimal au-delà. `Precise` force le détail maximal partout : à éviter sur beaucoup de maillages. `Performance` privilégie la vitesse.
 - **La transparence partielle.** Des objets semi-transparents superposés obligent à dessiner plusieurs fois les mêmes pixels. La documentation conseille d’éviter les transparences autres que 0 (visible) et 1 (invisible). Pour l’Obby des Nuages, c’est un vrai sujet : n’empile pas des dizaines de nuages semi-transparents.
-- **Les ombres et lumières.** Les ombres coûtent cher. Désactive `Light.Shadows` sur les lumières qui n’ont pas besoin d’ombre, limite leur portée et leur nombre. `BasePart.CastShadow` peut être désactivé sur de petites Parts, mais la référence API prévient que ça peut créer des défauts visuels : à faire avec parcimonie. Roblox réduit d’ailleurs lui-même la qualité des ombres sur les appareils en qualité graphique basse.
+- **Les ombres et lumières.** Les ombres coûtent cher. Désactive `Light.Shadows` sur les lumières qui n’ont pas besoin d’ombre, limite leur portée et leur nombre. `BasePart.CastShadow` peut être désactivé sur de petites Parts dont l’ombre ne se voit presque pas, mais la référence API prévient que ça peut créer des défauts visuels et conseille de le laisser activé dans la plupart des cas : à faire avec parcimonie. Roblox réduit d’ailleurs lui-même la qualité des ombres quand la qualité graphique baisse, jusqu’à les désactiver sous le niveau 4.
 - **Les particules et décalques.** Les `ParticleEmitter`, décalques et textures se regroupent mal et ajoutent des appels de dessin. Garde des taux d’émission raisonnables, et évite de modifier les propriétés des émetteurs en continu.
 - **Les textures.** La mémoire graphique dépend du nombre de pixels : une image de 1024 × 1024 consomme quatre fois plus qu’une de 512 × 512. Selon la documentation, la plupart des images n’ont pas besoin de plus de 512 × 512, et les petites de plus de 256 × 256. Les matériaux intégrés de Roblox consomment bien moins de mémoire que des textures personnalisées.
 
@@ -304,12 +304,12 @@ Chaque information envoyée entre le serveur et les clients coûte du temps de c
 
 - **Envoie moins, moins souvent.** Ne déclenche pas un RemoteEvent à chaque image ou à chaque entrée du joueur sans limite. Envoie un état quand il **change**. Après un achat, envoie l’objet acheté, pas tout l’inventaire.
 - **Les effets visuels côté client.** Le serveur n’a besoin que du résultat (le joueur a ramassé la pièce) ; l’effet d’étincelles peut être créé par le client.
-- **Les animations décoratives côté client.** Une propriété animée côté serveur, avec TweenService ou une boucle, est répliquée à chaque client à chaque image.
+- **Les animations décoratives côté client.** Selon la documentation, une propriété animée par TweenService côté serveur est répliquée à chaque client à chaque image (avec, en prime, une animation saccadée quand la latence varie). C’est la même chose pour une boucle serveur qui modifie une propriété à chaque image : chaque changement est répliqué.
 - **Ne mets pas tout dans ReplicatedStorage.** Tout son contenu est envoyé à chaque joueur avant qu’il puisse jouer. Ce dont seul le serveur a besoin va dans `ServerStorage`.
 
 ### Avant / après n° 3 : les pièces qui tournent
 
-À la leçon 2, tu as étiqueté un Script serveur qui fait tourner toutes les pièces à chaque image avec `Heartbeat`. Son vrai coût : chaque changement de `CFrame` fait côté serveur est envoyé à **tous** les joueurs, pour **chaque** pièce, environ 60 fois par seconde. La rotation est purement décorative : faisons-la côté client, et seulement pour les pièces chargées chez le joueur.
+À la leçon 2, tu as étiqueté un Script serveur qui fait tourner toutes les pièces à chaque image avec `Heartbeat`. Son vrai coût : chaque changement de `CFrame` fait côté serveur doit être répliqué à **tous** les joueurs chez qui la pièce est chargée, pour **chaque** pièce, environ 60 fois par seconde. La rotation est purement décorative : faisons-la côté client, et seulement pour les pièces chargées chez le joueur.
 
 ```luau
 -- APRÈS
