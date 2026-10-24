@@ -10,6 +10,18 @@ const premiereLecon = lecons[0];
 const urlDepart = premiereLecon?.url ?? modules[0].url;
 const dureeTotale = modules.reduce((t, m) => t + m.duree, 0);
 
+// Module 02 « Scripter avec l’IA » et sa bibliothèque de prompts (URL calculées, avec repli si la leçon n’est pas encore publiée).
+const moduleIA = modules.find((m) => m.numero === '02');
+const urlModuleIA = moduleIA?.url ?? lien('/modules/02/');
+const urlBibliotheque =
+  lecons.find((l) => l.module === '02' && l.slug === 'bibliotheque-de-prompts')?.url ?? lien('/modules/02/bibliotheque-de-prompts/');
+
+// Le prompt affiché dans le héros : la demande précise qui produit le script juste en dessous.
+const promptHero = `Contexte : Obby des Nuages, projet Rojo. Les checkpoints sont les Parts "1", "2"… de Workspace.Checkpoints.
+Objectif : toucher un checkpoint ne valide que l’étape suivante (étape actuelle + 1).
+Sécurité : c’est le serveur qui décide, jamais le client.
+Vérification : en Play, sauter un checkpoint ne change pas l’étape.`;
+
 const extrait = `-- Obby des Nuages : un Script dans chaque checkpoint
 local Players = game:GetService("Players")
 local checkpoint = script.Parent
@@ -27,67 +39,125 @@ end
 
 checkpoint.Touched:Connect(onTouched)`;
 
+const methode = [
+  {
+    emoji: '🧭',
+    titre: 'Diriger',
+    texte:
+      'Tu décides du jeu, tu le découpes en petites tâches et tu écris pour chacune un prompt précis : contexte, objectif, contraintes, critères de réussite.',
+  },
+  {
+    emoji: '📖',
+    titre: 'Lire',
+    texte:
+      'Tu comprends assez le code Luau pour relire ce que l’IA a écrit : où il s’exécute, ce qu’il fait, ce qui pourrait casser. Pas besoin de tout savoir taper de mémoire.',
+  },
+  {
+    emoji: '🔍',
+    titre: 'Vérifier',
+    texte:
+      'Tu testes dans Studio, tu contrôles la sécurité (le serveur valide tout), les bugs et les performances, puis tu enregistres une version qui marche avant la tâche suivante.',
+  },
+];
+
+const promptVague = 'fais un système de pièces pour mon obby';
+const promptPrecis = `Contexte : Obby des Nuages, projet Rojo. Les leaderstats Pieces existent déjà (GestionJoueurs.server.luau).
+Objectif : quand un joueur touche une Part de Workspace.Pieces, il gagne Config.VALEUR_PIECE pièce(s) ; la pièce disparaît et réapparaît 10 secondes plus tard.
+Fichiers concernés : crée src/ServerScriptService/Pieces.server.luau, ne modifie rien d’autre.
+Sécurité : le serveur vérifie que c’est bien un joueur, proche de la pièce ; aucune valeur ne vient du client.
+Cas limites : contacts multiples (une pièce ne rapporte qu’une fois), joueur qui quitte la partie.
+Vérification : en Play, le compteur monte d’une pièce par ramassage et l’Output ne montre aucune erreur.`;
+
 const benefices = [
+  {
+    emoji: '🤖',
+    titre: 'Créer en pilotant l’IA',
+    texte:
+      'Le module 2 t’apprend à travailler avec Claude Code comme en 2026 : un projet Rojo versionné avec Git, un fichier CLAUDE.md pour ton jeu, des prompts précis et une tâche à la fois.',
+  },
+  {
+    emoji: '📜',
+    titre: 'Lire et vérifier le code',
+    texte:
+      'Luau expliqué pour débutants, pour savoir relire ce que l’IA produit : variables, fonctions, événements, tables, ModuleScripts. Chaque notion est illustrée par du code commenté.',
+  },
   {
     emoji: '🧱',
     titre: 'Apprendre en construisant',
     texte: `Chaque module fait avancer un même jeu, l’${SITE.filRouge}. À la fin, tu as un projet complet et publié, pas une pile d’exercices isolés.`,
   },
   {
-    emoji: '📜',
-    titre: 'Luau expliqué pour débutants',
-    texte: 'Variables, fonctions, événements, tables, ModuleScripts, POO : chaque notion est illustrée par du code commenté et expliqué pas à pas.',
-  },
-  {
     emoji: '🛡️',
     titre: 'Les bonnes pratiques dès le départ',
-    texte: 'Sécurité client/serveur, sauvegardes fiables, performances mobiles : ce qui sépare un prototype d’un jeu qui tient la route.',
+    texte:
+      'Sécurité client/serveur, sauvegardes fiables, performances mobiles : ce qui sépare un prototype d’un jeu qui tient la route, et ce que tu dois exiger du code généré.',
   },
   {
     emoji: '🎯',
-    titre: 'Un game design qui retient',
-    texte: 'Boucle de jeu, 60 premières secondes, progression, rejouabilité : comprendre pourquoi les joueurs restent… ou partent.',
+    titre: 'Un game design qui retient, mesuré',
+    texte:
+      'Boucle de jeu, 60 premières secondes, progression, rejouabilité, puis rétention et sessions : comprendre pourquoi les joueurs restent… ou partent, au lieu de deviner.',
   },
   {
     emoji: '💎',
     titre: 'Monétiser sans trahir tes joueurs',
-    texte: 'Game Passes, Developer Products, abonnements, Creator Rewards, DevEx : les outils officiels, les règles de Roblox et une approche éthique, sans promesse de revenus.',
-  },
-  {
-    emoji: '📊',
-    titre: 'Mesurer pour progresser',
-    texte: 'Rétention, sessions, conversion : lire tes statistiques et décider quoi améliorer, au lieu de deviner.',
+    texte:
+      'Game Passes, Developer Products, abonnements, Creator Rewards, DevEx : les outils officiels, les règles de Roblox et une approche éthique, sans promesse de revenus.',
   },
 ];
 
 const pourToi = [
   'Tu n’as jamais programmé, ou très peu, et tu veux partir de zéro.',
+  'Tu veux utiliser l’IA pour créer ton jeu, en comprenant ce qu’elle produit.',
   'Tu as déjà bricolé dans Roblox Studio mais tes projets restent inachevés.',
   'Tu veux comprendre comment un jeu est découvert, joué et financé sur Roblox.',
   'Tu es parent ou enseignant et tu veux accompagner un jeune créateur.',
 ];
 const pasPourToi = [
   'Tu cherches une méthode « pour devenir riche » : elle n’existe pas, et on ne la vend pas.',
-  'Tu veux copier-coller un jeu tout fait sans comprendre ce que tu fais.',
+  'Tu veux qu’une IA fasse tout le jeu à ta place, sans jamais relire ni tester ce qu’elle produit.',
   'Tu es déjà développeur Roblox confirmé : certains modules te sembleront basiques.',
 ];
 
-const faq = [
+interface QuestionFaq {
+  q: string;
+  r: string;
+  liens?: { texte: string; url: string }[];
+}
+
+const faq: QuestionFaq[] = [
   {
     q: 'Faut-il savoir programmer avant de commencer ?',
-    r: 'Non. Le module 3 part de zéro : ce qu’est une variable, une condition, une fonction. Tout le code est commenté et chaque leçon se termine par un quiz pour vérifier que tu as compris.',
+    r: 'Non. Le module 2 t’apprend à diriger une IA de code (Claude Code) avec des prompts précis, et le module 3 t’apprend à lire le code Luau qu’elle écrit, en partant de zéro : ce qu’est une variable, une condition, une fonction. Ce qu’on te demande, c’est d’accepter d’apprendre à lire le code, car c’est toi qui vérifies ce que l’IA produit. Tout le code est commenté et chaque leçon se termine par un quiz.',
+  },
+  {
+    q: 'Faut-il payer une IA ?',
+    r: 'Pour Claude Code, oui : il faut une offre payante, l’offre gratuite de Claude ne l’inclut pas. Au moment de la rédaction (prix relevés en octobre 2026 sur la page officielle, en dollars US), l’offre Pro coûte 20 $ par mois en paiement mensuel (17 $ par mois en paiement annuel, soit 200 $ d’avance) et l’offre Max commence à 100 $ par mois. Ces prix changent : vérifie la page officielle avant de t’abonner. L’Assistant intégré à Roblox Studio est une autre option : la documentation officielle ne lui indique ni prix ni abonnement, et elle publie quelques limites d’usage. Claude Code est réservé aux personnes de 18 ans et plus (conditions d’utilisation d’Anthropic, octobre 2026). Si tu as moins de 18 ans, ne crée pas de compte et n’utilise pas seul celui d’un parent. Tu peux : travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ; utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox ; ou suivre la formation en lisant et en tapant toi-même — les prompts et la méthode de relecture restent utiles. Sans abonnement, une grande partie de la formation se suit quand même : chaque leçon technique donne le code complet, que tu peux lire, taper et tester toi-même dans Studio.',
+    liens: [
+      { texte: 'Tarifs de Claude (claude.com/pricing)', url: 'https://claude.com/pricing' },
+      { texte: 'Conditions d’utilisation d’Anthropic (âge minimum)', url: 'https://www.anthropic.com/legal/consumer-terms' },
+    ],
+  },
+  {
+    q: 'L’IA va-t-elle faire mon jeu à ma place ?',
+    r: 'Non. Claude Code écrit du code à partir de tes instructions, mais c’est toi qui décides du jeu, qui le découpes en petites tâches, qui testes dans Studio et qui vérifies que le résultat est sûr. Plus ton prompt est précis (contexte, objectif, contraintes, critères de réussite), meilleur est le résultat ; un prompt vague donne du code vague. Et l’IA se trompe parfois : fonctions qui n’existent pas, code obsolète, failles de sécurité. Le module 2 t’apprend à repérer ces pièges et sa bibliothèque de prompts te donne des modèles prêts à adapter.',
+    liens: [{ texte: 'La bibliothèque de prompts du module 2', url: urlBibliotheque }],
+  },
+  {
+    q: 'Est-ce que j’apprends quand même à coder ?',
+    r: 'Oui, mais autrement. Tu tapes moins de code à la main, et tu apprends surtout à le lire, à le diriger et à le vérifier : le module 3 explique Luau ligne par ligne, le module 4 le modèle client/serveur et la sécurité, le module 5 les systèmes de jeu (sauvegarde, inventaire, interface). Tu sauras faire toi-même les petites retouches et, surtout, repérer ce qui cloche dans un script. C’est indispensable : on ne peut pas vérifier un code qu’on ne comprend pas.',
   },
   {
     q: 'De quel matériel ai-je besoin ?',
-    r: 'Un ordinateur Windows ou macOS capable de faire tourner Roblox Studio (gratuit), une souris de préférence, et un compte Roblox. Studio n’existe ni sur téléphone ni sur tablette.',
+    r: 'Un ordinateur Windows ou macOS capable de faire tourner Roblox Studio (gratuit), une souris de préférence, une connexion Internet et un compte Roblox. Studio n’existe ni sur téléphone ni sur tablette. Pour Claude Code, il faut aussi un terminal (déjà présent sur ton ordinateur) et un compte payant : le module 2 détaille l’installation pas à pas, sur Windows comme sur Mac.',
   },
   {
     q: 'Vais-je gagner de l’argent avec mon jeu ?',
-    r: 'Peut-être, peut-être pas, et personne ne peut te le garantir. Roblox publie lui-même des chiffres qui aident à garder les pieds sur terre : parmi les millions de créateurs qui monétisent, un peu plus de 42 000 participent au programme DevEx, et le participant médian a touché environ 1 500 dollars sur douze mois (chiffres publiés par Roblox en septembre 2026, détaillés et sourcés dans la leçon « Roblox vu du côté des créateurs »). Cette formation t’apprend à mettre toutes les chances de ton côté — un jeu solide, bien présenté, mesuré et amélioré — mais le succès n’est jamais garanti.',
+    r: 'Peut-être, peut-être pas, et personne ne peut te le garantir. Roblox publie lui-même des chiffres qui aident à garder les pieds sur terre : parmi les millions de créateurs qui monétisent, un peu plus de 42 000 participent au programme DevEx, et le participant médian a touché environ 1 500 dollars sur douze mois (chiffres publiés par Roblox en septembre 2026, détaillés et sourcés dans la leçon « Roblox vu du côté des créateurs »). Cette formation t’apprend à mettre toutes les chances de ton côté — un jeu solide, bien présenté, mesuré et amélioré — mais le succès n’est jamais garanti, avec ou sans IA.',
   },
   {
-    q: 'Est-ce une formation officielle de Roblox ?',
-    r: 'Non. C’est une formation indépendante, non affiliée à Roblox Corporation. Chaque leçon cite ses sources, en priorité la documentation officielle de Roblox, et les informations sont vérifiées. Les règles et outils de Roblox évoluent : en cas de doute, la documentation officielle fait foi.',
+    q: 'Est-ce une formation officielle de Roblox ou d’Anthropic ?',
+    r: 'Non. C’est une formation indépendante, affiliée ni à Roblox Corporation ni à Anthropic (l’entreprise qui édite Claude Code). Chaque leçon cite ses sources, en priorité les documentations officielles, et les informations sont vérifiées. Les règles et les outils, surtout les outils d’IA, évoluent vite : en cas de doute, la documentation officielle fait foi.',
   },
   {
     q: 'Où est enregistrée ma progression ?',
@@ -95,11 +165,12 @@ const faq = [
   },
   {
     q: 'Y a-t-il des conditions d’âge ?',
-    r: 'Le contenu est accessible aux adolescents comme aux adultes. Certaines fonctions de Roblox (publication pour les moins de 16 ans, vente d’articles, conversion des Robux en argent réel via DevEx, publicité…) sont soumises à des conditions fixées par Roblox, notamment d’âge et de vérification de compte : elles sont détaillées dans les modules concernés.',
+    r: 'Le contenu est accessible aux adolescents comme aux adultes. Certaines fonctions de Roblox (publication pour les moins de 16 ans, vente d’articles, conversion des Robux en argent réel via DevEx, publicité…) sont soumises à des conditions fixées par Roblox, notamment d’âge et de vérification de compte : elles sont détaillées dans les modules concernés. Côté IA : Claude Code est réservé aux personnes de 18 ans et plus (conditions d’utilisation d’Anthropic, octobre 2026). Si tu as moins de 18 ans, ne crée pas de compte et n’utilise pas seul celui d’un parent. Tu peux : travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ; utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox ; ou suivre la formation en lisant et en tapant toi-même — les prompts et la méthode de relecture restent utiles.',
+    liens: [{ texte: 'Conditions d’utilisation d’Anthropic (âge minimum)', url: 'https://www.anthropic.com/legal/consumer-terms' }],
   },
   {
     q: 'Combien de temps faut-il ?',
-    r: `Chaque leçon indique sa durée estimée${dureeTotale > 0 ? ` (environ ${formaterDuree(dureeTotale)} de contenu publié à ce jour)` : ''}. Compte en plus le temps de pratique dans Studio : c’est là que tu progresses vraiment. Avance à ton rythme.`,
+    r: `Chaque leçon indique sa durée estimée${dureeTotale > 0 ? ` (environ ${formaterDuree(dureeTotale)} de contenu publié à ce jour, pour ${lecons.length} leçons)` : ''}. Compte en plus le temps de pratique dans Studio : c’est là que tu progresses vraiment. Avance à ton rythme.`,
   },
 ];
 ---
@@ -112,14 +183,21 @@ const faq = [
       <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:px-8">
         <div>
           <p class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/70 px-3 py-1 text-sm font-medium text-indigo-800 dark:border-indigo-800 dark:bg-slate-900/70 dark:text-indigo-200">
-            <span aria-hidden="true">🎓</span> Formation complète en français · {modules.length} modules
+            <span aria-hidden="true">🎓</span> Formation complète en français · {modules.length} modules · méthode IA
           </p>
           <h1 class="mt-6 text-4xl font-extrabold tracking-tight text-balance text-slate-900 sm:text-5xl lg:text-6xl dark:text-white">
             Crée un jeu Roblox qui marche, <span class="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-300 dark:to-violet-300">de A à Z</span>.
           </h1>
           <p class="mt-6 max-w-xl text-lg text-pretty text-slate-600 dark:text-slate-300">
+            En 2026, on ne tape plus tout son code à la main : on le fait écrire par des IA de code, surtout
+            <strong class="font-semibold text-slate-800 dark:text-slate-100">Claude Code</strong>, en les pilotant. Tu apprends à les
+            <strong class="font-semibold text-slate-800 dark:text-slate-100">diriger</strong> avec des prompts précis, à
+            <strong class="font-semibold text-slate-800 dark:text-slate-100">lire</strong> le code qu’elles produisent et à le
+            <strong class="font-semibold text-slate-800 dark:text-slate-100">vérifier</strong>.
+          </p>
+          <p class="mt-4 max-w-xl text-pretty text-slate-600 dark:text-slate-300">
             De ta première Part dans Roblox Studio jusqu’au lancement : Luau, client/serveur, sauvegardes, game design, monétisation
-            éthique, analytics et optimisation. Un parcours progressif, un quiz à chaque leçon et un vrai jeu construit étape par étape.
+            éthique, analytics et optimisation. Un quiz à chaque leçon et un vrai jeu construit étape par étape.
           </p>
           <div class="mt-8 flex flex-wrap gap-3">
             <a href={urlDepart} class="bouton bouton-primaire text-lg" data-testid="cta-commencer">Commencer la formation</a>
@@ -129,11 +207,17 @@ const faq = [
             ↻ Reprendre là où tu t’es arrêté : <span data-reprendre-titre></span>
           </a>
         </div>
-        <div class="hero-code relative">
+        <div class="hero-code relative space-y-4">
+          <figure class="rounded-2xl border border-indigo-200 bg-indigo-50/80 p-4 shadow-lg shadow-indigo-500/10 dark:border-indigo-800 dark:bg-indigo-950/60">
+            <figcaption class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-800 dark:text-indigo-200">
+              <span aria-hidden="true">💬</span> Ton prompt à Claude Code
+            </figcaption>
+            <pre class="mt-2 font-mono text-xs leading-relaxed whitespace-pre-wrap text-slate-800 sm:text-sm dark:text-slate-200">{promptHero}</pre>
+          </figure>
           <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-indigo-500/10 dark:border-slate-800 dark:bg-slate-900">
             <div class="flex items-center gap-1.5 px-2 pb-3" aria-hidden="true">
               <span class="size-3 rounded-full bg-rose-400"></span><span class="size-3 rounded-full bg-amber-400"></span><span class="size-3 rounded-full bg-emerald-400"></span>
-              <span class="ml-3 text-xs text-slate-500 dark:text-slate-400">Checkpoint.server.luau</span>
+              <span class="ml-3 text-xs text-slate-500 dark:text-slate-400">Checkpoint.server.luau · le code que tu relis</span>
             </div>
             <Code code={extrait} lang="luau" themes={THEMES_CODE} defaultColor="light" />
           </div>
@@ -149,70 +233,126 @@ const faq = [
     <section aria-label="La formation en bref" class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
       <dl class="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 text-center sm:px-6 md:grid-cols-4 lg:px-8">
         <div><dt class="text-sm text-slate-600 dark:text-slate-400">Modules</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">{modules.length}</dd></div>
-        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Quiz</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">1 par leçon</dd></div>
+        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Leçons, chacune avec son quiz</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">{lecons.length}</dd></div>
         <div><dt class="text-sm text-slate-600 dark:text-slate-400">Examens et badges</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">1 par module</dd></div>
         <div><dt class="text-sm text-slate-600 dark:text-slate-400">Projet fil rouge</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">1 vrai jeu</dd></div>
       </dl>
     </section>
 
-    <!-- Bénéfices -->
-    <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="benefices-titre">
-      <h2 id="benefices-titre" class="max-w-2xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
-        Tout ce qu’il faut pour passer de l’idée au jeu publié
+    <!-- La méthode IA -->
+    <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="methode-titre">
+      <p class="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">La méthode</p>
+      <h2 id="methode-titre" class="mt-2 max-w-3xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+        Lire, diriger, vérifier : créer ton jeu avec Claude Code
       </h2>
-      <p class="mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
-        Pas seulement « comment coder » : aussi comment concevoir, publier, mesurer et améliorer un jeu que des joueurs ont envie de relancer.
+      <p class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">
+        L’IA écrit vite, mais elle ne devine pas ce que tu veux et elle se trompe parfois. Ton travail n’est plus de tout taper :
+        c’est de lui dire exactement quoi faire, puis de contrôler le résultat. Et pour contrôler, il faut comprendre assez le code
+        pour repérer une faille de sécurité, un bug ou un script trop lourd.
       </p>
-      <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <ul class="mt-10 grid gap-6 md:grid-cols-3">
         {
-          benefices.map((b) => (
+          methode.map((e) => (
             <li class="rounded-2xl border border-slate-200 p-6 dark:border-slate-800">
-              <span class="text-3xl" aria-hidden="true">{b.emoji}</span>
-              <h3 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">{b.titre}</h3>
-              <p class="mt-2 text-slate-600 dark:text-slate-400">{b.texte}</p>
+              <span class="text-3xl" aria-hidden="true">{e.emoji}</span>
+              <h3 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">{e.titre}</h3>
+              <p class="mt-2 text-slate-600 dark:text-slate-400">{e.texte}</p>
             </li>
           ))
         }
       </ul>
+
+      <h3 class="mt-14 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Un prompt vague donne du code vague</h3>
+      <p class="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">
+        Plus ton prompt est <strong class="font-semibold text-slate-800 dark:text-slate-100">précis</strong> (contexte, objectif,
+        contraintes, critères de réussite), meilleur est le résultat. Compare :
+      </p>
+      <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <figure class="rounded-2xl border border-rose-300 bg-white p-5 dark:border-rose-800 dark:bg-slate-950">
+          <figcaption class="text-sm font-bold text-rose-800 dark:text-rose-300">✗ Prompt vague</figcaption>
+          <pre class="mt-3 font-mono text-sm whitespace-pre-wrap text-slate-800 dark:text-slate-200">{promptVague}</pre>
+          <p class="mt-4 text-sm text-slate-600 dark:text-slate-400">
+            L’IA doit tout deviner : où placer le script, combien rapporte une pièce, qui décide du gain… Elle peut très bien laisser
+            le client annoncer lui-même ses pièces, ce qui ouvre la porte à la triche.
+          </p>
+        </figure>
+        <figure class="rounded-2xl border border-emerald-300 bg-white p-5 dark:border-emerald-800 dark:bg-slate-950">
+          <figcaption class="text-sm font-bold text-emerald-800 dark:text-emerald-300">✓ Prompt précis</figcaption>
+          <pre class="mt-3 font-mono text-sm leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-200">{promptPrecis}</pre>
+        </figure>
+      </div>
+      <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <a href={urlModuleIA} class="bouton bouton-primaire">Découvrir le module 2 « Scripter avec l’IA »</a>
+        <a href={urlBibliotheque} class="font-semibold text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">
+          La bibliothèque de prompts prêts à copier →
+        </a>
+      </div>
+      <p class="mt-4 max-w-3xl text-sm text-slate-600 dark:text-slate-400">
+        Ensuite, chaque leçon technique comporte un encadré « Avec Claude Code » : le prompt précis pour construire le système de la
+        leçon, et la liste de ce qu’il faut vérifier dans le code produit.
+      </p>
     </section>
 
-    <!-- Programme -->
-    <section class="border-y border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50" aria-labelledby="programme-titre">
+    <!-- Bénéfices -->
+    <section class="border-y border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50" aria-labelledby="benefices-titre">
       <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 id="programme-titre" class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Le programme</h2>
-            <p class="mt-3 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
-              {modules.length} modules progressifs, du premier clic dans Studio à la checklist de lancement.
-            </p>
-          </div>
-          <a href={lien('/programme/')} class="font-semibold text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">Programme détaillé →</a>
-        </div>
-        <ol class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="accueil-modules">
+        <h2 id="benefices-titre" class="max-w-2xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+          Tout ce qu’il faut pour passer de l’idée au jeu publié
+        </h2>
+        <p class="mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
+          Pas seulement « comment faire écrire du code » : aussi comment concevoir, publier, mesurer et améliorer un jeu que des joueurs
+          ont envie de relancer.
+        </p>
+        <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {
-            modules.map((m) => (
-              <li>
-                <a
-                  href={m.url}
-                  class="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-indigo-500 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-400"
-                >
-                  <span class="flex items-center gap-3">
-                    <span class="grid size-11 place-items-center rounded-xl bg-indigo-50 text-2xl dark:bg-indigo-950" aria-hidden="true">{m.emoji}</span>
-                    <span class="text-sm font-bold text-indigo-700 dark:text-indigo-300">Module {m.numero}</span>
-                  </span>
-                  <span class="mt-4 font-bold text-slate-900 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-300">{m.titre}</span>
-                  <span class="mt-2 line-clamp-3 text-sm text-slate-600 dark:text-slate-400">{m.description}</span>
-                </a>
+            benefices.map((b) => (
+              <li class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+                <span class="text-3xl" aria-hidden="true">{b.emoji}</span>
+                <h3 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">{b.titre}</h3>
+                <p class="mt-2 text-slate-600 dark:text-slate-400">{b.texte}</p>
               </li>
             ))
           }
-        </ol>
+        </ul>
       </div>
     </section>
 
+    <!-- Programme -->
+    <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="programme-titre">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 id="programme-titre" class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Le programme</h2>
+          <p class="mt-3 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
+            {modules.length} modules progressifs, du premier clic dans Studio à la checklist de lancement, dont un module entier pour
+            apprendre à piloter Claude Code.
+          </p>
+        </div>
+        <a href={lien('/programme/')} class="font-semibold text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">Programme détaillé →</a>
+      </div>
+      <ol class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="accueil-modules">
+        {
+          modules.map((m) => (
+            <li>
+              <a
+                href={m.url}
+                class="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-indigo-500 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950 dark:hover:border-indigo-400"
+              >
+                <span class="flex items-center gap-3">
+                  <span class="grid size-11 place-items-center rounded-xl bg-indigo-50 text-2xl dark:bg-indigo-950" aria-hidden="true">{m.emoji}</span>
+                  <span class="text-sm font-bold text-indigo-700 dark:text-indigo-300">Module {m.numero}</span>
+                </span>
+                <span class="mt-4 font-bold text-slate-900 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-300">{m.titre}</span>
+                <span class="mt-2 line-clamp-3 text-sm text-slate-600 dark:text-slate-400">{m.description}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
     <!-- Fil rouge -->
-    <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="filrouge-titre">
-      <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+    <section class="border-y border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50" aria-labelledby="filrouge-titre">
+      <div class="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
         <div>
           <p class="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Projet fil rouge</p>
           <h2 id="filrouge-titre" class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
@@ -220,22 +360,23 @@ const faq = [
           </h2>
           <p class="mt-4 text-lg text-slate-600 dark:text-slate-300">
             Un parcours d’obstacles dans le ciel, avec des pièces à collecter et une boutique de cosmétiques. Simple à démarrer,
-            assez riche pour aborder chaque notion de la formation — et assez petit pour être vraiment terminé.
+            assez riche pour aborder chaque notion de la formation — et assez petit pour être vraiment terminé. Tu construis le premier
+            niveau à la main, puis chaque système avec Claude Code, une tâche et une vérification à la fois.
           </p>
         </div>
         <ul class="grid gap-3 sm:grid-cols-2">
           {
             [
+              ['🤖', 'Projet Rojo, Git et CLAUDE.md pour piloter Claude Code'],
               ['🏁', 'Checkpoints sécurisés côté serveur'],
               ['🪙', 'Pièces, leaderstats et sauvegarde fiable'],
               ['🛍️', 'Boutique et inventaire de cosmétiques'],
-              ['🌀', 'Plateformes animées avec TweenService'],
               ['🎟️', 'Game Pass et achat « passer l’étape »'],
               ['📈', 'Événements analytiques et entonnoir'],
               ['📱', 'Interface et performances pensées mobile'],
               ['🚀', 'Page de jeu, miniatures et lancement'],
             ].map(([emoji, texte]) => (
-              <li class="flex items-center gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+              <li class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
                 <span class="text-xl" aria-hidden="true">{emoji}</span>
                 <span class="font-medium text-slate-800 dark:text-slate-200">{texte}</span>
               </li>
@@ -246,31 +387,30 @@ const faq = [
     </section>
 
     <!-- Pour qui -->
-    <section class="border-y border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50" aria-labelledby="pourqui-titre">
-      <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <h2 id="pourqui-titre" class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">À qui s’adresse cette formation ?</h2>
-        <div class="mt-10 grid gap-6 md:grid-cols-2">
-          <div class="rounded-2xl border border-emerald-300 bg-white p-6 dark:border-emerald-800 dark:bg-slate-950">
-            <h3 class="text-lg font-bold text-emerald-800 dark:text-emerald-300">✓ C’est pour toi si…</h3>
-            <ul class="mt-4 space-y-3 text-slate-700 dark:text-slate-300">
-              {pourToi.map((t) => <li class="flex gap-3"><span aria-hidden="true" class="text-emerald-600">●</span><span>{t}</span></li>)}
-            </ul>
-          </div>
-          <div class="rounded-2xl border border-slate-300 bg-white p-6 dark:border-slate-700 dark:bg-slate-950">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">✗ Ce n’est pas pour toi si…</h3>
-            <ul class="mt-4 space-y-3 text-slate-700 dark:text-slate-300">
-              {pasPourToi.map((t) => <li class="flex gap-3"><span aria-hidden="true" class="text-slate-500">●</span><span>{t}</span></li>)}
-            </ul>
-          </div>
+    <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8" aria-labelledby="pourqui-titre">
+      <h2 id="pourqui-titre" class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">À qui s’adresse cette formation ?</h2>
+      <div class="mt-10 grid gap-6 md:grid-cols-2">
+        <div class="rounded-2xl border border-emerald-300 bg-white p-6 dark:border-emerald-800 dark:bg-slate-950">
+          <h3 class="text-lg font-bold text-emerald-800 dark:text-emerald-300">✓ C’est pour toi si…</h3>
+          <ul class="mt-4 space-y-3 text-slate-700 dark:text-slate-300">
+            {pourToi.map((t) => <li class="flex gap-3"><span aria-hidden="true" class="text-emerald-600">●</span><span>{t}</span></li>)}
+          </ul>
         </div>
-        <div class="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 dark:border-amber-700 dark:bg-amber-950/30">
-          <h3 class="font-bold text-slate-900 dark:text-white">🤝 Notre engagement d’honnêteté</h3>
-          <p class="mt-2 text-slate-700 dark:text-slate-300">
-            Aucune promesse de revenus, de « jeu viral » ou de succès garanti. Sur Roblox, la concurrence est énorme : des millions de
-            créateurs publient des jeux. Ce que tu gagnes ici : des compétences réelles, une méthode claire et un jeu terminé dont tu
-            comprends chaque ligne.
-          </p>
+        <div class="rounded-2xl border border-slate-300 bg-white p-6 dark:border-slate-700 dark:bg-slate-950">
+          <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">✗ Ce n’est pas pour toi si…</h3>
+          <ul class="mt-4 space-y-3 text-slate-700 dark:text-slate-300">
+            {pasPourToi.map((t) => <li class="flex gap-3"><span aria-hidden="true" class="text-slate-500">●</span><span>{t}</span></li>)}
+          </ul>
         </div>
+      </div>
+      <div class="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 dark:border-amber-700 dark:bg-amber-950/30">
+        <h3 class="font-bold text-slate-900 dark:text-white">🤝 Notre engagement d’honnêteté</h3>
+        <p class="mt-2 text-slate-700 dark:text-slate-300">
+          Aucune promesse de revenus, de « jeu viral » ou de succès garanti. Sur Roblox, la concurrence est énorme : des millions de
+          créateurs publient des jeux. Aucune promesse magique non plus du côté de l’IA : elle accélère le travail, elle se trompe
+          aussi, et c’est toi qui vérifies. Ce que tu gagnes ici : des compétences réelles, une méthode claire et un jeu terminé dont
+          tu comprends chaque système, même quand c’est l’IA qui en a tapé le code.
+        </p>
       </div>
     </section>
 
@@ -286,6 +426,15 @@ const faq = [
                 <span class="text-xl text-indigo-600 transition-transform group-open:rotate-45 dark:text-indigo-300" aria-hidden="true">+</span>
               </summary>
               <p class="mt-3 text-slate-600 dark:text-slate-400">{f.r}</p>
+              {f.liens && (
+                <ul class="mt-3 space-y-1 text-sm">
+                  {f.liens.map((l) => (
+                    <li>
+                      <a href={l.url} class="font-semibold text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">{l.texte}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </details>
           ))
         }
@@ -296,7 +445,10 @@ const faq = [
     <section class="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
       <div class="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 px-6 py-14 text-center text-white sm:px-12">
         <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Prêt à poser ta première brique ?</h2>
-        <p class="mx-auto mt-4 max-w-xl text-lg text-indigo-100">Commence par le module 0 : en quelques minutes, tu sais où tu vas et comment avancer.</p>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-indigo-100">
+          Commence par le module 0 : en quelques minutes, tu sais où tu vas et comment avancer. Au module 2, tu écris ton premier
+          prompt précis à Claude Code.
+        </p>
         <a href={urlDepart} class="bouton mt-8 bg-white text-lg text-indigo-700 hover:bg-indigo-50">Commencer maintenant</a>
       </div>
     </section>

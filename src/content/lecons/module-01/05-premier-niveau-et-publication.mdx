@@ -6,7 +6,7 @@ objectifs:
   - Construire les premiers sauts de l’Obby des Nuages avec une difficulté progressive
   - Configurer la SpawnLocation et rendre le parcours lisible
   - Publier une première version privée et utiliser l’historique des versions
-  - Découvrir la collaboration avec Team Create
+  - Découvrir la collaboration avec Team Create et ce qui t’attend au module 2 (piloter Claude Code)
 miseAJour: 2026-10-24
 quiz:
   - type: qcm
@@ -62,9 +62,22 @@ quiz:
       - texte: Uniquement aux membres de l’équipe de modération
       - texte: À personne, Team Create est réservé aux groupes
     explication: "Pour un jeu appartenant à un utilisateur, la documentation indique que l’accès **Play** peut être donné à n’importe qui, mais la permission **Edit** seulement à des **amis** Roblox. Au moment de la rédaction, collaborer avec d’autres créateurs demande aussi une vérification d’âge (age check)."
+  - type: ameliore-le-prompt
+    question: "Au module 2, tu demanderas à Claude Code la commande de vérification de cette leçon. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais un code pour vérifier mes plateformes"
+    options:
+      - texte: Écris un code Luau propre et optimisé pour vérifier toutes les plateformes de mon obby.
+      - texte: |
+          Écris un code pour la Command Bar de Studio qui affiche dans l’Output le chemin complet de chaque Part non ancrée du dossier Workspace.Plateformes, Parts rangées dans des Models comprises.
+          Contraintes : le code ne modifie rien et ne provoque pas d’erreur si le dossier n’existe pas.
+          Vérification : si tout est ancré, seul « Vérification terminée » s’affiche.
+        correct: true
+      - texte: Écris un code qui ancre automatiquement toutes les Parts du jeu, ce sera plus rapide.
+      - texte: Vérifie mes plateformes et corrige tout ce qui ne va pas.
+    explication: "La bonne version dit **où** le code s’exécute (Command Bar), **quoi** chercher (Parts non ancrées de `Workspace.Plateformes`, Models compris), ce qu’il ne doit **pas** faire (rien modifier) et **comment vérifier** le résultat. « Propre et optimisé » ne précise rien, « corrige tout » laisse l’IA modifier ton niveau à l’aveugle, et ancrer toutes les Parts du jeu casserait les futures plateformes mobiles."
 ---
 
-Tu sais construire, ranger et tester : il est temps d’assembler le **premier niveau de l’Obby des Nuages** et de le **publier**. Cette leçon termine le module 1 avec un vrai résultat : un parcours jouable, enregistré sur ton compte Roblox, que tu pourras faire essayer à quelques amis. Ce n’est que la version 0.1, et c’est très bien ainsi : un jeu publié tôt s’améliore bien plus vite qu’un jeu parfait qui reste dans un tiroir.
+Tu sais construire, ranger et tester : il est temps d’assembler le **premier niveau de l’Obby des Nuages** et de le **publier**. Cette leçon termine le module 1 avec un vrai résultat : un parcours jouable, enregistré sur ton compte Roblox, que tu pourras faire essayer à quelques amis. Elle prépare aussi le module 2, où tu apprendras à faire écrire le code de ton jeu par Claude Code. Ce n’est que la version 0.1, et c’est très bien ainsi : un jeu publié tôt s’améliore bien plus vite qu’un jeu parfait qui reste dans un tiroir.
 
 ## Le plan du niveau 1
 
@@ -74,7 +87,7 @@ Reprends le cahier des charges du module 0. Pour ce premier niveau, vise :
 - **six à huit sauts** qui commencent très facilement et deviennent un peu plus exigeants ;
 - une **plateforme d’arrivée** bien visible, qui donne envie d’y aller.
 
-Pas encore de pièges, de pièces ni de checkpoints : ils arrivent au module 3. Ton seul objectif ici : un parcours agréable à parcourir avec les commandes de base.
+Pas encore de pièges, de pièces ni de checkpoints : ils arrivent au module 3, construits avec Claude Code une fois ton atelier installé au module 2. Ton seul objectif ici : un parcours agréable à parcourir avec les commandes de base.
 
 ## La zone de départ et la SpawnLocation
 
@@ -166,6 +179,33 @@ end
 
 Si seul « Vérification terminée » s’affiche, tout est ancré. Tu peux aussi taper `Anchored=false` dans la recherche de l’Explorer, comme vu dans la leçon 3.
 
+<AvecClaudeCode titre="Avec Claude Code (aperçu du module 2)">
+
+Tu n’as pas encore installé Claude Code : garde ce prompt pour le module 2, où il fera partie de tes premiers essais. Il montre à quoi ressemble une demande précise, même pour un petit outil : où le code s’exécute, ce qu’il cherche, ce qu’il ne doit surtout pas faire et comment vérifier le résultat. Tu pourras comparer le code obtenu avec celui de cette leçon.
+
+<Prompt titre="Vérifier l’ancrage des plateformes">
+
+```text
+Contexte : je construis l'Obby des Nuages dans Roblox Studio. Les plateformes du parcours sont des Parts rangées dans le Folder Workspace.Plateformes, parfois regroupées dans des Models.
+Objectif : un code Luau à coller dans la Command Bar de Studio, qui affiche dans l'Output le chemin complet de chaque Part NON ancrée de ce dossier, puis le message « Vérification terminée ».
+Fichiers concernés : aucun. Ne crée et ne modifie aucun script ni aucune instance : le code ne fait que lire et afficher.
+Contraintes techniques : récupère Workspace avec game:GetService ; cherche le dossier avec FindFirstChild ; parcours-le avec GetDescendants pour inclure les Parts rangées dans des Models ; garde tous les types de Parts avec IsA("BasePart") ; affiche le chemin avec GetFullName ; commentaires en français.
+Cas limites : si le dossier Plateformes n'existe pas, le code ne doit provoquer aucune erreur.
+Vérification : lancé en dehors d'un test, sur un dossier où tout est ancré, seul « Vérification terminée » s'affiche ; si je décoche Anchored sur une plateforme, son chemin complet apparaît dans l'Output.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la condition garde les Parts dont `Anchored` vaut `false` (`not objet.Anchored`), et non l’inverse : c’est exactement le piège du quiz de cette leçon ;
+- le dossier est parcouru avec `GetDescendants`, pas `GetChildren`, sinon les plateformes rangées dans un Model sont oubliées ;
+- le test utilise `IsA("BasePart")`, qui couvre aussi les wedges et les TrussParts, plutôt qu’une comparaison avec le seul nom de classe `"Part"` ;
+- le code ne modifie rien : aucune ligne `Anchored = true` ajoutée « pour t’aider » ;
+- le code ne plante pas si le dossier `Plateformes` n’existe pas (test `if dossier then`).
+
+</AvecClaudeCode>
+
 ## Publier ta première version privée
 
 Publier enregistre ton place dans le cloud de Roblox et le **lie à ton compte**. Au moment de la rédaction, voici la marche à suivre décrite par la documentation :
@@ -222,6 +262,20 @@ Dans trois semaines, « Version 47 » ne te dira rien. Une note de dix mots (« 
 
 Les conditions d’âge et de permissions évoluent : vérifie toujours la page officielle avant d’inviter quelqu’un.
 
+## La suite : scripter avec l’IA
+
+Ton premier niveau est construit et publié. Jusqu’ici, tout s’est fait à la main, et c’était voulu : pour diriger une IA dans Studio, il faut d’abord connaître Studio. Au **module 2**, « Scripter avec l’IA : piloter Claude Code », tu changes de façon de travailler :
+
+- tu installes un atelier de pro : le code du jeu en fichiers sur ton ordinateur (avec l’outil Rojo), un historique de versions de ces fichiers (avec Git, qui complète l’historique des versions de Roblox), Claude Code relié à Studio et des outils qui vérifient automatiquement le code ;
+- tu écris le fichier **CLAUDE.md** de l’Obby des Nuages, la fiche qui décrit ton jeu et ses règles à l’IA ;
+- tu apprends à écrire des **prompts précis**, à découper le travail en petites tâches, puis à **relire, tester et déboguer** ce que l’IA produit.
+
+Ensuite seulement, au module 3, arrivent les kill bricks, les pièces et les checkpoints : construits avec Claude Code, et expliqués ligne par ligne pour que tu saches **lire** et **vérifier** ce que l’IA a écrit.
+
+<Info titre="Avant le module 2">
+Claude Code demande une offre payante d’Anthropic (prix datés dans [la leçon de bienvenue](/modules/00/bienvenue/)). Claude Code est réservé aux personnes de 18 ans et plus (conditions d’utilisation d’Anthropic, octobre 2026). Si tu as moins de 18 ans, ne crée pas de compte et n’utilise pas seul celui d’un parent. Tu peux : travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ; utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox ; ou suivre la formation en lisant et en tapant toi-même — les prompts et la méthode de relecture restent utiles.
+</Info>
+
 <Defi>
 
 1. Vérifie que toutes tes plateformes sont ancrées, puis supprime la Baseplate et monte ta zone de départ et la SpawnLocation en altitude.
@@ -237,9 +291,9 @@ Les conditions d’âge et de permissions évoluent : vérifie toujours la page 
 - La **SpawnLocation** est le point d’apparition : neutre, ancrée, une seule au départ.
 - Supprime la Baseplate pour un obby dans le ciel : sous `FallenPartsDestroyHeight`, le personnage est retiré et le joueur réapparaît automatiquement.
 - Construis les sauts par la méthode **placer, tester (Test Here), ajuster**, une difficulté à la fois, avec un code couleur lisible.
-- **File** › **Publish** (`Alt`+`P`) lie le jeu à ton compte ; il reste **privé** par défaut.
-- **Save to Roblox** sauvegarde, **Publish** livre aux joueurs ; **Version History** garde et restaure les versions (restaurer ne publie pas).
+- **File** › **Publish** (`Alt`+`P`) lie le jeu à ton compte, qui reste **privé** par défaut ; **Save to Roblox** sauvegarde, **Publish** livre aux joueurs, **Version History** garde et restaure les versions (restaurer ne publie pas).
 - **Team Create** permet de collaborer ; permissions et vérification d’âge sont à vérifier sur la page officielle.
+- Au **module 2**, tu apprends à faire construire la suite par **Claude Code**, avec des prompts précis, puis à relire et vérifier le code produit.
 </Resume>
 
 <Sources>
@@ -255,4 +309,6 @@ Les conditions d’âge et de permissions évoluent : vérifie toujours la page 
 - [StarterPlayer — vitesse et saut des personnages (référence API)](https://create.roblox.com/docs/reference/engine/classes/StarterPlayer)
 - [Work with parts — conseils sur la distance des sauts d’un obby](https://create.roblox.com/docs/tutorials/curriculums/building/work-with-parts)
 - [Test and save — publier depuis Studio](https://create.roblox.com/docs/tutorials/curriculums/building/test-and-save)
+- [Claude Code — comptes acceptés et installation (documentation officielle)](https://code.claude.com/docs/en/setup)
+- [Conditions d’utilisation d’Anthropic (Consumer Terms) — âge minimum](https://www.anthropic.com/legal/consumer-terms)
 </Sources>

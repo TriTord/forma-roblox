@@ -6,14 +6,25 @@ import { formaterDuree, getLecons, getModules } from '~/lib/cours';
 const modules = await getModules();
 const lecons = await getLecons();
 const dureeTotale = modules.reduce((t, m) => t + m.duree, 0);
+const urlModuleIA = modules.find((m) => m.numero === '02')?.url;
 ---
 
-<BaseLayout titre="Programme complet" description="Le programme détaillé de la formation : 12 modules, leurs leçons et leurs examens.">
+<BaseLayout
+  titre="Programme complet"
+  description={`Le programme détaillé de la formation : ${modules.length} modules, leurs leçons et leurs examens, pour créer un jeu Roblox en pilotant des IA de code comme Claude Code.`}
+>
   <main class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
     <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Programme complet</h1>
     <p class="mt-3 text-lg text-slate-600 dark:text-slate-300">
       {modules.length} modules · {lecons.length} leçon{lecons.length > 1 ? 's' : ''} publiée{lecons.length > 1 ? 's' : ''}
       {dureeTotale > 0 && <> · ≈ {formaterDuree(dureeTotale)} de contenu</>}
+    </p>
+    <p class="mt-4 text-slate-600 dark:text-slate-300">
+      La méthode : tu crées ton jeu en pilotant des IA de code, surtout Claude Code. Le
+      <a href={urlModuleIA} class="font-semibold text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">module 2</a>
+      t’apprend à les diriger avec des prompts précis (contexte, objectif, contraintes, critères de réussite) ; les modules suivants
+      t’apprennent à lire et à vérifier le code produit. Les leçons techniques comportent un encadré « Avec Claude Code » : le prompt
+      pour construire le système de la leçon et ce qu’il faut contrôler dans le résultat.
     </p>
     <BarreProgression portee="globale" libelle="Progression dans la formation" class="mt-6" />
 

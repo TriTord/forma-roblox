@@ -3,7 +3,7 @@ export const SITE = {
   nom: 'Forma Roblox',
   titre: 'Créer un jeu Roblox qui marche, de A à Z',
   description:
-    'Formation en français pour créer, publier et faire grandir ton premier jeu Roblox : Roblox Studio, Luau, client/serveur, systèmes de jeu, game design, monétisation éthique, analytics et optimisation.',
+    'Formation en français pour créer, publier et faire grandir ton premier jeu Roblox en pilotant des IA de code comme Claude Code : prompts précis, lire et vérifier le code Luau, client/serveur, game design, monétisation éthique et analytics.',
   avertissement:
     'Formation indépendante, non affiliée à Roblox Corporation. « Roblox » et « Roblox Studio » sont des marques de Roblox Corporation.',
   /** Nom du jeu construit au fil des modules. */

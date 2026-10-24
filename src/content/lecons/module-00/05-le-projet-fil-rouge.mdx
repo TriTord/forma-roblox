@@ -1,6 +1,6 @@
 ---
 titre: "Ton projet : l’Obby des Nuages"
-description: Le cahier des charges du jeu que tu vas construire, sa boucle de jeu, ce qui entre dans la version 1 et ce qui attend, la carte des modules et les critères de « terminé ».
+description: Le cahier des charges du jeu que tu vas construire avec Claude Code, sa boucle de jeu, ce qui entre dans la version 1, la carte des modules et les critères de « terminé ».
 duree: 20
 objectifs:
   - Comprendre le cahier des charges de l’Obby des Nuages
@@ -43,6 +43,15 @@ quiz:
         correct: true
     explication: "« Terminé » dépend de critères **que tu contrôles** : un jeu complet, stable, sauvegardé, testé. Un nombre de joueurs n’est pas un critère de fin : il dépend aussi de facteurs extérieurs (concurrence, saisonnalité, recommandations)."
   - type: qcm
+    question: "À quel moment du parcours prépares-tu l’Obby des Nuages pour le construire avec Claude Code (projet Rojo, Git, fichier CLAUDE.md du jeu) ?"
+    options:
+      - texte: Dès le module 0, avant d’avoir ouvert Studio
+      - texte: "Au module 2, juste après avoir construit et publié le premier niveau à la main"
+        correct: true
+      - texte: Au module 8, juste avant le lancement
+      - texte: Jamais, Claude Code n’a pas besoin de connaître le projet
+    explication: "Le module 1 te fait construire le premier niveau à la main, pour connaître Studio. Le **module 2** installe ensuite l’atelier de travail (Rojo, Git, CLAUDE.md, outils qualité) : à partir de là, chaque système de l’obby est construit avec Claude Code, puis relu et testé."
+  - type: qcm
     question: "Pendant le module 5, tu as envie d’ajouter un deuxième monde sur le thème de l’espace. Que fais-tu ?"
     options:
       - texte: Tu l’ajoutes tout de suite, c’est motivant
@@ -52,7 +61,7 @@ quiz:
     explication: "C’est l’application directe de la leçon sur le mindset : une idée nouvelle n’entre jamais directement dans la version en cours. Un deuxième monde pourra devenir une excellente mise à jour **après** le lancement, si les joueurs en redemandent."
 ---
 
-Place à l’action ! Dans cette leçon, tu découvres le cahier des charges du jeu que tu vas construire tout au long de la formation : l’**Obby des Nuages**. Tu vas appliquer immédiatement ce que tu as appris dans la leçon sur le mindset : une version 1 précise, une liste « plus tard » assumée, et des critères clairs pour savoir quand le jeu est terminé.
+Place à l’action ! Dans cette leçon, tu découvres le cahier des charges du jeu que tu vas construire tout au long de la formation, à la main d’abord, puis en pilotant Claude Code : l’**Obby des Nuages**. Tu vas appliquer immédiatement ce que tu as appris dans la leçon sur le mindset : une version 1 précise, une liste « plus tard » assumée, et des critères clairs pour savoir quand le jeu est terminé.
 
 ## Le pitch
 
@@ -128,15 +137,18 @@ Chaque module ajoute une brique à l’Obby des Nuages :
 |---|---|
 | 0 | Le cahier des charges (cette leçon) |
 | 1 | Le premier niveau construit à la main (plateformes, point d’apparition), publié en privé |
-| 2 | Kill bricks, pièces qui tournent, premiers checkpoints et un module de configuration |
-| 3 | Checkpoints et pièces validés par le serveur, achat en boutique sécurisé |
-| 4 | Statistiques Étape et Pièces, sauvegarde, inventaire de traînées, interface de boutique, plateformes animées, animation de victoire |
-| 5 | Premières secondes, courbe de difficulté, récompenses et objectifs |
-| 6 | Game Pass cosmétique, achat « passer l’étape », prix et éthique |
-| 7 | Page du jeu, icône, miniatures, lancement et première mise à jour |
-| 8 | Mesure de la progression étape par étape et lecture du Creator Dashboard |
-| 9 | Version mobile soignée et chasse au lag |
-| 10 | Passage de la checklist de lancement complète |
+| 2 | L’atelier pour piloter Claude Code : le projet en fichiers sur ton ordinateur (Rojo), l’historique des versions (Git), le fichier CLAUDE.md qui décrit le jeu à l’IA, les outils qui vérifient le code, et la méthode pour construire chaque système avec un prompt précis |
+| 3 | Kill bricks, pièces qui tournent, premiers checkpoints et un module de configuration |
+| 4 | Checkpoints et pièces validés par le serveur, achat en boutique sécurisé |
+| 5 | Statistiques Étape et Pièces, sauvegarde, inventaire de traînées, interface de boutique, plateformes animées, animation de victoire |
+| 6 | Premières secondes, courbe de difficulté, récompenses et objectifs |
+| 7 | Game Pass cosmétique, achat « passer l’étape », prix et éthique |
+| 8 | Page du jeu, icône, miniatures, lancement et première mise à jour |
+| 9 | Mesure de la progression étape par étape et lecture du Creator Dashboard |
+| 10 | Version mobile soignée et chasse au lag |
+| 11 | Passage de la checklist de lancement complète |
+
+À partir du module 3, chaque leçon technique t’explique le système (pour que tu saches le lire et le vérifier) et te donne, dans un encadré « Avec Claude Code », le prompt précis pour le faire construire par l’IA, avec la liste de ce qu’il faut contrôler dans le code produit.
 
 ### Les noms qu’on utilisera partout
 
@@ -146,8 +158,10 @@ Pour que tous les scripts de la formation s’emboîtent, on fixe dès maintenan
 - dans **ReplicatedStorage** (un espace partagé entre le serveur et les joueurs) : un dossier `Remotes` pour la communication entre le serveur et les joueurs, et un dossier `Modules` avec les réglages du jeu (`Config`) et la liste des objets de la boutique (`Catalogue`) ;
 - les statistiques affichées s’appellent `Etape` et `Pieces`, **sans accents** dans les noms d’objets (les textes affichés à l’écran, eux, pourront avoir des accents).
 
+Au module 2, ces noms iront dans le fichier **CLAUDE.md** du jeu, la fiche que Claude Code lit au début de chaque session : l’IA les réutilisera d’elle-même au lieu d’en inventer d’autres à chaque prompt.
+
 <Astuce titre="Des noms clairs dès le départ">
-Renommer des objets en cours de projet casse les scripts qui les cherchent par leur nom. Choisir des noms simples, sans accents ni espaces, et s’y tenir t’épargnera des heures de débogage. C’est pour cela que la formation fixe ces conventions dès le module 0.
+Renommer des objets en cours de projet casse les scripts qui les cherchent par leur nom. Choisir des noms simples, sans accents ni espaces, et s’y tenir t’épargnera des heures de débogage. C’est pour cela que la formation fixe ces conventions dès le module 0. Avec une IA, c’est encore plus important : un prompt qui donne les noms exacts produit du code qui s’emboîte avec le reste du jeu.
 </Astuce>
 
 ## Quand le jeu sera-t-il « terminé » ?
@@ -172,7 +186,7 @@ Publier en public ne veut pas dire toucher tout le monde dès le premier jour. A
 
 Tu suivras la formation dans l’ordre, mais il est utile d’avoir une vision d’ensemble :
 
-- **Étape 1, le cœur jouable** (modules 1 à 5) : construire, programmer, sécuriser et sauvegarder. À la fin, l’Obby des Nuages est jouable de bout en bout par tes amis.
+- **Étape 1, le cœur jouable** (modules 1 à 5) : construire le premier niveau à la main (module 1), installer l’atelier et apprendre à piloter Claude Code (module 2), puis programmer, sécuriser et sauvegarder avec l’IA en apprenant à lire et vérifier son code (modules 3 à 5). À la fin, l’Obby des Nuages est jouable de bout en bout par tes amis.
 - **Étape 2, le rendre bon** (module 6) : peaufiner l’expérience avec de vrais testeurs.
 - **Étape 3, le lancer** (modules 7 à 11) : monétisation éthique, page du jeu, statistiques, mobile, checklist.
 
@@ -186,7 +200,8 @@ Dessine sur papier les trois premières étapes de l’Obby des Nuages, vues de 
 - L’**Obby des Nuages** : un parcours dans le ciel, avec checkpoints, pièces et une boutique de traînées **cosmétiques**.
 - Sa **boucle de jeu** : sauter, atteindre un checkpoint, gagner des pièces, débloquer une traînée, recommencer plus loin.
 - La **version 1** contient le cœur jouable et ce qu’il faut pour lancer ; les autres idées vont dans la liste « plus tard ».
-- Chaque module ajoute une brique, avec des **noms fixés** dès maintenant (dossiers Checkpoints, KillBricks, Pieces, Remotes, Modules ; statistiques Etape et Pieces).
+- Chaque module ajoute une brique, avec des **noms fixés** dès maintenant (dossiers Checkpoints, KillBricks, Pieces, Remotes, Modules ; statistiques Etape et Pieces), que le fichier CLAUDE.md transmettra à l’IA.
+- Le parcours : le premier niveau à la main (module 1), l’atelier Claude Code (module 2), puis chaque système construit avec l’IA, relu et testé (modules 3 à 11).
 - Le jeu est « terminé » selon des critères **que tu contrôles** : complet, sauvegardé, sécurisé, testé, page soignée, checklist cochée.
 </Resume>
 
@@ -196,4 +211,5 @@ Dessine sur papier les trois premières étapes de l’Obby des Nuages, vues de 
 - [Prototyping — prototypes papier et Studio (documentation officielle)](https://create.roblox.com/docs/production/game-design/prototyping)
 - [Roblox Kids and Select — exigences de publication selon le public](https://create.roblox.com/docs/production/publishing/kids-and-select)
 - [DevForum — « I need help making a game » (l’obby comme premier projet, 2020)](https://devforum.roblox.com/t/i-need-help-making-a-game/573814)
+- [Best practices for Claude Code — le fichier CLAUDE.md, lu au début de chaque session (documentation officielle)](https://code.claude.com/docs/en/best-practices)
 </Sources>

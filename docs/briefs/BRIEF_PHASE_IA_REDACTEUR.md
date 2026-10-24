@@ -105,3 +105,6 @@ Mêmes règles que la phase 1 (`docs/briefs/BRIEF_REDACTEUR.md`, section « Code
 
 ## Réponse finale (COURTE, ≤ 15 lignes)
 Fichiers créés/modifiés, nombre de questions, statut du build pour tes fichiers, résultat de `verifier-luau` s'il y a du code, points incertains, besoins techniques. N'inclus pas le contenu des leçons.
+
+## Âge minimal (décision 38, OBLIGATOIRE partout)
+Les conditions d'utilisation grand public d'Anthropic (https://www.anthropic.com/legal/consumer-terms, section 2, version du 8 octobre 2025) exigent **18 ans minimum**, sans clause de supervision parentale. Formulation commune : « Claude Code est réservé aux personnes de 18 ans et plus (conditions d'utilisation d'Anthropic, octobre 2026). Si tu as moins de 18 ans, ne crée pas de compte et n'utilise pas seul celui d'un parent. Tu peux : travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ; utiliser l'Assistant intégré à Roblox Studio, soumis aux règles de Roblox ; ou suivre la formation en lisant et en tapant toi-même — les prompts et la méthode de relecture restent utiles. » N'écris jamais qu'un mineur peut utiliser Claude Code avec l'accord d'un parent.

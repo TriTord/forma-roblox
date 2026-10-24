@@ -1,6 +1,6 @@
 module: "00"
 titre: Examen du module 0
-description: Vérifie que tu as compris comment fonctionne Roblox côté créateurs, comment les jeux sont découverts, la méthode pour finir un jeu et le projet de l’Obby des Nuages.
+description: Vérifie que tu as compris comment fonctionne Roblox côté créateurs, comment les jeux sont découverts, la méthode de la formation (diriger l’IA, lire et vérifier son code), l’état d’esprit pour finir un jeu et le projet de l’Obby des Nuages.
 seuil: 70
 questions:
   - type: qcm
@@ -11,12 +11,22 @@ questions:
         correct: true
       - texte: Une console de jeu et une manette
       - texte: Un abonnement payant à Roblox obligatoire
-    explication: "Roblox Studio est une application gratuite pour **Windows et Mac**. On peut jouer sur tablette ou console, mais pour créer, il faut un ordinateur. Aucun abonnement n’est nécessaire pour apprendre et construire."
+    explication: "Roblox Studio est une application gratuite pour **Windows et Mac**. On peut jouer sur tablette ou console, mais pour créer, il faut un ordinateur. Aucun abonnement Roblox n’est nécessaire. Seul Claude Code, utilisé à partir du module 2, demande une offre payante d’Anthropic et est réservé aux 18 ans et plus ; une grande partie de la formation se suit même sans."
 
-  - type: vrai-faux
-    question: "Tu as terminé dix leçons sur l’ordinateur familial. En ouvrant le site sur ton téléphone, tu retrouveras automatiquement cette progression."
-    reponse: false
-    explication: "La progression de la formation est enregistrée dans le **navigateur** de l’appareil utilisé. Elle ne se synchronise pas entre appareils et n’est pas liée à ton compte Roblox."
+  - type: ameliore-le-prompt
+    question: "Ton ami veut que Claude Code ajoute les kill bricks de son Obby des Nuages. Quelle demande donnera le meilleur résultat ?"
+    prompt: "ajoute des pièges"
+    options:
+      - texte: Ajoute des pièges sympas et bien codés à mon obby.
+      - texte: |
+          Contexte : Obby des Nuages ; les pièges sont les Parts du dossier Workspace.KillBricks.
+          Objectif : un joueur qui touche une de ces Parts est éliminé et réapparaît à son dernier checkpoint.
+          Contraintes : un seul Script serveur dans ServerScriptService ; rien n’est décidé par le client.
+          Vérification : en Play, toucher un piège élimine le personnage et l’Output ne montre aucune erreur.
+        correct: true
+      - texte: "Fais tout le jeu d’un coup : pièges, pièces, checkpoints et boutique."
+      - texte: Ajoute des pièges, et inutile de m’expliquer le code, je ne le lirai pas.
+    explication: "Plus le prompt est précis, meilleur est le résultat : la bonne version donne le contexte (le dossier `KillBricks`), l’objectif vu du joueur, les contraintes (script serveur) et un critère de vérification. Tout demander d’un coup donne un résultat impossible à vérifier, et refuser de lire le code, c’est renoncer à repérer les erreurs de l’IA."
 
   - type: qcm
     question: "Tu veux voir les statistiques de ton jeu publié et demander un paiement DevEx. Où vas-tu ?"

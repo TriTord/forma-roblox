@@ -1,11 +1,11 @@
 ---
 titre: Le mindset qui permet de finir un jeu
-description: Choisir un périmètre réaliste, prototyper vite, publier tôt, écouter les joueurs et tenir dans la durée. La méthode pour terminer ton jeu au lieu de l’abandonner.
-duree: 20
+description: Choisir un périmètre réaliste, prototyper vite, publier tôt, avancer avec l’IA par petites étapes vérifiées et tenir dans la durée. La méthode pour terminer ton jeu.
+duree: 22
 objectifs:
   - Choisir un périmètre réaliste pour une « version 1 »
   - Reconnaître et contenir la dérive du périmètre (scope creep)
-  - Adopter le cycle publier, mesurer, améliorer
+  - Adopter le cycle publier, mesurer, améliorer, et avancer avec l’IA par petites étapes vérifiées
   - Gérer ta motivation et transformer les échecs en apprentissages
 miseAJour: 2026-10-24
 quiz:
@@ -42,6 +42,15 @@ quiz:
       - texte: Observer où les joueurs se perdent ou abandonnent, puis corriger
         correct: true
     explication: "Le cycle repose sur des allers-retours rapides avec de vrais joueurs : on montre tôt, on mesure (retours et statistiques), on corrige, et on recommence. Attendre la perfection retarde tous les apprentissages."
+  - type: qcm
+    question: "Tu travailles avec Claude Code sur l’Obby des Nuages. Quelle façon d’avancer correspond au bon état d’esprit ?"
+    options:
+      - texte: "Demander en un seul prompt « fais-moi tout l’obby, avec la boutique, la sauvegarde et les pets »"
+      - texte: "Une petite tâche par prompt, tester dans Studio, relire le code, enregistrer une version qui marche, puis passer à la suivante"
+        correct: true
+      - texte: Accepter toutes les modifications sans les lire, puisque l’IA écrit plus vite que toi
+      - texte: "Ajouter chaque idée qui te vient, puisque l’IA la code en quelques minutes"
+    explication: "Une tâche à la fois, testée et relue, c’est la version « IA » du prototypage rapide : si quelque chose casse, tu sais quoi corriger et tu peux revenir à la dernière version qui marchait. Un prompt géant donne un résultat impossible à vérifier, et ajouter chaque idée parce que « l’IA va vite » reste du scope creep."
   - type: vrai-faux
     question: "Publier un jeu qui reprend le titre et les visuels d’un jeu existant est une stratégie efficace pour profiter de son succès."
     reponse: false
@@ -131,6 +140,28 @@ Jouer beaucoup aux jeux qui marchent est une excellente école. Roblox le recomm
 
 Mais il y a une limite nette entre s’inspirer et copier. La documentation officielle sur la découverte indique que les jeux dont le titre, les images et le contenu ressemblent de près à des jeux existants **ne sont plus prioritaires** dans les recommandations et peuvent être moins bien classés en recherche. Elle conseille plutôt d’**apporter ta touche personnelle** aux tendances que tu suis, avec des images et un nom originaux. Copier n’est donc pas seulement malhonnête : c’est aussi une mauvaise stratégie.
 
+## Ton état d’esprit face à l’IA
+
+Dans cette formation, une grande partie du code sera écrite par **Claude Code**, sous ta direction (tu le découvriras au module 2). C’est une aide énorme, mais elle change les pièges plutôt que de les supprimer. Trois réflexes t’éviteront la plupart des mauvaises surprises.
+
+### Avancer par petites étapes
+
+Une IA de code peut produire des centaines de lignes en une minute. C’est justement pour ça qu’il faut lui donner **une petite tâche à la fois** : « les kill bricks », puis « les pièces », puis « la sauvegarde », et pas « fais-moi tout l’obby ». Pour chaque tâche : un prompt précis, un test dans Studio, une version enregistrée qui marche, puis la tâche suivante. Si quelque chose casse, tu sais exactement quelle étape en est la cause.
+
+Attention aussi au **scope creep version IA** : comme ajouter une fonctionnalité semble ne plus coûter que quelques minutes, on est tenté de tout ajouter. Mais chaque ajout reste à tester, à équilibrer et à maintenir. La liste « plus tard » vaut toujours, IA ou pas.
+
+### Vérifier, toujours
+
+L’IA s’arrête quand le travail **a l’air** terminé, pas quand il est prouvé correct. La documentation officielle de Claude Code le résume ainsi : « If you can't verify it, don't ship it » (si tu ne peux pas le vérifier, ne le livre pas). Concrètement : tu testes chaque système dans Studio, tu regardes l’Output, et tu relis le code avec ce que les modules 3 à 5 t’auront appris (le serveur valide-t-il bien tout ce qui vient du joueur ?).
+
+### Ne pas tout déléguer
+
+L’IA écrit le code ; **les décisions restent les tiennes**. C’est toi qui choisis la boucle de jeu, la version 1, la difficulté des sauts, ce qui est équitable pour les joueurs. Et c’est toi qui dois comprendre ton jeu : le jour où un bug apparaît, un créateur qui sait lire son code le corrige en dix minutes, celui qui a tout délégué sans comprendre est bloqué.
+
+<Astuce titre="Le test de la phrase">
+Avant d’envoyer une demande à l’IA, essaie de décrire en une phrase ce que tu attends et comment tu vérifieras que c’est réussi. Si tu n’y arrives pas, la tâche est trop grosse ou trop floue : découpe-la d’abord.
+</Astuce>
+
 ## Motivation, régularité et échecs
 
 ### La régularité bat l’intensité
@@ -162,6 +193,7 @@ Si ta liste « Version 1 » dépasse cinq lignes, recommence en étant plus stri
 - Commence par une **version 1** (MVP) : la boucle de jeu et le minimum pour qu’elle soit amusante.
 - Contre le **scope creep**, chaque nouvelle idée passe par une liste « plus tard ».
 - **Prototype** vite et teste le gameplay avant de peaufiner le décor.
+- Avec l’IA : **une petite tâche par prompt**, toujours **vérifiée**, et les décisions de game design restent les tiennes.
 - Adopte le cycle **publier, mesurer, améliorer** : un jeu publié n’est pas un jeu fini.
 - **Inspire-toi sans copier**, travaille avec régularité et considère chaque échec comme une information.
 </Resume>
@@ -172,4 +204,5 @@ Si ta liste « Version 1 » dépasse cinq lignes, recommence en étant plus stri
 - [Discovery — bonnes pratiques et jeux non originaux](https://create.roblox.com/docs/discovery)
 - [Discovery FAQ — pas de pénalité pour un mauvais départ](https://create.roblox.com/docs/discovery-faq)
 - [DevForum — « I need help making a game » (conseils de développeurs à un débutant, 2020)](https://devforum.roblox.com/t/i-need-help-making-a-game/573814)
+- [Best practices for Claude Code — vérifier le travail de l’IA, petites étapes (documentation officielle)](https://code.claude.com/docs/en/best-practices)
 </Sources>
