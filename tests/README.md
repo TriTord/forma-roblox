@@ -34,5 +34,6 @@ Options utiles : `npx playwright test quiz` (un fichier), `--grep "examen"`, `--
 | `recherche.spec.ts` | Pagefind : résultats, raccourcis clavier, pages indexées |
 | `mobile.spec.ts` | 390 × 844 : pas de défilement horizontal, sommaire en tiroir, table des matières, en-tête |
 | `accessibilite.spec.ts` | axe-core (serious / critical) en clair et en sombre, quiz corrigé, recherche ouverte |
+| `taches.spec.ts` | listes de tâches « - [ ] » : cases étiquetées et actives, compteur, persistance, « Tout décocher », stockage bloqué, axe |
 | `console.spec.ts` | aucune erreur / avertissement console ni requête en échec sur les pages clés |
 | `contenu-complet.spec.ts` | `[CONTENU]` leçons et examens prévus par PLAN.md |
