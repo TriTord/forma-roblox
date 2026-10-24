@@ -1,11 +1,11 @@
 ---
 titre: Boucles et fonctions
-description: Répète des actions avec for, while et repeat, découpe ton code en fonctions réutilisables, comprends la portée des variables, puis fais tourner les pièces de ton obby.
-duree: 35
+description: Lis les boucles for, while et repeat, comprends les fonctions et la portée des variables, repère une boucle qui fige le jeu, puis fais tourner les pièces de ton obby.
+duree: 40
 objectifs:
-  - Répéter des actions avec les boucles for, while et repeat…until
-  - Contrôler une boucle avec break, continue et task.wait
-  - Écrire des fonctions avec paramètres et valeurs de retour
+  - Lire une boucle for, while ou repeat…until et prévoir ce qu’elle fait
+  - Repérer une boucle sans task.wait et l’ancienne fonction wait
+  - Comprendre les fonctions, leurs paramètres et leurs valeurs de retour
   - Comprendre la portée des variables locales
 miseAJour: 2026-10-24
 quiz:
@@ -58,9 +58,38 @@ quiz:
       - texte: "Ligne 7 : `math.rad` attend des radians, pas des degrés"
       - texte: "Ligne 5 : `while true do` est interdit en Luau"
     explication: "Une boucle infinie doit **toujours** contenir une attente (`task.wait()`). Sans elle, le script ne rend jamais la main au moteur et le jeu se fige (la documentation Roblox précise que Studio peut même planter). `task.wait()` attend environ une image et renvoie le temps réellement écoulé, idéal pour une rotation fluide. `math.rad` convertit bien des degrés en radians."
+  - type: qcm
+    question: "Qu’affiche ce code : `local x = 1`, puis `local function changer() local x = 2 end`, puis `changer()` et enfin `print(x)` ?"
+    options:
+      - texte: "`1`"
+        correct: true
+      - texte: "`2`"
+      - texte: "`nil`"
+      - texte: Une erreur, car `x` est déclarée deux fois
+    explication: "Dans la fonction, `local x = 2` crée une **nouvelle** variable `x`, qui n’existe que dans la fonction et cache l’autre (shadowing). Le `x` du niveau principal n’est pas modifié : l’Output affiche `1`. Pour modifier la variable extérieure, il fallait écrire `x = 2`, sans `local`. Ce genre de `local` en trop est facile à rater en relisant du code généré."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Le compte à rebours fonctionne, mais une ligne ne respecte pas une règle que ton CLAUDE.md impose. Laquelle ?"
+    code: |
+      -- Script dans ServerScriptService
+      local function compteARebours(duree)
+      	for i = duree, 1, -1 do
+      		print(i .. "...")
+      		wait(1)
+      	end
+      	print("Partez !")
+      end
+
+      compteARebours(3)
+    options:
+      - texte: "Ligne 3 : une boucle `for` ne peut pas avoir un pas négatif"
+      - texte: "Ligne 4 : on ne peut pas coller un nombre et un texte avec `..`"
+      - texte: "Ligne 5 : `wait` est dépréciée, il faut `task.wait(1)`"
+        correct: true
+      - texte: "Ligne 10 : la fonction doit être appelée avant d’être déclarée"
+    explication: "La fonction globale `wait` est **dépréciée** : la documentation Roblox la marque comme remplacée par `task.wait`, qui ne subit pas de ralentissement. Les IA la proposent encore souvent, car elle remplit les vieux tutoriels. Le pas `-1` est valide, `..` convertit le nombre en texte, et une fonction locale doit justement être déclarée **avant** d’être appelée."
 ---
 
-Dans la leçon précédente, ton code s’exécutait une seule fois, de haut en bas. Mais un jeu passe son temps à **répéter** des actions (faire tourner une pièce, compter un chrono…) et à **réutiliser** des morceaux de code. C’est le rôle des **boucles** et des **fonctions**. À la fin de cette leçon, les pièces de l’Obby des Nuages tourneront sur elles-mêmes.
+Dans la leçon précédente, ton code s’exécutait une seule fois, de haut en bas. Mais un jeu passe son temps à **répéter** des actions (faire tourner une pièce, compter un chrono…) et à **réutiliser** des morceaux de code. C’est le rôle des **boucles** et des **fonctions**. C’est aussi là qu’une IA peut produire les erreurs les plus graves : une boucle qui ne s’arrête jamais peut figer tout le jeu. Savoir **lire** une boucle (combien de tours ? est-ce qu’elle attend ?) est donc indispensable avant d’accepter un script. À la fin de cette leçon, les pièces de l’Obby des Nuages tourneront sur elles-mêmes.
 
 ## La boucle `for` numérique
 
@@ -287,9 +316,11 @@ Les pièces à collecter de l’Obby des Nuages doivent attirer l’œil : on va
 1. Dans le Workspace, crée un **Folder** nommé `Pieces`.
 2. Crée une Part, nomme-la `Piece`, donne-lui une forme de pièce et une couleur dorée. Par exemple : propriété **Shape** sur **Cylinder** et **Size** à `0.4, 3, 3`. Un cylindre Roblox est couché le long de l’axe X : avec ces dimensions, la pièce se tient debout « sur la tranche », et elle tournera comme une pièce de monnaie qu’on fait tourner sur une table.
 3. Coche **Anchored** (la pièce ne doit pas tomber) et décoche **CanCollide** (le joueur doit pouvoir la traverser).
-4. Range-la dans `Pieces` et insère un **Script** dedans.
+4. Range-la dans `Pieces` et insère un **Script** dedans (directement dans Studio : dans notre projet, Rojo ne synchronise pas le Workspace).
 
 ### Le code
+
+Voici le code, que tu peux taper ou demander à Claude Code (prompt dans l’encadré plus bas). Avant de le lancer, repère la boucle et vérifie qu’elle contient bien une attente.
 
 ```luau
 -- Script placé DANS une Part « Piece » du dossier Workspace.Pieces
@@ -321,6 +352,93 @@ Quelques explications :
 Faire tourner des pièces depuis un Script serveur est parfait pour apprendre. Au module 5, tu découvriras TweenService pour animer des objets plus simplement, et au module 10 on verra comment alléger ce genre d’animation purement visuelle.
 </Info>
 
+## Lire ce code comme un relecteur
+
+### Exercice 1 : que va afficher l’Output ?
+
+```luau
+local total = 0
+
+for i = 1, 6 do
+	if i % 2 == 0 then
+		continue
+	end
+	if i > 4 then
+		break
+	end
+	total += i
+end
+
+print(total)
+```
+
+<Info titre="Réponse">
+
+L’Output affiche `4`. Suis la boucle tour par tour : `i = 1` → `total` vaut 1 ; `i = 2` → pair, `continue` saute la fin du tour ; `i = 3` → `total` vaut 4 ; `i = 4` → pair, sauté ; `i = 5` → `5 > 4`, `break` arrête tout. Le tour `i = 6` n’a jamais lieu. Relire une boucle, c’est exactement ça : la dérouler à la main, quelques tours, sur un brouillon.
+
+</Info>
+
+### Exercice 2 : que se passe-t-il vraiment ?
+
+Une IA a proposé ce script pour faire clignoter une plateforme :
+
+```luau
+-- Script placé DANS une Part (proposé par une IA pour la faire clignoter)
+local plateforme = script.Parent
+
+local function clignoter()
+	while true do
+		plateforme.Transparency = 0.5
+		wait(0.5)
+		plateforme.Transparency = 0
+	end
+end
+
+clignoter()
+print("Clignotement lancé")
+```
+
+1. Le jeu se fige-t-il ?
+2. La plateforme clignote-t-elle vraiment ?
+3. Le message « Clignotement lancé » s’affiche-t-il ?
+
+<Info titre="Réponse">
+
+1. **Non** : la boucle contient une attente (ligne 7), donc elle rend la main au moteur à chaque tour. Mais `wait` est **dépréciée** : il faut `task.wait(0.5)`.
+2. **Non** : après la ligne 8, il n’y a aucune attente. La boucle repart aussitôt et remet la transparence à 0,5 : l’état opaque ne dure pas le temps d’une image, et la plateforme reste semi-transparente. Il manque un `task.wait(0.5)` après la ligne 8.
+3. **Jamais** : `clignoter()` contient une boucle infinie, donc elle ne se termine pas et la ligne 13 n’est jamais atteinte. Pour lancer une boucle sans bloquer la suite, on utilise `task.spawn` (leçon 5).
+
+Trois défauts dans un script qui « a l’air de marcher » : c’est pour ça qu’on relit avant d’accepter.
+
+</Info>
+
+<AvecClaudeCode>
+
+Tu vas demander à Claude Code le script de la pièce qui tourne. Comme pour la kill brick, ce Script vit dans une Part du Workspace : le prompt demande le code dans la réponse. Il impose aussi les deux règles qui comptent dans une boucle : une attente avec `task.wait`, et une rotation proportionnelle au temps écoulé.
+
+<Prompt titre="Pièce qui tourne (script dans la Part)">
+
+```text
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Les pièces sont des Parts nommées « Piece » (cylindres ancrés, CanCollide désactivé) rangées dans le dossier Workspace.Pieces, qui n'est pas synchronisé par Rojo.
+Objectif : la pièce tourne sur elle-même autour de l'axe vertical, en continu, à vitesse régulière.
+Fichiers concernés : aucun. Donne-moi uniquement le code complet d'un Script que je collerai moi-même DANS la Part « Piece », dans Studio. Ne crée ni ne modifie aucun fichier.
+Contraintes techniques : la Part est script.Parent ; une constante VITESSE_ROTATION = 90 (degrés par seconde) ; une fonction locale tourner(angleEnDegres) qui multiplie le CFrame de la pièce par CFrame.Angles(0, math.rad(angleEnDegres), 0) ; une boucle while true do qui récupère le temps écoulé avec local ecoule = task.wait() et appelle tourner(VITESSE_ROTATION * ecoule). Jamais wait, spawn ni delay. Commentaires en français.
+Cas limites : le jeu ralentit (images plus longues) : la vitesse de rotation doit rester la même.
+Vérification : explique-moi comment tester en Play : la pièce tourne régulièrement, le jeu ne se fige pas et l'Output ne montre aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la boucle `while true do` contient un `task.wait()` (et pas `wait()`), sinon le jeu se fige ;
+- la valeur renvoyée par `task.wait()` est bien utilisée pour calculer l’angle (`VITESSE_ROTATION * ecoule`) ;
+- l’angle passe par `math.rad` avant `CFrame.Angles`, et la pièce est tournée en **multipliant** son CFrame (elle ne doit pas se déplacer) ;
+- la fonction `tourner` est déclarée avec `local function` **avant** la boucle qui l’appelle ;
+- aucune ligne n’est placée après la boucle infinie en pensant qu’elle s’exécutera.
+
+</AvecClaudeCode>
+
 <Defi>
 1. Crée ta pièce qui tourne et teste-la.
 2. Ajoute un paramètre : modifie `tourner` pour qu’elle accepte aussi un axe (`"X"`, `"Y"` ou `"Z"`) et utilise un `if / elseif` pour choisir le bon `CFrame.Angles`.
@@ -331,7 +449,8 @@ Faire tourner des pièces depuis un Script serveur est parfait pour apprendre. A
 - `for i = debut, fin, pas do` répète un bloc un nombre connu de fois (pas de 1 par défaut, négatif pour compter à rebours).
 - `while condition do` teste avant chaque tour ; `repeat ... until condition` teste après (au moins un tour).
 - `break` sort de la boucle, `continue` passe au tour suivant ; **toute boucle infinie contient un `task.wait()`**.
-- `task.wait` remplace `wait` (dépréciée) et renvoie le temps réellement écoulé.
+- `task.wait` remplace `wait` (dépréciée) et renvoie le temps réellement écoulé ; un `wait` dans du code généré est un signal d’alerte.
+- Pour relire une boucle, déroule-la à la main sur quelques tours : combien de tours, et où attend-elle ?
 - Une fonction reçoit des **paramètres** et peut **renvoyer plusieurs valeurs** avec `return`.
 - Une variable `local` n’existe que dans son bloc ; déclare tes fonctions avant de les appeler.
 </Resume>

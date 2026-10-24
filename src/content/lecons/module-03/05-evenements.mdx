@@ -1,11 +1,11 @@
 ---
 titre: Réagir aux événements
-description: Connecte ton code aux événements de Roblox (contacts, joueurs, personnages), évite les déclenchements en rafale avec un debounce, utilise les attributs, et crée les checkpoints de ton obby.
-duree: 40
+description: Comprends les événements de Roblox (contacts, joueurs, personnages), le debounce et les attributs, repère les connexions en trop dans du code généré, et mets en place les checkpoints de ton obby.
+duree: 45
 objectifs:
-  - Connecter et déconnecter des fonctions sur des événements
-  - Réagir à l’arrivée des joueurs et à l’apparition de leurs personnages
-  - Éviter les déclenchements multiples avec un debounce
+  - Lire une connexion à un événement et savoir quand elle se déclenche
+  - Comprendre l’arrivée des joueurs et l’apparition de leurs personnages
+  - Repérer un debounce manquant ou une connexion créée en trop
   - Stocker des informations sur des objets avec les attributs
 miseAJour: 2026-10-24
 quiz:
@@ -60,9 +60,46 @@ quiz:
         correct: true
       - texte: "Ligne 8 : il faut `wait(1)` au lieu de `task.wait(1)`"
     explication: "Le verrou n’est jamais mis : `enAttente` reste toujours `false`, donc chaque contact inflige des dégâts. Il faut écrire `enAttente = true` juste après le test, avant `TakeDamage`. Remarque : un debounce unique bloque aussi les autres joueurs pendant 1 seconde ; une table par joueur est préférable (voir la leçon)."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Chaque joueur reçoit l’attribut `Etape` à 0 en arrivant (dans un autre script). Après quelques sauts sur le checkpoint, chaque changement d’étape affiche des dizaines de fois le même message. Où est le problème ?"
+    code: |
+      local Players = game:GetService("Players")
+      local Workspace = game:GetService("Workspace")
+      local checkpoint = Workspace:WaitForChild("Checkpoints"):WaitForChild("1")
+
+      checkpoint.Touched:Connect(function(autrePart)
+      	local player = Players:GetPlayerFromCharacter(autrePart.Parent)
+      	if not player then return end
+      	player:GetAttributeChangedSignal("Etape"):Connect(function()
+      		print(player.Name .. " passe à l'étape " .. player:GetAttribute("Etape"))
+      	end)
+      	if player:GetAttribute("Etape") == 0 then
+      		player:SetAttribute("Etape", 1)
+      	end
+      end)
+    options:
+      - texte: "Ligne 3 : `WaitForChild(\"1\")` doit recevoir le nombre `1`, pas un texte"
+      - texte: "Ligne 6 : `GetPlayerFromCharacter` attend la Part touchée, pas son parent"
+      - texte: "Ligne 8 : une **nouvelle connexion** est créée à chaque contact ; il faut connecter `GetAttributeChangedSignal` une seule fois par joueur, dans `PlayerAdded`"
+        correct: true
+      - texte: "Ligne 9 : il faut lire la nouvelle étape dans un paramètre de la fonction"
+    explication: "`Touched` se déclenche plusieurs fois par contact, et à chaque nouveau saut sur le checkpoint. Chaque fois, le code ajoute une connexion de plus : elles s’accumulent (c’est une fuite de mémoire) et chacune affiche le message. Une connexion à un événement durable se fait **une fois**, au bon endroit. Les noms d’enfants sont des textes, `GetPlayerFromCharacter` attend bien le Model du personnage, et la fonction connectée à `GetAttributeChangedSignal` ne reçoit aucun argument."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code crée les checkpoints de la leçon. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais des checkpoints pour mon obby"
+    options:
+      - texte: "Fais un système de checkpoints complet et professionnel pour mon obby, avec sauvegarde, effets et sons."
+      - texte: "Quand le joueur touche une Part de Workspace.Checkpoints, mets son étape au numéro de la Part."
+      - texte: |
+          Crée src/ServerScriptService/Checkpoints.server.luau. Les checkpoints sont des Parts nommées 1, 2, 3… dans Workspace.Checkpoints.
+          Objectif : l’attribut Etape du Player (0 à l’arrivée) passe à N seulement s’il touche le checkpoint N = Etape + 1 ; à chaque réapparition, il est replacé au-dessus de son dernier checkpoint avec PivotTo.
+          Contraintes : GetPlayerFromCharacter testé ; joueurs déjà présents traités ; attendre que le personnage soit dans le Workspace avant de le déplacer ; task.wait, jamais wait.
+          Vérification : en Play, après une kill brick je réapparais sur le dernier checkpoint touché, et toucher le 3 avant le 2 ne change rien.
+        correct: true
+    explication: "La bonne version donne le fichier, les noms exacts (dossier, attribut), la règle « seulement le suivant », la réapparition, les pièges connus (joueurs déjà présents, personnage pas encore placé) et un test précis. La première invente des fonctionnalités hors sujet ; la deuxième oublie la règle d’ordre (on pourrait sauter des étapes ou revenir en arrière) et ne dit rien de la réapparition ni de la vérification."
 ---
 
-Pour l’instant, ton code s’exécute au lancement du jeu puis s’arrête, sauf la fonction `surContact` de la kill brick, qui se déclenche « toute seule ». C’est grâce à un **événement**. Presque tout ce qui rend un jeu vivant passe par des événements : un joueur arrive, un personnage réapparaît, une Part est touchée, une valeur change… Dans cette leçon, tu apprends à les maîtriser, puis tu programmes les **checkpoints** de l’Obby des Nuages.
+Pour l’instant, ton code s’exécute au lancement du jeu puis s’arrête, sauf la fonction `surContact` de la kill brick, qui se déclenche « toute seule ». C’est grâce à un **événement**. Presque tout ce qui rend un jeu vivant passe par des événements : un joueur arrive, un personnage réapparaît, une Part est touchée, une valeur change… C’est aussi là que le code généré par une IA cache ses bugs les plus sournois : un contact compté dix fois, une connexion créée en trop à chaque saut, un joueur « oublié » au démarrage. Dans cette leçon, tu apprends à lire et à maîtriser les événements, puis tu mets en place les **checkpoints** de l’Obby des Nuages.
 
 ## Qu’est-ce qu’un événement ?
 
@@ -288,6 +325,8 @@ Objectif : quand un joueur touche le checkpoint suivant, on retient son étape ;
 
 ### Le code
 
+Ce script est plus long que les précédents : c’est typiquement le genre de code que tu feras écrire par Claude Code (prompt dans l’encadré plus bas), dans le fichier `src/ServerScriptService/Checkpoints.server.luau` de ton projet Rojo. Ton rôle est de le **lire** : repère chaque événement connecté, et demande-toi à chaque fois « quand se déclenche-t-il, et combien de fois ? ».
+
 ```luau
 -- Script « Checkpoints » dans ServerScriptService
 local Players = game:GetService("Players")
@@ -377,6 +416,91 @@ La documentation de `Player.RespawnLocation` cite justement « ta propre logique
 Ces checkpoints restent **basiques** : la progression est perdue quand le joueur quitte la partie, et le serveur fait entièrement confiance à l’événement `Touched`. Au module 4, tu renforceras la validation côté serveur ; au module 5, l’étape sera affichée dans les leaderstats et sauvegardée.
 </Attention>
 
+## Lire ce code comme un relecteur
+
+### Exercice 1 : dans quel ordre l’Output affiche-t-il les messages ?
+
+```luau
+-- Script dans ServerScriptService
+print("A")
+
+task.delay(1, function()
+	print("B")
+end)
+
+task.spawn(function()
+	print("C")
+	task.wait(2)
+	print("D")
+end)
+
+print("E")
+```
+
+<Info titre="Réponse">
+
+`A`, `C`, `E` tout de suite, puis `B` environ 1 seconde plus tard, puis `D` environ 2 secondes après le lancement. `task.delay` programme sa fonction pour plus tard sans bloquer ; `task.spawn` exécute la sienne **immédiatement** (d’où `C` avant `E`), et quand elle se met en pause avec `task.wait(2)`, le reste du script continue.
+
+</Info>
+
+### Exercice 2 : que se passe-t-il si… ?
+
+Une IA a proposé ce début de script. Ton dossier s’appelle `Checkpoints` (avec un « s »).
+
+```luau
+-- Script dans ServerScriptService (proposé par une IA)
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoint")
+
+Players.PlayerAdded:Connect(function(player)
+	player:SetAttribute("Etape", 0)
+	print(player.Name .. " commence à l'étape 0")
+end)
+
+print(#dossierCheckpoints:GetChildren(), "checkpoints")
+```
+
+1. Que se passe-t-il au lancement ?
+2. Une fois le nom corrigé, il arrive en Play Solo que le message de la ligne 9 ne s’affiche jamais. Pourquoi ?
+
+<Info titre="Réponse">
+
+1. `WaitForChild("Checkpoint")` attend un objet qui n’existera jamais : le script reste bloqué à la ligne 5, et au bout de 5 secondes l’Output affiche l’avertissement « Infinite yield possible ». Tout ce qui suit ne s’exécute pas : `PlayerAdded` n’est jamais connecté, personne ne reçoit d’attribut `Etape`. Il n’y a aucune erreur : seul cet avertissement te met sur la piste.
+2. Ton joueur peut avoir été créé **avant** que le script connecte `PlayerAdded` : l’événement ne se déclenche alors pas pour lui. Il manque la boucle `for _, player in Players:GetPlayers() do task.spawn(...) end` après la connexion, comme dans le script des checkpoints.
+
+</Info>
+
+<AvecClaudeCode>
+
+Tu vas faire écrire le script `Checkpoints` par Claude Code. Le prompt reprend exactement les règles de la leçon (attribut `Etape`, checkpoint accepté seulement s’il est le suivant, réapparition sur le dernier checkpoint) et les pièges que tu sais maintenant reconnaître.
+
+<Prompt titre="Checkpoints basiques">
+
+```text
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Les joueurs meurent sur des kill bricks et réapparaissent pour l'instant sur la SpawnLocation.
+Ce qui existe déjà : dans le Workspace (non synchronisé par Rojo), le Folder Workspace.Checkpoints contient des Parts ancrées nommées "1", "2", "3"… dans l'ordre du parcours. Le Script src/ServerScriptService/KillBricks.server.luau existe : n'y touche pas.
+Objectif : quand un joueur touche le checkpoint suivant, son étape est retenue ; quand il réapparaît, il est replacé au-dessus de son dernier checkpoint validé.
+Fichiers concernés : crée uniquement src/ServerScriptService/Checkpoints.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : l'étape est un attribut "Etape" sur l'objet Player (0 à l'arrivée) ; le numéro d'un checkpoint est tonumber(checkpoint.Name) ; un checkpoint N n'est accepté que si N == Etape + 1 ; joueur trouvé avec Players:GetPlayerFromCharacter(autrePart.Parent) ; CharacterAdded connecté une seule fois par joueur, dans la fonction appelée par PlayerAdded ; traiter aussi les joueurs déjà présents (boucle sur Players:GetPlayers() avec task.spawn) ; avant PivotTo, attendre que le personnage soit dans le Workspace (AncestryChanged:Wait() puis task.wait()), puis vérifier qu'il y est toujours ; décalage de réapparition Vector3.new(0, 4, 0) dans une constante HAUTEUR_REAPPARITION. Jamais wait, spawn ni delay. Commentaires en français.
+Cas limites : un objet qui n'est pas un personnage touche un checkpoint ; un checkpoint touché plusieurs fois de suite ; un checkpoint sauté ou retouché en arrière ; étape 0 (pas encore de checkpoint) ; un enfant du dossier qui n'est pas une Part ou dont le nom n'est pas un nombre ; le joueur part pendant l'attente.
+Vérification : en Play, l'attribut Etape de mon Player augmente dans l'ordre (visible dans Properties), toucher le checkpoint 3 avant le 2 ne change rien, après une kill brick je réapparais sur mon dernier checkpoint, et l'Output n'affiche aucune erreur ; selene src et stylua --check src ne signalent rien.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le résultat de `GetPlayerFromCharacter` et celui de `FindFirstChild(tostring(etape))` sont **testés** avant usage (avec `IsA("BasePart")` pour le checkpoint) ;
+- la règle d’ordre est bien `numero == etapeActuelle + 1`, avec `numero` obtenu par `tonumber` et testé (il peut valoir `nil`) ;
+- `CharacterAdded` est connecté **une seule fois par joueur**, dans la fonction de `PlayerAdded`, jamais à l’intérieur d’un `Touched` ;
+- les joueurs déjà présents sont traités par une boucle sur `Players:GetPlayers()` placée **après** la connexion de `PlayerAdded` ;
+- le déplacement attend que le personnage soit dans le Workspace, puis vérifie `IsDescendantOf(Workspace)` avant `PivotTo` ;
+- aucune trace de `wait`, `spawn` ou `delay` sans `task.`.
+
+</AvecClaudeCode>
+
 <Defi>
 1. Mets en place tes checkpoints, teste-les avec une kill brick : tu dois réapparaître sur le dernier checkpoint touché. Sélectionne ton joueur dans Players pendant le test pour voir l’attribut `Etape` changer.
 2. Dans ton script `KillBricks`, ajoute `print("Éliminé !")` juste après `humanoid.Health = 0`, puis teste : le message ne s’affiche qu’**une fois** par mort. Explique pourquoi le test `humanoid.Health > 0` joue déjà le rôle de debounce.
@@ -389,6 +513,7 @@ Ces checkpoints restent **basiques** : la progression est perdue quand le joueur
 - `PlayerAdded` = arrivée du joueur (une fois) ; `CharacterAdded` = chaque apparition du personnage. Traite aussi les joueurs déjà présents.
 - `WaitForChild` attend un objet, `FindFirstChild` le cherche tout de suite (et peut renvoyer `nil`).
 - `task.spawn` et `task.delay` lancent du code sans bloquer ; les **attributs** stockent tes propres données sur les objets.
+- En relisant, demande-toi pour chaque `:Connect` : quand se déclenche-t-il, combien de fois, et la connexion n’est-elle créée qu’**une** fois ?
 </Resume>
 
 <Sources>

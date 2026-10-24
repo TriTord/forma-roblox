@@ -1,12 +1,12 @@
 ---
 titre: ModuleScripts et programmation orientée objet
-description: Range tes réglages et ton code réutilisable dans des ModuleScripts, crée tes propres « classes » avec les métatables, et découvre le typage optionnel de Luau.
-duree: 45
+description: Comprends les ModuleScripts et require, reconnais un code bien organisé autour d’un module Config, lis une « classe » faite avec les métatables et découvre le typage optionnel de Luau.
+duree: 50
 objectifs:
-  - Structurer son code en ModuleScripts réutilisables avec require
-  - Centraliser les réglages de l’Obby des Nuages dans un module Config
-  - Créer des « classes » avec les métatables, __index, new et self
-  - Découvrir les annotations de type et le mode --!strict
+  - Lire un ModuleScript et le require qui le charge
+  - Reconnaître un code bien organisé, avec les réglages centralisés dans un module Config
+  - Comprendre une « classe » faite avec les métatables, __index, new et self
+  - Lire les annotations de type et le mode --!strict
 miseAJour: 2026-10-24
 quiz:
   - type: vrai-faux
@@ -67,9 +67,45 @@ quiz:
     question: "Écrire `--!strict` en première ligne d’un script active une vérification des types plus poussée par l’analyseur de Studio, sans changer ce que fait le code."
     reponse: true
     explication: "Le mode strict sert à l’**analyse** : Studio signale davantage d’incohérences de types pendant que tu écris. Les annotations de type n’influencent pas l’exécution du programme ; elles aident à repérer les bugs plus tôt."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce module fonctionne, mais une ligne met le jeu en danger. Laquelle ?"
+    code: |
+      -- ModuleScript « Config » dans ReplicatedStorage.Modules
+      local Config = {}
+
+      Config.VITESSE_ROTATION_PIECES = 90
+      Config.VALEUR_PIECE = 1
+      Config.HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0)
+      Config.CODE_ADMIN = "nuage-7731" -- code secret des commandes admin
+
+      function Config.estAdmin(code)
+      	return code == Config.CODE_ADMIN
+      end
+
+      return Config
+    options:
+      - texte: "Ligne 2 : la table doit être globale (`Config = {}`) pour être partagée"
+      - texte: "Ligne 7 : un code secret dans ReplicatedStorage est copié chez chaque joueur, un tricheur peut le lire"
+        correct: true
+      - texte: "Ligne 9 : un ModuleScript ne peut pas contenir de fonction"
+      - texte: "Ligne 13 : le `return` doit être placé dans la fonction `estAdmin`"
+    explication: "Tout ce qui est dans ReplicatedStorage est **copié chez chaque joueur** : un tricheur peut lire ce module et y trouver le code. Les secrets et les vérifications de sécurité restent côté serveur (ServerScriptService) ; le module 4 explique pourquoi le serveur ne doit jamais se fier à ce que le client envoie. Le reste du module est correct : table locale, fonction et `return` final."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code centralise tes réglages. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "range mes réglages dans un module"
+    options:
+      - texte: "Réorganise tout le code de mon jeu en modules propres, avec la meilleure architecture possible."
+      - texte: "Crée un ModuleScript Config dans ServerScriptService avec tous les réglages du jeu."
+      - texte: |
+          Commence par me proposer un plan, sans modifier de fichier.
+          Crée le ModuleScript src/ReplicatedStorage/Modules/Config.luau (return Config à la fin) avec VITESSE_ROTATION_PIECES = 90 et HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0).
+          Dans PiecesTournantes.server.luau et Checkpoints.server.luau, supprime ces constantes locales et lis-les dans Config (require via ReplicatedStorage:WaitForChild("Modules")). Ne modifie rien d’autre ; aucun secret dans Config.
+          Vérification : tout marche comme avant, et passer la vitesse à 180 dans Config accélère toutes les pièces.
+        correct: true
+    explication: "La bonne version demande un plan d’abord, nomme le fichier (le suffixe `.luau` seul donne un ModuleScript), liste les réglages, les deux scripts à modifier et ce qu’il faut y supprimer, et donne un test simple. La première autorise une refonte de tout le projet, impossible à relire. La deuxième range le module là où les LocalScripts ne pourront pas le lire et laisse l’IA deviner les réglages."
 ---
 
-Ton Obby des Nuages a maintenant plusieurs scripts : `KillBricks`, `PiecesTournantes`, `Checkpoints`… Chacun contient ses propres réglages (vitesse de rotation, hauteur de réapparition…) éparpillés un peu partout. Le jour où tu voudras les modifier, il faudra fouiller chaque script. Dans cette dernière leçon du module, tu vas apprendre à **ranger** ton code : des **ModuleScripts** pour partager réglages et fonctions, et la **programmation orientée objet** pour créer tes propres types d’objets. Tu termineras par un aperçu du **typage** de Luau.
+Ton Obby des Nuages a maintenant plusieurs scripts : `KillBricks`, `PiecesTournantes`, `Checkpoints`… Chacun contient ses propres réglages (vitesse de rotation, hauteur de réapparition…) éparpillés un peu partout. Le jour où tu voudras les modifier, il faudra fouiller chaque script. Dans cette dernière leçon du module, tu vas apprendre à **reconnaître un code bien rangé** : des **ModuleScripts** pour partager réglages et fonctions, et la **programmation orientée objet** pour créer tes propres types d’objets. C’est une compétence clé pour diriger une IA : elle écrit vite, mais c’est à toi de vérifier qu’elle range au bon endroit, ne duplique pas les réglages et ne met rien de secret là où les joueurs peuvent le lire. Tu termineras par un aperçu du **typage** de Luau, que tu verras souvent dans le code généré.
 
 ## Le ModuleScript : du code à partager
 
@@ -87,7 +123,9 @@ On va centraliser tous les réglages de l’Obby des Nuages dans un seul module.
 
 1. Dans **ReplicatedStorage**, crée un **Folder** nommé `Modules`.
 2. Dans ce dossier, insère un **ModuleScript** nommé `Config`.
-3. Remplace son contenu par :
+3. Remplace son contenu par le code ci-dessous.
+
+Dans ton projet Rojo, ces trois étapes se résument à un fichier : `src/ReplicatedStorage/Modules/Config.luau` (le dossier `src/ReplicatedStorage/Modules` devient le Folder `ReplicatedStorage.Modules`, et le suffixe `.luau` seul donne un ModuleScript). Tu peux le taper ou le faire créer par Claude Code (prompt dans l’encadré plus bas). Voici le module à obtenir :
 
 ```luau
 -- ModuleScript « Config » dans ReplicatedStorage.Modules
@@ -204,7 +242,7 @@ print(maPiece.couleur) --> Or  (absente de maPiece : trouvée via __index)
 
 ### Le motif de classe
 
-Voici le motif classique utilisé partout sur Roblox. Crée un **ModuleScript** nommé `PieceTournante` dans ServerScriptService :
+Voici le motif classique utilisé partout sur Roblox, et que les IA produisent très souvent : apprends à le reconnaître. Pour l’essayer, crée un **ModuleScript** nommé `PieceTournante` dans ServerScriptService (fichier `src/ServerScriptService/PieceTournante.luau` dans ton projet Rojo) :
 
 ```luau
 -- ModuleScript « PieceTournante » dans ServerScriptService
@@ -371,6 +409,108 @@ Avec `--!strict`, si tu écris par erreur `niveau.etapeDebu` ou `Niveaux.obtenir
 Inutile de tout typer d’un coup. Commence par ajouter `--!strict` à tes **nouveaux** ModuleScripts et annote les paramètres de leurs fonctions : c’est là que les erreurs de type coûtent le plus cher, car ces fonctions sont appelées depuis plusieurs scripts. Le typage des classes à métatables est plus avancé ; garde-le pour plus tard.
 </Astuce>
 
+## Lire ce code comme un relecteur
+
+### Exercice 1 : que va afficher l’Output ?
+
+```luau
+local Compteur = {}
+Compteur.__index = Compteur
+
+function Compteur.new(depart)
+	local self = setmetatable({}, Compteur)
+	self.valeur = depart
+	return self
+end
+
+function Compteur:ajouter(n)
+	self.valeur += n
+	return self.valeur
+end
+
+local a = Compteur.new(10)
+local b = Compteur.new(0)
+a:ajouter(5)
+print(a.valeur, b.valeur)
+print(b:ajouter(2))
+```
+
+Et que se passerait-il si on écrivait `a.ajouter(5)`, avec un point ?
+
+<Info titre="Réponse">
+
+L’Output affiche `15 0`, puis `2`. Chaque objet a **ses propres données** : ajouter 5 à `a` ne change pas `b`. La méthode `ajouter`, elle, est partagée : elle est trouvée dans `Compteur` grâce à `__index`, et `self` désigne l’objet sur lequel on l’appelle.
+
+Avec `a.ajouter(5)`, aucun objet n’est transmis : `self` reçoit `5` et `n` vaut `nil`. La ligne 11 essaie alors de lire `valeur` sur un nombre, et l’Output affiche une erreur du type « attempt to index number with 'valeur' ». Règle de relecture : **méthode déclarée avec `:`, méthode appelée avec `:`**.
+
+</Info>
+
+### Exercice 2 : ce code est-il bien organisé ?
+
+Tu as demandé à une IA de brancher `PiecesTournantes` sur `Config`. Voici ce qu’elle propose :
+
+```luau
+-- Script « PiecesTournantes » dans ServerScriptService (version proposée par une IA)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+
+local VITESSE_ROTATION = 90 -- degrés par seconde
+local dossierPieces = Workspace:WaitForChild("Pieces")
+
+while true do
+	local ecoule = task.wait()
+	local rotation = CFrame.Angles(0, math.rad(VITESSE_ROTATION * ecoule), 0)
+	for _, piece in dossierPieces:GetChildren() do
+		if piece:IsA("BasePart") then
+			piece.CFrame = piece.CFrame * rotation
+		end
+	end
+end
+```
+
+1. Tu passes `Config.VITESSE_ROTATION_PIECES` à 180. Que se passe-t-il ?
+2. Quelles lignes sont inutiles ?
+
+<Info titre="Réponse">
+
+1. **Rien** : le script charge bien `Config` (ligne 6), mais il utilise toujours sa propre constante `VITESSE_ROTATION` (ligne 8). Le réglage existe en double, et c’est la copie locale qui gagne. C’est exactement ce que le module `Config` devait éviter.
+2. La ligne 4 (`Players` n’est jamais utilisé) et la ligne 8, qu’il faut supprimer en écrivant `Config.VITESSE_ROTATION_PIECES` à la ligne 13. Ce script tourne sans erreur : seule la relecture révèle qu’il ne fait pas ce que tu as demandé. luau-lsp t’aide d’ailleurs à repérer les variables jamais utilisées, comme `Players` et `Config` ici.
+
+</Info>
+
+<AvecClaudeCode>
+
+Tu vas faire créer le module `Config` et brancher les deux scripts dessus. Comme la demande touche trois fichiers, le prompt commence par demander un plan : tu le relis avant d’accepter la moindre modification.
+
+<Prompt titre="Module Config">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Les réglages sont éparpillés dans plusieurs scripts ; je veux les centraliser dans un ModuleScript partagé.
+Ce qui existe déjà : src/ServerScriptService/PiecesTournantes.server.luau (constante locale VITESSE_ROTATION = 90) et src/ServerScriptService/Checkpoints.server.luau (constante locale HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0), utilisée dans l'appel à PivotTo). Le dossier src/ReplicatedStorage/Modules correspond à ReplicatedStorage.Modules (voir default.project.json).
+Objectif : rien ne change pour le joueur, mais tous les réglages sont au même endroit : modifier une valeur dans Config suffit.
+Fichiers concernés : crée src/ReplicatedStorage/Modules/Config.luau ; modifie PiecesTournantes.server.luau et Checkpoints.server.luau ; ne modifie rien d'autre.
+Contraintes techniques : Config est une table locale, renvoyée par un seul return Config à la fin du fichier. Champs : VITESSE_ROTATION_PIECES = 90, VALEUR_PIECE = 1, HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0), Niveaux = un tableau de dictionnaires { nom, etapeDebut, etapeFin } : « Les premiers nuages » (1 à 5), « La tempête » (6 à 10), « Le sommet » (11 à 12). Fonction Config.obtenirNiveau(etape) qui renvoie le niveau contenant l'étape, ou nil. Dans les deux scripts : local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config")), puis supprime les anciennes constantes et utilise Config.VITESSE_ROTATION_PIECES et Config.HAUTEUR_REAPPARITION. Commentaires en français.
+Sécurité : ReplicatedStorage est copié chez chaque joueur : Config ne contient que des réglages publics, aucun secret ni aucune logique dont dépend la sécurité du jeu.
+Cas limites : Config.obtenirNiveau(0) et Config.obtenirNiveau(13) renvoient nil sans erreur.
+Vérification : en Play, les pièces tournent et les checkpoints marchent comme avant ; passer VITESSE_ROTATION_PIECES à 180 accélère toutes les pièces ; selene src et stylua --check src ne signalent rien.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `Config.luau` n’a pas de suffixe `.server` ou `.client` (c’est un ModuleScript) et se termine par un seul `return Config`, au niveau principal du fichier ;
+- les deux scripts font le `require` avec `WaitForChild("Modules"):WaitForChild("Config")` et n’ont **plus** de constante locale en double (le piège de l’exercice 2) ;
+- `obtenirNiveau` est déclarée et appelée avec un **point** : c’est une fonction du module, pas une méthode (pas de `self`) ;
+- `Config` ne contient rien de secret ni de logique de sécurité ;
+- si l’IA ajoute des annotations de type ou `--!strict`, luau-lsp ne signale aucune erreur dans VS Code.
+
+</AvecClaudeCode>
+
 <Defi>
 1. Crée `ReplicatedStorage.Modules.Config` et branche-le sur tes scripts `PiecesTournantes` et `Checkpoints`. Change la vitesse dans `Config` et vérifie que toutes les pièces accélèrent.
 2. Ajoute `table.freeze(Config)` et essaie de modifier une valeur depuis un autre script : lis l’erreur dans l’Output.
@@ -384,6 +524,7 @@ Inutile de tout typer d’un coup. Commence par ajouter `--!strict` à tes **nou
 - Une **classe** = une table utilisée comme métatable, avec `Classe.__index = Classe`, un constructeur `Classe.new` qui appelle `setmetatable`, et des méthodes déclarées avec `:`.
 - `objet:methode()` équivaut à `objet.methode(objet)` : c’est ce qui remplit `self`.
 - Les annotations de type (`: number`, `?`, `type`, `export type`) et `--!strict` aident Studio à détecter les erreurs, sans changer l’exécution.
+- Un code bien organisé n’a **qu’une** source pour chaque réglage et ne met jamais de secret dans ReplicatedStorage : vérifie-le dans tout code généré.
 </Resume>
 
 <Sources>

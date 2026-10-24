@@ -1,12 +1,12 @@
 ---
 titre: Variables, types et conditions
-description: Apprends à stocker des valeurs dans des variables, à manipuler nombres, textes et booléens, et à prendre des décisions avec if. Puis crée ta première kill brick.
-duree: 30
+description: Comprends les variables, les types de base (nombres, textes, booléens) et les conditions if, puis apprends à lire et à vérifier le code d’une kill brick, qu’il vienne de toi ou de l’IA.
+duree: 35
 objectifs:
-  - Déclarer des variables locales et choisir de bons noms
-  - Manipuler les types de base (nil, boolean, number, string) et leurs opérateurs
-  - Écrire des conditions avec if, elseif, else et les opérateurs logiques
-  - Programmer une kill brick pour l’Obby des Nuages
+  - Reconnaître des variables locales bien nommées
+  - Lire les types de base (nil, boolean, number, string) et leurs opérateurs
+  - Prévoir le résultat d’une condition if, elseif, else et des opérateurs logiques
+  - Vérifier le code d’une kill brick pour l’Obby des Nuages
 miseAJour: 2026-10-24
 quiz:
   - type: qcm
@@ -60,9 +60,31 @@ quiz:
       - texte: "Ligne 7 : il faut écrire `humanoid.Health == 0`"
       - texte: "Ligne 11 : il faut écrire `surContact()` avec des parenthèses"
     explication: "Avec `== nil`, le bloc ne s’exécute que lorsqu’il n’y a **pas** de Humanoid… et il plante alors en essayant de modifier `nil`. Quand c’est un joueur qui touche, la condition est fausse et rien ne se passe. Il faut tester `if humanoid then`. À la ligne 7, `=` est bien une affectation."
+  - type: qcm
+    question: "Qu’affiche `print(\"Étape \" .. 3 + 1)` ?"
+    options:
+      - texte: "`Étape 4`"
+        correct: true
+      - texte: "`Étape 31`"
+      - texte: "`Étape 3 + 1`"
+      - texte: Une erreur, on ne peut pas coller un texte et un nombre
+    explication: "L’addition passe **avant** la concaténation : Luau calcule d’abord `3 + 1 = 4`, puis colle `\"Étape \"` et `4` (le nombre est converti en texte automatiquement). En relisant du code, si l’ordre n’est pas évident, ajoute des parenthèses : `\"Étape \" .. (3 + 1)` dit clairement ce qu’on veut."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code t’écrive la kill brick de la leçon. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais une kill brick"
+    options:
+      - texte: "Fais une kill brick qui tue le joueur, bien optimisée et sécurisée."
+      - texte: |
+          Écris le code d’un Script que je placerai moi-même DANS une Part du dossier Workspace.KillBricks (Rojo ne synchronise pas le Workspace : donne le code dans ta réponse, ne crée aucun fichier).
+          Objectif : le joueur qui touche la Part meurt, puis réapparaît.
+          Contraintes : la Part est script.Parent ; utilise Touched et FindFirstChildOfClass("Humanoid") testé avant usage ; Health = 0 seulement si Health > 0 ; variables local ; commentaires en français.
+          Vérification : en Play, mon personnage meurt au contact, et aucune erreur n’apparaît dans l’Output quand un objet qui n’est pas un personnage touche la Part.
+        correct: true
+      - texte: "Crée une kill brick dans ServerScriptService qui utilise humanoid:TakeDamage(100)."
+    explication: "La bonne version donne l’emplacement exact (et explique pourquoi il n’y a pas de fichier à créer), le comportement attendu, les contraintes que tu sais vérifier (test du Humanoid, `Health > 0`) et un critère de réussite. La première est vague. La troisième laisse l’IA deviner quelle Part surveiller depuis ServerScriptService et impose `TakeDamage`, sans effet sur un joueur protégé par un ForceField."
 ---
 
-Dans la leçon précédente, tu as utilisé `local plateforme = script.Parent` sans trop savoir ce que c’était. Il est temps de comprendre les **variables**, les **types** de valeurs et les **conditions**. Avec ces trois briques, ton code pourra se souvenir de choses et prendre des décisions. À la fin, tu programmeras la première vraie mécanique de l’Obby des Nuages : la **kill brick**, le bloc piégé qui élimine le joueur qui le touche.
+Dans la leçon précédente, tu as utilisé `local plateforme = script.Parent` sans trop savoir ce que c’était. Il est temps de comprendre les **variables**, les **types** de valeurs et les **conditions**. Avec ces trois briques, un script peut se souvenir de choses et prendre des décisions… et c’est aussi là que se cachent beaucoup d’erreurs dans le code, y compris celui d’une IA : une condition inversée, un `nil` oublié, un `0` considéré comme vrai. À la fin, tu liras et vérifieras la première vraie mécanique de l’Obby des Nuages : la **kill brick**, le bloc piégé qui élimine le joueur qui le touche.
 
 ## Les variables
 
@@ -280,6 +302,8 @@ Une **kill brick** est une Part qui élimine le joueur qui la touche ; il réapp
 
 ### Le code
 
+Voici le code. Tape-le toi-même (c’est encore un excellent exercice à ce stade) ou demande-le à Claude Code avec le prompt de l’encadré plus bas. Dans les deux cas, l’objectif est le même : pouvoir expliquer chaque ligne.
+
 ```luau
 -- Script placé DANS une Part du dossier Workspace.KillBricks
 local killBrick = script.Parent
@@ -315,6 +339,86 @@ La syntaxe `local function` et `:Connect` seront expliquées en détail aux leç
 D’après la documentation Roblox, mettre `Health` à `0` fait passer le Humanoid dans l’état « mort » (`Dead`), même si le joueur a un ForceField (bouclier de protection). La méthode `humanoid:TakeDamage(20)` retire seulement 20 points de vie, mais elle n’a aucun effet si le personnage est protégé par un ForceField.
 </Info>
 
+## Lire ce code comme un relecteur
+
+### Exercice 1 : que va afficher l’Output ?
+
+```luau
+local pieces = 0
+local pseudo = nil
+local nom = pseudo or "Invité"
+
+if pieces then
+	print(nom .. " a des pièces")
+else
+	print(nom .. " n'a rien")
+end
+
+print(`{nom} : {pieces + 5} pièces`)
+```
+
+<Info titre="Réponse">
+
+L’Output affiche `Invité a des pièces`, puis `Invité : 5 pièces`.
+
+- `pseudo` vaut `nil`, donc `pseudo or "Invité"` donne `"Invité"`.
+- Le piège : `pieces` vaut `0`, et **`0` est vrai en Luau**. Le premier bloc s’exécute alors qu’on n’a aucune pièce ! Pour tester « a-t-il des pièces ? », il fallait `if pieces > 0 then`. Méfie-toi de ce genre de test dans le code d’une IA : dans d’autres langages, `0` est faux, et l’erreur passe facilement inaperçue.
+
+</Info>
+
+### Exercice 2 : quelle ligne est dangereuse, laquelle est inutile ?
+
+Une IA a proposé cette kill brick. Elle semble marcher quand tu sautes dessus…
+
+```luau
+-- Script placé DANS une Part de Workspace.KillBricks (proposé par une IA)
+local killBrick = script.Parent
+local degats = 100
+
+local function surContact(autrePart)
+	local humanoid = autrePart.Parent.Humanoid
+	if humanoid.Health > 0 then
+		humanoid.Health = 0
+	end
+end
+
+killBrick.Touched:Connect(surContact)
+```
+
+<Info titre="Réponse">
+
+- **Ligne 6, dangereuse** : `autrePart.Parent.Humanoid` suppose que ce qui touche est toujours un personnage. Si un objet qui n’en est pas un touche la brique (une Part qui tombe, par exemple), l’Output affiche une erreur du type `Humanoid is not a valid member of ...` à chaque contact. Il faut `FindFirstChildOfClass("Humanoid")`, puis tester le résultat (`if humanoid and humanoid.Health > 0 then`), comme dans la version de la leçon.
+- **Ligne 3, inutile** : `degats` n’est jamais utilisée. Ce n’est pas grave en soi, mais c’est souvent le signe d’un code copié d’ailleurs ou à moitié modifié : demande à l’IA pourquoi cette variable est là, ou supprime-la.
+
+</Info>
+
+<AvecClaudeCode>
+
+Tu vas demander à Claude Code le code de la kill brick de la leçon. Particularité : ce Script vit **dans une Part du Workspace**, que Rojo ne synchronise pas dans notre projet. Le prompt demande donc le code dans la réponse, sans créer de fichier, et liste les protections que tu viens d’apprendre à lire.
+
+<Prompt titre="Kill brick (script dans la Part)">
+
+```text
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Les kill bricks sont des Parts rangées dans le dossier Workspace.KillBricks, qui n'est pas synchronisé par Rojo.
+Objectif : quand un joueur touche une kill brick, son personnage meurt, puis réapparaît normalement.
+Fichiers concernés : aucun. Donne-moi uniquement le code complet d'un Script que je collerai moi-même DANS la Part, dans Studio. Ne crée ni ne modifie aucun fichier.
+Contraintes techniques : la Part est script.Parent ; connecte une fonction locale surContact à l'événement Touched ; trouve le Humanoid avec FindFirstChildOfClass("Humanoid") ; mets Health à 0 (pas TakeDamage) ; toutes les variables en local ; un commentaire en français pour chaque étape.
+Cas limites : un objet qui n'est pas un personnage touche la Part (pas de Humanoid) ; le personnage est déjà mort (Health à 0).
+Vérification : explique-moi comment tester en Play : mon personnage meurt au contact, et l'Output ne montre aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le résultat de `FindFirstChildOfClass("Humanoid")` est **testé** (`if humanoid and ...`) avant toute utilisation de `humanoid.Health` ;
+- la condition est dans le bon sens : on agit quand le Humanoid **existe** et que `Health > 0` (pas `== nil`) ;
+- la santé est mise à `0` avec `=`, et les comparaisons utilisent `>`, `==` ou `~=` (jamais `!=`) ;
+- toutes les variables sont déclarées avec `local`, et aucune n’est inutile ;
+- la fonction est passée à `Connect` **sans parenthèses** : `Touched:Connect(surContact)`.
+
+</AvecClaudeCode>
+
 <Defi>
 1. Crée ta kill brick dans `Workspace.KillBricks` et teste-la.
 2. Duplique-la (`Ctrl`+`D`) deux ou trois fois et place les copies dans ton niveau : chaque copie embarque son propre script. (À la leçon 4, on remplacera toutes ces copies de script par un seul script qui gère tout le dossier.)
@@ -327,7 +431,7 @@ D’après la documentation Roblox, mettre `Health` à `0` fait passer le Humano
 - Opérateurs : `+ - * / // % ^`, comparaisons `== ~= < > <= >=`, textes collés avec **`..`** ou interpolés avec les accents graves.
 - **Seuls `nil` et `false` sont faux** ; `0` et `""` sont vrais. `or` sert à donner une valeur par défaut.
 - `if / elseif / else / end` exécute le premier bloc dont la condition est vraie.
-- Une kill brick met `Health` à `0` après avoir vérifié qu’un Humanoid a bien été trouvé.
+- Une kill brick met `Health` à `0` après avoir vérifié qu’un Humanoid a bien été trouvé : c’est ce test que tu dois retrouver dans tout code produit par l’IA.
 </Resume>
 
 <Sources>

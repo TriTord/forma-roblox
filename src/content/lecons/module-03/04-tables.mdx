@@ -1,12 +1,12 @@
 ---
 titre: "Les tables : listes et dictionnaires"
-description: Range plusieurs valeurs dans une seule variable avec les tables de Luau, parcours-les avec des boucles, et gère toutes les pièces et kill bricks de ton obby avec un seul script.
-duree: 35
+description: Comprends les tables de Luau (listes et dictionnaires), lis les boucles qui les parcourent, et vérifie les scripts qui gèrent toutes les pièces et kill bricks de ton obby.
+duree: 40
 objectifs:
-  - Créer, modifier et parcourir des tableaux (listes)
-  - Utiliser des dictionnaires clé/valeur et des tables imbriquées
+  - Lire et modifier des tableaux (listes) et prévoir le résultat d’un parcours
+  - Reconnaître dictionnaires clé/valeur et tables imbriquées, et choisir la bonne structure
   - Comprendre qu’une table est partagée par référence, et savoir la copier
-  - Choisir la bonne structure pour chaque besoin
+  - Vérifier un script qui gère tout un dossier de Parts
 miseAJour: 2026-10-24
 quiz:
   - type: qcm
@@ -54,9 +54,43 @@ quiz:
       - texte: "Ligne 3 : `#etapes` vaut 3, il manque la dernière étape"
       - texte: "Ligne 4 : il faut utiliser `+` pour coller les textes"
     explication: "Au premier tour, `i` vaut 0 et `etapes[0]` vaut `nil` : la concaténation `\"Étape : \" .. nil` provoque l’erreur « attempt to concatenate string with nil ». La boucle doit commencer à 1, ou mieux, utiliser `for i, nom in etapes do`."
+  - type: qcm
+    question: "Avec `local possedes = {TraineeRouge = true}`, qu’affiche `print(possedes.TraineeBleue)` ?"
+    options:
+      - texte: "`nil`"
+        correct: true
+      - texte: "`false`"
+      - texte: Une erreur, car la clé n’existe pas
+      - texte: "`TraineeBleue`"
+    explication: "Lire une clé absente d’un dictionnaire ne provoque **pas** d’erreur : on obtient simplement `nil`. C’est ce qui permet d’écrire `if possedes[idObjet] then`. Attention en relisant : `nil` n’est pas `false`, même si les deux sont « faux » dans un `if`."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ton dossier `KillBricks` contient aussi un Folder `Decor`. Résultat : une erreur dans l’Output, et certaines kill bricks ne tuent personne. Où est le problème ?"
+    code: |
+      -- Script « KillBricks » dans ServerScriptService
+      local Workspace = game:GetService("Workspace")
+      local dossierKillBricks = Workspace:WaitForChild("KillBricks")
+
+      local function surContact(autrePart)
+      	local personnage = autrePart.Parent
+      	local humanoid = personnage and personnage:FindFirstChildOfClass("Humanoid")
+      	if humanoid and humanoid.Health > 0 then
+      		humanoid.Health = 0
+      	end
+      end
+
+      for _, killBrick in dossierKillBricks:GetChildren() do
+      	killBrick.Touched:Connect(surContact)
+      end
+    options:
+      - texte: "Ligne 3 : il faut `FindFirstChild` au lieu de `WaitForChild`"
+      - texte: "Ligne 7 : `personnage and` provoque une erreur quand `personnage` existe"
+      - texte: "Ligne 13 : `GetChildren` renvoie un dictionnaire, il faut écrire `pairs`"
+      - texte: "Ligne 14 : aucun test `IsA(\"BasePart\")` ; le Folder n’a pas d’événement `Touched`, l’erreur arrête le script et les kill bricks suivantes ne sont jamais connectées"
+        correct: true
+    explication: "`GetChildren` renvoie **tous** les enfants, pas seulement les Parts. Sur le Folder `Decor`, `killBrick.Touched` provoque une erreur du type « Touched is not a valid member of Folder ». Le script s’arrête là : les enfants suivants de la liste ne sont jamais connectés. La version de la leçon filtre avec `if killBrick:IsA(\"BasePart\") then`."
 ---
 
-Jusqu’ici, chaque variable contenait **une seule** valeur. Mais un jeu manipule des collections : la liste des joueurs, les étapes d’un niveau, les objets de la boutique… En Luau, un seul outil sert à tout ça : la **table**. C’est la structure de données la plus importante du langage. À la fin de cette leçon, un seul script gérera toutes les kill bricks et toutes les pièces de l’Obby des Nuages.
+Jusqu’ici, chaque variable contenait **une seule** valeur. Mais un jeu manipule des collections : la liste des joueurs, les étapes d’un niveau, les objets de la boutique… En Luau, un seul outil sert à tout ça : la **table**. C’est la structure de données la plus importante du langage, et tu en verras dans presque chaque script produit par une IA : savoir les lire est indispensable. À la fin de cette leçon, un seul script gérera toutes les kill bricks et toutes les pièces de l’Obby des Nuages.
 
 ## Qu’est-ce qu’une table ?
 
@@ -270,7 +304,7 @@ Beaucoup de méthodes Roblox renvoient des tableaux. Par exemple, **`:GetChildre
 À la leçon 2, chaque kill brick contenait sa propre copie du script. Si tu veux changer le comportement, il faut modifier chaque copie : c’est fragile. La documentation Roblox conseille d’ailleurs d’éviter d’attacher des scripts directement aux objets du Workspace. Remplaçons-les par **un seul** Script.
 
 1. **Supprime** les Scripts qui se trouvent dans tes kill bricks (sinon chaque brique réagirait deux fois).
-2. Crée un **Script** nommé `KillBricks` dans **ServerScriptService** :
+2. Crée un **Script** nommé `KillBricks` dans **ServerScriptService**. Dans ton projet Rojo, c’est le fichier `src/ServerScriptService/KillBricks.server.luau` : tape-le, ou demande-le à Claude Code avec le prompt de l’encadré plus bas. Voici le code à obtenir :
 
 ```luau
 -- Script « KillBricks » dans ServerScriptService
@@ -303,7 +337,7 @@ print(`{#dossierKillBricks:GetChildren()} objets dans le dossier KillBricks`)
 
 ### Fil rouge : toutes les pièces qui tournent
 
-Même principe pour les pièces. Supprime les Scripts placés dans chaque `Piece`, puis crée un Script `PiecesTournantes` dans ServerScriptService :
+Même principe pour les pièces. Supprime les Scripts placés dans chaque `Piece`, puis crée un Script `PiecesTournantes` dans ServerScriptService (fichier `src/ServerScriptService/PiecesTournantes.server.luau`) :
 
 ```luau
 -- Script « PiecesTournantes » dans ServerScriptService
@@ -339,6 +373,83 @@ Ce script reprend la liste des enfants à chaque tour : une pièce ajoutée au d
 | Une liste d’éléments qui ont chacun des propriétés | Tableau de dictionnaires | Niveaux, catalogue de la boutique |
 | Savoir rapidement si un élément est présent | Dictionnaire dont les valeurs valent `true` (`possedes["TraineeRouge"] = true`) | Objets déjà possédés |
 
+## Lire ce code comme un relecteur
+
+### Exercice 1 : que va afficher l’Output ?
+
+```luau
+local inventaire = {"TraineeRouge"}
+local sauvegarde = inventaire
+table.insert(inventaire, "TraineeBleue")
+
+local copie = table.clone(inventaire)
+table.insert(copie, "TraineeDoree")
+
+print(#inventaire, #sauvegarde, #copie)
+print(table.find(copie, "TraineeBleue"))
+print(table.find(inventaire, "TraineeDoree"))
+```
+
+<Info titre="Réponse">
+
+L’Output affiche `2 2 3`, puis `2`, puis `nil`.
+
+- `sauvegarde` n’est **pas** une copie : c’est la même table que `inventaire` sous un autre nom. Elle contient donc aussi `TraineeBleue` (2 éléments). Si une IA te propose ce genre de « sauvegarde » avant de modifier une table, elle ne protège rien du tout.
+- `copie` est une vraie copie (`table.clone`) : l’ajout de `TraineeDoree` ne touche qu’elle (3 éléments).
+- `TraineeBleue` est à l’indice 2 de `copie` ; `TraineeDoree` est absente de `inventaire`, d’où `nil`.
+
+</Info>
+
+### Exercice 2 : ce code fait-il ce qu’il annonce ?
+
+```luau
+-- Une IA propose ce code pour retirer toutes les traînées rouges
+local inventaire = {"TraineeRouge", "TraineeRouge", "TraineeBleue"}
+
+for i = 1, #inventaire do
+	if inventaire[i] == "TraineeRouge" then
+		table.remove(inventaire, i)
+	end
+end
+
+print(#inventaire, inventaire[1])
+```
+
+<Info titre="Réponse">
+
+Non : l’Output affiche `2 TraineeRouge`, il reste une traînée rouge. Au tour `i = 1`, `table.remove` retire le premier élément et **décale** la suite : le second `TraineeRouge` passe à l’indice 1. Au tour suivant, `i` vaut 2 et la boucle regarde `TraineeBleue` : elle a sauté l’élément décalé. C’est le piège de l’encadré « Retirer des éléments en parcourant la liste vers l’avant » : il faut parcourir à l’envers, `for i = #inventaire, 1, -1 do`. Ce code ne provoque aucune erreur : seule une relecture attentive (ou un test avec deux éléments identiques à la suite) le révèle.
+
+</Info>
+
+<AvecClaudeCode>
+
+Cette fois, les deux scripts vont dans ServerScriptService : Claude Code peut donc créer directement les fichiers dans ton projet Rojo. Le prompt reprend les noms exacts de la leçon et les protections que tu sais maintenant vérifier.
+
+<Prompt titre="KillBricks et PiecesTournantes">
+
+```text
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Jusqu'ici, chaque kill brick et chaque pièce contenait sa propre copie de script ; je veux un seul Script serveur par système. Je supprimerai moi-même, dans Studio, les anciens Scripts placés dans les Parts.
+Ce qui existe déjà : dans le Workspace (non synchronisé par Rojo), le Folder Workspace.KillBricks (des Parts) et le Folder Workspace.Pieces (des Parts nommées « Piece »). Ces dossiers peuvent aussi contenir autre chose que des Parts.
+Objectif : toute Part de KillBricks élimine le joueur qui la touche ; toutes les Parts de Pieces tournent sur elles-mêmes autour de l'axe vertical, y compris une pièce ajoutée pendant la partie.
+Fichiers concernés : crée src/ServerScriptService/KillBricks.server.luau et src/ServerScriptService/PiecesTournantes.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : services avec game:GetService ; dossiers récupérés avec Workspace:WaitForChild ; parcours avec for _, objet in dossier:GetChildren() do et filtre if objet:IsA("BasePart") then. KillBricks : une fonction locale surContact connectée à Touched de chaque Part ; Humanoid trouvé avec FindFirstChildOfClass, testé avant usage ; Health = 0 seulement si Health > 0 ; à la fin, print du nombre d'objets du dossier. PiecesTournantes : constante VITESSE_ROTATION = 90 (degrés par seconde) ; une seule boucle while true do avec local ecoule = task.wait() ; rotation calculée une fois par image puis appliquée à chaque pièce ; liste des enfants relue à chaque tour. Jamais wait. Commentaires en français.
+Cas limites : un Folder ou un Model dans un des dossiers ; une Part touchée par un objet qui n'est pas un personnage ; une pièce ajoutée ou retirée pendant la partie.
+Vérification : en Play, les kill bricks éliminent mon personnage, les pièces tournent, l'Output affiche le nombre d'objets du dossier KillBricks et aucune erreur ; selene src et stylua --check src ne signalent rien.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- chaque boucle sur `GetChildren()` filtre avec `IsA("BasePart")` **avant** d’utiliser `.Touched` ou `.CFrame` ;
+- dans `surContact`, le personnage et le Humanoid sont testés (`personnage and ...`, `if humanoid and humanoid.Health > 0`) ;
+- `PiecesTournantes` n’a **qu’une** boucle `while true do`, avec `task.wait()`, et relit `dossierPieces:GetChildren()` à chaque tour ;
+- la rotation est calculée une seule fois par image, avant la boucle sur les pièces ;
+- les parcours utilisent `for _, objet in ... do` (ou `ipairs`), pas une boucle numérique qui commencerait à 0 ;
+- les fichiers portent exactement les noms demandés, avec le suffixe `.server.luau`.
+
+</AvecClaudeCode>
+
 <Defi>
 1. Remplace tes scripts de kill bricks et de pièces par les deux scripts uniques de cette leçon, et vérifie que tout fonctionne comme avant.
 2. Crée une table `messagesEncouragement` contenant cinq phrases. Écris une boucle qui les affiche toutes, numérotées.
@@ -351,7 +462,7 @@ Ce script reprend la liste des enfants à chaque tour : une pièce ajoutée au d
 - `#t` donne la longueur d’un tableau ; `table.insert`, `table.remove` et `table.find` ajoutent, retirent et cherchent.
 - On parcourt une table avec `for cle, valeur in t do` ; l’ordre n’est garanti que pour la partie tableau.
 - Une variable contient une **référence** vers la table : utilise `table.clone` pour une copie (superficielle).
-- `:GetChildren()` renvoie un tableau d’objets : un seul script peut gérer tout un dossier de Parts.
+- `:GetChildren()` renvoie un tableau d’objets : un seul script peut gérer tout un dossier de Parts, à condition de filtrer avec `IsA` (à vérifier dans tout code généré).
 </Resume>
 
 <Sources>

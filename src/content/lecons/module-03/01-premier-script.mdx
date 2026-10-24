@@ -1,11 +1,12 @@
 ---
 titre: Ton premier script
-description: Découvre les trois types de scripts de Roblox (Script, LocalScript, ModuleScript), où les placer, et écris ton tout premier code Luau.
-duree: 20
+description: Découvre les trois types de scripts de Roblox (Script, LocalScript, ModuleScript), où les placer dans Studio et dans ton projet Rojo, et apprends à lire ton premier code Luau.
+duree: 25
 objectifs:
   - Distinguer Script, LocalScript et ModuleScript
-  - Savoir où placer chaque type de script pour qu’il s’exécute
-  - Écrire, lancer et déboguer un premier script avec la fenêtre Output
+  - Savoir où placer chaque type de script, dans Studio comme dans un projet Rojo
+  - Lire un script simple et prévoir ce qu’il affichera dans l’Output
+  - Lancer un premier script et comprendre un message d’erreur
 miseAJour: 2026-10-24
 quiz:
   - type: qcm
@@ -55,9 +56,31 @@ quiz:
       - texte: "Ligne 5 : `Color3.fromRGB` attend des valeurs entre 0 et 1"
       - texte: "Ligne 1 : un commentaire doit se terminer par `--`"
     explication: "Luau est sensible à la casse : `Print` et `print` sont deux noms différents, et `Print` n’existe pas. L’Output affiche alors une erreur du type « attempt to call a nil value ». `Parent` prend bien une majuscule, et `Color3.fromRGB` attend des valeurs de 0 à 255."
+  - type: qcm
+    question: "Dans ton projet Rojo, Claude Code a créé le fichier `src/ServerScriptService/Bienvenue.client.luau`. Le code est juste, mais rien ne s’affiche dans l’Output. Pourquoi ?"
+    options:
+      - texte: "Le suffixe `.client.luau` crée un **LocalScript**, qui ne s’exécute pas dans ServerScriptService : il fallait `Bienvenue.server.luau`"
+        correct: true
+      - texte: "Studio n’exécute jamais les fichiers créés par une IA"
+      - texte: "Dans un fichier `.luau`, il faut écrire `Print` avec une majuscule"
+      - texte: "ServerScriptService n’accepte que des ModuleScripts"
+    explication: "Avec Rojo, le suffixe du fichier décide du type de script : `.server.luau` donne un Script, `.client.luau` un LocalScript, `.luau` seul un ModuleScript. Un LocalScript rangé dans ServerScriptService ne s’exécute pas, sans aucun message d’erreur. Relis toujours le nom ET l’emplacement des fichiers que l’IA crée."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code crée ton script de bienvenue. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais un script qui dit bonjour"
+    options:
+      - texte: "Fais un super script de bienvenue pour mon jeu Roblox, avec plein de fonctionnalités sympas."
+      - texte: |
+          Dans mon projet Rojo, crée uniquement le Script src/ServerScriptService/Bienvenue.server.luau.
+          Objectif : au lancement, l’Output affiche « Bienvenue dans l’Obby des Nuages ! » puis le nombre d’objets du Workspace.
+          Contraintes : récupère le service avec game:GetService, commente chaque ligne en français, ne modifie aucun autre fichier.
+          Vérification : en Play, les deux messages apparaissent dans l’Output, sans erreur.
+        correct: true
+      - texte: "Écris un script qui dit bonjour dans l’Output. Range-le où tu veux."
+    explication: "La bonne version dit **où** créer le fichier (et donc son type, grâce au suffixe `.server.luau`), **quoi** afficher exactement, les contraintes (services, commentaires, rien d’autre) et **comment vérifier**. La première invite l’IA à ajouter du code que tu ne comprendras pas ; la troisième la laisse choisir l’emplacement, qui est justement la source d’erreur numéro un."
 ---
 
-Au module 1, tu as construit le premier niveau de l’Obby des Nuages à la main. Il est joli… mais rien ne bouge, rien ne réagit. C’est le rôle des **scripts** : des fichiers de code qui donnent vie à ton jeu. Dans cette leçon, tu vas découvrir les trois types de scripts de Roblox, apprendre où les ranger, et écrire tes premières lignes de **Luau**, le langage de programmation de Roblox.
+Au module 1, tu as construit le premier niveau de l’Obby des Nuages à la main. Il est joli… mais rien ne bouge, rien ne réagit. C’est le rôle des **scripts** : des fichiers de code qui donnent vie à ton jeu. Au module 2, tu as appris à piloter Claude Code pour qu’il les écrive avec toi ; ce module te donne les clés pour **relire** ce qu’il produit. On n’y apprend pas du code par cœur : on apprend à comprendre chaque ligne. Dans cette leçon, tu découvres les trois types de scripts, où les ranger, et tes premières lignes de **Luau**, le langage de Roblox. Ces premiers scripts sont si courts que le plus formateur est de les taper toi-même.
 
 ## Luau, le langage de Roblox
 
@@ -66,7 +89,7 @@ Luau est un langage de script **dérivé de Lua 5.1**. Roblox l’a enrichi pour
 Un script, c’est simplement une liste d’**instructions** que l’ordinateur exécute de haut en bas, une ligne après l’autre. Par exemple : « affiche ce message », « change la couleur de cette Part », « attends une seconde »…
 
 <Info>
-Tu n’as rien à installer : l’éditeur de code est intégré à Roblox Studio. Il colore le code, propose l’autocomplétion et souligne la plupart des erreurs pendant que tu tapes.
+Studio contient son propre éditeur de code : il colore le code, propose l’autocomplétion et souligne la plupart des erreurs pendant que tu tapes. Dans ton projet Rojo, VS Code avec l’extension luau-lsp (installée au module 2) joue le même rôle sur tes fichiers.
 </Info>
 
 ## Les trois types de scripts
@@ -97,11 +120,31 @@ Un Script possède une propriété **RunContext** (dans la fenêtre Properties).
 Un Script posé dans ReplicatedStorage, ou un LocalScript posé dans ServerScriptService, **ne s’exécute pas du tout**, et souvent sans aucun message d’erreur. Si ton script « ne fait rien », vérifie d’abord son type et son emplacement dans l’Explorer.
 </Erreur>
 
+### Dans Studio ou dans ton projet Rojo ?
+
+Depuis le module 2, le code de l’Obby des Nuages vit aussi dans des **fichiers**, que Rojo synchronise avec Studio. Le **suffixe** du fichier décide du type de script, et le dossier de son emplacement :
+
+| Fichier dans ton projet | Ce que tu obtiens dans Studio |
+|---|---|
+| `src/ServerScriptService/Nom.server.luau` | un **Script** `Nom` dans ServerScriptService |
+| `src/StarterPlayer/StarterPlayerScripts/Nom.client.luau` | un **LocalScript** `Nom` dans StarterPlayerScripts |
+| `src/ReplicatedStorage/Modules/Nom.luau` | un **ModuleScript** `Nom` dans `ReplicatedStorage.Modules` |
+
+C’est la première chose à relire quand Claude Code crée un fichier : un `.client.luau` dans `src/ServerScriptService` donnerait un LocalScript qui ne s’exécuterait jamais.
+
+<Attention>
+Dans ton projet, Rojo gère ServerScriptService et `ReplicatedStorage.Modules`, et d’après sa documentation il peut **supprimer** à la synchronisation les objets qu’il ne connaît pas dans ces dossiers. Pour un script de ces emplacements, crée donc le **fichier** plutôt qu’un Script inséré à la main dans Studio. Les petits scripts placés **dans une Part** (leçons 1 à 3) se créent, eux, directement dans Studio : notre projet ne synchronise pas le Workspace.
+</Attention>
+
 ## Ton premier script, pas à pas
 
-On va créer un Script côté serveur qui affiche un message.
+On va créer un Script côté serveur qui affiche un message. Tape-le toi-même : c’est une seule ligne (et dans Studio, elle est même déjà écrite pour toi).
 
-1. Ouvre ton projet de l’Obby des Nuages dans Studio.
+**Dans ton projet Rojo** : lance `rojo serve` et connecte le plugin Rojo dans Studio, comme au module 2. Dans VS Code, crée le fichier `src/ServerScriptService/Bienvenue.server.luau`, écris dedans `print("Hello world!")` et enregistre : un Script `Bienvenue` apparaît dans ServerScriptService. Passe ensuite directement à l’étape 5 ci-dessous.
+
+**Directement dans Studio** (dans un lieu de test, sans Rojo connecté) :
+
+1. Ouvre ton lieu de test dans Studio.
 2. Dans l’Explorer, survole **ServerScriptService** et clique sur le bouton **⊕**.
 3. Choisis **Script**. Un nouvel onglet de code s’ouvre.
 4. Studio a déjà écrit une ligne pour toi : `print("Hello world!")`.
@@ -111,7 +154,7 @@ On va créer un Script côté serveur qui affiche un message.
 Bravo, tu viens d’exécuter ton premier programme ! Le message s’affiche dans l’Output, pas à l’écran du joueur : l’Output est la console des développeurs.
 
 <Astuce titre="Renomme tes scripts tout de suite">
-Un projet plein de scripts tous nommés « Script » devient vite illisible. Renomme chaque script selon son rôle dès sa création (clic droit, puis **Rename**) : `KillBricks`, `Checkpoints`, `PiecesTournantes`… Tu gagneras un temps fou quand l’Output t’indiquera dans quel script se trouve une erreur.
+Un projet plein de scripts tous nommés « Script » devient vite illisible. Renomme chaque script selon son rôle dès sa création (clic droit, puis **Rename** ; dans un projet Rojo, c’est le nom du fichier qui donne le nom du script) : `KillBricks`, `Checkpoints`, `PiecesTournantes`… Tu gagneras un temps fou quand l’Output t’indiquera dans quel script se trouve une erreur.
 </Astuce>
 
 ## `print` et les commentaires
@@ -243,20 +286,76 @@ Dans l’Output, le bouton d’effacement (ou `Ctrl`+`K` sur Windows, `⌘`+`K` 
 Luau est **sensible à la casse** : `print` et `Print`, `Parent` et `parent`, `Color` et `color` sont des noms différents pour lui. La majorité des erreurs de débutant viennent d’une majuscule oubliée ou en trop.
 </Attention>
 
+## Lire ce code comme un relecteur
+
+Quand Claude Code te propose un script, **lis-le avant de le lancer** : prévois ce qu’il va faire, puis vérifie en Play. Entraîne-toi sur cet extrait :
+
+```luau
+-- Script placé DANS une Part nommée « Nuage » du Workspace
+local plateforme = script.Parent
+
+print("Début")
+-- print("Étape 1")
+print("Je suis :", plateforme.Name)
+plateforme.Transparency = 1
+--[[
+print("Fin")
+]]
+warn("Plateforme cachée")
+```
+
+1. Qu’affiche l’Output, et dans quel ordre ?
+2. Que devient la Part à l’écran ? Peut-on encore marcher dessus ?
+3. Que se passe-t-il si quelqu’un déplace ce Script dans ServerScriptService ?
+
+<Info titre="Réponse">
+
+1. `Début`, puis `Je suis : Nuage`, puis l’avertissement `Plateforme cachée`. Les lignes 5 et 8 à 10 sont des commentaires : Luau les ignore complètement.
+2. Elle devient invisible (`Transparency = 1`), mais reste solide : on peut toujours marcher dessus, car seule sa transparence a changé (pas `CanCollide`).
+3. `script.Parent` désigne alors ServerScriptService. L’Output affiche `Je suis : ServerScriptService`, puis une erreur du type `Transparency is not a valid member of ...` à la ligne 7, car un service n’a pas de transparence. Le script s’arrête à cette ligne : le `warn` n’est jamais exécuté.
+
+</Info>
+
+<AvecClaudeCode>
+
+Même pour trois lignes, un prompt précis dit **où** créer le fichier, **quoi** afficher et **comment** vérifier : c’est ce qui évite un fichier au mauvais endroit ou du code en trop.
+
+<Prompt titre="Script de bienvenue">
+
+```text
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (arborescence décrite dans CLAUDE.md). Je débute en Luau et je veux comprendre chaque ligne de ce script.
+Objectif : au lancement de la partie, l'Output affiche « Bienvenue dans l'Obby des Nuages ! », puis le nombre d'objets contenus dans le Workspace.
+Fichiers concernés : crée uniquement src/ServerScriptService/Bienvenue.server.luau (un Script serveur). Ne modifie rien d'autre.
+Contraintes techniques : récupère le Workspace avec game:GetService("Workspace") ; utilise print ; mets un commentaire en français au-dessus de chaque ligne pour me l'expliquer ; n'ajoute rien de plus que ce qui est demandé.
+Vérification : explique-moi comment le tester en Play et quels messages je dois voir dans l'Output.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le fichier s’appelle exactement `Bienvenue.server.luau` et se trouve dans `src/ServerScriptService` (un `.client.luau` donnerait un LocalScript, qui ne s’exécuterait pas là) ;
+- le service est récupéré avec `game:GetService("Workspace")` ;
+- `print` est écrit en minuscules, les textes sont entre guillemets et les commentaires commencent par `--` ;
+- tu peux expliquer chaque ligne ; sinon, demande à Claude Code de te l’expliquer avant de tester.
+
+</AvecClaudeCode>
+
 <Defi>
 Dans ton Obby des Nuages :
 
-1. Crée un **Script** dans ServerScriptService, renomme-le `Bienvenue`, et fais-lui afficher dans l’Output le nom de ton jeu et le nombre d’objets dans le Workspace.
+1. Complète le Script `Bienvenue` de ServerScriptService (le fichier `src/ServerScriptService/Bienvenue.server.luau` de ton projet Rojo) et fais-lui afficher dans l’Output le nom de ton jeu et le nombre d’objets dans le Workspace. Tape-le toi-même d’abord, puis compare avec ce que produit Claude Code avec le prompt ci-dessus.
 2. Insère un **Script** dans la dernière plateforme de ton niveau et fais-la devenir dorée et en matériau `Neon` au lancement.
 3. Provoque volontairement une erreur (par exemple `Print` avec une majuscule), lance le jeu, lis le message dans l’Output, puis corrige-la.
 </Defi>
 
 <Resume>
-- Un **Script** s’exécute sur le serveur (ServerScriptService, Workspace), un **LocalScript** sur le client (StarterPlayerScripts, StarterGui…), un **ModuleScript** seulement quand on le charge avec `require`.
+- Un **Script** s’exécute sur le serveur (ServerScriptService, Workspace), un **LocalScript** sur le client (StarterPlayerScripts, StarterGui…), un **ModuleScript** seulement quand on le charge avec `require`. Avec Rojo, le suffixe (`.server.luau`, `.client.luau`, `.luau`) décide du type : relis-le dans chaque fichier créé par l’IA.
 - `print` (et `warn`) affiche des messages dans l’**Output** ; les commentaires s’écrivent `--` ou `--[[ ... ]]`.
 - `script.Parent` désigne l’objet qui contient le script ; le point `.` accède aux propriétés et aux enfants.
 - On récupère les services avec `game:GetService("NomDuService")`.
 - Un message d’erreur indique le **script**, la **ligne** et la **cause** ; le script s’arrête à cette ligne.
+- Avant de lancer un script (le tien ou celui de l’IA), **prévois** ce que l’Output affichera, puis vérifie.
 </Resume>
 
 <Sources>
@@ -267,4 +366,6 @@ Dans ton Obby des Nuages :
 - [Roblox globals (script, game, workspace…) — référence API](https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals)
 - [ServiceProvider:GetService — référence API](https://create.roblox.com/docs/reference/engine/classes/ServiceProvider)
 - [Scripting — vue d’ensemble Roblox](https://create.roblox.com/docs/scripting)
+- [Rojo — Sync Details (suffixes `.server`, `.client` et modules)](https://rojo.space/docs/v7/sync-details/)
+- [Rojo — Project Format (`$ignoreUnknownInstances`, `emitLegacyScripts`)](https://rojo.space/docs/v7/project-format/)
 </Sources>

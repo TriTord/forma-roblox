@@ -1,5 +1,5 @@
 module: "03"
-titre: Examen du module 3 — Luau de A à Z
+titre: Examen du module 3 — Lire et comprendre Luau
 seuil: 70
 questions:
   - type: qcm
@@ -166,3 +166,53 @@ questions:
       - texte: Un nombre entier uniquement
       - texte: Un nombre converti automatiquement en texte
     explication: "Le `?` à la fin d’un type le rend **optionnel** : `number?` équivaut à « `number` ou `nil` ». Ces annotations aident l’analyseur de Studio, surtout avec `--!strict`, sans changer l’exécution."
+
+  - type: qcm
+    question: "Claude Code te propose `local niveau = Config.obtenirNiveau(15)` puis `print(niveau.nom)`. Avec le module `Config` de la leçon 6 (niveaux des étapes 1 à 12), que se passe-t-il ?"
+    options:
+      - texte: "L’Output affiche le nom du dernier niveau, « Le sommet »"
+      - texte: "L’Output affiche `nil`"
+      - texte: "Une erreur du type « attempt to index nil with 'nom' » : il manque un test `if niveau then`"
+        correct: true
+      - texte: Rien, la ligne est ignorée
+    explication: "`obtenirNiveau` renvoie `nil` quand aucune plage ne contient l’étape. Lire `.nom` sur `nil` provoque une erreur qui arrête le script. Une fonction qui peut renvoyer `nil` (son type de retour serait `Niveau?`) doit toujours être suivie d’un test : c’est un oubli fréquent dans le code généré."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script doit donner **une** pièce par Part ramassée. En test, un seul passage sur une pièce en rapporte souvent plusieurs, et on peut repasser dessus pour en regagner. Où est le problème ?"
+    code: |
+      local Players = game:GetService("Players")
+      local Workspace = game:GetService("Workspace")
+      local dossierPieces = Workspace:WaitForChild("Pieces")
+
+      for _, piece in dossierPieces:GetChildren() do
+      	if piece:IsA("BasePart") then
+      		piece.Touched:Connect(function(autrePart)
+      			local player = Players:GetPlayerFromCharacter(autrePart.Parent)
+      			if player then
+      				player:SetAttribute("Pieces", (player:GetAttribute("Pieces") or 0) + 1)
+      				piece.Transparency = 1
+      			end
+      		end)
+      	end
+      end
+    options:
+      - texte: "Ligne 6 : le test `IsA(\"BasePart\")` empêche les pièces de fonctionner"
+      - texte: "Ligne 8 : `GetPlayerFromCharacter` renvoie toujours `nil` pour une pièce"
+      - texte: "Lignes 9-11 : rien n’empêche de ramasser la même pièce plusieurs fois ; `Touched` se déclenche en rafale et une Part invisible reste touchable, il faut un verrou (attribut, `CanTouch = false`…) avant de donner la pièce"
+        correct: true
+      - texte: "Ligne 10 : `or 0` provoque une erreur quand l’attribut n’existe pas encore"
+    explication: "Rendre la pièce invisible ne la désactive pas : elle déclenche toujours `Touched`. Et un seul passage produit plusieurs contacts (chaque partie du corps compte). Il faut marquer la pièce comme ramassée **avant** de donner la récompense, puis ignorer les contacts suivants. Le test `IsA` est utile, `GetPlayerFromCharacter` fonctionne avec le Model du personnage, et `or 0` sert justement de valeur par défaut."
+
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code regroupe toutes tes kill bricks dans un seul script. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais que toutes mes kill bricks marchent avec un seul script"
+    options:
+      - texte: "Optimise mes kill bricks avec un seul script, fais au mieux."
+      - texte: |
+          Crée src/ServerScriptService/KillBricks.server.luau, qui gère toutes les Parts du Folder Workspace.KillBricks (ne modifie rien d’autre).
+          Contraintes : Workspace:WaitForChild("KillBricks") ; parcours de GetChildren() avec un filtre IsA("BasePart") ; Humanoid trouvé avec FindFirstChildOfClass et testé avant usage ; Health = 0 seulement si Health > 0 ; jamais wait.
+          Cas limites : un Folder dans le dossier, une Part touchée par un objet qui n’est pas un personnage.
+          Vérification : en Play, chaque kill brick élimine mon personnage et l’Output n’affiche aucune erreur ; selene src ne signale rien.
+        correct: true
+      - texte: "Crée un script KillBricks qui utilise une boucle while true do pour vérifier toutes les secondes si un joueur touche une kill brick."
+    explication: "La bonne version nomme le fichier, le dossier surveillé, les protections que tu sais relire (filtre `IsA`, Humanoid testé, `Health > 0`), les cas limites et un critère de réussite. La première laisse tout deviner. La troisième impose une mauvaise méthode : une boucle de vérification au lieu de l’événement `Touched`, plus lente à réagir et plus coûteuse."
