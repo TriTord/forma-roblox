@@ -285,7 +285,7 @@ Les pièces à collecter de l’Obby des Nuages doivent attirer l’œil : on va
 ### Préparer la pièce
 
 1. Dans le Workspace, crée un **Folder** nommé `Pieces`.
-2. Crée une Part, nomme-la `Piece`, donne-lui une forme de pièce (par exemple une Part de forme **Cylinder**, fine et ronde) et une couleur dorée.
+2. Crée une Part, nomme-la `Piece`, donne-lui une forme de pièce et une couleur dorée. Par exemple : propriété **Shape** sur **Cylinder** et **Size** à `0.4, 3, 3`. Un cylindre Roblox est couché le long de l’axe X : avec ces dimensions, la pièce se tient debout « sur la tranche », et elle tournera comme une pièce de monnaie qu’on fait tourner sur une table.
 3. Coche **Anchored** (la pièce ne doit pas tomber) et décoche **CanCollide** (le joueur doit pouvoir la traverser).
 4. Range-la dans `Pieces` et insère un **Script** dedans.
 
@@ -342,5 +342,6 @@ Faire tourner des pièces depuis un Script serveur est parfait pour apprendre. A
 - [Scope — documentation Luau de Roblox](https://create.roblox.com/docs/luau/scope)
 - [Bibliothèque task (task.wait, task.delay…) — référence API](https://create.roblox.com/docs/reference/engine/libraries/task)
 - [Syntaxe de Luau (continue, affectations composées) — luau.org](https://luau.org/syntax)
+- [PartType (Cylinder orienté selon l’axe X) — référence API](https://create.roblox.com/docs/reference/engine/enums/PartType)
 - [Fil DevForum (retours de développeurs) sur l’erreur « Script timeout: exhausted allowed execution time »](https://devforum.roblox.com/t/how-do-i-fix-that-thing-script-timeout-exhausted-allowed-execution-time/1455348)
 </Sources>

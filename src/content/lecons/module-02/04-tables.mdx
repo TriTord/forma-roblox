@@ -327,7 +327,7 @@ end
 On ne calcule la rotation qu’une fois par image, puis on l’applique à chaque pièce. Une seule boucle, autant de pièces que tu veux.
 
 <Info>
-Ce script prend la liste des enfants à chaque tour : si une pièce est retirée du dossier (parce qu’elle a été ramassée, par exemple), elle cesse simplement de tourner. Le ramassage des pièces sera programmé et sécurisé côté serveur au module 3.
+Ce script reprend la liste des enfants à chaque tour : une pièce ajoutée au dossier pendant la partie se met à tourner, et une pièce retirée du dossier cesse simplement de tourner. Le ramassage des pièces sera programmé et sécurisé côté serveur au module 3.
 </Info>
 
 ## Tableau ou dictionnaire : comment choisir ?
@@ -337,12 +337,12 @@ Ce script prend la liste des enfants à chaque tour : si une pièce est retirée
 | Une liste ordonnée, parcourue dans l’ordre | Tableau | Étapes du niveau, classement |
 | Retrouver une valeur à partir d’un nom | Dictionnaire | Prix par objet, réglages du jeu |
 | Une liste d’éléments qui ont chacun des propriétés | Tableau de dictionnaires | Niveaux, catalogue de la boutique |
-| Savoir rapidement si un élément est présent | Dictionnaire `{[cle] = true}` | Objets déjà possédés |
+| Savoir rapidement si un élément est présent | Dictionnaire dont les valeurs valent `true` (`possedes["TraineeRouge"] = true`) | Objets déjà possédés |
 
 <Defi>
 1. Remplace tes scripts de kill bricks et de pièces par les deux scripts uniques de cette leçon, et vérifie que tout fonctionne comme avant.
 2. Crée une table `messagesEncouragement` contenant cinq phrases. Écris une boucle qui les affiche toutes, numérotées.
-3. Choisis une phrase au hasard avec `messagesEncouragement[math.random(1, #messagesEncouragement)]` et affiche-la dans l’Output toutes les 10 secondes.
+3. Choisis une phrase au hasard avec `messagesEncouragement[math.random(1, #messagesEncouragement)]` (`math.random(a, b)` tire un nombre entier au hasard entre `a` et `b`) et affiche-la dans l’Output toutes les 10 secondes.
 4. Bonus : crée un dictionnaire `meilleursTemps` (pseudo → temps en secondes) avec trois joueurs, puis trouve et affiche le meilleur temps avec une boucle.
 </Defi>
 

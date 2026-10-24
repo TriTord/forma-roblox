@@ -97,7 +97,7 @@ Les règles de Luau :
 Dans cette formation, on écrit les noms en **camelCase** (`nombreEtapes`, `vitesseRotation`), en français et **sans accents** (évite `étape` comme nom de variable). Les constantes, des valeurs qu’on ne change jamais, s’écrivent souvent en MAJUSCULES : `VALEUR_PIECE`.
 
 <Info>
-La documentation Roblox présente aussi le mot-clé **`const`** (`const VALEUR_PIECE = 1`) : il crée une variable locale qu’on ne peut plus réaffecter. Dans cette formation, on garde `local` et les MAJUSCULES, que tu retrouveras dans la grande majorité des tutoriels.
+Luau a récemment ajouté le mot-clé **`const`** (`const VALEUR_PIECE = 1`), présenté dans la documentation Roblox : il crée une variable locale qu’on ne peut plus réaffecter (essayer provoque une erreur). Comme il est récent, tu ne le verras pas dans les tutoriels plus anciens. Dans cette formation, on garde `local` et les MAJUSCULES, que tu retrouveras dans la grande majorité des tutoriels.
 </Info>
 
 <Astuce titre="Un nom qui explique tout">
@@ -127,7 +127,7 @@ print(typeof("Obby"))                --> string
 print(typeof(true))                  --> boolean
 print(typeof(nil))                   --> nil
 print(typeof(Vector3.new(0, 10, 0))) --> Vector3
-print(typeof(workspace))             --> Instance
+print(typeof(workspace))             --> Instance (workspace en minuscules : raccourci global vers le Workspace)
 
 -- La fonction type() de Luau ne connaît pas les types Roblox :
 print(type(Vector3.new(0, 10, 0)))   --> userdata (moins précis)
@@ -335,7 +335,7 @@ D’après la documentation Roblox, mettre `Health` à `0` fait passer le Humano
 - [Scope (variables locales plus rapides, libérées en fin de bloc) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/scope)
 - [Operators — documentation Luau de Roblox](https://create.roblox.com/docs/luau/operators)
 - [Strings — documentation Luau de Roblox](https://create.roblox.com/docs/luau/strings)
-- [Syntaxe de Luau (interpolation, expressions if, affectations composées) — luau.org](https://luau.org/syntax)
+- [Syntaxe de Luau (interpolation, expressions if, affectations composées, const) — luau.org](https://luau.org/syntax)
 - [typeof — Roblox globals, référence API](https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals)
 - [Humanoid (Health, TakeDamage) — référence API](https://create.roblox.com/docs/reference/engine/classes/Humanoid)
 - [Tutoriel officiel « Deadly lava »](https://create.roblox.com/docs/tutorials/use-case-tutorials/scripting/basic-scripting/deadly-lava)

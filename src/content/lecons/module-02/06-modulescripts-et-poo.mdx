@@ -160,7 +160,7 @@ if niveau then
 end
 ```
 
-Désormais, pour accélérer les pièces, tu modifies **une seule ligne** dans `Config`. Fais de même dans ton script `Checkpoints` : remplace sa constante `HAUTEUR_REAPPARITION` par `Config.HAUTEUR_REAPPARITION`.
+Désormais, pour accélérer les pièces, tu modifies **une seule ligne** dans `Config`. Fais de même dans ton script `Checkpoints` : ajoute en haut les deux lignes qui récupèrent `ReplicatedStorage` et font le `require` de `Config` (comme ci-dessus), supprime sa constante `HAUTEUR_REAPPARITION` et écris `Config.HAUTEUR_REAPPARITION` à la place, dans l’appel à `PivotTo`.
 
 <Erreur titre="Oublier le return du module">
 Sans `return Config` à la fin du module, `require` échoue avec l’erreur « Module code did not return exactly one value », un grand classique du DevForum. Même erreur si le seul `return` est caché à l’intérieur d’une fonction. Autre piège : deux modules qui se `require` mutuellement provoquent l’erreur « Requested module was required recursively » ; organise tes modules pour éviter ces boucles.
@@ -289,7 +289,7 @@ end
 
 Chaque objet a sa propre vitesse et son propre état, mais toutes les pièces partagent les mêmes méthodes, écrites une seule fois.
 
-Pour tester cette version, **désactive** ton Script `PiecesTournantes` (propriété **Enabled** décochée) ou remplace son contenu par ce code : sinon, les deux scripts feraient tourner les mêmes pièces en même temps.
+Pour tester cette version, **désactive** ton Script `PiecesTournantes` (propriété **Enabled** décochée) : sinon, les deux scripts feraient tourner les mêmes pièces en même temps. Une fois tes essais terminés, fais l’inverse : désactive ce script de démonstration et réactive `PiecesTournantes` (la version branchée sur `Config`). C’est elle que les modules suivants reprennent, notamment au module 9 pour mesurer et alléger son coût.
 
 <Erreur titre="Appeler une méthode avec un point">
 `maPiece.arreter()` (avec un point) n’envoie pas l’objet : dans la méthode, `self` vaut `nil` et tu obtiens « attempt to index nil with 'active' ». Règle simple : **méthode déclarée avec `:`, méthode appelée avec `:`**. Le constructeur `new`, lui, se déclare et s’appelle avec un point, car il n’y a pas encore d’objet.
@@ -375,7 +375,7 @@ Inutile de tout typer d’un coup. Commence par ajouter `--!strict` à tes **nou
 1. Crée `ReplicatedStorage.Modules.Config` et branche-le sur tes scripts `PiecesTournantes` et `Checkpoints`. Change la vitesse dans `Config` et vérifie que toutes les pièces accélèrent.
 2. Ajoute `table.freeze(Config)` et essaie de modifier une valeur depuis un autre script : lis l’erreur dans l’Output.
 3. Crée la classe `PieceTournante` et donne à chaque pièce une vitesse différente.
-4. Bonus : crée une classe `Chrono` avec un constructeur `Chrono.new()`, une méthode `:demarrer()` qui mémorise `os.clock()`, et une méthode `:tempsEcoule()` qui renvoie le nombre de secondes depuis le départ. Teste-la avec `task.wait(2)`.
+4. Bonus : crée une classe `Chrono` avec un constructeur `Chrono.new()`, une méthode `:demarrer()` qui mémorise `os.clock()` (un compteur de temps précis, en secondes : seule la différence entre deux appels compte), et une méthode `:tempsEcoule()` qui renvoie le nombre de secondes depuis le départ. Teste-la avec `task.wait(2)`.
 </Defi>
 
 <Resume>

@@ -106,7 +106,7 @@ part.Touched:Once(function(autrePart)
 end)
 ```
 
-Bon à savoir : quand un objet est détruit (`:Destroy()`), ses connexions sont coupées automatiquement.
+Bon à savoir : d’après la documentation Roblox, quand un objet est détruit (`:Destroy()`), les connexions à ses événements sont en général coupées automatiquement. Couper toi-même une connexion devenue inutile reste une bonne pratique.
 
 ### Attendre un événement : `:Wait()`
 
@@ -168,6 +168,7 @@ Players.PlayerAdded:Connect(surJoueurAjoute)
 -- Les joueurs déjà présents avant la connexion ne déclenchent pas PlayerAdded :
 -- on les traite à la main pour ne rater personne
 for _, player in Players:GetPlayers() do
+	-- task.spawn appelle surJoueurAjoute(player) sans bloquer la boucle (détaillé plus bas)
 	task.spawn(surJoueurAjoute, player)
 end
 ```
