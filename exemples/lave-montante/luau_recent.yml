@@ -1,0 +1,8 @@
+# Complète la bibliothèque standard « roblox » de selene avec des fonctions Luau récentes
+# qu'elle ne connaît pas encore.
+base: roblox
+globals:
+  math.isfinite:
+    args:
+      - type: number
+    must_use: true

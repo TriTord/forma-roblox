@@ -32,7 +32,7 @@ quiz:
       - texte: Passer en mode `bypassPermissions` pour qu’il travaille plus vite
     explication: "Les bonnes pratiques officielles sont claires : après deux corrections ratées sur le même problème, le contexte est encombré de mauvaises pistes. On repart d’une conversation vide (`/clear`) avec un meilleur prompt. Ton code reste sur le disque et ton CLAUDE.md est rechargé. `bypassPermissions` ne règle rien et retire tes garde-fous."
   - type: qcm
-    question: "Claude Code a lancé une commande Bash qui a réécrit `Config.luau`, puis tu veux annuler. Quel outil est le plus sûr ?"
+    question: "Claude Code a lancé une commande Bash qui a réécrit `Config.luau` (il n’avait pas touché ce fichier avec ses outils d’édition), puis tu veux annuler. Quel outil est le plus sûr ?"
     options:
       - texte: "`/rewind`, qui annule toujours tout ce qui s’est passé"
       - texte: "Git : `git diff` pour voir le changement, puis `git restore src/ReplicatedStorage/Modules/Config.luau`"
@@ -100,7 +100,7 @@ L’abonnement est payant : c’est l’adulte titulaire du compte qui le choisi
 
 ## Installer Claude Code
 
-La méthode recommandée par Anthropic est l’**installeur natif** : une seule commande, sans Node.js, avec mises à jour automatiques. Pas besoin d’être administrateur.
+La méthode recommandée par Anthropic est l’**installeur natif** : une seule commande, sans Node.js, avec mises à jour automatiques. Pas besoin d’être administrateur. Il faut Windows 10 (version 1809) ou plus récent, ou macOS 13 ou plus récent, et une connexion Internet.
 
 ### Sous Windows
 
@@ -114,7 +114,7 @@ irm https://claude.ai/install.ps1 | iex
 3. Attends : l’installeur n’affiche **aucune barre de progression** pendant le téléchargement. C’est normal.
 4. Quand il a fini, **ferme PowerShell et ouvre une nouvelle fenêtre**. Une fenêtre déjà ouverte ne voit pas encore le nouveau programme.
 
-Git for Windows, que tu as installé à la leçon précédente, est recommandé par Anthropic : il fournit **Git Bash**, que Claude Code utilise pour lancer ses commandes (sinon, il passe par PowerShell). Il servira aussi pour le hook de vérification, plus bas.
+Git for Windows, que tu as installé à la leçon précédente, est recommandé par Anthropic : il fournit **Git Bash**, que Claude Code peut utiliser pour lancer ses commandes (sans lui, il passe uniquement par PowerShell). Il servira aussi pour le hook de vérification, plus bas.
 
 ### Sous Mac
 
@@ -143,7 +143,7 @@ Ensuite, lance le diagnostic :
 claude doctor
 ```
 
-Cette commande affiche un bilan **sans démarrer de session** : version, méthode d’installation, mises à jour automatiques, et les éventuelles erreurs dans tes fichiers de réglages. Si tout va bien, la dernière ligne du bilan indique `No installation issues found.` Garde-la en tête : `claude doctor` te resservira pour vérifier tes réglages plus loin.
+Cette commande affiche un bilan **sans démarrer de session** : version, méthode d’installation, mises à jour automatiques, et les éventuelles erreurs dans tes fichiers de réglages. Si l’installation va bien, le bilan se termine par `No installation issues found.`, suivi d’un conseil sur `/doctor`. Attention : cette phrase ne concerne que l’installation ; une erreur de réglages apparaît dans une rubrique séparée, `Invalid settings`. Garde-la en tête : `claude doctor` te resservira pour vérifier tes réglages plus loin.
 
 <Erreur titre="« claude n’est pas reconnu » ou « command not found »">
 
@@ -286,7 +286,7 @@ Toujours game:GetService("Nom"), en haut du script.
 
 </Prompt>
 
-Ce modèle fait une centaine de lignes, bien en dessous de la limite conseillée. Chaque règle répond à une erreur que l’IA fait vraiment quand on ne la prévient pas : utiliser `wait`, croire un prix envoyé par le client, oublier le `pcall` d’un DataStore, laisser traîner des connexions. Les modules 3 à 5 t’apprendront à **repérer** ces erreurs dans le code ; le CLAUDE.md sert à les éviter en amont.
+Ce modèle fait une soixantaine de lignes, bien en dessous de la limite conseillée. Chaque règle répond à une erreur que l’IA fait vraiment quand on ne la prévient pas : utiliser `wait`, croire un prix envoyé par le client, oublier le `pcall` d’un DataStore, laisser traîner des connexions. Les modules 3 à 5 t’apprendront à **repérer** ces erreurs dans le code ; le CLAUDE.md sert à les éviter en amont.
 
 ### Le faire évoluer
 
@@ -389,8 +389,8 @@ Ce que ça donne : les vérifications (selene, StyLua, Rojo) et la lecture de l�
 
 Enregistre, puis lance `claude doctor` dans le dossier du projet : s’il y a une faute (une virgule en trop, un champ mal nommé), il l’affiche dans une rubrique `Invalid settings`, avec le fichier et le champ concernés. Dans Claude Code, `/permissions` affiche toutes les règles actives et le fichier d’où vient chacune.
 
-<Astuce titre="Sous Windows : doubler les interdictions pour PowerShell">
-Sous Windows, Claude Code peut aussi utiliser un outil PowerShell, et les règles `Bash(…)` ne s’appliquent qu’aux commandes Bash. La documentation décrit des règles `PowerShell(…)` de même forme. Si tu travailles uniquement sous Windows, ajoute dans `deny` les équivalents : `"PowerShell(git push *)"`, `"PowerShell(git reset --hard *)"` et `"PowerShell(git clean *)"`.
+<Astuce titre="Sous Windows : Bash ou PowerShell ?">
+Sous Windows, Claude Code a aussi un outil PowerShell, et une règle `Bash(…)` ne s’applique pas à lui. La documentation prévoit ce cas : avec Git for Windows installé, une règle `deny` en `Bash(…)`, comme `Bash(git push *)`, **désactive automatiquement** l’outil PowerShell pour la session. Avec ce fichier, Claude passe donc toutes ses commandes par Git Bash et tes règles s’appliquent : rien à ajouter. Si tu ajoutes un jour une règle `PowerShell(…)` (même forme : `"PowerShell(git push *)"`), l’outil PowerShell revient : double alors chaque règle `deny` en version `PowerShell(…)`. Sans Git for Windows, Claude n’utilise que PowerShell : écris directement tes règles en `PowerShell(…)`.
 </Astuce>
 
 ## Les commandes slash utiles
@@ -498,7 +498,7 @@ L’exemple officiel de la documentation utilise l’outil `jq` pour lire les in
 
 ### Avant d’installer le hook
 
-1. StyLua et selene sont installés dans le projet avec Rokit, et `selene.toml` et `stylua.toml` existent à la racine ([leçon 2 de ce module](/modules/02/installer-un-workflow-pro/)). Vérifie dans un terminal du projet : `stylua --version` et `selene --version` doivent afficher un numéro de version.
+1. StyLua et selene sont installés dans le projet avec Rokit, et `selene.toml`, `luau_recent.yml`, `stylua.toml` et `.gitattributes` existent à la racine ([leçon 2 de ce module](/modules/02/installer-un-workflow-pro/)). Vérifie dans un terminal du projet : `stylua --version` et `selene --version` doivent afficher un numéro de version.
 2. Formate une première fois tout le projet et enregistre le résultat, pour que le hook ne mélange pas ce reformatage avec les vrais changements de Claude :
 
 ```bash
@@ -575,7 +575,7 @@ Lecture de la commande, morceau par morceau : `cd "$CLAUDE_PROJECT_DIR"` se plac
 
 1. Lance `claude doctor` dans le dossier du projet : aucune rubrique `Invalid settings` ne doit apparaître.
 2. Démarre (ou redémarre) `claude`, puis tape `/hooks` : ton hook apparaît sous `PostToolUse`, avec la commande complète.
-3. Demande : « Avec l’outil Edit, ajoute la ligne `local inutile=5` tout en haut de src/ServerScriptService/Test.server.luau (crée le fichier s’il n’existe pas), puis dis-moi ce que le hook t’a renvoyé. »
+3. Demande : « Avec l’outil Write, crée le fichier src/ServerScriptService/Test.server.luau contenant uniquement la ligne `local inutile=5`, puis dis-moi ce que le hook t’a renvoyé. » En mode Manual, Claude te demande d’abord l’autorisation de créer le fichier : accepte.
 4. Résultat attendu : la ligne est reformatée en `local inutile = 5` (c’est StyLua), et Claude reçoit un message de selene du type `warning[unused_variable]: inutile is assigned a value, but never used`. Il te propose alors de corriger.
 5. Supprime ce fichier de test (ou demande à Claude de le faire).
 
@@ -686,6 +686,9 @@ Prépare ton projet de l’Obby des Nuages pour toute la suite de la formation (
 
 - [Advanced setup — installation, vérification, connexion (Claude Code)](https://code.claude.com/docs/en/setup)
 - [Troubleshoot installation and login (Claude Code)](https://code.claude.com/docs/en/troubleshoot-install)
+- [Authentication — connexion au premier lancement (Claude Code)](https://code.claude.com/docs/en/authentication)
+- [Security — boîte de dialogue de confiance du dossier (Claude Code)](https://code.claude.com/docs/en/security)
+- [Tools reference — outil PowerShell sous Windows et règles Bash (Claude Code)](https://code.claude.com/docs/en/tools-reference)
 - [Quickstart (Claude Code)](https://code.claude.com/docs/en/quickstart)
 - [Plans et tarifs Claude](https://claude.com/pricing)
 - [Consumer Terms of Service (Anthropic)](https://www.anthropic.com/legal/consumer-terms)

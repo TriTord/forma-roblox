@@ -133,7 +133,7 @@ Ferme puis rouvre VS Code, et vérifie dans le terminal :
 git --version
 ```
 
-Résultat attendu : une ligne comme `git version 2.52.0.windows.1` (Windows) ou `git version 2.xx.x` (Mac).
+Résultat attendu : une ligne comme `git version 2.56.0.windows.3` (Windows, version d’octobre 2026) ou `git version 2.xx.x` (Mac).
 
 **Te présenter à Git** (une seule fois par ordinateur). Remplace le pseudo et l’adresse, en gardant les guillemets :
 
@@ -188,6 +188,8 @@ rokit add JohnnyMorganz/StyLua stylua
 Vérifie avec `rokit list`. Résultat attendu (versions d’octobre 2026) :
 
 ```text
+🛠️  Found tools:
+
 ./rokit.toml
 • rojo   → rojo-rbx/rojo        @ 7.7.1
 • selene → Kampfkarren/selene   @ 0.32.0
@@ -343,6 +345,8 @@ Résultat attendu (le terminal reste « occupé », c’est normal) :
 Rojo server listening:
   Address: localhost
   Port:    34872
+
+Visit http://localhost:34872/ in your browser for more information.
 ```
 
 2. Dans Studio, ouvre ton place (ou sa copie), onglet **Plugins**, bouton **Rojo**, puis **Connect**.
@@ -384,14 +388,27 @@ Tu peux aussi fabriquer un fichier de lieu avec `rojo build -o ObbyDesNuages-tes
 
 Tu peux aussi installer les extensions **selene** (`Kampfkarren.selene-vscode`) et **StyLua** (`JohnnyMorganz.stylua`) pour voir leurs remarques directement dans l’éditeur.
 
-### selene et StyLua : deux fichiers de configuration
+### selene et StyLua : trois fichiers de configuration
 
-À la racine du projet, crée deux fichiers (clic droit dans l’explorateur de VS Code › **New File**).
+À la racine du projet, crée trois fichiers (clic droit dans l’explorateur de VS Code › **New File**), les mêmes que ceux du corrigé de la formation.
 
-`selene.toml` : il dit à selene que le code tourne sur Roblox (sinon `game` ou `Instance` lui seraient inconnus).
+`selene.toml` : il dit à selene quelle « bibliothèque standard » utiliser, c’est-à-dire la liste des fonctions qui existent (sans elle, `game` ou `Instance` lui seraient inconnus).
 
 ```toml
-std = "roblox"
+std = "luau_recent"
+```
+
+`luau_recent.yml` : la bibliothèque `luau_recent` reprend celle de Roblox fournie par selene (`base: roblox`) et lui ajoute `math.isfinite`, une fonction récente de Luau que selene 0.32 ne connaît pas encore. Sans ce complément, selene signalerait une erreur à tort dès que ton code l’utilise (le module 4 s’en sert pour valider les nombres envoyés par le client).
+
+```yaml
+# Complète la bibliothèque standard « roblox » de selene avec des fonctions Luau récentes
+# qu'elle ne connaît pas encore.
+base: roblox
+globals:
+  math.isfinite:
+    args:
+      - type: number
+    must_use: true
 ```
 
 `stylua.toml` : il force StyLua à lire le code comme du Luau.
@@ -400,7 +417,7 @@ std = "roblox"
 syntax = "Luau"
 ```
 
-Par défaut, StyLua indente avec des tabulations et coupe les lignes au-delà de 120 caractères, comme l’éditeur de Studio.
+Par défaut, StyLua indente avec des tabulations (comme l’éditeur de Studio), vise des lignes de 120 caractères au maximum et écrit des fins de ligne « Unix » (LF), même sous Windows : on en reparle à l’étape 6.
 
 ### Les commandes de vérification
 
@@ -412,6 +429,10 @@ stylua --check src
 - `selene src` analyse tout le dossier `src`. Résultat attendu quand tout va bien : `0 errors`, `0 warnings`, `0 parse errors`.
 - `stylua --check src` vérifie la mise en forme **sans rien modifier**. S’il n’affiche rien, tout est bien formaté. Sinon, il montre les différences.
 - `stylua src` **reformate** les fichiers (sans changer ce que fait le code).
+
+<Erreur titre="« stylua --check » montre des lignes qui semblent identiques">
+Sous Windows, VS Code crée les nouveaux fichiers avec des fins de ligne CRLF : StyLua les signale alors comme mal formatés, alors que rien ne semble différent. Lance une fois `stylua src` (il convertit en LF), et règle VS Code pour qu’il crée des fichiers en LF : clique sur `CRLF` dans la barre d’état, en bas à droite, et choisis `LF` ; pour tous les fichiers, **File** › **Preferences** › **Settings**, cherche `eol` et choisis `\n`. Le fichier `.gitattributes` de l’étape 6 règle le même problème du côté de Git.
+</Erreur>
 
 Ces deux commandes seront écrites dans ton CLAUDE.md (leçon 3) : Claude Code les lancera lui-même après chaque modification.
 
@@ -436,7 +457,7 @@ end)
 | **selene** | `ReplicatedStorage is assigned a value, but never used` |
 | **StyLua** | L’espace manquant dans `" ..player.Name"` (il proposera `" .. player.Name"`) |
 
-Aucun de ces outils ne vérifie que ton jeu fait ce que tu veux, ni qu’un RemoteEvent est bien protégé : ça, c’est la relecture et le test (leçon 6). Et un outil peut se tromper : lors de nos tests, selene ne connaissait pas encore la fonction récente `math.isfinite`, pourtant valide. Si un avertissement te semble faux, vérifie sur la documentation officielle avant de « corriger ».
+Aucun de ces outils ne vérifie que ton jeu fait ce que tu veux, ni qu’un RemoteEvent est bien protégé : ça, c’est la relecture et le test (leçon 6). Et un outil peut se tromper : sans le fichier `luau_recent.yml`, selene 0.32 signale `math.isfinite` comme une erreur, alors que cette fonction est valide. Si un avertissement te semble faux, vérifie sur la documentation officielle avant de « corriger ».
 
 ## Étape 6 : ton premier commit
 
@@ -455,6 +476,15 @@ Ouvre le fichier `.gitignore` créé par Rojo : il liste ce que Git doit ignorer
 sourcemap.json
 ```
 
+Crée aussi, à la racine, un fichier `.gitattributes` (avec le point au début) contenant ces deux lignes :
+
+```text
+# Fins de ligne LF partout (comme StyLua), même sous Windows
+* text=auto eol=lf
+```
+
+Pourquoi ? Windows et Mac ne terminent pas les lignes de la même façon (CRLF sous Windows, LF sur Mac). StyLua attend des LF, et Git for Windows convertit par défaut les fichiers en CRLF quand il les remet sur ton disque (`git restore`, nouveau clone). Sans ce fichier, `stylua --check src` signalerait des « différences » sur des lignes en apparence identiques. Sur Mac, il ne change rien mais ne gêne pas.
+
 Puis, dans le terminal :
 
 ```bash
@@ -465,9 +495,9 @@ git commit -m "Projet Rojo de l'Obby des Nuages : structure, Rokit, selene, StyL
 
 - `git status` liste les fichiers nouveaux ou modifiés.
 - `git add .` les prépare pour la photo (le point veut dire « tout le dossier »).
-- `git commit -m "…"` prend la photo, avec un message qui dit ce qui a changé. Résultat attendu : une ligne comme `[master (root-commit) 7882bbd] Projet Rojo…`, puis le nombre de fichiers.
+- `git commit -m "…"` prend la photo, avec un message qui dit ce qui a changé. Résultat attendu : une ligne comme `[master (root-commit) 7882bbd] Projet Rojo…` (le nom de branche peut aussi être `main`), puis le nombre de fichiers.
 
-Sous Windows, des lignes `warning: … LF will be replaced by CRLF` peuvent apparaître : elles concernent les fins de ligne et sont sans gravité. Tape `git log --oneline` pour voir ton historique.
+Sous Windows, une ligne `warning: in the working copy of '…', CRLF will be replaced by LF…` peut apparaître : c’est le fichier `.gitattributes` qui fait son travail, c’est sans gravité. Tape `git log --oneline` pour voir ton historique.
 
 <Erreur titre="Les dossiers vides disparaissent dans Git">
 Git n’enregistre que des fichiers : un dossier encore vide (comme `src/ReplicatedStorage/Modules` au début) n’est pas sauvegardé. Si tu récupères le projet ailleurs, Rojo affichera `Rojo project referred to a file using $path that could not be turned into a Roblox Instance`, suivi du dossier manquant. Il suffit de recréer ce dossier. Le problème disparaîtra dès que chaque dossier contiendra un script.
@@ -546,7 +576,7 @@ Roblox prévient : un client MCP peut lire **et modifier** le contenu des places
 
 </Attention>
 
-Exemple de règles à placer dans `.claude/settings.json`, à la racine du projet : Claude Code demandera ton accord avant d’exécuter du Luau, de modifier un script ou d’insérer un asset par le MCP.
+Exemple de règles à placer dans `.claude/settings.json`, à la racine du projet (crée le dossier `.claude`, puis le fichier `settings.json` dedans, comme en leçon 3) : Claude Code demandera ton accord avant d’exécuter du Luau, de modifier un script ou d’insérer un asset par le MCP. Le préfixe `mcp__Roblox_Studio__` reprend le nom du serveur : vérifie avec `claude mcp list` qu’il s’appelle bien `Roblox_Studio` chez toi, sinon adapte les trois règles.
 
 ```json
 {
@@ -576,7 +606,7 @@ Rojo affiche les fichiers qu’il écrirait (`Writing src/ServerScriptService/�
 
 ## Et Script Sync, la solution intégrée à Studio ?
 
-Depuis juin 2026, Studio propose en version finale **Script Sync** : clic droit sur un dossier de l’Explorer › **Sync to…**, et ses scripts sont synchronisés avec des fichiers, **dans les deux sens**. C’est plus simple à installer que Rojo, et Roblox le présente dans son guide « Build with a coding harness » avec le serveur MCP et Git. Mais :
+Depuis juin 2026, Studio propose en version finale **Script Sync** : clic droit sur un dossier de l’Explorer › **Sync to…**, et ses scripts sont synchronisés avec des fichiers, **dans les deux sens** (certaines pages de Roblox parlent encore d’une bêta à activer dans **File** › **Beta Features** : si l’option **Sync to…** n’apparaît pas, regarde là). C’est plus simple à installer que Rojo, et Roblox le présente dans son guide « Build with a coding harness » avec le serveur MCP et Git. Mais :
 
 - il ne gère que les Scripts, LocalScripts, ModuleScripts et Folders (pas les RemoteEvents ni l’interface) ;
 - les suffixes ne veulent pas dire la même chose : avec Script Sync, `.client.luau` donne un Script en RunContext Client, et il faut `.local.luau` pour un LocalScript. Mélanger Script Sync et Rojo sur le même projet mène tout droit à des scripts du mauvais type ;
@@ -592,7 +622,7 @@ Depuis juin 2026, Studio propose en version finale **Script Sync** : clic droit 
 - [ ] `default.project.json` a la structure de l’Obby et les dossiers de `src` existent
 - [ ] Le plugin Rojo est dans Studio, `rojo serve` + **Connect** fonctionne, le test `Bonjour` est passé
 - [ ] Ton place est sauvegardé (Save to Roblox et copie datée hors du dossier)
-- [ ] L’extension luau-lsp est installée, `selene.toml` et `stylua.toml` sont créés
+- [ ] L’extension luau-lsp est installée, `selene.toml`, `luau_recent.yml`, `stylua.toml` et `.gitattributes` sont créés
 - [ ] `selene src` et `stylua --check src` ne signalent rien
 - [ ] Le premier commit apparaît dans `git log --oneline`
 - [ ] (Après la leçon 3) `claude mcp list` affiche `Roblox_Studio … ✔ Connected`
@@ -620,12 +650,18 @@ Ajoute un septième RemoteEvent `DemanderReapparition` dans `Remotes`, directeme
 - [Git — première configuration (user.name, user.email)](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup)
 - [luau-lsp — dépôt officiel (extension VS Code, sourcemap Rojo)](https://github.com/JohnnyMorganz/luau-lsp)
 - [selene — utilisation avec Roblox](https://kampfkarren.github.io/selene/roblox.html)
+- [selene — bibliothèques standard personnalisées (`base`, `globals`)](https://kampfkarren.github.io/selene/usage/std.html)
 - [StyLua — dépôt officiel (configuration, --check)](https://github.com/JohnnyMorganz/StyLua)
 - [Studio MCP server — documentation Roblox (activation, Quick connect, outils, sécurité)](https://create.roblox.com/docs/studio/mcp)
+- [Roblox/roblox-studio-agent-plugin — README officiel (modifications non annulables, données envoyées au fournisseur, outils qui modifient le place)](https://github.com/Roblox/roblox-studio-agent-plugin)
+- [Assistant Updates: Studio Built-in MCP Server and Playtest Automation — annonce Roblox (5 mars 2026)](https://devforum.roblox.com/t/assistant-updates-studio-built-in-mcp-server-and-playtest-automation/4474643)
+- [Studio MCP: Multi-Agent Improvements and Connected AI Clients — annonce Roblox (19 août 2026, redémarrer le client après une mise à jour)](https://devforum.roblox.com/t/studio-mcp-multi-agent-improvements-and-connected-ai-clients/4820583)
 - [Roblox/studio-rust-mcp-server — ancien serveur, archivé](https://github.com/Roblox/studio-rust-mcp-server)
 - [Claude Code — connecter des serveurs MCP](https://code.claude.com/docs/en/mcp)
 - [Claude Code — permissions (règles pour les outils MCP)](https://code.claude.com/docs/en/permissions)
 - [Script Sync — documentation Roblox](https://create.roblox.com/docs/scripting/sync)
 - [Full Release: Studio Script Sync — annonce Roblox (17 juin 2026)](https://devforum.roblox.com/t/full-release-studio-script-sync/4688454)
+- [Build with a coding harness — guide Roblox (Script Sync, MCP et Git)](https://create.roblox.com/docs/ai/coding-harness)
+- [StyLua — fins de ligne (`line_endings`, LF par défaut)](https://github.com/JohnnyMorganz/StyLua#options)
 - [External tools — documentation Roblox (Rojo, Rokit)](https://create.roblox.com/docs/projects/external-tools)
 </Sources>
