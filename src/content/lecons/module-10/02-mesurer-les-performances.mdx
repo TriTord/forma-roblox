@@ -69,6 +69,19 @@ quiz:
     question: Avant d’optimiser, il faut noter des mesures de référence (FPS, mémoire, temps de chargement) pour pouvoir comparer après chaque changement.
     reponse: true
     explication: Sans mesure de départ, impossible de savoir si une modification a amélioré, dégradé ou laissé inchangées les performances. La documentation recommande de mesurer avant et après chaque optimisation.
+  - type: ameliore-le-prompt
+    question: "Ton obby saccade un peu. Tu veux t’aider de Claude Code. Quelle version du prompt respecte la règle « mesurer avant d’optimiser » ?"
+    prompt: "mon jeu lag, optimise-le"
+    options:
+      - texte: "Optimise tout le code de mon obby pour qu’il soit le plus rapide possible, change tout ce qu’il faut."
+      - texte: "Mesure les FPS de mon jeu sur mon téléphone et dis-moi s’il lag."
+      - texte: |
+          Sans rien optimiser, liste les scripts de src/ qui travaillent à chaque image (while true, task.wait() sans durée, Heartbeat…), avec fichier et ligne.
+          Puis ajoute seulement debug.profilebegin("ObbyRotationPieces") et debug.profileend() autour du travail de la boucle de src/ServerScriptService/PiecesTournantes.server.luau, l’étiquette étant fermée sur tous les chemins.
+          Vérification : git diff ne montre que ces deux lignes ; je mesure ensuite moi-même dans le MicroProfiler du jeu publié.
+        correct: true
+      - texte: "Ajoute un print au début et à la fin de chaque fonction de tous mes scripts pour voir lesquelles sont lentes."
+    explication: "La bonne version demande un repérage sans correction, une instrumentation minimale et vérifiable, puis laisse la mesure à l’outil fait pour ça. « Optimise tout » change dix choses à l’aveugle ; l’IA ne peut pas mesurer les FPS de ton téléphone ; des `print` partout inondent l’Output, coûtent eux-mêmes du temps et ne disent pas combien de millisecondes prend chaque tâche."
 ---
 
 À la leçon précédente, tu as vu que ton jeu doit tourner sur des appareils modestes. Mais *qu’est-ce* qui ralentit ton obby, exactement ? Un script ? Trop de pièces ? Des ombres ? Optimiser au hasard fait perdre des heures et casse parfois le jeu. Les développeurs expérimentés suivent une règle simple : **on mesure d’abord, on optimise ensuite**. Dans cette leçon, tu découvres les outils de mesure intégrés à Roblox.
@@ -196,6 +209,35 @@ Dans le MicroProfiler (côté serveur pour ce script), l’étiquette `ObbyRotat
 <Astuce titre="Profiler le serveur">
 Depuis le client sur ordinateur, dans un jeu que tu peux modifier, ouvre la Developer Console et choisis l’outil **MicroProfiler**. Dans l’onglet **Server**, indique le nombre d’images à capturer (60 au maximum) puis clique sur **Begin server recording**. La console te donne ensuite le chemin du fichier enregistré.
 </Astuce>
+
+<AvecClaudeCode>
+
+Claude Code ne peut pas mesurer ton jeu : il ne voit ni tes FPS, ni ton téléphone. En revanche, il lit vite tous tes scripts. Répartis les rôles : **l’IA repère et étiquette, toi tu mesures**. Le prompt lui interdit d’« optimiser » au passage.
+
+<Prompt titre="Repérer et étiqueter avant de mesurer">
+
+```text
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je veux savoir ce qui coûte cher AVANT d'optimiser quoi que ce soit. Je mesure moi-même dans le jeu publié (Performance Stats, MicroProfiler, Script Profiler, Developer Console).
+Ce qui existe déjà : src/ServerScriptService/PiecesTournantes.server.luau, une boucle while true avec task.wait() qui fait tourner toutes les pièces de Workspace.Pieces (vitesse Config.VITESSE_ROTATION_PIECES).
+Objectif :
+1) Liste les scripts de src/ qui travaillent à chaque image ou en boucle (while true, task.wait() sans durée, RunService.Heartbeat, PreRender...), avec fichier, ligne et ce qu'ils font. Ne corrige rien.
+2) Dans PiecesTournantes.server.luau, entoure le travail de chaque tour de boucle d'une étiquette MicroProfiler : debug.profilebegin("ObbyRotationPieces") au début, debug.profileend() à la fin.
+Fichiers concernés : uniquement PiecesTournantes.server.luau, et seulement ces deux lignes. Ne change pas sa logique.
+Contraintes techniques : chaque debug.profilebegin a son debug.profileend sur TOUS les chemins du code (return, break, continue compris). Nom d'étiquette commençant par Obby.
+Vérification : git diff ne montre que les deux lignes ajoutées. Donne-moi ensuite une fiche de mesure vide à remplir moi-même (FPS moyen, FPS dans la zone la plus chargée, mémoire client, temps de chargement, heartbeat du serveur) : n'invente aucune valeur. selene src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `git diff` ne montre que les deux lignes d’étiquette : la logique du script n’a pas bougé ;
+- chaque `debug.profilebegin` est fermé par un `debug.profileend` sur **tous** les chemins (un `return` placé entre les deux laisserait l’étiquette ouverte) ;
+- chaque script « à chaque image » de la liste existe bien à la ligne indiquée : ouvre le fichier et vérifie ;
+- la fiche de mesure est vide : les chiffres viennent de **tes** mesures, sur ton appareil, jamais de l’IA ;
+- l’IA n’a rien « optimisé » au passage : on corrige à la leçon 4, après avoir mesuré.
+
+</AvecClaudeCode>
 
 ## Le Script Profiler
 

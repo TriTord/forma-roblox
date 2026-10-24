@@ -59,6 +59,17 @@ quiz:
     question: Deux objets enfants d’un même parent peuvent porter le même nom sans aucun risque pour les scripts qui les cherchent par leur nom.
     reponse: false
     explication: "Un script qui cherche un enfant par son nom (`FindFirstChild`, `WaitForChild`…) obtient **le premier trouvé** : impossible de savoir à l’avance lequel des deux. Donne un nom unique à chaque objet que tes scripts doivent retrouver."
+  - type: ameliore-le-prompt
+    question: "Au module 2, tu demanderas des scripts à une IA de code. Laquelle de ces demandes lui donne le plus de chances d’écrire un script qui marche du premier coup dans ton obby ?"
+    prompt: "fais un script qui compte mes plateformes"
+    options:
+      - texte: "Fais un script qui compte mes plateformes, tu sais où elles sont."
+      - texte: "Écris un script qui compte toutes les Parts nommées « Part » de mon jeu."
+      - texte: |
+          Dans un Script placé dans ServerScriptService, compte les enfants du Folder Workspace.Plateformes (P majuscule) et affiche le résultat dans l’Output au lancement du jeu.
+          Vérification : le nombre affiché est égal au nombre de Parts du Folder dans l’Explorer.
+        correct: true
+    explication: "L’IA ne voit pas ton Explorer : sans le nom exact du dossier (avec sa casse), l’emplacement du script et un moyen de vérifier, elle doit deviner. Chercher les objets nommés « Part » ne marchera plus dès que tu auras renommé tes plateformes, comme le conseille cette leçon."
 ---
 
 Ton niveau commence à se remplir de Parts. Sans rangement, tu auras vite des dizaines d’objets nommés « Part » dans le désordre, et tes futurs scripts ne sauront pas les retrouver. Cette leçon t’apprend comment Roblox organise un jeu, à quoi sert chaque grand service, et comment ranger l’Obby des Nuages dès maintenant pour ne pas le regretter au module 3.
@@ -197,6 +208,31 @@ print("L'Obby des Nuages contient " .. #plateformes .. " plateformes")
 ```
 
 Si tu renommes le dossier `plateformes` (sans majuscule), ce script ne le trouve plus : `WaitForChild` attend indéfiniment et, au bout de 5 secondes, l’Output affiche un avertissement d’attente infinie possible. Un simple renommage peut donc casser un jeu entier : choisis tes noms tôt et n’en change plus.
+
+<AvecClaudeCode titre="Aperçu : avec Claude Code">
+
+Dès le module 2, tu apprendras à faire écrire tes scripts par **Claude Code**, une IA de code (l’installation y est expliquée pas à pas, rien à faire pour l’instant), et le module 3 t’apprendra à lire le code qu’elle produit. Elle ne voit pas ton Explorer : elle ne connaît ton jeu que par ce que tu lui écris. Un projet bien rangé, avec des noms exacts, c’est ce qui te permettra d’écrire un prompt précis comme celui-ci :
+
+<Prompt titre="Compter les plateformes">
+
+```text
+Contexte : mon jeu Roblox « Obby des Nuages ». Dans le Workspace, un Folder nommé exactement Plateformes (P majuscule) contient toutes les plateformes du niveau.
+Objectif : au lancement du jeu, l'Output affiche « L'Obby des Nuages contient N plateformes ».
+Fichiers concernés : un seul Script, placé dans ServerScriptService. Ne touche à rien d'autre.
+Contraintes techniques : récupère Workspace avec game:GetService ; attends le Folder avec WaitForChild("Plateformes", 10) ; compte seulement ses enfants directs.
+Cas limites : si le Folder n'est pas trouvé au bout de 10 secondes, affiche un avertissement avec warn au lieu de planter.
+Vérification : en lançant un test, le nombre affiché est égal au nombre de Parts que je vois dans le Folder Plateformes.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le nom cherché est exactement `Plateformes`, avec la même casse que dans ton Explorer ;
+- c’est un **Script** placé dans `ServerScriptService`, comme le demande le prompt ;
+- en test, le nombre affiché correspond bien à ce que tu comptes dans l’Explorer.
+
+</AvecClaudeCode>
 
 <Defi>
 

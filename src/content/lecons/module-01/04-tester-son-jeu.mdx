@@ -66,6 +66,18 @@ quiz:
       - texte: Elle publie le jeu sur Roblox
       - texte: Elle lance un test à plusieurs joueurs
     explication: "La **Command Bar** exécute du code Luau tout de suite, en dehors de tout script. C’est idéal pour des actions rapides sur ton place (par exemple ancrer toutes les plateformes). Ses effets sont réels : enregistre ton travail avant de l’utiliser."
+  - type: ameliore-le-prompt
+    question: "Un de tes scripts affiche une erreur rouge dans l’Output. Au module 2, tu demanderas de l’aide à une IA de code. Quelle demande lui permettra de trouver la cause ?"
+    prompt: "mon script marche pas"
+    options:
+      - texte: "Mon script marche pas, tu peux le réparer ?"
+      - texte: |
+          En test (F5), l’Output affiche cette erreur, copiée en entier, avec le script et la ligne : [message complet].
+          Voici le code du Script (dans ServerScriptService) et ce qu’il devait faire : [code et comportement attendu].
+          Explique la cause, puis propose la plus petite correction ; je relancerai le test pour vérifier.
+        correct: true
+      - texte: "Réécris tout mon script autrement, peut-être que l’erreur disparaîtra."
+    explication: "L’IA ne voit pas ton écran : le message d’erreur complet (script et ligne), le code et le comportement attendu sont exactement ce dont elle a besoin. Tout réécrire au hasard peut faire disparaître l’erreur… et en créer d’autres, sans que tu saches pourquoi."
 ---
 
 Construire, c’est bien. Vérifier que ça marche, c’est indispensable. Un obby où l’on ne peut pas atteindre la troisième plateforme, ou un script qui plante en silence, ça fait fuir les joueurs en quelques secondes. Dans cette leçon, tu apprends à utiliser les outils de test de Studio comme les créateurs expérimentés : choisir le bon mode, lire les erreurs et tester à plusieurs.
@@ -187,6 +199,31 @@ Beaucoup de « mon jeu ne marche pas » se résolvent en lisant l’Output. Gard
 </Astuce>
 
 Dans un jeu publié, tu n’as pas accès à la fenêtre Output de Studio. À la place, la **Developer Console** s’ouvre avec `F9` (ou en tapant `/console` dans le chat) : elle montre les messages du client et du serveur. Tu l’exploreras au module 10, dans [Mesurer les performances](/modules/10/mesurer-les-performances/).
+
+<AvecClaudeCode titre="Aperçu : avec Claude Code">
+
+Dès le module 2, tu pourras demander à **Claude Code**, une IA de code, de t’aider à corriger une erreur (son installation y est expliquée pas à pas). Ce que tu apprends ici sert directement : l’IA ne voit pas ton Output, c’est toi qui lui donnes le message **complet**, avec le nom du script et la ligne. Un « ça marche pas » donne une réponse au hasard ; un prompt comme celui-ci donne une vraie piste :
+
+<Prompt titre="Comprendre une erreur de l’Output">
+
+```text
+Contexte : mon jeu Roblox « Obby des Nuages ». Quand je lance un test (Test, F5), l'Output affiche cette erreur en rouge, copiée en entier : [colle ici tout le message rouge, avec le nom du script et le numéro de ligne].
+Ce qui existe déjà : le Script de vérification de la SpawnLocation, dans ServerScriptService (son code est collé ci-dessous), et une SpawnLocation dans le Workspace.
+Objectif : que le message « Point de départ trouvé » s'affiche sans aucune erreur rouge. Explique-moi d'abord la cause en deux phrases simples, puis propose la plus petite correction possible.
+Fichiers concernés : uniquement ce Script. Ne modifie rien d'autre.
+Vérification : après la correction, un test avec F5 puis un test Server & Clients à 2 clients n'affichent plus aucune erreur rouge dans l'Output.
+[colle ici le code du script]
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- l’explication parle du **même script et de la même ligne** que l’Output ; sinon, redemande ;
+- la correction est petite et ne touche que la ligne en cause ;
+- c’est **toi** qui relances le test (F5, puis Server & Clients) pour vérifier que l’Output est propre.
+
+</AvecClaudeCode>
 
 ## La Command Bar
 

@@ -155,3 +155,42 @@ questions:
         correct: true
       - texte: Sur le passage du checkpoint 2 au checkpoint 3
     explication: "De 770 à 380, plus de la moitié des joueurs (environ 51 %) partent avant le checkpoint 1 : c’est de loin la plus grosse fuite. Le chargement (96 % de passage) et la suite (plus de 90 %) vont bien. Formule une hypothèse sur ce premier passage, change une chose et remesure."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. La boutique appelle cette fonction quand un joueur demande un achat (le prix vient du Catalogue du serveur). Dans la page Economy, tu vois plus d’achats que de traînées réellement vendues. Pourquoi ?"
+    code: |
+      local AnalyticsService = game:GetService("AnalyticsService")
+
+      -- Appelée par la boutique (Script serveur) quand un joueur demande un achat
+      local function traiterAchat(player: Player, pieces: IntValue, idObjet: string, prix: number)
+      	pcall(function()
+      		AnalyticsService:LogEconomyEvent(player, Enum.AnalyticsEconomyFlowType.Sink, "Pieces", prix,
+      			pieces.Value - prix, Enum.AnalyticsEconomyTransactionType.Shop.Name, idObjet)
+      	end)
+      	if pieces.Value < prix then
+      		return -- solde insuffisant : achat refusé
+      	end
+      	pieces.Value -= prix
+      	-- (ajout de la traînée à l'inventaire)
+      end
+    options:
+      - texte: "Ligne 6 : le montant `prix` doit être négatif, puisque c’est une dépense"
+      - texte: "Ligne 7 : il faut passer l’Enum `Shop` lui-même, pas son `.Name`"
+      - texte: "Lignes 5 à 8 : l’achat est enregistré **avant** la vérification du solde ; un achat refusé est quand même compté (avec un solde final négatif)"
+        correct: true
+      - texte: "Ligne 12 : l’opérateur `-=` n’existe pas en Luau"
+    explication: "Règle d’or de la leçon : on enregistre **après** la réussite. Ici, l’événement part avant le test du solde : chaque demande refusée gonfle les statistiques de dépenses. Il faut déplacer l’appel après `pieces.Value -= prix`, avec le solde réel. Le montant reste positif (c’est `Sink` qui indique le sens), le type de transaction est bien une chaîne, et `-=` existe en Luau."
+
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code ajoute un entonnoir de boutique (ouvrir la boutique, voir une traînée, l’acheter), que le même joueur peut parcourir plusieurs fois. Quelle version du prompt est la meilleure ?"
+    prompt: "fais un funnel pour la boutique"
+    options:
+      - texte: "Ajoute un funnel pour la boutique avec AnalyticsService, le plus complet possible."
+      - texte: "Dans le LocalScript de l’interface, appelle LogFunnelStepEvent à chaque clic sur la boutique : c’est là que le joueur clique."
+      - texte: |
+          Entonnoir "Boutique" avec LogFunnelStepEvent, côté serveur : 1 Ouverture, 2 Traînée vue, 3 Achat (enregistré seulement après un achat réussi).
+          Un nouveau funnelSessionId (HttpService:GenerateGUID) à chaque ouverture. Le client prévient le serveur par un RemoteEvent de ReplicatedStorage.Remotes ; le serveur vérifie le numéro d’étape (1 ou 2 seulement) et limite la fréquence par joueur.
+          Chaque appel dans un pcall. Vérification : en Play, ouvrir deux fois la boutique affiche deux sessions différentes dans l’Output.
+        correct: true
+      - texte: "Utilise LogOnboardingFunnelStepEvent pour la boutique, avec les étapes 6, 7 et 8 à la suite de l’onboarding."
+    explication: "Un entonnoir répétable a besoin d’un `funnelSessionId` différent à chaque parcours ; les événements partent du serveur, qui valide ce que le client annonce ; l’achat se compte après réussite. Un LocalScript ne peut pas envoyer ces événements, l’onboarding n’est vécu qu’une fois par joueur, et « le plus complet possible » laisse l’IA tout inventer."

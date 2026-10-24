@@ -57,6 +57,28 @@ quiz:
         correct: true
       - texte: Augmenter les prix pour compenser la baisse de joueurs
     explication: "Moins de joueurs qui reviennent, c’est moins de joueurs (et de payeurs) demain. Roblox rappelle que l’ARPDAU s’améliore aussi en améliorant la rétention et l’engagement. Une monétisation qui fait fuir les nouveaux joueurs est un mauvais calcul, et souvent une mauvaise pratique envers un public jeune."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Il doit afficher l’ARPPU d’une semaine à partir des relevés quotidiens (Command Bar). Le résultat est faux. Pourquoi ?"
+    code: |
+      local semaine = {
+      	{ dau = 1000, payeurs = 20, revenu = 1500 },
+      	{ dau = 400, payeurs = 2, revenu = 200 },
+      }
+      local sommeArppu = 0
+      for _, jour in semaine do
+      	if jour.payeurs > 0 then
+      		sommeArppu += jour.revenu / jour.payeurs
+      	end
+      end
+      local arppuSemaine = sommeArppu / #semaine
+      print(string.format("ARPPU de la semaine : %.1f Robux", arppuSemaine))
+    options:
+      - texte: "Ligne 6 : il faut écrire `ipairs(semaine)` pour parcourir un tableau"
+      - texte: "Ligne 7 : le test `jour.payeurs > 0` est inutile et fausse le calcul"
+      - texte: "Ligne 11 : c’est une moyenne des ARPPU quotidiens ; il faut diviser le revenu total de la semaine par le total des payeurs"
+        correct: true
+      - texte: "Ligne 12 : `%.1f` ne peut pas afficher un nombre à virgule"
+    explication: "L’IA a fait une **moyenne de moyennes** : (75 + 100) ÷ 2 = 87,5 Robux, alors que les totaux donnent 1 700 ÷ 22 ≈ 77,3 Robux. Le petit jour (2 payeurs) pèse autant que le gros. Le test de la ligne 7 évite une division par zéro, Luau parcourt un tableau directement avec `for … in`, et `%.1f` affiche bien un décimal. C’est exactement le genre d’erreur qu’on ne voit qu’en connaissant la formule."
 ---
 
 Ton Obby des Nuages propose désormais un Game Pass cosmétique et un Developer Product « passer l’étape » (module 7). Comment savoir s’ils fonctionnent, et surtout s’ils ne gâchent pas le jeu ? Cette leçon te donne les formules exactes de Roblox, avec des exemples chiffrés, et une méthode pour lire les chiffres sans tomber dans le piège du « plus de revenus à tout prix ».
@@ -152,6 +174,38 @@ print(string.format("Vérification conversion x ARPPU : %.2f", conversion * arpp
 <Erreur titre="Additionner des moyennes de plusieurs jours">
 Si lundi ton ARPPU est de 100 Robux (2 payeurs) et mardi de 20 Robux (30 payeurs), l’ARPPU des deux jours n’est **pas** (100 + 20) ÷ 2 = 60. Il faut repartir des totaux : (200 + 600) ÷ 32 = 25 Robux (en supposant que ce sont 32 joueurs différents). Une moyenne de moyennes donne trop de poids aux petits jours. Recalcule toujours à partir des revenus et des effectifs totaux.
 </Erreur>
+
+<AvecClaudeCode>
+
+Pour le défi de fin de leçon, tu peux demander à Claude Code (module 2) une calculatrice qui traite toute une semaine. Le prompt donne les formules exactes de Roblox et interdit la moyenne de moyennes : sans cette précision, une IA fait très souvent la moyenne des ARPPU de chaque jour.
+
+<Prompt titre="Calculatrice de monétisation sur une semaine">
+
+```text
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je veux vérifier moi-même les indicateurs de la page Monetization du Creator Dashboard sur une semaine.
+Ce qui existe déjà : rien pour ce calcul. Je relève à la main, pour chaque jour, le DAU, le nombre de joueurs payants et le revenu en Robux.
+Objectif : un outil Luau que je colle dans la Command Bar de Studio. Il contient un tableau de 7 jours (valeurs fictives que je remplacerai) et affiche dans l'Output, pour chaque jour puis pour la semaine : taux de conversion, ARPPU et ARPDAU.
+Fichiers concernés : crée uniquement outils/CalculMonetisation.luau, à la racine du projet, HORS de src/ (ce n'est pas un script du jeu, Rojo ne doit pas le synchroniser). Ne modifie rien d'autre.
+Contraintes techniques :
+- Formules de Roblox : conversion = payeurs ÷ DAU × 100 ; ARPPU = revenu ÷ payeurs ; ARPDAU = revenu ÷ DAU.
+- Les chiffres de la semaine se calculent à partir des TOTAUX (revenu total ÷ total des payeurs, etc.), jamais en faisant la moyenne des valeurs quotidiennes.
+- Ajoute un commentaire qui prévient qu'un joueur qui paie deux jours différents est compté deux fois dans le total des payeurs.
+- Luau typé, commentaires en français, aucun service Roblox nécessaire.
+Cas limites : jour à 0 DAU ou à 0 payeur (aucune division par zéro : afficher 0 et le signaler) ; tableau vide.
+Vérification : avec l'exemple de la leçon (1 000 DAU, 20 payeurs, 1 500 Robux), l'outil affiche 2,0 %, 75,0 Robux et 1,50 Robux, plus la vérification conversion × ARPPU = ARPDAU. selene outils sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- l’ARPPU divise le revenu par les **payeurs**, et l’ARPDAU par le **DAU** (l’inversion est l’erreur la plus fréquente) ;
+- les chiffres de la semaine partent des **totaux**, pas d’une moyenne des sept valeurs quotidiennes ;
+- chaque division est protégée : un jour sans payeur donne un ARPPU de 0, ni erreur ni `nan` dans l’Output ;
+- le fichier est bien **hors de `src/`** : il ne finira pas dans le jeu publié ;
+- recalcule un jour à la main (ou avec la calculatrice ci-dessus) et compare avec l’Output : si les chiffres diffèrent, c’est l’outil qui a tort jusqu’à preuve du contraire.
+
+</AvecClaudeCode>
 
 ## Identifier ce qui se vend
 

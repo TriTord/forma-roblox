@@ -81,6 +81,31 @@ quiz:
       - texte: Dans la Toolbox
       - texte: Nulle part, Roblox ne conserve pas ces erreurs
     explication: "L’Error Report affiche les erreurs et avertissements Luau récents, côté serveur et côté client, de ton jeu publié. La fenêtre Output, elle, ne montre que ta session de test dans Studio."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur équipe la traînée choisie par le joueur (la pose sur le personnage est gérée ailleurs). Un tricheur porte la traînée du Game Pass sans l’avoir achetée. Où est la faille ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local ServerScriptService = game:GetService("ServerScriptService")
+      local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs") :: ModuleScript)
+      local Validation = require(ServerScriptService:WaitForChild("Validation") :: ModuleScript)
+      local equiper = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("EquiperObjet") :: RemoteEvent
+      local peutEquiper = Validation.creerCooldown(0.5)
+      equiper.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+      	if not peutEquiper(player) or typeof(idObjet) ~= "string" then
+      		return
+      	end
+      	local donnees = DonneesJoueurs.Obtenir(player)
+      	if donnees then
+      		donnees.equipe = idObjet
+      	end
+      end)
+    options:
+      - texte: "Ligne 6 : un délai de 0,5 seconde entre deux demandes est trop court et va saturer le serveur"
+      - texte: "Ligne 7 : il suffit de typer `idObjet: string` dans la signature pour que le serveur le valide"
+      - texte: "Ligne 13 : le serveur équipe l’objet sans vérifier que le joueur le **possède** (`donnees.inventaire[idObjet]`)"
+        correct: true
+      - texte: "Ligne 11 : les données du joueur devraient être lues côté client, qui sait ce qu’il possède"
+    explication: "Le code a l’air soigné (délai par joueur, vérification du type), mais il oublie la règle la plus importante : un tricheur peut envoyer l’identifiant de n’importe quel objet, y compris celui qu’il n’a jamais acheté. Il faut refuser si `donnees.inventaire[idObjet]` n’est pas vrai. Les annotations de type ne vérifient rien pendant la partie, et les données restent toujours côté serveur. Une IA écrit volontiers ce genre de code « presque juste » : c’est à toi de poser la question « et si le client mentait ? »."
 ---
 
 Un jeu bien conçu peut quand même mourir à cause d’un problème technique : une progression effacée, un tricheur qui ruine l’économie, un lag insupportable sur téléphone. Ces erreurs ont un point commun : elles **n’apparaissent presque jamais quand tu testes seul dans Studio**. Cette leçon passe en revue les six plus destructrices, avec le code fautif, le code corrigé et le garde-fou à mettre en place.
@@ -467,6 +492,44 @@ Les bugs graves se cachent dans les situations que tu ne testes jamais seul. Ava
 | Valeurs absurdes envoyées au serveur | Command Bar côté client (prix négatif, mauvais type) | Requête ignorée |
 | Fermeture du serveur | Arrêter le test avec des joueurs connectés | Données sauvegardées |
 | Petit écran tactile | Device Simulator, puis vrai téléphone | Boutons visibles et cliquables |
+
+<AvecClaudeCode>
+
+Avant de lancer ces tests, fais passer tout ton code au crible par Claude Code. Le prompt lui donne les six erreurs de cette leçon comme grille de lecture, et lui demande un **rapport**, pas des corrections : tu décides ensuite, une correction à la fois.
+
+<Prompt titre="Audit des erreurs techniques">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md), bientôt publié. Je veux traquer les six erreurs techniques qui font fuir les joueurs.
+Ce qui existe déjà : tout le code est dans src/ (notamment DonneesJoueurs.luau, GestionJoueurs.server.luau, Progression.server.luau, Pieces.server.luau, Boutique.server.luau, Achats.server.luau dans src/ServerScriptService) ; les RemoteEvents de ReplicatedStorage.Remotes sont déclarés dans default.project.json.
+Objectif : un rapport d'audit en six parties, sans rien modifier :
+1) Données : un joueur dont le chargement a échoué peut-il être sauvegardé quand même ? pcall et nouvelles tentatives autour de GetAsync et UpdateAsync ? sauvegarde à PlayerRemoving et dans game:BindToClose ?
+2) Remotes : pour chaque OnServerEvent, ce que le serveur vérifie (type, existence de l'objet, prix lu dans Catalogue, solde, possession, fréquence par joueur) et ce qui manque. Réponds à : « si le client envoyait n'importe quelle valeur, 1 000 fois par seconde, que se passerait-il ? ».
+3) Code suspect : require suivi d'un numéro, getfenv, loadstring, code obfusqué.
+4) Multijoueur : verrous (debounce) partagés par tout le serveur au lieu d'un par joueur ; tables par joueur jamais vidées.
+5) Mobile : travail inutile à chaque image.
+6) Erreurs ignorées : pcall dont le résultat n'est jamais lu, échecs sans warn, WaitForChild sans délai sur un objet qui peut ne jamais arriver.
+Pour chaque problème : fichier, ligne, gravité, scénario concret côté joueur, correction proposée.
+Fichiers concernés : aucun pendant l'audit. Après mon accord, une seule correction par demande.
+Contraintes techniques : n'invente aucun fichier, remote ou API ; si tu n'es pas sûr, dis-le.
+Sécurité : aucune correction proposée ne doit faire confiance au client ou lui confier un prix, une récompense ou une étape.
+Cas limites : deux joueurs sur le même checkpoint, joueur qui part pendant le chargement, spam du bouton d'achat, valeurs absurdes envoyées au serveur, fermeture du serveur avec des joueurs connectés.
+Vérification : termine par la liste des tests que je ferai moi-même dans Studio (Server & Clients avec 2 clients, Command Bar côté client) pour prouver chaque correction. selene src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- chaque faille signalée existe bien à la ligne indiquée, et chaque « rien à signaler » aussi : relis toi-même au moins tous les `OnServerEvent` ;
+- les corrections lisent le prix dans `Catalogue` et valident tout côté serveur, jamais l’inverse ;
+- aucune correction ne sauvegarde un joueur dont le chargement a échoué ;
+- les verrous sont **par joueur**, et les tables indexées par joueur sont vidées dans `PlayerRemoving` ;
+- l’IA ne lit que `src/` : les modèles de la Toolbox insérés dans Studio, c’est toi qui les inspectes (Find All, `Ctrl`+`Maj`+`F`) ;
+- chaque correction est prouvée par le test correspondant du tableau ci-dessus, à deux clients.
+
+</AvecClaudeCode>
 
 <Defi>
 Lance l’Obby des Nuages en mode **Server & Clients** avec deux clients. Fais toucher le même checkpoint aux deux personnages presque en même temps, puis spamme le bouton d’achat d’une traînée. Note chaque comportement anormal et corrige-le avant de passer à la leçon suivante.

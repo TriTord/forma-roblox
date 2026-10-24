@@ -60,6 +60,30 @@ quiz:
     question: Quand une Part est déchargée (streamed out) chez un joueur, les changements faits uniquement par un LocalScript sur cette Part peuvent être perdus quand elle revient.
     reponse: true
     explication: "Une instance déchargée est rangée hors du jeu (son parent devient `nil`). À son retour, elle peut avoir repris l’état envoyé par le serveur. Un script client doit donc réappliquer ses changements locaux quand l’objet revient, par exemple avec `ChildAdded`."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce LocalScript doit colorer chez le joueur tous les checkpoints de l’obby, qui utilise le streaming. Il ne plante pas, mais les checkpoints lointains restent gris. Pourquoi ?"
+    code: |
+      local Workspace = game:GetService("Workspace")
+
+      local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+      local COULEUR = Color3.fromRGB(255, 220, 0)
+
+      local function colorerTous()
+      	for _, checkpoint in dossierCheckpoints:GetChildren() do
+      		if checkpoint:IsA("BasePart") then
+      			checkpoint.Color = COULEUR
+      		end
+      	end
+      end
+
+      colorerTous()
+    options:
+      - texte: "Ligne 3 : `WaitForChild` ne fonctionne pas sur un Folder streamé"
+      - texte: "Ligne 7 : `GetChildren` ne renvoie que les checkpoints déjà chargés, et rien ne colore ceux qui arrivent ensuite (il manque `ChildAdded`)"
+        correct: true
+      - texte: "Ligne 4 : `Color3.fromRGB` attend des valeurs entre 0 et 1"
+      - texte: "Ligne 8 : `IsA` ne reconnaît pas les Parts streamées"
+    explication: "Côté client, `GetChildren()` ne voit que ce qui est chargé au moment de l’appel. Les checkpoints lointains arrivent plus tard (ou reviennent après un déchargement) et ne sont jamais colorés. Il faut aussi connecter `dossierCheckpoints.ChildAdded` à une fonction qui colore la Part reçue. Le Folder, lui, est envoyé dès l’arrivée : `WaitForChild` suffit pour lui. Une IA écrit souvent ce code, qui marche parfaitement… sans streaming."
 ---
 
 Imagine que l’Obby des Nuages grandisse : 50 étapes, des îles flottantes, des décors partout. Sans précaution, chaque joueur doit télécharger **tout** le monde avant de faire son premier saut, et le garder en mémoire jusqu’au bout. Sur un téléphone modeste, c’est un chargement interminable, voire un plantage. Le **streaming d’instances** règle ce problème : Roblox n’envoie au joueur que ce qui est autour de lui. Dans cette leçon, tu vas comprendre son fonctionnement, le régler et surtout adapter tes scripts.
@@ -241,6 +265,40 @@ D’après la page « Techniques » de la documentation sur le streaming :
 - **`Touched`, les `ProximityPrompt` et les `ClickDetector`** ne fonctionnent pas pour un joueur chez qui l’objet n’est pas chargé.
 - **Les objets envoyés par RemoteEvent** : si le serveur envoie une Part au client, elle peut ne pas être encore arrivée chez lui. Le client doit l’attendre ou tester qu’elle existe.
 - **Le personnage** : dans `CharacterAdded`, le modèle peut être là avant ses enfants. Utilise `WaitForChild("Humanoid")` plutôt que `character.Humanoid`.
+
+<AvecClaudeCode>
+
+Passer en revue tous tes LocalScripts à la recherche d’accès fragiles, c’est un travail idéal pour Claude Code : il lit tout ton dossier `src/` en quelques secondes. Le prompt lui donne les trois stratégies de la leçon, et lui interdit les « solutions » de facilité (`Persistent` partout, réglages de streaming par script).
+
+<Prompt titre="Audit streaming des LocalScripts">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Le streaming d'instances est activé (Workspace.StreamingEnabled) : chez le joueur, les Parts du Workspace arrivent selon la distance et peuvent repartir.
+Ce qui existe déjà : les LocalScripts de src/StarterPlayer/StarterPlayerScripts/, src/StarterPlayer/StarterCharacterScripts/ et src/StarterGui/InterfaceObby/. Dans Studio : les Folders Workspace.Checkpoints (Parts "1", "2"...), Workspace.KillBricks et Workspace.Pieces.
+Objectif : un audit des LocalScripts qui accèdent au Workspace. Pour chaque accès : fichier et ligne, risque avec le streaming, et stratégie à appliquer parmi : WaitForChild avec un délai maximal (objet indispensable), FindFirstChild + if (objet facultatif), ChildAdded (réagir à une arrivée ou à un retour), modèle Atomic, ou calcul déplacé côté serveur. Après mon accord seulement, applique les corrections, un fichier à la fois.
+Fichiers concernés : uniquement les LocalScripts (.client.luau) cités dans l'audit. Ne touche pas aux Scripts serveur : le serveur voit toujours tout le Workspace.
+Contraintes techniques :
+- Ne règle aucune propriété de streaming par script (StreamingEnabled, StreamingTargetRadius... se règlent dans Studio, je m'en charge).
+- Aucun accès direct du type Workspace.Checkpoints["10"] côté client, et pas de GetChildren() côté client pour obtenir la liste COMPLÈTE des checkpoints.
+- Ne passe aucun modèle en Persistent.
+- Un changement local (couleur, surlignage) doit être réappliqué quand l'objet revient.
+Cas limites : checkpoint lointain jamais chargé ; objet déchargé puis rechargé ; personnage dont le Humanoid arrive après le modèle.
+Vérification : dans une copie du jeu, je règle StreamingTargetRadius sur 64, je parcours tout l'obby en test, et l'Output ne doit afficher aucune erreur venant d'un LocalScript. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- plus aucun accès direct (`dossier["10"]`, `Workspace.Checkpoints.Nom`) à une Part streamée dans un LocalScript ;
+- chaque `WaitForChild` qui attend une **Part** streamée (un checkpoint, une pièce) a un délai maximal, et le code gère le `nil` renvoyé si le délai expire ;
+- un effet local est réappliqué grâce à `ChildAdded` quand l’objet revient ;
+- aucun `ModelStreamingMode` réglé depuis un LocalScript, aucun modèle passé en `Persistent` « pour que ça marche » ;
+- les Scripts serveur n’ont pas changé (`git diff --stat` ne liste que des `.client.luau`) ;
+- le test du petit rayon (64), c’est toi qui le fais, puis tu remets la valeur recommandée avant de publier.
+
+</AvecClaudeCode>
 
 ## Précharger une zone : RequestStreamAroundAsync
 

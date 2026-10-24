@@ -57,6 +57,19 @@ quiz:
         correct: true
       - texte: Pour améliorer le classement du jeu dans les recherches
     explication: "Ce n’est pas une obligation de Roblox. C’est une bonne pratique de développement : dans trois mois, tu ne te souviendras plus pourquoi tel décor est en `Box` ou pourquoi le rayon de streaming a changé. Le journal te le dit, et t’aide à annuler le bon changement si un problème apparaît."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code t’aide à mener l’audit de performance de l’Obby des Nuages. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais l'audit de performance de mon jeu et corrige tout"
+    options:
+      - texte: "Fais l’audit, corrige tout d’un coup, puis dis-moi de combien les FPS ont augmenté."
+      - texte: |
+          Sans rien modifier, fais un rapport d’audit du code de src/ selon ma checklist : Scripts, Mémoire, Réseau, Streaming, Interface mobile.
+          Pour chaque problème : fichier et ligne, gravité pour les joueurs mobiles, correction proposée, ce qu’il faudra retester. Classe-les d’après mes mesures : [fiche « avant »]. Dis-moi ce qui ne se vérifie que dans Studio.
+          Ensuite, une seule correction par demande : je teste le gameplay et je mesure entre chaque.
+        correct: true
+      - texte: "Lis mes scripts et donne-moi une note de performance sur 20."
+      - texte: "Passe tous les objets de l’obby en CanCollide, CanTouch et CanQuery à false, c’est le plus rapide."
+    explication: "La bonne version sépare l’inventaire de la correction, demande des preuves vérifiables (fichier et ligne), classe d’après tes vraies mesures et garde une correction à la fois. Tout corriger d’un coup empêche de savoir ce qui a aidé ou cassé, et l’IA ne peut pas mesurer tes FPS ; une note sur 20 n’indique rien à corriger ; tout désactiver casse les plateformes, les kill bricks et les checkpoints."
 ---
 
 C’est le moment de tout mettre en pratique. Dans cette leçon, tu vas réaliser un **audit de performance** complet de l’Obby des Nuages : mesurer, passer une checklist, corriger, vérifier, documenter. C’est exactement le cycle « identifier, améliorer, surveiller » que décrit la documentation Roblox. À la fin, tu auras un obby plus fluide sur mobile, et la preuve chiffrée du gain.
@@ -227,6 +240,41 @@ Ces chiffres ne sont pas des « notes » : il n’existe pas de nombre magique d
 <Astuce titre="Comparer avec ton appareil de référence">
 La documentation propose une méthode : joue sur ton appareil de référence avec les statistiques de rendu affichées et repère à partir de quand les FPS chutent dans une zone chargée. Tu en déduis tes propres limites (par exemple un nombre d’appels de dessin à ne pas dépasser) pour la suite du développement.
 </Astuce>
+
+<AvecClaudeCode>
+
+Le script ci-dessus inventorie le **niveau** (dans Studio). Pour le **code**, Claude Code peut passer la checklist à ta place, fichier par fichier. Le prompt lui donne tes mesures pour classer les problèmes, et lui interdit de corriger quoi que ce soit avant ton accord : c’est l’étape 2 de l’audit, « d’abord l’inventaire ».
+
+<Prompt titre="Audit de performance du code">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je mène l'audit de performance du jeu. Ma fiche de mesure « avant » (téléphone de référence) : [colle ici ta fiche]. Sortie du script d'audit de la Command Bar : [colle ici ce qu'affiche l'Output].
+Ce qui existe déjà : tout le code est dans src/. Le niveau (Parts, décors, lumières, particules) est construit dans Studio : tu ne le vois pas dans les fichiers.
+Objectif : un rapport d'audit du CODE, sous forme de tableau, selon les catégories de ma checklist vérifiables dans les fichiers :
+- Scripts : boucles while true, connexions Heartbeat ou PreRender remplaçables par un événement, GetService ou WaitForChild appelés à chaque image ;
+- Mémoire : connexions par joueur jamais déconnectées, tables indexées par joueur jamais vidées dans PlayerRemoving ;
+- Réseau : animation décorative faite côté serveur, RemoteEvent déclenché à chaque image ou qui envoie trop de données, objets de ReplicatedStorage dont seul le serveur a besoin ;
+- Streaming : accès fragiles des LocalScripts aux objets du Workspace ;
+- Interface mobile : boutons dans les coins inférieurs, tailles en Offset, ScreenInsets.
+Pour chaque problème : catégorie, fichier et ligne, gravité pour les joueurs mobiles, correction proposée, ce qu'il faudra retester.
+Fichiers concernés : aucun pendant l'audit. Après mon accord, UNE seule correction par demande.
+Contraintes techniques : classe les problèmes d'après MES mesures ; n'invente aucun chiffre ; pour la physique et le rendu, qui se vérifient dans Studio, dis-le au lieu de deviner.
+Sécurité : aucune correction ne doit déplacer une règle du jeu (pièces, achats, checkpoints) du serveur vers le client.
+Vérification : après chaque correction, je rejoue tout l'obby, je mesure dans mes conditions fixées et je note le résultat dans mon journal de performance. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- chaque problème du rapport existe vraiment : ouvre le fichier à la ligne indiquée (une IA peut se tromper de ligne, voire inventer un problème) ;
+- aucune correction ne déplace une règle du jeu (pièces gagnées, achats, checkpoints) du serveur vers le client ;
+- aucune correction ne passe `CanTouch` à `false` sur un objet du gameplay ;
+- l’ordre de priorité suit **tes** mesures, pas l’intuition de l’IA ;
+- une correction à la fois, suivie d’un test complet et d’une ligne dans ton journal ; si la mesure ne s’améliore pas, reviens au dernier commit.
+
+</AvecClaudeCode>
 
 ## Étape 4 : corriger, un problème à la fois
 

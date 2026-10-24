@@ -57,6 +57,19 @@ quiz:
     question: "Dans l’Obby des Nuages, `LogProgressionEvent` est le meilleur choix pour voir, dans un graphique de Roblox, combien de joueurs atteignent chaque checkpoint."
     reponse: false
     explication: "Au moment de la rédaction, la référence de l’API indique que les événements de progression **ne s’affichent dans aucun graphique fourni par Roblox**. Pour visualiser la progression, on utilise un **entonnoir** (`LogFunnelStepEvent` ou `LogOnboardingFunnelStepEvent`)."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code instrumente l’Obby des Nuages. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "ajoute des analytics à mon obby"
+    options:
+      - texte: "Ajoute des analytics complets et professionnels avec AnalyticsService pour tout suivre dans mon obby."
+      - texte: "Dans un LocalScript de StarterPlayerScripts, appelle LogOnboardingFunnelStepEvent dès que le joueur touche un checkpoint : c’est plus réactif que le serveur."
+      - texte: |
+          Crée le Script serveur src/ServerScriptService/AnalytiqueObby.server.luau. Entonnoir d’onboarding (LogOnboardingFunnelStepEvent) : 1 Arrivée, 2 Personnage apparu, 3 à 5 Checkpoint 1 à 3, déclenchés par une hausse d’exactement 1 de leaderstats.Etape (modifiée seulement par le serveur). Entonnoir "ProgressionObby" (LogFunnelStepEvent, funnelSessionId nil).
+          Contraintes : un seul événement "Mort" avec l’étape dans CustomField01 (texte) ; chaque envoi dans un pcall ; rien n’est envoyé dans Studio, seulement un print.
+          Vérification : en Play, trois checkpoints franchis affichent les messages dans l’ordre ; selene src sans erreur.
+        correct: true
+      - texte: "Crée un événement LogCustomEvent par checkpoint (Checkpoint1, Checkpoint2…) pour voir où les joueurs s’arrêtent."
+    explication: "La bonne version fixe le type et l’emplacement du script (serveur), le plan exact des étapes, le déclencheur fiable, les limites à respecter (custom field plutôt que des noms multiples) et un test. La version vague laisse tout deviner ; la version LocalScript ne fonctionnerait pas (événements serveur uniquement) et ferait confiance au client ; un nom d’événement par checkpoint épuise vite la limite de 100 noms et ne donne pas d’entonnoir."
 ---
 
 Le tableau de bord te dit **quand** les nouveaux joueurs partent (leçon 3). Il ne sait pas **où** : devant quel saut, avant quel checkpoint. Pour le savoir, tu vas instrumenter ton jeu, c’est-à-dire lui faire envoyer des événements à Roblox à chaque moment important. Objectif de la leçon : l’entonnoir d’onboarding et de progression de l’Obby des Nuages, envoyé **depuis le serveur**.
@@ -298,6 +311,44 @@ end
 <Info titre="Les anciens joueurs entrent aussi dans l’entonnoir">
 Le jour où tu publies ce script, les joueurs qui avaient déjà joué avant vont, eux aussi, enregistrer l’étape 1 à leur prochaine visite… puis apparaître au checkpoint 9 ou 15, jamais au checkpoint 1. Ils feront baisser artificiellement le passage de l’étape 2 à l’étape 3 pendant les premiers jours. De même, dans l’entonnoir `ProgressionObby`, un ancien joueur qui atteint le checkpoint 10 valide d’un coup les étapes 1 à 9 (règle de l’étape sautée). Comme chaque joueur n’entre qu’une fois dans ces entonnoirs, cet effet s’estompe : interprète les premiers jours avec prudence.
 </Info>
+
+<AvecClaudeCode>
+
+Ce script, Claude Code peut l’écrire pour toi… à condition de lui donner le **plan exact** de l’entonnoir : numéros, noms et déclencheurs des étapes. Sans ce plan, une IA invente ses propres étapes (souvent dans le désordre), multiplie les noms d’événements ou appelle `AnalyticsService` depuis un LocalScript.
+
+<Prompt titre="Entonnoirs de l’Obby des Nuages">
+
+```text
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je veux savoir où les nouveaux joueurs abandonnent, avec AnalyticsService.
+Ce qui existe déjà : leaderstats.Etape (IntValue), créée et modifiée uniquement par le serveur (dans src/ServerScriptService : GestionJoueurs.server.luau, Progression.server.luau, et Achats.server.luau pour « passer l'étape »). Au chargement de la sauvegarde, Etape peut passer d'un coup de 0 à la valeur sauvegardée.
+Objectif :
+- Entonnoir d'onboarding avec LogOnboardingFunnelStepEvent : 1 "Arrivée" (PlayerAdded), 2 "Personnage apparu" (premier CharacterAdded), 3 "Checkpoint 1", 4 "Checkpoint 2", 5 "Checkpoint 3" (Etape passe à 1, 2, 3).
+- Entonnoir de progression avec LogFunnelStepEvent : nom "ProgressionObby", funnelSessionId nil, étape N = "Checkpoint N", pour N de 1 à 100.
+- LogCustomEvent "SecondesAvantCheckpoint1" : valeur = secondes entre l'arrivée et le checkpoint 1.
+- LogCustomEvent "Mort" : valeur 1, étape dans le custom field Enum.AnalyticsCustomFieldKeys.CustomField01.Name, en texte ("Etape 4").
+Fichiers concernés : crée src/ServerScriptService/AnalytiqueObby.server.luau. Ne modifie aucun autre fichier.
+Contraintes techniques :
+- Script serveur uniquement. Seule une hausse d'EXACTEMENT 1 de Etape compte comme une progression.
+- Chaque appel à AnalyticsService dans un pcall, avec un warn en cas d'échec.
+- Dans Studio (RunService:IsStudio()), n'envoie rien : affiche "[Analytics, test Studio] ..." dans l'Output.
+- Aucune méthode dépréciée (FireEvent, FireCustomEvent...). Un seul nom d'événement par mesure (pas de MortEtape1, MortEtape2...).
+Sécurité : aucune donnée d'analytics ne vient du client ; n'ajoute aucun RemoteEvent.
+Cas limites : leaderstats lentes à arriver (WaitForChild avec délai, warn si introuvables) ; joueurs déjà présents quand le script démarre ; personnage sans Humanoid.
+Vérification : en Play, franchir 3 checkpoints puis tomber 2 fois affiche dans l'ordre les onboarding 1 à 5, les progressions 1 à 3, le temps du checkpoint 1 et les deux morts. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- c’est un **Script serveur** (`.server.luau` dans `ServerScriptService`) : aucun appel à `AnalyticsService` dans un LocalScript ;
+- les numéros et noms d’étapes suivent **exactement** le tableau de la leçon, dans l’ordre réel du jeu (une étape sautée valide les précédentes) ;
+- seule une hausse d’**exactement 1** de `Etape` déclenche un événement : le chargement d’une sauvegarde est ignoré ;
+- l’étape de la mort va dans un **custom field en texte**, pas dans le nom de l’événement ;
+- chaque envoi passe par un `pcall`, et rien n’est envoyé depuis Studio ;
+- aucune méthode dépréciée (`FireEvent`, `FireCustomEvent`…) : une IA a pu apprendre sur de vieux tutoriels. Compare enfin avec le script de la leçon.
+
+</AvecClaudeCode>
 
 ### Les custom fields
 

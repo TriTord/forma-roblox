@@ -59,6 +59,19 @@ quiz:
       - texte: Publier trois nouvelles fonctionnalités dans la journée
       - texte: Tirer des conclusions définitives de la rétention après quelques heures
     explication: "Le jour J, on observe et on corrige les bugs bloquants. Ajouter des fonctionnalités en urgence crée de nouveaux bugs, et quelques heures de données ne suffisent pas pour juger la rétention."
+  - type: ameliore-le-prompt
+    question: "Avant le lancement, tu veux que Claude Code vérifie les points techniques de la checklist. Quelle version du prompt est la plus utile ?"
+    prompt: "vérifie que mon jeu est prêt à être publié"
+    options:
+      - texte: "Vérifie que mon jeu est prêt et coche toute la checklist de lancement pour moi."
+      - texte: "Corrige automatiquement tout ce qui ne va pas dans mes scripts, puis publie le jeu."
+      - texte: |
+          Sans rien modifier, vérifie dans src/ les points Sécurité, Sauvegarde, Monétisation et Analytics de ma checklist (je te les liste ci-dessous).
+          Pour chacun, réponds OK, À corriger ou Impossible à vérifier dans les fichiers, avec le fichier et la ligne qui le prouvent. Ne réponds jamais OK par supposition.
+          Lance selene src et stylua --check src et recopie le résultat, puis liste ce que je dois vérifier moi-même dans Studio et le Creator Dashboard.
+        correct: true
+      - texte: "Est-ce que mon code est sécurisé ? Réponds par oui ou par non."
+    explication: "La bonne version limite l’IA à ce qu’elle peut vraiment contrôler (les fichiers), exige une preuve pour chaque réponse et te rend la main pour le reste. L’IA ne peut pas cocher la page du jeu ni le questionnaire de maturité ; publier n’est pas son rôle (ni une bonne idée sans relecture) ; un simple oui ou non ne t’apprend rien et ne se vérifie pas."
 ---
 
 Tu y es presque. Cette leçon rassemble **tout le parcours** en une seule checklist, à passer avant d’ouvrir ton jeu au public. Chaque case renvoie à la leçon où la notion a été vue : si une case te pose problème, tu sais où aller. On l’applique à l’Obby des Nuages, avec un petit script qui vérifie automatiquement une partie du travail, puis on prépare le jour J.
@@ -66,7 +79,7 @@ Tu y es presque. Cette leçon rassemble **tout le parcours** en une seule checkl
 ## Comment utiliser cette checklist
 
 - Passe-la **en entier** avant le premier lancement public, puis repasse les sections concernées avant chaque grosse mise à jour.
-- Copie-la dans un document à toi (les cases de cette page ne se cochent pas) et coche au fur et à mesure.
+- Coche les cases au fur et à mesure, directement sur cette page : elles restent cochées dans ce navigateur, même si tu fermes la page. Tu peux aussi recopier la checklist dans un document à toi, pour la garder ou la partager.
 - Une case non cochée n’est pas forcément bloquante, mais **décide-le consciemment** et note pourquoi.
 
 <Astuce titre="Fais-la passer par quelqu’un d’autre">
@@ -93,6 +106,14 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] Tous les modèles venus de la Toolbox ont été inspectés : scripts lus, recherche dans tous les scripts (Ctrl+Maj+F). ([Erreurs techniques](/modules/11/erreurs-techniques/))
 - [ ] Le script d’auto-vérification (plus bas) ne signale aucun problème.
 - [ ] Tu as noté le numéro de version publié, pour pouvoir revenir en arrière si besoin. ([Premier niveau et publication](/modules/01/premier-niveau-et-publication/))
+
+**Si tu as écrit une partie du code avec Claude Code ou une autre IA :**
+
+- [ ] Tu as relu chaque modification avant de l’accepter, et tu sais expliquer ce que fait chaque script (sinon, demande à l’IA de te l’expliquer avant de publier). ([Relire et tester le code de l’IA](/modules/02/relire-et-tester-le-code-de-l-ia/))
+- [ ] `selene src` ne signale aucune erreur et `stylua --check src` ne trouve rien à reformater. ([Installer un workflow pro](/modules/02/installer-un-workflow-pro/))
+- [ ] Le code ne contient aucune API dépréciée (`wait`, `spawn`, `delay`, `BodyVelocity`…) ni aucune API inventée par l’IA. ([Les pièges de l’IA](/modules/02/les-pieges-de-l-ia/))
+- [ ] Aucun secret dans le dépôt Git : ni cookie `.ROBLOSECURITY`, ni clé d’API, ni mot de passe, dans les fichiers comme dans l’historique des commits.
+- [ ] Tout est commité proprement : `git status` n’affiche aucune modification en attente, et la version publiée correspond à un commit que tu peux retrouver.
 
 ## 3. Sécurité
 
@@ -283,6 +304,41 @@ end
 <Info>
 Adapte les listes (`"AcheterObjet"`, `"Config"`…) aux noms réellement utilisés dans ton jeu. Ce script ne remplace pas la checklist : il vérifie la structure, pas le plaisir de jeu ni la sécurité de tes remotes.
 </Info>
+
+<AvecClaudeCode>
+
+Pour la sécurité des remotes et les autres points techniques, demande une seconde lecture à Claude Code. Le prompt l’oblige à **prouver** chaque réponse par un fichier et une ligne, et à avouer ce qu’il ne peut pas vérifier : une IA qui « coche » tout sans preuve ne t’aide pas, elle te rassure à tort.
+
+<Prompt titre="Vérifier les points techniques de la checklist">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je passe la checklist de lancement avant de publier et je veux une seconde lecture des points qui se vérifient dans le code.
+Ce qui existe déjà : tout le code dans src/, default.project.json, et le script src/ServerScriptService/AutoVerification.server.luau.
+Objectif : pour chaque point ci-dessous, réponds « OK », « À corriger » ou « Impossible à vérifier dans les fichiers », avec le fichier et la ligne qui le prouvent.
+- Technique : aucune API dépréciée (wait, spawn, delay, BodyVelocity, Humanoid:LoadAnimation...) ; aucun WaitForChild sans délai sur un objet qui peut manquer.
+- Sécurité : chaque OnServerEvent vérifie le type, l'existence, une valeur plausible et la fréquence ; aucun prix, aucune récompense, aucun numéro d'étape venu du client ; aucun InvokeClient.
+- Sauvegarde : DataStore "DonneesJoueurs_v1", clé "Joueur_" .. player.UserId ; chargement dans un pcall avec nouvelles tentatives ; aucune sauvegarde après un chargement raté ; sauvegarde à PlayerRemoving, dans game:BindToClose et périodiquement.
+- Monétisation : UserOwnsGamePassAsync dans un pcall côté serveur ; un seul ProcessReceipt, qui ne renvoie PurchaseGranted qu'après avoir réellement fait passer l'étape, et jamais deux fois pour le même achat.
+- Analytics : événements AnalyticsService envoyés uniquement depuis le serveur.
+- Texte : tout texte saisi par un joueur et montré aux autres passe par TextService:FilterStringAsync côté serveur.
+- Dépôt : aucun secret (cookie .ROBLOSECURITY, clé d'API, mot de passe) dans les fichiers suivis par Git.
+Fichiers concernés : aucun. Ne modifie rien ; si tu trouves un problème, propose la correction et attends mon accord.
+Contraintes techniques : ne réponds jamais « OK » par supposition. Ce qui n'est pas dans les fichiers (page du jeu, questionnaire de maturité, playtests, tests sur téléphone) est « Impossible à vérifier dans les fichiers ».
+Vérification : lance selene src et stylua --check src et recopie leur résultat exact. Termine par la liste des cases de la checklist que je dois vérifier moi-même dans Studio ou dans le Creator Dashboard.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- chaque « OK » cite un fichier et une ligne que tu as ouverts toi-même : un « OK » sans preuve ne vaut rien ;
+- les points « Impossible à vérifier » (page du jeu, questionnaire, playtests, téléphone) restent sur **ta** liste ;
+- relance toi-même `selene src` et `stylua --check src` dans ton terminal : ce sont tes résultats qui comptent ;
+- aucune correction n’a été appliquée sans ton accord : `git status` ne montre aucun fichier modifié ;
+- cette relecture complète le script `AutoVerification` et tes tests à deux clients, elle ne les remplace pas.
+
+</AvecClaudeCode>
 
 ## Le plan des premiers jours
 

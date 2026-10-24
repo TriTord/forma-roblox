@@ -65,6 +65,19 @@ quiz:
     question: Pour repérer la surchauffe d’un téléphone, il suffit de jouer une minute à ton jeu.
     reponse: false
     explication: "La documentation Roblox conseille une session de 10 à 15 minutes de jeu actif. Un téléphone qui chauffe réduit la vitesse de son processeur : la baisse d’images par seconde apparaît progressivement, pas dès la première minute."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code améliore l’interface de l’Obby des Nuages pour les téléphones. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "rends mon jeu compatible mobile"
+    options:
+      - texte: "Rends toute l’interface de mon obby parfaite sur mobile, tablette et console."
+      - texte: "Dans une boucle while true, teste UserInputService.TouchEnabled et passe tous les boutons à 200 × 100 pixels quand c’est un téléphone."
+      - texte: |
+          Commence par un audit de src/StarterGui/InterfaceObby (positions, Scale ou Offset, coins inférieurs, UITextSizeConstraint, ScreenInsets), sans rien modifier.
+          Ensuite, crée le LocalScript AdaptationMobile.client.luau dans InterfaceObby : BoutonBoutique passe à UDim2.fromScale(0.2, 0.12) quand PreferredInput vaut Enum.PreferredInput.Touch, sinon UDim2.fromScale(0.15, 0.08), en réagissant à GetPropertyChangedSignal("PreferredInput").
+          Vérification : je teste dans le Device Simulator (Entry level, Physical size) puis sur un vrai téléphone.
+        correct: true
+      - texte: "Passe ScreenInsets sur None pour gagner de la place et range les boutons dans les coins de l’écran."
+    explication: "La bonne version sépare l’audit (lecture seule) de la modification, donne le fichier, l’API exacte, des tailles en Scale, un fonctionnement par événement et un test sur appareil. La boucle avec des pixels gaspille du calcul et donne des boutons de taille variable selon l’écran ; `None` et les coins exposent l’interface aux encoches et au joystick ; la version vague ne dit rien de ce qu’il faut changer."
 ---
 
 Tu as construit, sécurisé et publié l’Obby des Nuages. Mais sur quel appareil tes joueurs vont-ils le lancer ? Selon la documentation officielle de Roblox (page « Mobile input »), **la majorité des sessions Roblox se jouent sur des appareils mobiles** (*« The majority of Roblox sessions are played on mobile devices »*). La page « Test on hardware » ajoute que la majorité des joueurs utilisent des appareils mobiles peu puissants. Un obby qui tourne parfaitement sur ton PC peut donc ramer, chauffer ou devenir injouable au doigt. Dans ce module, tu vas apprendre à mesurer et à corriger tout ça. On commence par changer de réflexe : penser mobile d’abord.
@@ -160,6 +173,41 @@ UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(adapterInter
 ```
 
 Remarque l’approche : on ne vérifie pas en boucle si le mode de contrôle a changé, on **réagit à un événement**. C’est une habitude clé pour les performances, on y reviendra à la leçon 4.
+
+<AvecClaudeCode>
+
+Claude Code peut passer ton interface en revue et écrire ce script. Mais il ne voit pas ton écran ni ton pouce : il lit tes fichiers. Le prompt lui demande donc d’abord un **audit en lecture seule**, puis le script exact de la leçon. Les tests sur appareil, c’est toi qui les fais.
+
+<Prompt titre="Audit mobile et AdaptationMobile">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). La majorité des sessions Roblox se jouent sur mobile : je veux une interface confortable au doigt.
+Ce qui existe déjà : le ScreenGui InterfaceObby décrit dans src/StarterGui/InterfaceObby/ (init.meta.json, BoutonBoutique.model.json, CompteurPieces.model.json, dossier Boutique) et ses LocalScripts, dont ScriptInterface.client.luau.
+Objectif :
+1) Un audit mobile de l'interface, sous forme de tableau : pour chaque élément, sa position et sa taille (Scale ou Offset), s'il touche un coin inférieur de l'écran (zone du joystick et du bouton de saut), si son texte a une taille minimale (UITextSizeConstraint), et la valeur de ScreenInsets du ScreenGui.
+2) Après mon accord, un LocalScript qui agrandit BoutonBoutique quand le joueur joue au tactile.
+Fichiers concernés : crée src/StarterGui/InterfaceObby/AdaptationMobile.client.luau. Ne modifie aucun fichier .model.json sans que j'aie validé la correction précise dans l'audit.
+Contraintes techniques :
+- BoutonBoutique récupéré une seule fois avec WaitForChild. Taille UDim2.fromScale(0.2, 0.12) si UserInputService.PreferredInput == Enum.PreferredInput.Touch, sinon UDim2.fromScale(0.15, 0.08) (la taille actuelle).
+- Adapter une fois au lancement, puis à chaque GetPropertyChangedSignal("PreferredInput") : jamais de boucle.
+- Tailles en Scale uniquement. ScreenInsets reste sur CoreUISafeInsets. Aucun bouton dans les coins inférieurs.
+Cas limites : un joueur sur tablette qui branche une manette en cours de partie ; un écran de tablette (un bouton à 40 % du haut est loin du pouce).
+Vérification : je teste moi-même dans le Device Simulator (téléphone Entry level, Physical size, puis rotation) et sur un vrai téléphone. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la comparaison se fait avec `Enum.PreferredInput.Touch`, pas avec le texte `"Touch"` (toujours faux) ;
+- le script adapte l’interface au lancement **puis** réagit à `GetPropertyChangedSignal("PreferredInput")`, sans boucle `while` ;
+- les tailles sont en `Scale` (`UDim2.fromScale`), jamais en pixels fixes ;
+- l’audit ne propose ni bouton dans un coin inférieur, ni `ScreenInsets` sur `None` ;
+- c’est un **LocalScript** (`.client.luau`) dans `InterfaceObby` : l’interface ne se règle pas côté serveur ;
+- le dernier mot revient au Device Simulator en **Physical size** et au vrai téléphone : l’IA ne peut pas juger à ta place si un bouton tombe bien sous le pouce.
+
+</AvecClaudeCode>
 
 <Astuce titre="Penser à toutes les entrées d’un coup">
 Roblox propose l’Input Action System : tu définis des **actions** (« ouvrir la boutique », « sauter ») et tu y associes plusieurs touches, boutons de manette et boutons tactiles. Ton jeu reste jouable sur tous les appareils sans écrire un `if` par plateforme. Consulte la page « Cross-platform development » de la documentation pour aller plus loin.

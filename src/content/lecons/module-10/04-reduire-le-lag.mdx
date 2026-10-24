@@ -70,6 +70,19 @@ quiz:
     question: Une texture de 1024 × 1024 pixels utilise environ quatre fois plus de mémoire graphique qu’une texture de 512 × 512, même si son fichier est bien compressé.
     reponse: true
     explication: "La mémoire graphique dépend du nombre de pixels, pas du poids du fichier : Roblox convertit les images dans un format fixe. 1024 × 1024, c’est quatre fois plus de pixels que 512 × 512."
+  - type: ameliore-le-prompt
+    question: "Ton MicroProfiler (côté serveur) désigne l’étiquette `ObbyRotationPieces`. Quelle version du prompt donnera à Claude Code la meilleure correction ?"
+    prompt: "réduis le lag de mon obby"
+    options:
+      - texte: "Réduis le lag : passe CanTouch, CanCollide et CanQuery à false sur toutes les Parts du Workspace et désactive toutes les ombres."
+      - texte: |
+          Mes mesures désignent la rotation des pièces côté serveur (src/ServerScriptService/PiecesTournantes.server.luau).
+          Crée le LocalScript src/StarterPlayer/StarterPlayerScripts/PiecesTournantesClient.client.luau : une table des pièces chargées tenue à jour avec ChildAdded et ChildRemoved de Workspace.Pieces, une seule connexion RunService.PreRender, rotation proportionnelle à deltaTime avec Config.VITESSE_ROTATION_PIECES. Supprime PiecesTournantes.server.luau ; ne touche pas à Pieces.server.luau ni au CanTouch des pièces.
+          Vérification : je mesure le réseau avant/après avec Performance Stats et je rejoue tout l’obby.
+        correct: true
+      - texte: "Réécris tous mes scripts pour qu’ils soient optimisés, en utilisant RunService.Heartbeat partout pour plus de fluidité."
+      - texte: "Tu es le meilleur expert Roblox du monde. Réduis le lag de mon obby."
+    explication: "La bonne version part de la mesure, vise la cause précise, impose la technique de la leçon (côté client, pièces chargées seulement, événements du streaming) et protège le gameplay. Désactiver `CanTouch` partout casse les kill bricks, les checkpoints et les pièces ; mettre `Heartbeat` partout ajoute du travail à chaque image ; un rôle flatteur ne remplace ni le contexte ni les contraintes."
 ---
 
 Tu sais maintenant **mesurer**. Place à la correction ! Dans cette leçon, on passe en revue les grandes sources de lag (ralentissement) d’un jeu Roblox : scripts, mémoire, physique, rendu et réseau. Pour chaque famille, tu verras ce que recommande la documentation officielle, avec des exemples avant/après tirés de l’Obby des Nuages. Et surtout : comment choisir par quoi commencer.
@@ -361,6 +374,39 @@ end)
 ```
 
 Ce qui change : **zéro** trafic réseau pour la rotation, et chaque appareil ne fait tourner que les pièces proches de son joueur. Le ramassage reste géré par le Script serveur `Pieces` du module 4, sans aucune modification : la pièce tourne sur elle-même, sa position ne change pas. Quand elle est ramassée, le serveur la rend invisible ; elle continue de tourner chez le client, ce qui ne se voit pas.
+
+<AvecClaudeCode>
+
+Une IA à qui l’on dit seulement « réduis le lag » change dix choses à la fois, et casse parfois le gameplay (le fameux `CanTouch = false` sur les kill bricks). Donne-lui plutôt **tes mesures** et **une** cause précise : ici, la rotation des pièces. Elle propose, tu mesures avant et après.
+
+<Prompt titre="Rotation des pièces côté client">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Mes mesures de la leçon 2 : [colle ici tes chiffres : FPS, couleur des barres du MicroProfiler, données réseau, mémoire]. Côté serveur, l'étiquette ObbyRotationPieces est la plus large du MicroProfiler.
+Ce qui existe déjà : src/ServerScriptService/PiecesTournantes.server.luau (fait tourner toutes les pièces côté serveur, environ 60 fois par seconde) ; src/ServerScriptService/Pieces.server.luau (ramassage validé par le serveur) ; Config.VITESSE_ROTATION_PIECES (degrés par seconde) dans src/ReplicatedStorage/Modules/Config.luau.
+Objectif : la rotation des pièces se fait côté client, seulement pour les pièces chargées chez le joueur, sans aucun trafic réseau. Ensuite seulement, liste SANS LES CORRIGER les autres sources de lag de src/ : travail à chaque image remplaçable par un événement, connexions ou tables par joueur jamais nettoyées à PlayerRemoving, propriétés modifiées côté serveur à chaque image, RemoteEvents déclenchés trop souvent (fichier et ligne pour chacune).
+Fichiers concernés : crée src/StarterPlayer/StarterPlayerScripts/PiecesTournantesClient.client.luau et supprime src/ServerScriptService/PiecesTournantes.server.luau. Ne modifie pas Pieces.server.luau.
+Contraintes techniques :
+- Une table des pièces chargées, remplie avec GetChildren() au départ, puis tenue à jour avec ChildAdded et ChildRemoved de Workspace.Pieces (le streaming en ajoute et en retire).
+- Une seule connexion RunService.PreRender ; rotation proportionnelle à deltaTime, avec math.rad(Config.VITESSE_ROTATION_PIECES).
+- Ne change aucune propriété physique des pièces (CanTouch, CanCollide) : le ramassage en a besoin.
+Cas limites : pièce ramassée (rendue invisible par le serveur) qui continue de tourner chez le client ; pièce déchargée puis rechargée par le streaming.
+Vérification : je mesure avant et après avec Performance Stats (données réseau) et le Script Profiler, côté client puis serveur, puis je rejoue tout l'obby (pièces, kill bricks, checkpoints). selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le serveur ne fait plus tourner aucune pièce : `PiecesTournantes.server.luau` a disparu (vérifie aussi dans Studio qu’aucun ancien script de rotation n’est resté dans les pièces) ;
+- la table des pièces est tenue à jour avec `ChildAdded` **et** `ChildRemoved` : rien ne s’accumule quand le streaming retire une pièce ;
+- la rotation dépend de `deltaTime` (même vitesse à 30 ou à 60 FPS) et passe par **une seule** connexion `PreRender` ;
+- `Pieces.server.luau` et le `CanTouch` des pièces sont intacts : le ramassage fonctionne toujours ;
+- les autres sources de lag sont seulement **listées**, avec un fichier et une ligne que tu vérifies toi-même, une correction à la fois ensuite ;
+- le gain se prouve par **ta** mesure avant/après, pas par la promesse de l’IA.
+
+</AvecClaudeCode>
 
 <Defi>
 Mesure avant, applique, mesure après : lance l’obby avec la barre **Performance Stats** ouverte (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F7</kbd>), qui affiche notamment les données réseau envoyées et reçues, et note les valeurs. Remplace ensuite la rotation serveur des pièces par le LocalScript ci-dessus, et compare. Enfin, lance le Script Profiler côté client puis côté serveur : aucun de tes scripts ne devrait apparaître en tête de liste sans raison.

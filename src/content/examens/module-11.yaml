@@ -149,3 +149,43 @@ questions:
       - texte: Dans la catégorie Community Tutorials du DevForum
       - texte: Dans la Toolbox de Studio
     explication: "Les changements officiels sont publiés par le personnel de Roblox dans la catégorie Announcements du DevForum, et répercutés dans la documentation du Creator Hub. Les tutoriels communautaires et les vidéos peuvent être utiles, mais ne sont pas des sources officielles."
+
+  - type: qcm
+    question: "Claude Code vient de modifier la boutique de ton obby. Avant de publier, lesquelles de ces vérifications font partie de ta revue ? (plusieurs réponses possibles)"
+    options:
+      - texte: "Lire le diff et pouvoir expliquer chaque ligne modifiée"
+        correct: true
+      - texte: "Lancer `selene src` et `stylua --check src`, sans erreur"
+        correct: true
+      - texte: "Vérifier qu’aucun secret (cookie `.ROBLOSECURITY`, clé d’API) n’a été ajouté au dépôt"
+        correct: true
+      - texte: "Tester l’achat à deux clients, avec spam du bouton et valeurs absurdes"
+        correct: true
+      - texte: "Rien de plus : l’IA a affirmé que le code était testé et sécurisé"
+    explication: "Le code généré par une IA se relit comme celui d’un inconnu : tu dois le comprendre, passer les outils de vérification, protéger tes secrets et tester les cas limites toi-même. L’affirmation « c’est testé » n’est pas une preuve : seule ta vérification compte."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur doit afficher à tout le serveur le nom que le joueur donne à son familier (l’affichage lit l’attribut `NomFamilier`). Où est la faille ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local TextService = game:GetService("TextService")
+      local nommer = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("NommerFamilier") :: RemoteEvent
+
+      nommer.OnServerEvent:Connect(function(player: Player, nom: unknown)
+      	if typeof(nom) ~= "string" or #nom > 20 then
+      		return
+      	end
+      	local ok, resultat = pcall(function()
+      		return TextService:FilterStringAsync(nom, player.UserId)
+      	end)
+      	if ok then
+      		player:SetAttribute("NomFamilier", nom)
+      	end
+      end)
+    options:
+      - texte: "Ligne 6 : il ne faut pas limiter la longueur du nom"
+      - texte: "Ligne 10 : `FilterStringAsync` ne doit jamais être entouré d’un `pcall`"
+      - texte: "Ligne 13 : c’est le texte d’origine `nom` qui est affiché, pas le texte filtré (il faut `resultat:GetNonChatStringForBroadcastAsync()`)"
+        correct: true
+      - texte: "Ligne 5 : `OnServerEvent` ne reçoit pas le joueur en premier argument"
+    explication: "Le code filtre bien… puis jette le résultat et affiche le texte brut. Tout texte saisi par un joueur et montré aux autres doit être filtré : on récupère la version pour tout le serveur avec `GetNonChatStringForBroadcastAsync()`, elle aussi dans un `pcall`. Le `pcall` autour de `FilterStringAsync` est justement recommandé (l’appel peut échouer), et limiter la longueur est une bonne validation."

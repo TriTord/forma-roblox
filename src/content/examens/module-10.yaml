@@ -148,3 +148,39 @@ questions:
         correct: true
       - texte: Publier, attendre les plaintes des joueurs, puis optimiser
     explication: "Ce cycle reprend la démarche « identifier, améliorer, surveiller » de la documentation Roblox. La sauvegarde permet de revenir en arrière, les mesures prouvent le gain, et le test complet du gameplay évite les régressions."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ton obby utilise des MeshParts pour ses nuages décoratifs, mais aussi pour quelques plateformes. Après avoir lancé ce script dans la Command Bar, des joueurs traversent certaines plateformes. Où est la faille ?"
+    code: |
+      -- Proposé par l'IA : « optimiser tous les décors » (Command Bar, mode édition)
+      local Workspace = game:GetService("Workspace")
+
+      for _, objet in Workspace:GetDescendants() do
+      	if objet:IsA("MeshPart") then
+      		objet.CanCollide = false
+      		objet.CanTouch = false
+      		objet.CanQuery = false
+      	end
+      end
+      print("Décors optimisés")
+    options:
+      - texte: "Ligne 4 : `GetDescendants` ne trouve pas les MeshParts rangées dans des dossiers"
+      - texte: "Ligne 5 : le filtre vise **toutes** les MeshParts du Workspace, y compris les plateformes et les objets du gameplay, pas seulement les décors"
+        correct: true
+      - texte: "Ligne 6 : une Part ancrée avec `CanCollide = false` tombe dans le vide"
+      - texte: "Ligne 8 : `CanQuery` n’existe pas sur une MeshPart"
+    explication: "Ces réglages sont excellents pour les **décors**, désastreux pour ce qu’on doit toucher ou sur quoi on marche. L’IA a confondu « décor » et « MeshPart ». Il fallait limiter la boucle à un dossier de décors (par exemple `Workspace.Decors`) ou à une liste précise. Une Part ancrée ne tombe jamais, `GetDescendants` parcourt tous les niveaux, et `CanQuery` existe sur toute BasePart."
+
+  - type: ameliore-le-prompt
+    question: "Ton obby saccade sur ton téléphone de référence. Quelle demande à Claude Code respecte le mieux la méthode « l’IA propose, tu mesures » ?"
+    prompt: "mon jeu rame sur téléphone, corrige-le"
+    options:
+      - texte: "Mon jeu rame sur téléphone : lance-le sur mon téléphone, mesure les FPS et corrige ce qui ne va pas."
+      - texte: |
+          Sur mon téléphone de référence, dans la zone 2 : FPS moyen bas, barres orange dans le MicroProfiler, étiquette ObbyRotationPieces la plus large côté serveur.
+          Propose UNE correction de cette cause précise, sans toucher à la validation serveur des pièces ni au CanTouch des objets du gameplay, et dis-moi ce que je dois retester.
+          Je mesurerai avant et après dans les mêmes conditions et je noterai le résultat dans mon journal de performance.
+        correct: true
+      - texte: "Applique toutes les optimisations Roblox que tu connais, d’un coup, pour être sûr de régler le problème."
+      - texte: "Augmente StreamingTargetRadius et passe tous les modèles en Persistent pour que tout soit chargé."
+    explication: "La bonne version donne tes vraies mesures, vise une cause précise, protège le gameplay et garde la mesure de ton côté. L’IA ne peut pas jouer sur ton téléphone ; tout changer d’un coup empêche de savoir ce qui a aidé ; augmenter le rayon et tout passer en `Persistent` alourdit la mémoire, le contraire du but sur mobile."
