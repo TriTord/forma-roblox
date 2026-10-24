@@ -25,7 +25,7 @@
 | 06 | FAIT | en cours | |
 | 07 | FAIT | en cours | |
 | 08 | FAIT | en cours | |
-| 09 | en cours | | |
+| 09 | FAIT | en cours | |
 | 10 | FAIT | en cours | |
 
 ## Outils
@@ -37,3 +37,4 @@
 - QA phase 1 terminée (suite de tests). Agent DEV lancé pour corriger 7 bugs site (mobile overflow, liens soulignés, label recherche, checklist interactive, focus menu mobile, site/canonical/sitemap, logo 44px).
 - À FAIRE en passe de cohérence inter-modules : contenu du ModuleScript `Config` (module 02 vs `Config.Zones` du module 05), structure des données joueur (module 04 vs 05/06/08), convention `Etape`.
 - Cohérence à vérifier aussi : format du Catalogue (module 10 suppose `{ [id] = { prix = … } }`) vs module 04.
+- Cohérence : noms d'UI du module 09 (InterfaceObby, CompteurPieces, BoutonBoutique) à aligner sur le module 04.

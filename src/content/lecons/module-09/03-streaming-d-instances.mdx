@@ -72,7 +72,7 @@ Le streaming d’instances (*instance streaming*) charge et décharge dynamiquem
 - **moins de mémoire** : le contenu lointain peut être retiré, le jeu tient sur plus d’appareils ;
 - **de meilleures performances** : moins de travail de synchronisation pour le serveur et le client.
 
-Il se contrôle avec la propriété `Workspace.StreamingEnabled`. Elle est **activée par défaut pour les nouveaux places créés dans Studio**. Ton obby l’utilise donc probablement déjà. Vérifie-le : sélectionne `Workspace` dans l’Explorer et regarde la section **Streaming** de la fenêtre Properties.
+Il se contrôle avec la propriété `Workspace.StreamingEnabled`. Elle est **activée par défaut pour les nouveaux jeux (places) créés dans Studio**. Ton obby l’utilise donc probablement déjà. Vérifie-le : sélectionne `Workspace` dans l’Explorer et regarde la section **Streaming** de la fenêtre Properties.
 
 ### Ce qui arrive tout de suite, ce qui arrive plus tard
 
@@ -97,7 +97,7 @@ Le streaming se fait autour d’un point de référence, la **replication focus*
 Quand un objet est déchargé puis rechargé, les modifications faites **uniquement par un LocalScript** sur cet objet peuvent être perdues. Si ton script client colore une Part, il doit être capable de la recolorer à son retour.
 </Attention>
 
-Le serveur, lui, voit **toujours** tout le monde. Les scripts serveur de l’obby (checkpoints, pièces, achats) ne sont donc pas gênés par le streaming. Ce sont les **LocalScripts** qu’il faut surveiller.
+Le serveur, lui, voit **toujours** tout le Workspace. Les scripts serveur de l’obby (checkpoints, pièces, achats) ne sont donc pas gênés par le streaming. Ce sont les **LocalScripts** qu’il faut surveiller.
 
 ## Les réglages de Workspace
 
@@ -132,7 +132,7 @@ Chaque `Model` a une propriété `ModelStreamingMode` qui décide comment il est
 - **`PersistentPerPlayer`** : persistant seulement pour les joueurs ajoutés avec `Model:AddPersistentPlayer()`, atomique pour les autres.
 
 <Erreur titre="Tout passer en Persistent pour que « ça marche »">
-Mettre tous ses modèles en `Persistent` revient à désactiver le streaming : tout reste en mémoire pour toujours. La documentation réserve ce mode à de très rares cas, quand quelques pièces doivent absolument rester présentes pour un script client. Préfère `Atomic` et des scripts qui tolèrent l’absence d’un objet.
+Mettre tous ses modèles en `Persistent` revient à désactiver le streaming : tout reste en mémoire pour toujours. La documentation réserve ce mode à de très rares cas, quand quelques Parts doivent absolument rester présentes pour un script client. Préfère `Atomic` et des scripts qui tolèrent l’absence d’un objet.
 </Erreur>
 
 ## Adapter tes LocalScripts
