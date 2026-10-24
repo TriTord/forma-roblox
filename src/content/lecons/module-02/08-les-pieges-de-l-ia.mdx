@@ -162,7 +162,7 @@ Pour chaque nom d’API que tu ne connais pas dans un code généré, tape-le da
 
 Les IA ont appris sur des années de tutoriels, dont beaucoup sont anciens. Elles proposent donc souvent des API **dépréciées** : elles marchent parfois encore, mais Roblox demande de ne plus les utiliser pour du nouveau code. Voici une liste vérifiée sur la référence officielle (octobre 2026) :
 
-| Obsolète (marqué Deprecated) | À utiliser |
+| Obsolète (marqué Deprecated dans la référence) | À utiliser |
 |---|---|
 | `wait()`, `spawn()`, `delay()` | `task.wait()`, `task.spawn()`, `task.delay()` |
 | `Player:LoadCharacter()` | `Player:LoadCharacterAsync()` |
@@ -173,10 +173,11 @@ Les IA ont appris sur des années de tutoriels, dont beaucoup sont anciens. Elle
 | `Model:SetPrimaryPartCFrame()` | `PVInstance:PivotTo()` |
 | `Instance:Remove()` | `Instance:Destroy()` |
 | `game.workspace` (propriété en minuscules) | `game:GetService("Workspace")` |
-| service `Chat` | `TextChatService` |
+| `TeleportService:Teleport()` | `TeleportService:TeleportAsync()`, appelé par le serveur |
+| service `Chat` (ancien chat) | `TextChatService` |
 
 <Erreur titre="Corriger ce qui n’est pas faux">
-Ne transforme pas tout en « obsolète ». Le global `workspace` n’est **pas** déprécié (seul `game.workspace` l’est). `Instance.new("Part", parent)` n’est pas déprécié, seulement **déconseillé** : la documentation recommande de régler `Parent` en dernier. `TeleportService:Teleport()` n’a pas le tag Deprecated, même si la doc renvoie vers `TeleportAsync()`. Et `PromptProductPurchase`, `ProcessReceipt` ou `RunService.Heartbeat` sont parfaitement actuels.
+Ne transforme pas tout en « obsolète ». Le global `workspace` n’est **pas** déprécié (seul `game.workspace` l’est). `Instance.new("Part", parent)` n’est pas déprécié, seulement **déconseillé** : la documentation recommande de régler `Parent` en dernier. Et `PromptProductPurchase`, `ProcessReceipt` ou `RunService.Heartbeat` sont parfaitement actuels.
 </Erreur>
 
 Voici à quoi doit ressembler du code moderne :
@@ -289,7 +290,7 @@ Tout ce que tu écris dans un prompt part chez le fournisseur de l’IA. Avec le
 
 ### Où ranger une clé, alors ?
 
-**Dans le jeu**, pour appeler un service web externe depuis un Script serveur, Roblox fournit un **magasin de secrets** par expérience : Creator Hub, ton jeu, **Secrets › Create Secret**. Il faut aussi activer **Allow HTTP Requests** (File › Experience Settings › Security). Le code ne contient alors que le **nom** du secret :
+**Dans le jeu**, pour appeler un service web externe depuis un Script serveur, Roblox fournit un **magasin de secrets** par expérience : Creator Hub, ton jeu, **Secrets › Create Secret** (tu donnes un nom, la valeur et le domaine du service autorisé à la recevoir). Il faut aussi activer **Allow HTTP Requests** (File › Experience Settings › Security). Le code ne contient alors que le **nom** du secret :
 
 ```luau
 -- Script serveur (ServerScriptService) : utiliser une clé SANS l'écrire dans le code
@@ -328,7 +329,7 @@ D’après la documentation, ces secrets ne sont disponibles que sur les serveur
 }
 ```
 
-La documentation précise ses limites : ces règles bloquent les outils de fichiers de Claude et les commandes qu’il reconnaît (`cat`, `head`…), mais pas un programme qui lirait le fichier lui-même. Un fichier `.claudeignore` n’a **aucun** effet. La meilleure protection reste de ne pas laisser de secret là où il n’a rien à faire.
+La documentation précise ses limites : ces règles bloquent les outils de fichiers de Claude et les commandes qu’il reconnaît (`cat`, `head`…), mais pas une commande qui lit des fichiers sans les nommer (comme `grep -r`) ni un programme qui lirait le fichier lui-même. Un fichier `.claudeignore` n’a **aucun** effet. La meilleure protection reste de ne pas laisser de secret là où il n’a rien à faire.
 
 <Attention titre="Si un secret a fuité">
 Agis tout de suite. Une clé Open Cloud : dans le Creator Hub, désactive-la (interrupteur **Enable Key**) ou supprime-la, puis crée une nouvelle clé. Un mot de passe Roblox ou un cookie : change ton mot de passe, puis, dans les paramètres du compte, onglet **Security**, section **Where you’re logged in**, déconnecte toutes les autres sessions. Un webhook Discord : supprime-le et crée-en un autre. Retirer le secret du dernier commit ne suffit pas : il reste dans l’historique Git.
@@ -345,9 +346,9 @@ La section « AI Features » des conditions d’utilisation (mise à jour le 7 o
 - **tu es responsable** de ton usage des fonctions d’IA, de tes prompts et de l’usage que tu fais des résultats (« You, not Roblox, are responsible… ») ;
 - les résultats peuvent contenir des erreurs : tu dois les **évaluer et les vérifier** ;
 - **les droits** : entre toi et Roblox, tu conserves les droits que tu as sur tes prompts et sur les résultats, mais tu accordes à Roblox une **licence** pour les utiliser, y compris pour entraîner des modèles (sans changer tes préférences de partage de données) ;
-- **interdits**, entre autres : mettre des informations sensibles, confidentielles ou personnelles dans un prompt ; faire croire qu’un résultat a été créé par un humain ; retirer les marqueurs de provenance d’un résultat ; contourner les protections.
+- **interdits**, entre autres : mettre des informations sensibles, confidentielles ou personnelles dans un prompt ; faire croire qu’un résultat a été créé par un humain ; retirer les marqueurs de provenance d’un résultat ; neutraliser les filtres de sécurité ou de confidentialité.
 
-Les **Creator Terms** ajoutent, pour l’IA dans un jeu (un PNJ qui discute, par exemple) : informer clairement les joueurs que l’IA **n’est pas humaine**, que ses réponses sont générées et peuvent être fausses, et qu’ils parlent à un chatbot **dès le début** de l’échange. Roblox peut aussi restreindre certains outils d’IA selon l’âge des joueurs.
+Les **Creator Terms** ajoutent, pour l’IA dans un jeu (un PNJ qui discute, par exemple) : informer clairement les joueurs que l’IA **n’est pas humaine**, que ses réponses sont générées et peuvent être fausses, et qu’ils parlent à un chatbot **dès le début** de l’échange (« before or at the commencement »). Roblox peut aussi restreindre certains outils d’IA selon l’âge des joueurs.
 
 ### La page « Games with Generative AI »
 
@@ -361,14 +362,22 @@ La documentation créateur précise les règles pour l’IA **dans** un jeu :
 Les Community Standards elles-mêmes ne contiennent pas de section propre à l’IA : leurs règles générales s’appliquent, dont le **respect de la propriété intellectuelle** des autres. Pour les assets (modèles, textures, images) générés par IA, voir la [leçon 9](/modules/02/l-ia-au-dela-du-code/).
 
 <Info titre="Nouvelles conditions au 1er novembre 2026">
-Roblox a annoncé une nouvelle version de ses conditions d’utilisation, applicable au **1er novembre 2026**. Le résumé officiel parle de réorganisation du texte, du rôle de Roblox comme vendeur des achats, des paiements aux créateurs et, pour l’Europe, du droit de rétractation ; il ne mentionne pas l’IA. Relis quand même la section « AI Features » après cette date : les règles résumées ici peuvent changer.
+
+Roblox a publié une nouvelle version de ses conditions d’utilisation, applicable au **1er novembre 2026**. Son résumé officiel ne parle pas de l’IA (réorganisation du texte, rôle de Roblox comme vendeur des achats, paiements aux créateurs, droit de rétractation en Europe), mais le nouveau texte modifie bien la partie IA :
+
+- tu conserves tes droits sur tes **prompts**, et Roblox ne revendique aucun droit de propriété sur ce que tu crées dans les **résultats** ; la licence accordée à Roblox (y compris pour entraîner des modèles d’IA) reste ;
+- une IA qui parle aux joueurs doit être **immédiatement reconnaissable** comme une IA (« immediately apparent ») ;
+- nouvel interdit : manipuler les autres ou exploiter leurs vulnérabilités (âge, handicap, situation sociale ou économique).
+
+Relis la section « AI Features » après cette date : c’est le texte officiel qui fait foi.
+
 </Info>
 
 ## Claude Code et l’âge minimal
 
 Claude Code est réservé aux personnes de 18 ans et plus (conditions d’utilisation d’Anthropic, octobre 2026). Si tu as moins de 18 ans, ne crée pas de compte et n’utilise pas seul celui d’un parent. Tu peux : travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ; utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox ; ou suivre la formation en lisant et en tapant toi-même — les prompts et la méthode de relecture restent utiles.
 
-Les conditions grand public d’Anthropic (section 2) indiquent en effet : « You must be at least 18 years old to use the Services », et l’aide officielle de Claude précise que les comptes qui montrent des signes d’activité de mineurs peuvent être désactivés.
+Les conditions grand public d’Anthropic (section 2) indiquent en effet : « You must be at least 18 years old to use the Services », et l’aide officielle de Claude précise que les comptes qui montrent des signes d’activité de mineurs sont désactivés.
 
 <Resume>
 - Les IA inventent des API au nom crédible : vérifie chaque nom inconnu dans la **référence officielle**, active le mode **strict** de luau-lsp (`--!strict` ou `.luaurc`) et demande la source.
@@ -398,6 +407,9 @@ Les conditions grand public d’Anthropic (section 2) indiquent en effet : « Yo
 - [Games with Generative AI — documentation Roblox](https://create.roblox.com/docs/generative-AI)
 - [Community Standards — Roblox](https://about.roblox.com/community-standards)
 - [Updates to the Roblox Terms of Use (November 2026) — annonce officielle sur le DevForum](https://devforum.roblox.com/t/updates-to-the-roblox-terms-of-use-november-2026/4907620)
+- [Roblox is Updating our Terms of Use — texte applicable au 1er novembre 2026](https://en.help.roblox.com/hc/en-us/articles/14663412502676-Roblox-is-Updating-our-Terms-of-Use)
+- [TeleportService — référence de l’API (Teleport déprécié, TeleportAsync)](https://create.roblox.com/docs/reference/engine/classes/TeleportService)
+- [Chat — référence de l’API (classe dépréciée, remplacée par TextChatService)](https://create.roblox.com/docs/reference/engine/classes/Chat)
 - [Consumer Terms of Service — Anthropic (section 2, âge minimal)](https://www.anthropic.com/legal/consumer-terms)
 - [Age assurance on Claude — aide officielle de Claude](https://support.claude.com/en/articles/15171100)
 </Sources>

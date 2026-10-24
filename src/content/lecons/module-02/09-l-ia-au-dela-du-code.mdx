@@ -27,7 +27,7 @@ quiz:
       - texte: C’est un visuel trompeur ; une miniature doit représenter ce que le joueur trouvera vraiment dans le jeu
         correct: true
       - texte: C’est interdit seulement si l’image est floue
-    explication: "Les Community Standards interdisent les métadonnées trompeuses (images comprises) utilisées pour gagner en visibilité : une miniature doit montrer ce que le joueur trouvera dans le jeu. Peu importe l’outil : c’est le contenu qui compte. Et un joueur déçu repart vite, ce qui nuit aussi à ta visibilité."
+    explication: "Les Community Standards interdisent les contenus et métadonnées trompeurs utilisés pour gagner en visibilité, et une miniature fait partie de la page du jeu : elle doit montrer ce que le joueur trouvera dans le jeu. Peu importe l’outil : c’est le contenu qui compte. Et un joueur déçu repart vite, ce qui nuit aussi à ta visibilité."
   - type: vrai-faux
     question: "Quand tu actives la traduction automatique, Roblox remplace aussi les traductions que tu as écrites toi-même."
     reponse: false
@@ -54,7 +54,7 @@ quiz:
   - type: vrai-faux
     question: "D’après les conditions d’utilisation de Roblox, tu conserves les droits que tu as sur tes prompts et sur les résultats des outils d’IA de Roblox, mais tu accordes à Roblox une licence pour les utiliser, y compris pour entraîner des modèles."
     reponse: true
-    explication: "C’est ce que dit la section « AI Features » des Terms of Use. La licence ne modifie pas tes préférences de partage de données (Creator Hub › Settings › Data Sharing). Et tu restes responsable de ce que tu fais des résultats, par exemple s’ils ressemblent trop à l’œuvre de quelqu’un d’autre."
+    explication: "C’est ce que dit la section « AI Features » des Terms of Use en octobre 2026, qui précise que la licence ne modifie pas tes préférences de partage de données (Creator Hub › Settings › Data Sharing). La version applicable au 1er novembre 2026 garde l’idée : tu conserves tes droits sur tes prompts, Roblox ne revendique pas la propriété de ce que tu crées dans les résultats, et la licence (entraînement de modèles compris) demeure. Et tu restes responsable de ce que tu fais des résultats, par exemple s’ils ressemblent trop à l’œuvre de quelqu’un d’autre."
 ---
 
 Jusqu’ici, le module parlait de code. Mais un jeu, c’est aussi des modèles 3D, des textures, une icône, des miniatures, une description, parfois des voix et des traductions. Roblox propose ses propres outils d’IA pour une partie de ce travail, et une IA comme Claude peut t’aider pour les textes. Cette leçon fait le point sur **ce qui existe vraiment** au moment de la rédaction (octobre 2026), sur les limites de chaque outil, et sur les règles qui s’appliquent à tout contenu généré.
@@ -63,7 +63,7 @@ La règle d’or reste la même que pour le code : **plus ta demande est précis
 
 ## Vue d’ensemble des outils officiels
 
-La page « AI on Roblox » de la documentation regroupe les outils d’IA de Roblox. Pour le contenu (hors code), voici ceux qui nous intéressent :
+La page « AI on Roblox » de la documentation regroupe les outils d’IA de Roblox ; la traduction automatique, elle, est documentée à part, dans la section Localization. Pour le contenu (hors code), voici ceux qui nous intéressent :
 
 | Outil | Ce qu’il fait | Où le trouver |
 |---|---|---|
@@ -85,7 +85,7 @@ Dans l’Assistant de Studio (présenté en [leçon 1](/modules/02/panorama-des-
 
 - si tu sélectionnes une Part avant d’écrire ta demande, l’Assistant s’en sert comme **boîte englobante** : le mesh tiendra dans cet espace ;
 - tu peux fixer un **nombre maximal de triangles** (10 000 par défaut) ; moins de triangles donne un style plus « low poly », et un modèle plus léger pour les mobiles ;
-- l’Assistant propose un découpage en parties nommées (jusqu’à huit), puis quatre aperçus avant le modèle final ; tu cliques sur **Add to place** pour l’insérer.
+- avec une description en texte, l’Assistant propose un découpage en parties nommées (jusqu’à huit), puis quatre aperçus avant le modèle final ; avec une image, il saute l’étape des aperçus. Tu cliques sur **Add to place** pour l’insérer.
 
 <Prompt titre="Un mesh pour l’Obby des Nuages (Assistant)">
 
@@ -132,12 +132,12 @@ Pour l’Obby des Nuages, un seul MaterialVariant « pierre de nuage » appliqu�
 
 ## Icône et miniatures
 
-Au moment de la rédaction, nous n’avons trouvé **aucun outil officiel** de Roblox qui génère l’**icône** ou les **miniatures** de la page du jeu. Il existe en revanche un outil officiel pour la **publicité** : dans l’**Ads Manager**, l’option **AI generate** crée trois miniatures à partir d’une description, pour une campagne sponsorisée. L’Ads Manager est réservé aux 13 ans et plus avec une adresse e-mail vérifiée, chaque visuel passe en modération (en général sous 48 heures), et la publicité coûte de l’argent : on en parle au [module 8](/modules/08/lancer-et-publicite/).
+Au moment de la rédaction, nous n’avons trouvé **aucun outil officiel** de Roblox qui génère l’**icône** ou les **miniatures** de la page du jeu. Il existe en revanche un outil officiel pour la **publicité** : dans l’**Ads Manager**, l’option **AI generate** crée trois miniatures à partir d’une description, pour une campagne sponsorisée. L’Ads Manager est réservé aux 13 ans et plus avec une adresse e-mail vérifiée, chaque visuel et chaque publicité passent en modération, et la publicité coûte de l’argent : on en parle au [module 8](/modules/08/lancer-et-publicite/).
 
 Tu peux aussi utiliser un générateur d’images externe. Dans tous les cas, les règles sont les mêmes que pour une image faite à la main ([module 8, leçon 2](/modules/08/icone-et-miniatures/)) :
 
 - l’image doit montrer **le vrai jeu** : pas de décor, de mécanique ou de graphismes qui n’existent pas ;
-- les Community Standards interdisent les métadonnées trompeuses (nom, description, **images**) ;
+- les Community Standards interdisent les contenus et métadonnées **trompeurs** utilisés pour gagner en visibilité, et l’icône comme les miniatures font partie de la page du jeu ;
 - toute image envoyée sur Roblox est modérée, et tu es responsable du contenu, même généré.
 
 La méthode la plus sûre : pars de **vraies captures** de ton jeu (la caméra libre de Studio aide beaucoup), et sers-toi de l’IA pour des idées de composition ou de cadrage, pas pour inventer ce que le jeu ne contient pas.
@@ -168,9 +168,9 @@ Une traduction automatique peut être maladroite, surtout pour un texte court d�
 <Prompt titre="Proposer des traductions">
 
 ```text
-Contexte : Obby des Nuages, jeu Roblox pour joueurs de 8 à 16 ans. Fichier joint : @localisation/table.csv (export de la table de localisation, colonne "fr" = langue source).
-Objectif : proposer une traduction anglaise et espagnole de chaque texte, dans les colonnes "en" et "es".
-Contraintes : ne modifie ni les clés ni la colonne source ; ne traduis pas les noms propres (Obby des Nuages, noms des traînées) ; chaque traduction reste au plus 20 % plus longue que l'original (les boutons sont petits) ; ton simple et amical, sans argot.
+Contexte : Obby des Nuages, jeu Roblox pour joueurs de 8 à 16 ans. Fichier joint : @localisation/table.csv (export de la table de localisation : la colonne "Source" contient les textes en français, chaque autre colonne porte le code d'une langue).
+Objectif : proposer une traduction anglaise et espagnole de chaque texte, dans les colonnes "en" et "es" (ajoute-les si elles n'existent pas).
+Contraintes : ne modifie ni les clés ni la colonne Source ; ne traduis pas les noms propres (Obby des Nuages, noms des traînées) ; chaque traduction reste au plus 20 % plus longue que l'original (les boutons sont petits) ; ton simple et amical, sans argot.
 Vérification : liste à part les textes ambigus ou les jeux de mots que tu n'as pas pu traduire fidèlement, pour que je les fasse relire par un locuteur natif.
 ```
 
@@ -215,7 +215,7 @@ Tout contenu, généré ou non, doit respecter les **Community Standards**. Avec
 
 ### Droits
 
-La section « AI Features » des conditions d’utilisation de Roblox dit que tu conserves les droits que **tu as** sur tes prompts et sur les résultats, et que tu accordes à Roblox une licence pour les utiliser, y compris pour entraîner des modèles. Ça ne te donne pas de droits sur l’œuvre de quelqu’un d’autre : un modèle qui copie un personnage connu reste un problème de propriété intellectuelle, et les Community Standards prévoient le retrait des contenus contrefaisants signalés à Roblox.
+La section « AI Features » des conditions d’utilisation de Roblox (version d’octobre 2026) dit que tu conserves les droits que **tu as** sur tes prompts et sur les résultats, et que tu accordes à Roblox une licence pour les utiliser, y compris pour entraîner des modèles. La version applicable au 1er novembre 2026 parle de tes droits sur les prompts et précise que Roblox ne revendique pas la propriété de ce que tu crées dans les résultats ; la licence demeure. Ça ne te donne pas de droits sur l’œuvre de quelqu’un d’autre : un modèle qui copie un personnage connu reste un problème de propriété intellectuelle, et les Community Standards prévoient le retrait des contenus contrefaisants signalés à Roblox.
 
 Côté données d’entraînement, la page « AI data sharing » indique que le partage est activé **par défaut** pour ce que tu publies depuis le 10 juillet 2024 ; tu le règles dans **Creator Hub › Settings › Data Sharing**. Les assets **gratuits** du Creator Store sont toujours partagés, sans possibilité de refus.
 
@@ -259,6 +259,8 @@ Ouvre la place de l’Obby des Nuages. Avec le **Material Generator**, crée un 
 - [Games with Generative AI — documentation Roblox](https://create.roblox.com/docs/generative-AI)
 - [AI data sharing — documentation Roblox](https://create.roblox.com/docs/ai-data-sharing)
 - [Roblox Terms of Use — section AI Features](https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use)
+- [Roblox is Updating our Terms of Use — texte applicable au 1er novembre 2026](https://en.help.roblox.com/hc/en-us/articles/14663412502676-Roblox-is-Updating-our-Terms-of-Use)
+- [Manual translations — documentation Roblox (colonne Source de la table)](https://create.roblox.com/docs/production/localization/manual-translations)
 - [Community Standards — Roblox](https://about.roblox.com/community-standards)
 - [RDC26: What We Announced — annonce officielle sur le DevForum](https://devforum.roblox.com/t/rdc26-what-we-announced/4865880)
 </Sources>

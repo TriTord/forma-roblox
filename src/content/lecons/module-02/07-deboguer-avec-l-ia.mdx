@@ -25,8 +25,8 @@ quiz:
       - texte: "Corrige toutes les erreurs de mon jeu et réécris les scripts proprement pour qu’il n’y ait plus aucun bug."
       - texte: |
           Erreur complète copiée de l’Output :
-          ServerScriptService.BonusVitesse:6: attempt to index nil with 'Humanoid'
-          Stack Begin / Script 'ServerScriptService.BonusVitesse', Line 6 / Stack End
+          ServerScriptService.BonusVitesse:7: attempt to index nil with 'Humanoid'
+          Stack Begin / Script 'ServerScriptService.BonusVitesse', Line 7 / Stack End
           Fichier : @src/ServerScriptService/BonusVitesse.server.luau
           Attendu : chaque joueur court à 20 dès son apparition. Obtenu : vitesse normale.
           Pour reproduire : Play, l’erreur apparaît au chargement. Déjà essayé : rien.
@@ -98,9 +98,9 @@ Tu as découvert la fenêtre **Output** au module 1 ([Tester son jeu comme un pr
 Voici une vraie erreur, telle que Studio l’affiche :
 
 ```text
-ServerScriptService.BonusVitesse:6: attempt to index nil with 'Humanoid'
+ServerScriptService.BonusVitesse:7: attempt to index nil with 'Humanoid'
 Stack Begin
-Script 'ServerScriptService.BonusVitesse', Line 6
+Script 'ServerScriptService.BonusVitesse', Line 7
 Stack End
 ```
 
@@ -109,7 +109,7 @@ La première ligne contient trois informations :
 | Morceau | Signification |
 |---|---|
 | `ServerScriptService.BonusVitesse` | le **script** qui a planté, avec son chemin dans l’Explorer |
-| `:6:` | le **numéro de ligne** dans ce script |
+| `:7:` | le **numéro de ligne** dans ce script |
 | `attempt to index nil with 'Humanoid'` | le **message** : on a essayé de lire `.Humanoid` sur quelque chose qui vaut `nil` (rien) |
 
 Quelques messages reviennent souvent. *attempt to index nil with 'X'* : l’objet devant `.X` n’existe pas. *is not a valid member of* : cet enfant ou cette propriété n’existe pas. *Infinite yield possible on* : un `WaitForChild` attend un objet qui n’arrive pas (c’est un avertissement, pas une erreur, mais le script reste bloqué).
@@ -134,7 +134,7 @@ Avec Rojo ([leçon 2](/modules/02/installer-un-workflow-pro/)), l’Output parle
 | `ReplicatedStorage.Modules.Catalogue` | `src/ReplicatedStorage/Modules/Catalogue.luau` |
 | `Players.TonPseudo.PlayerScripts.SurbrillanceCheckpoint` | `src/StarterPlayer/StarterPlayerScripts/SurbrillanceCheckpoint.client.luau` |
 
-Attention à la dernière ligne : pendant un test, Roblox **copie** les LocalScripts de StarterPlayerScripts dans le joueur. L’Output affiche donc `Players.<ton pseudo>.PlayerScripts…`, pas `StarterPlayer…`. Dans VS Code, ouvre le fichier puis va à la ligne indiquée avec `Ctrl+G`.
+Attention à la dernière ligne : pendant un test, Roblox **copie** les LocalScripts de StarterPlayerScripts dans le joueur. L’Output affiche donc `Players.<ton pseudo>.PlayerScripts…`, pas `StarterPlayer…`. Dans VS Code, ouvre le fichier puis va à la ligne indiquée avec `Ctrl+G` (le même raccourci sur Windows et sur Mac).
 
 <Astuce titre="Filtre l’Output">
 La fenêtre Output a un champ de recherche qui filtre les messages par texte, et des filtres par type (**Error**, **Warning**) et par contexte (**Client**, **Server**). Quand tu ajoutes des `print` de diagnostic, commence-les tous par la même étiquette, par exemple `[DEBUG]` : tu n’auras qu’à taper `DEBUG` dans le champ pour ne voir qu’eux.
@@ -237,12 +237,12 @@ C’est là que Git ([leçon 2](/modules/02/installer-un-workflow-pro/)) te sauv
 git status                 # quels fichiers ont changé depuis le dernier commit ?
 git diff                   # le détail des lignes ajoutées (+) et retirées (-)
 git restore src/ServerScriptService/BonusVitesse.server.luau   # remet CE fichier comme au dernier commit
-git stash                  # met TOUS les changements non commités de côté…
+git stash -u               # met TOUS les changements non commités de côté (-u : nouveaux fichiers compris)…
 git stash pop              # … et les ressort plus tard si tu en as besoin
 git log --oneline          # la liste de tes commits
 ```
 
-`git restore` efface définitivement les changements non commités du fichier : regarde d’abord `git diff`. `git stash` est plus prudent, puisqu’il garde les changements de côté. Claude Code a aussi son propre retour en arrière : `Esc` arrête une réponse en cours, et `Esc` deux fois (champ vide) ou `/rewind` ouvre un menu pour restaurer le code et/ou la conversation. Mais ces points de restauration ne suivent pas les fichiers modifiés par des commandes du terminal : ils ne remplacent pas Git. D’où la règle de la [leçon 5](/modules/02/decouper-un-gros-projet/) : un commit après chaque étape qui marche.
+`git restore` efface définitivement les changements non commités du fichier : regarde d’abord `git diff`. `git stash` est plus prudent, puisqu’il garde les changements de côté. Attention aux **nouveaux fichiers** créés par l’IA (marqués `??` dans `git status`) : `git diff` ne les montre pas, `git restore` ne les touche pas, et `git stash` sans `-u` les laisse en place. Claude Code a aussi son propre retour en arrière : `Esc` arrête une réponse en cours, et `Esc` deux fois (champ vide) ou `/rewind` ouvre un menu pour restaurer le code et/ou la conversation. Mais ces points de restauration ne suivent pas les fichiers modifiés par des commandes du terminal : ils ne remplacent pas Git. D’où la règle de la [leçon 5](/modules/02/decouper-un-gros-projet/) : un commit après chaque étape qui marche.
 
 ### 6. `/clear`, puis repartir d’un résumé court
 
@@ -290,7 +290,7 @@ Players.PlayerAdded:Connect(function(player)
 end)
 ```
 
-**L’erreur** (en Play) : `ServerScriptService.BonusVitesse:6: attempt to index nil with 'Humanoid'`, avec une pile d’une seule ligne (`Line 6`).
+**L’erreur** (en Play) : `ServerScriptService.BonusVitesse:7: attempt to index nil with 'Humanoid'`, avec une pile d’une seule ligne (`Line 7`). La ligne 1 du fichier est le commentaire d’en-tête : la ligne 7 est bien celle de `player.Character.Humanoid`.
 
 **Le diagnostic.** On lit `.Humanoid` sur `player.Character`, et c’est `player.Character` qui vaut `nil`. Le `print` de diagnostic de la méthode le confirme. La cause : `PlayerAdded` se déclenche quand le joueur **rejoint**, avant que son personnage n’apparaisse. De plus, le personnage est recréé à chaque réapparition : même sans l’erreur, la vitesse serait perdue à la première chute.
 
@@ -347,11 +347,11 @@ print("Checkpoints trouvés :", #dossierCheckpoints:GetChildren())
 ```text
 Infinite yield possible on 'Workspace:WaitForChild("Checkpoint")'
 Stack Begin
-Script 'Players.TonPseudo.PlayerScripts.SurbrillanceCheckpoint', Line 4
+Script 'Players.TonPseudo.PlayerScripts.SurbrillanceCheckpoint', Line 5
 Stack End
 ```
 
-**Le diagnostic.** D’après la référence de l’API, `WaitForChild` attend **indéfiniment** l’enfant demandé ; au-delà de 5 secondes sans `timeOut`, il affiche cet avertissement. Le script est bloqué ligne 4 : rien après ne s’exécute. Ici, la cause est une faute de nom : le dossier s’appelle `Checkpoints`, avec un « s ». Avec le MCP, Claude Code peut le vérifier lui-même (`search_game_tree`). Autre cause possible côté client : avec le streaming d’instances, une Part lointaine peut ne pas encore exister chez le joueur ([module 10](/modules/10/streaming-d-instances/)).
+**Le diagnostic.** D’après la référence de l’API, `WaitForChild` attend **indéfiniment** l’enfant demandé ; au-delà de 5 secondes sans `timeOut`, il affiche cet avertissement. Le script est bloqué ligne 5 : rien après ne s’exécute. Ici, la cause est une faute de nom : le dossier s’appelle `Checkpoints`, avec un « s ». Avec le MCP, Claude Code peut le vérifier lui-même (`search_game_tree`). Autre cause possible côté client : avec le streaming d’instances, une Part lointaine peut ne pas encore exister chez le joueur ([module 10](/modules/10/streaming-d-instances/)).
 
 **Le code corrigé :**
 
@@ -456,6 +456,8 @@ Dans ton projet Rojo, crée `src/ServerScriptService/BonusVitesse.server.luau` a
 - [Connect to the Roblox Studio MCP server — documentation Roblox (liste des outils)](https://create.roblox.com/docs/studio/mcp)
 - [Best practices for Claude Code — documentation officielle (corriger plus de deux fois, /clear, rewind)](https://code.claude.com/docs/en/best-practices)
 - [Checkpointing — documentation Claude Code (limites du retour en arrière)](https://code.claude.com/docs/en/checkpointing)
+- [Interactive mode — documentation Claude Code (préfixe `!`, mention `@`, Shift+Tab)](https://code.claude.com/docs/en/interactive-mode)
+- [Permission modes — documentation Claude Code (mode plan, `/plan`)](https://code.claude.com/docs/en/permission-modes)
 - [git restore — documentation officielle de Git](https://git-scm.com/docs/git-restore)
 - [git stash — documentation officielle de Git](https://git-scm.com/docs/git-stash)
 </Sources>

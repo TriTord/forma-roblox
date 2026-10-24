@@ -50,18 +50,19 @@ quiz:
       	if os.clock() - derniere < 0.6 then return end
       	player:SetAttribute("DerniereAttaque", os.clock())
       	local humanoid = cible:FindFirstChildOfClass("Humanoid")
+      	local monHumanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
       	local epee = player.Character and player.Character:FindFirstChild("Epee")
-      	if humanoid and humanoid.Health > 0 and epee and cible ~= player.Character then
+      	if humanoid and humanoid.Health > 0 and monHumanoid and monHumanoid.Health > 0 and epee and cible ~= player.Character then
       		humanoid:TakeDamage(20)
       	end
       end)
     options:
       - texte: "Ligne 5 : il faut tester `typeof(cible) ~= \"Model\"`"
       - texte: "Ligne 8 : un tricheur peut remettre l’attribut `DerniereAttaque` à 0 depuis son client pour frapper sans limite"
-      - texte: "Ligne 11 : rien ne vérifie que la cible est à portée de l’épée, donc un tricheur peut frapper n’importe quel joueur de la carte"
+      - texte: "Ligne 12 : rien ne vérifie que la cible est à portée de l’épée, donc un tricheur peut frapper n’importe quel joueur de la carte"
         correct: true
-      - texte: "Ligne 12 : les dégâts devraient être envoyés par le client, pour suivre la puissance de l’épée"
-    explication: "Le code vérifie le type, la cadence, la cible et l’épée équipée, mais jamais la **distance** entre l’attaquant et la cible : un tricheur peut envoyer n’importe quel personnage de la carte. Il faut comparer côté serveur les positions des deux `HumanoidRootPart` à la portée de l’épée (plus une petite marge pour la latence). `typeof` renvoie `\"Instance\"` pour un Model ; un attribut modifié par le client n’est pas répliqué au serveur, donc le cooldown tient ; et les dégâts doivent rester une constante du serveur."
+      - texte: "Ligne 13 : les dégâts devraient être envoyés par le client, pour suivre la puissance de l’épée"
+    explication: "Le code vérifie le type, la cadence, la cible, l’attaquant vivant et l’épée équipée, mais jamais la **distance** entre l’attaquant et la cible : un tricheur peut envoyer n’importe quel personnage de la carte. Il faut comparer côté serveur les positions des deux `HumanoidRootPart` à la portée de l’épée (plus une petite marge pour la latence). `typeof` renvoie `\"Instance\"` pour un Model ; un attribut modifié par le client n’est pas répliqué au serveur, donc le cooldown tient ; et les dégâts doivent rester une constante du serveur."
   - type: qcm
     question: Quelles habitudes cette page recommande-t-elle pour utiliser la bibliothèque ? (plusieurs réponses possibles)
     options:
@@ -412,7 +413,7 @@ Ce système n’a pas de verrouillage de session : pour un jeu avec des échange
 Contexte : jeu [NOM_DU_JEU]. Je veux un tableau des [NOMBRE_DE_LIGNES, ex. 10] meilleurs joueurs de tous les serveurs, classés par [STATISTIQUE, ex. Pieces], affiché sur un panneau dans le monde.
 Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau (sauvegarde fiable dans "DonneesJoueurs_v1") ; une Part ancrée Workspace.TableauClassement construite dans Studio (non gérée par Rojo).
 Objectif : le panneau affiche le rang, le nom et le score des meilleurs joueurs, mis à jour toutes les [INTERVALLE_RAFRAICHISSEMENT, ex. 120] secondes.
-Fichiers concernés : crée src/ServerScriptService/Classement.server.luau ; dans DonneesJoueurs.luau, ajoute seulement l'appel qui enregistre le score après une sauvegarde réussie. Ne modifie rien d'autre.
+Fichiers concernés : crée src/ServerScriptService/Classement.server.luau (lecture et affichage) ; dans DonneesJoueurs.luau, ajoute seulement, juste après une sauvegarde réussie, l'écriture du score dans l'OrderedDataStore. Ne modifie rien d'autre.
 Contraintes techniques :
 - DataStoreService:GetOrderedDataStore("[NOM_DU_CLASSEMENT, ex. ClassementPieces_v1]"), clé "Joueur_" .. player.UserId ; la valeur est un entier positif (math.floor).
 - Score enregistré avec SetAsync dans un pcall, seulement quand les données du joueur sont sauvegardées (départ, sauvegarde automatique), jamais à chaque changement.
@@ -826,7 +827,8 @@ Vérification : donne-moi le rapport du sous-agent tel quel, puis ton avis sur c
 
 - le fichier `.claude/agents/relecteur-roblox.md` commence par un frontmatter avec `name` et `description` (les deux champs obligatoires) et `tools: Read, Grep, Glob` ;
 - le relecteur trouve bien les deux défauts que tu as glissés exprès (sinon, renforce sa checklist) ;
-- tu ne corriges que les points que tu as compris : un point « pas d’accord » se discute.
+- tu ne corriges que les points que tu as compris : un point « pas d’accord » se discute ;
+- si le dossier `.claude/agents/` n’existait pas au démarrage de la session, quitte et relance Claude Code : d’après la documentation, il ne détecte sans redémarrage que les sous-agents ajoutés dans un dossier qui existait déjà.
 
 Pour être sûr que le sous-agent est utilisé, tu peux aussi le mentionner avec `@` : tape `@`, puis choisis `relecteur-roblox` dans la liste. Claude Code fournit aussi `/code-review`, une relecture intégrée du code modifié, qui complète bien ton relecteur spécialisé Roblox.
 
