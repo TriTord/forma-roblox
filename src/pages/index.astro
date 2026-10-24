@@ -10,15 +10,15 @@ const premiereLecon = lecons[0];
 const urlDepart = premiereLecon?.url ?? modules[0].url;
 const dureeTotale = modules.reduce((t, m) => t + m.duree, 0);
 
-const extrait = `-- Checkpoint de l'Obby des Nuages (exemple simplifié : un Script dans chaque Part du dossier Checkpoints)
+const extrait = `-- Obby des Nuages : un Script dans chaque checkpoint
 local Players = game:GetService("Players")
 local checkpoint = script.Parent
-local numero = tonumber(checkpoint.Name) -- la Part s'appelle "1", "2", "3"…
+local numero = tonumber(checkpoint.Name) -- "1", "2"…
 
 local function onTouched(hit: BasePart)
 	local player = Players:GetPlayerFromCharacter(hit.Parent)
 	if not player then return end
-	-- C'est le serveur qui décide : on n'accepte que l'étape suivante
+	-- Le serveur décide : seulement l'étape suivante
 	local etape = player:GetAttribute("Etape") or 0
 	if numero == etape + 1 then
 		player:SetAttribute("Etape", numero)
@@ -129,7 +129,7 @@ const faq = [
             ↻ Reprendre là où tu t’es arrêté : <span data-reprendre-titre></span>
           </a>
         </div>
-        <div class="relative">
+        <div class="hero-code relative">
           <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-indigo-500/10 dark:border-slate-800 dark:bg-slate-900">
             <div class="flex items-center gap-1.5 px-2 pb-3" aria-hidden="true">
               <span class="size-3 rounded-full bg-rose-400"></span><span class="size-3 rounded-full bg-amber-400"></span><span class="size-3 rounded-full bg-emerald-400"></span>
@@ -148,10 +148,10 @@ const faq = [
     <!-- Chiffres clés -->
     <section aria-label="La formation en bref" class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
       <dl class="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 text-center sm:px-6 md:grid-cols-4 lg:px-8">
-        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Modules</dt><dd class="text-3xl font-extrabold text-slate-900 dark:text-white">{modules.length}</dd></div>
-        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Quiz</dt><dd class="text-3xl font-extrabold text-slate-900 dark:text-white">1 par leçon</dd></div>
-        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Examens et badges</dt><dd class="text-3xl font-extrabold text-slate-900 dark:text-white">1 par module</dd></div>
-        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Projet fil rouge</dt><dd class="text-3xl font-extrabold text-slate-900 dark:text-white">1 vrai jeu</dd></div>
+        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Modules</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">{modules.length}</dd></div>
+        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Quiz</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">1 par leçon</dd></div>
+        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Examens et badges</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">1 par module</dd></div>
+        <div><dt class="text-sm text-slate-600 dark:text-slate-400">Projet fil rouge</dt><dd class="text-xl font-extrabold text-balance text-slate-900 sm:text-3xl dark:text-white">1 vrai jeu</dd></div>
       </dl>
     </section>
 

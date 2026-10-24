@@ -75,7 +75,7 @@ Le code des 58 leçons a en outre été assemblé dans un **projet de référenc
 - des **comportements de l'interface de Studio non testables sans Studio connecté** (touches AZERTY de la caméra, requête de recherche de l'Explorer, valeurs affichées par défaut de certaines propriétés de streaming), formulés prudemment ;
 - des **chiffres datés** (octobre 2026) qui évolueront, tous assortis de leur source et du champ `miseAJour`.
 
-Rapports transverses : [coherence-inter-modules.md](verification/coherence-inter-modules.md), [relecture-finale-00-03.md](verification/relecture-finale-00-03.md), [relecture-finale-04-06.md](verification/relecture-finale-04-06.md), [relecture-finale-07-10.md](verification/relecture-finale-07-10.md).
+Rapports transverses : [coherence-inter-modules.md](verification/coherence-inter-modules.md), [qa-recette-finale.md](verification/qa-recette-finale.md), [relecture-finale-00-03.md](verification/relecture-finale-00-03.md), [relecture-finale-04-06.md](verification/relecture-finale-04-06.md), [relecture-finale-07-10.md](verification/relecture-finale-07-10.md).
 
 # Résumés par module
 

@@ -30,11 +30,11 @@ const basePagefind = lien('/pagefind/');
   data-base={basePagefind}
   data-testid="search-dialog"
 >
-  <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-800">
+  <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-3 dark:border-slate-800">
     <h2 id="recherche-titre" class="text-base font-bold">Rechercher dans la formation</h2>
-    <form method="dialog">
+    <form method="dialog" class="shrink-0">
       <button class="rounded-lg px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
-        Fermer <kbd class="text-xs" aria-hidden="true">Échap</kbd>
+        Fermer <kbd class="hidden text-xs sm:inline" aria-hidden="true">Échap</kbd>
       </button>
     </form>
   </div>

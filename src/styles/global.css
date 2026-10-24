@@ -66,22 +66,38 @@
 .dark .astro-code {
   border-color: var(--color-slate-800);
 }
-/* Numéros de ligne (extraits « trouve-le-bug »). */
-.code-lignes pre code {
+/* Numéros de ligne (extraits « trouve-le-bug »).
+   Les numéros sont positionnés dans une marge du bloc <code> : en ligne, ils décalaient les taquets de
+   tabulation et l'indentation (tabulations, comme dans Studio) disparaissait presque entièrement. */
+.code-lignes pre code,
+.question .code-lignes pre code {
   counter-reset: ligne;
+  display: block;
+  position: relative;
+  width: max-content;
+  min-width: 100%;
+  padding-left: calc(2ch + 1.25rem);
 }
 .code-lignes .line::before {
   counter-increment: ligne;
   content: counter(ligne);
-  display: inline-block;
+  position: absolute;
+  left: 0;
   width: 2ch;
-  margin-right: 1.25rem;
   text-align: right;
   color: var(--color-slate-500);
   user-select: none;
 }
 .dark .code-lignes .line::before {
   color: var(--color-slate-400) !important;
+}
+
+/* Extrait de code décoratif de l'accueil : plus compact sur téléphone pour limiter le défilement horizontal. */
+@media (max-width: 639px) {
+  .hero-code .astro-code {
+    font-size: 0.72rem;
+    padding: 0.75rem 0.85rem;
+  }
 }
 
 /* Prose (contenu des leçons) */
@@ -128,6 +144,11 @@
 }
 .tableau-defilement > table {
   margin: 0;
+}
+/* Dans un tableau (qui défile dans son cadre), un identifiant `code` ne se coupe pas au milieu d'un mot :
+   « anywhere » réduisait la largeur minimale des colonnes et cassait LogOnboardingFunnelStepEven|t. */
+.prose .tableau-defilement :where(td, th) code {
+  overflow-wrap: normal;
 }
 .prose :where(table):not(:where(.tableau-defilement > table, .not-prose *)) {
   /* Filet de sécurité si un tableau échappe au plugin (HTML brut dans le MDX). */
@@ -454,10 +475,13 @@
 .question-enonce {
   float: left;
   width: 100%;
-  padding: 0;
+  /* Espace sous l'énoncé : la marge haute de l'élément suivant est absorbée par le « clear » du flottant,
+     d'où un énoncé collé aux options ; on porte donc l'espacement par le padding de la légende. */
+  padding: 0 0 0.85rem;
 }
 .question-enonce + * {
   clear: both;
+  margin-top: 0;
 }
 .question-numero {
   display: flex;
@@ -570,32 +594,34 @@
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
 }
-.option[data-etat="bonne"] {
+.options .option[data-etat="bonne"] {
   border-color: var(--color-emerald-600);
   background: var(--color-emerald-50);
 }
-.option[data-etat="bonne"] .option-marque {
+.options .option[data-etat="bonne"] .option-marque {
   background: var(--color-emerald-700);
   color: white;
 }
-.option[data-etat="bonne"] .option-marque::before {
+.options .option[data-etat="bonne"] .option-marque::before {
   content: "✓ ";
 }
-.option[data-etat="fausse"] {
+.options .option[data-etat="fausse"] {
   border-color: var(--color-rose-600);
   background: var(--color-rose-50);
 }
-.option[data-etat="fausse"] .option-marque {
+.options .option[data-etat="fausse"] .option-marque {
   background: var(--color-rose-700);
   color: white;
 }
-.option[data-etat="fausse"] .option-marque::before {
+.options .option[data-etat="fausse"] .option-marque::before {
   content: "✗ ";
 }
-.dark .option[data-etat="bonne"] {
+.dark .options .option[data-etat="bonne"] {
+  border-color: var(--color-emerald-500);
   background: color-mix(in oklab, var(--color-emerald-500) 15%, transparent);
 }
-.dark .option[data-etat="fausse"] {
+.dark .options .option[data-etat="fausse"] {
+  border-color: var(--color-rose-500);
   background: color-mix(in oklab, var(--color-rose-500) 15%, transparent);
 }
 .feedback {
@@ -675,6 +701,30 @@
 }
 .score-message {
   margin: 0.35rem 0 1rem;
+}
+/* Petits écrans : les cadres imbriqués (quiz > question > option > code) mangeaient ~90 px de largeur ;
+   on resserre les marges internes pour laisser de la place au texte et aux extraits de code. */
+@media (max-width: 639px) {
+  .quiz {
+    padding: 1.1rem 0.75rem;
+    border-radius: 1rem;
+  }
+  .question {
+    padding: 1rem 0.8rem;
+  }
+  .option {
+    gap: 0.6rem;
+    padding: 0.6rem 0.7rem;
+  }
+  .question .astro-code {
+    padding: 0.75rem 0.85rem;
+  }
+  .question .code-lignes pre code {
+    padding-left: calc(2ch + 0.75rem);
+  }
+  .score {
+    padding: 1rem;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -759,7 +809,9 @@
   color: var(--color-slate-400);
 }
 .badge-statut {
-  margin-top: 0.25rem;
+  /* Poussé en bas de la carte : les statuts restent alignés même si les descriptions ont des longueurs différentes. */
+  margin-top: auto;
+  padding-top: 0.25rem;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -796,6 +848,17 @@
   --pagefind-ui-background: var(--color-slate-900);
   --pagefind-ui-border: var(--color-slate-700);
   --pagefind-ui-tag: var(--color-slate-800);
+}
+/* Surlignage des résultats : jaune vif par défaut chez Pagefind, adouci et adapté au mode sombre. */
+#recherche mark {
+  background: var(--color-amber-200);
+  color: var(--color-slate-900);
+  border-radius: 0.2rem;
+  padding: 0 0.1em;
+}
+.dark #recherche mark {
+  background: color-mix(in oklab, var(--color-amber-400) 35%, var(--color-slate-900));
+  color: var(--color-amber-50);
 }
 #recherche::backdrop {
   background: rgb(2 6 23 / 0.6);

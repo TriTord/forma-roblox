@@ -3,7 +3,7 @@
  * Les échecs listent TOUTES les pages fautives.
  */
 import { expect, test } from '@playwright/test';
-import { aucunProbleme, allegerPage, catalogue, lecons, modulesAvecExamen, urlExamen } from './outils';
+import { aucunProbleme, allegerPage, catalogue, lecons, urlExamen } from './outils';
 
 test('chaque leçon a h1, Astuce, Erreur, résumé, sources externes et quiz', async ({ page }) => {
   test.setTimeout(30_000 + lecons().length * 3_000);

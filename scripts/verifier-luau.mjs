@@ -5,7 +5,7 @@
 // Prérequis : C:/tmp/luau-tools/luau-lsp.exe et globalTypes.d.luau (voir RAPPORT_FINAL.md).
 // Les avertissements « LocalUnused », « UnknownGlobal » sur des extraits partiels sont à juger au cas par cas :
 // seul un humain peut dire si une erreur vient du code ou du fait que l'extrait est volontairement incomplet.
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";

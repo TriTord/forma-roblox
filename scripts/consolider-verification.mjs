@@ -1,6 +1,6 @@
 // Consolide les rapports de vérification (verification/module-XX-passe-N.md) dans VERIFICATION.md.
 // Usage : node scripts/consolider-verification.mjs
-import { readFileSync, readdirSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
