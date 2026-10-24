@@ -1,0 +1,695 @@
+---
+titre: Relire et tester le code de l’IA
+description: "Une checklist de revue pour le code généré par l’IA, un sous-agent relecteur, la commande /code-review, les outils statiques et de vrais tests automatiques en Luau avec Lune."
+duree: 60
+objectifs:
+  - Appliquer une checklist de revue au code produit par l’IA
+  - Utiliser selene et luau-lsp comme premier filet de sécurité
+  - Faire relire le code par un sous-agent ou par la commande /code-review
+  - Écrire et lancer des tests automatisés de la logique pure avec Lune
+miseAJour: 2026-10-24
+quiz:
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur traite les achats de la boutique."
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet")
+
+      acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown, prix: unknown)
+      	local leaderstats = player:FindFirstChild("leaderstats")
+      	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+      	if typeof(idObjet) ~= "string" or typeof(prix) ~= "number" or not pieces then
+      		return
+      	end
+      	if pieces.Value >= prix then
+      		pieces.Value -= prix
+      		print(player.Name, "achète", idObjet)
+      	end
+      end)
+    options:
+      - texte: "Ligne 3 : `WaitForChild` ne doit jamais être utilisé dans un Script serveur"
+      - texte: "Ligne 5 : le premier paramètre devrait être `idObjet`, pas `player`"
+      - texte: "Ligne 5 : le prix est envoyé par le client, qui peut écrire `-1000` et gagner des pièces ; le serveur doit lire le prix dans `Catalogue`"
+        correct: true
+      - texte: "Ligne 8 : `typeof` ne fonctionne pas côté serveur"
+    explication: "Les types sont bien vérifiés, mais la **valeur** du prix vient du client. Avec `prix = -1000`, la condition est vraie et `pieces.Value -= -1000` **ajoute** 1 000 pièces. Le client ne doit envoyer que l’identifiant de l’objet ; le serveur lit le prix dans `Catalogue` et vérifie que l’objet existe."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Il doit signaler les joueurs tombés hors de la carte."
+    code: |
+      local Players = game:GetService("Players")
+      local RunService = game:GetService("RunService")
+
+      Players.PlayerAdded:Connect(function(player: Player)
+      	player.CharacterAdded:Connect(function(personnage: Model)
+      		RunService.Heartbeat:Connect(function()
+      			local racine = personnage.PrimaryPart
+      			if racine and racine.Position.Y < -50 then
+      				print(player.Name, "est tombé")
+      			end
+      		end)
+      	end)
+      end)
+    options:
+      - texte: "Ligne 5 : `CharacterAdded` n’existe pas côté serveur"
+      - texte: "Ligne 6 : une nouvelle connexion `Heartbeat` est créée à chaque réapparition et n’est jamais coupée"
+        correct: true
+      - texte: "Ligne 7 : `PrimaryPart` est toujours `nil` pour un personnage"
+      - texte: "Ligne 4 : il faut `Players.ChildAdded` au lieu de `PlayerAdded`"
+    explication: "`Heartbeat` appartient à `RunService`, qui ne disparaît jamais : la connexion survit à l’ancien personnage. À chaque réapparition, une connexion de plus tourne à chaque image et garde l’ancien personnage en mémoire. Il faut garder la connexion et la couper (`Disconnect`) quand le personnage disparaît ou que le joueur part."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur attend qu’il y ait assez de joueurs."
+    code: |
+      local Players = game:GetService("Players")
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local etatRound = ReplicatedStorage:WaitForChild("EtatRound")
+      local JOUEURS_MIN = 2
+
+      local function attendreJoueurs()
+      	while #Players:GetPlayers() < JOUEURS_MIN do
+      		etatRound:SetAttribute("Phase", "Attente")
+      	end
+      	etatRound:SetAttribute("Phase", "Intermission")
+      end
+
+      attendreJoueurs()
+    options:
+      - texte: "Ligne 4 : `WaitForChild` est interdit côté serveur"
+      - texte: "Ligne 8 : `#` ne fonctionne pas sur le résultat de `GetPlayers()`"
+      - texte: "Lignes 8 à 10 : la boucle ne contient aucun `task.wait`, elle bloque le serveur"
+        correct: true
+      - texte: "Ligne 11 : `SetAttribute` n’accepte pas de texte"
+    explication: "Sans `task.wait`, la boucle tourne sans jamais rendre la main : le serveur ne peut plus rien faire d’autre (ni exécuter les autres scripts, ni accueillir les joueurs), et Roblox finit par arrêter le script. Il faut ajouter `task.wait(1)` dans la boucle."
+  - type: vrai-faux
+    question: "Si selene, StyLua et luau-lsp n’affichent aucun avertissement, le code généré par l’IA est sûr."
+    reponse: false
+    explication: "Ces outils attrapent des erreurs de forme : variables inutilisées, types incohérents, `wait` obsolète… Ils ne savent pas qu’un prix ne doit pas venir du client, ni qu’une boucle sans `task.wait` va bloquer le jeu. La relecture humaine (avec la checklist) et le test dans Studio restent indispensables."
+  - type: qcm
+    question: Lequel de ces éléments peux-tu vérifier avec un test automatique lancé par Lune, sans ouvrir Studio ?
+    options:
+      - texte: "Le calcul `ReglesRound.recompense(1, 4, 25, 25)` qui doit donner 50"
+        correct: true
+      - texte: Le déclenchement de l’événement `Touched` quand un joueur marche sur une Part
+      - texte: L’arrivée d’un RemoteEvent envoyé par un client au serveur
+      - texte: Le bon affichage du bandeau sur un écran de téléphone
+    explication: "Lune exécute du Luau en dehors de Roblox : il n’y a ni personnages, ni physique, ni réseau, ni interface. On y teste donc la **logique pure** (des calculs sans service Roblox). Le reste se vérifie dans Studio."
+  - type: qcm
+    question: "Ton sous-agent relecteur signale un problème « critique » dans `GestionRounds.server.luau`. Que fais-tu ?"
+    options:
+      - texte: Tu acceptes toutes ses remarques sans les lire, c’est un expert
+      - texte: "Tu vérifies toi-même le point dans le code, puis tu demandes la correction dans ta session principale, et tu relances tests et vérifications"
+        correct: true
+      - texte: "Tu lui demandes de corriger lui-même tous les fichiers"
+      - texte: Tu ignores le rapport, puisque le code fonctionne en Play
+    explication: "Le relecteur peut se tromper, comme toute IA : tu restes le juge. Il n’a que les outils de lecture (`Read`, `Grep`, `Glob`), il ne peut donc rien modifier ; la correction se demande dans ta session principale, avec un prompt ciblé, puis on revérifie. Et « ça marche en Play » ne prouve pas l’absence de faille."
+---
+
+Dans la [leçon précédente](/modules/02/decouper-un-gros-projet/), chaque tâche de Lave Montante se terminait par « À relire » et « À tester ». Cette leçon te donne la méthode complète pour le faire sérieusement. Rappelle-toi le message honnête de ce module : l’IA écrit vite, mais **c’est toi qui signes**. Un code qui « marche en Play » peut quand même laisser un tricheur se donner un million de pièces, perdre les sauvegardes ou ralentir les téléphones au bout d’une heure. La documentation de Claude Code le résume ainsi : « If you can’t verify it, don’t ship it » (si tu ne peux pas le vérifier, ne le publie pas).
+
+## Trois filets, du plus rapide au plus fin
+
+Pour chaque tâche, tu passes le code dans trois filets successifs, puis tu le testes dans Studio :
+
+1. **Les outils automatiques** (StyLua, selene, luau-lsp) : quelques secondes, ils attrapent les erreurs de forme.
+2. **Les tests automatisés** : quelques secondes aussi, ils vérifient que les calculs donnent les bons résultats.
+3. **La relecture** : toi avec la checklist, aidé d’un sous-agent relecteur ou de `/code-review`. C’est le seul filet qui comprend l’**intention** du code.
+
+Aucun ne suffit seul. Voyons-les un par un.
+
+## Premier filet : les outils statiques
+
+Tu les as installés en [leçon 2](/modules/02/installer-un-workflow-pro/), et le hook de la [leçon 3](/modules/02/claude-code-de-a-a-z/) lance StyLua et selene après chaque modification de Claude (luau-lsp, lui, travaille dans VS Code ou en ligne de commande). Voici ce que chacun apporte vraiment (tout ce qui suit a été testé avec selene 0.32.0 et luau-lsp 1.70.1).
+
+- **StyLua** met le code en forme (indentation, espaces). Il ne cherche pas de bug, mais un code bien rangé se relit mieux.
+- **selene** est un *linter* (détecteur de maladresses). Il signale par exemple une variable jamais utilisée, souvent le signe d’un oubli :
+
+```text
+warning[unused_variable]: inutilisee is assigned a value, but never used
+  ┌─ src\Test.server.luau:2:7
+```
+
+- **luau-lsp** connaît les types de Luau et, grâce aux définitions que son extension VS Code charge par défaut (leçon 2), **les API de Roblox**. Dans VS Code, il souligne les erreurs pendant que tu lis. Il signale aussi les fonctions obsolètes :
+
+```text
+DeprecatedApi: Function 'wait' is deprecated, use 'task.wait' instead
+```
+
+Pour qu’il repère aussi les **méthodes inventées** par l’IA, ajoute `--!strict` en première ligne du script (le mode strict, aperçu au module 3, leçon 6). Sur un script qui appelle `magasin:SaveAsync(…)` (qui n’existe pas : la vraie méthode est `SetAsync` ou `UpdateAsync`), luau-lsp répond seulement en mode strict :
+
+```text
+TypeError: Key 'SaveAsync' not found in external type 'DataStore'
+```
+
+<Erreur titre="Croire que « 0 avertissement » veut dire « code sûr »">
+Lors de nos tests, aucun de ces outils n’a signalé une boucle `while true do` sans `task.wait`, ni l’emploi de `BodyVelocity` (obsolète, remplacé par `LinearVelocity`). Et aucun ne peut savoir qu’un prix ne doit jamais venir du client. Les outils sont un premier filet, pas une relecture.
+</Erreur>
+
+## La checklist de revue
+
+Voici les onze points à vérifier sur tout code généré. Pour chacun, un exemple typique de code fautif produit par une IA, puis sa correction.
+
+<Info titre="Tu comprendras tout aux modules 3 à 5">
+Si certains exemples te semblent encore obscurs, c’est normal : ce module vient avant l’apprentissage détaillé de Luau. Garde cette checklist sous la main ; elle deviendra limpide après le module 3 (lire Luau), le module 4 (client, serveur et sécurité) et le module 5 (systèmes de jeu et sauvegarde). Reviens la relire à ce moment-là.
+</Info>
+
+### 1. Chaque RemoteEvent est validé côté serveur
+
+Un tricheur peut appeler n’importe quel RemoteEvent, quand il veut, avec **n’importe quels arguments** (module 4, leçon 4). Le serveur vérifie donc le type et la valeur de chaque argument.
+
+```luau
+-- ❌ Code généré : Script serveur qui équipe l'objet demandé par le client
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local equiperObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("EquiperObjet") :: RemoteEvent
+
+equiperObjet.OnServerEvent:Connect(function(player: Player, idObjet)
+	-- Accepte n'importe quoi : une table, un texte géant, un objet que le joueur ne possède pas…
+	player:SetAttribute("ObjetEquipe", idObjet)
+end)
+```
+
+```luau
+-- ✅ Corrigé : le serveur vérifie le type, puis que l'objet existe
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local equiperObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("EquiperObjet") :: RemoteEvent
+
+-- Dans l'Obby des Nuages, cette liste vient du module Catalogue
+local objetsExistants: { [string]: boolean } = { TrailNuage = true, TrailSoleil = true }
+
+equiperObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+	if typeof(idObjet) ~= "string" or not objetsExistants[idObjet] then
+		return -- type invalide ou objet inconnu : on ignore la demande
+	end
+	-- (module 5, leçon 3 : vérifier aussi que le joueur POSSÈDE cet objet)
+	player:SetAttribute("ObjetEquipe", idObjet)
+end)
+```
+
+### 2. Le client demande, le serveur décide
+
+Un prix, un gain, un score ou un résultat ne vient **jamais** du client. Attention au piège : l’annotation `montant: number` ne vérifie rien pendant le jeu, elle sert seulement aux outils.
+
+```luau
+-- ❌ Code généré : le client annonce combien de pièces il a gagnées
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local ramasserPiece = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("RamasserPiece") :: RemoteEvent
+
+ramasserPiece.OnServerEvent:Connect(function(player: Player, montant: number)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+	if pieces and pieces:IsA("IntValue") then
+		pieces.Value += montant -- un tricheur envoie 1000000
+	end
+end)
+```
+
+La correction : le montant est une constante du serveur, et le ramassage est détecté et validé par le serveur lui-même (distance, délai entre deux ramassages), comme dans la leçon 5 du module 4. Dans Lave Montante, le client n’envoie même **rien** : c’est la solution la plus sûre quand elle est possible.
+
+### 3. Chaque appel DataStore est dans un `pcall`, avec de nouvelles tentatives
+
+Les DataStores passent par le réseau : un appel peut échouer. Sans `pcall`, l’erreur arrête le code du joueur.
+
+```luau
+-- ❌ Code généré : aucun pcall
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+
+local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
+
+Players.PlayerAdded:Connect(function(player: Player)
+	local donnees = magasin:GetAsync("Joueur_" .. player.UserId) -- un raté de Roblox = erreur
+	print(player.Name, donnees)
+end)
+```
+
+```luau
+-- ✅ Corrigé : pcall et 3 tentatives, avec une attente croissante entre elles
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+
+local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
+local MAX_TENTATIVES = 3
+
+local function charger(cle: string): (boolean, any)
+	local succes, resultat = false, nil
+	for tentative = 1, MAX_TENTATIVES do
+		succes, resultat = pcall(function()
+			return magasin:GetAsync(cle)
+		end)
+		if succes then
+			return true, resultat
+		end
+		warn(`Chargement : tentative {tentative} échouée ({resultat})`)
+		if tentative < MAX_TENTATIVES then
+			task.wait(2 ^ tentative) -- 2 s, puis 4 s
+		end
+	end
+	return false, resultat
+end
+
+Players.PlayerAdded:Connect(function(player: Player)
+	local ok, donnees = charger("Joueur_" .. player.UserId)
+	if not ok then
+		warn("Données indisponibles : surtout ne rien sauvegarder par-dessus pour ce joueur")
+		return
+	end
+	print(player.Name, donnees)
+end)
+```
+
+### 4. `UpdateAsync` pour une valeur qui dépend de l’ancienne
+
+Lire avec `GetAsync` puis écrire avec `SetAsync` laisse une fenêtre où un autre serveur peut modifier la valeur entre les deux. `UpdateAsync` lit et écrit en une seule opération (et si la fonction renvoie `nil`, l’écriture est annulée).
+
+```luau
+-- ❌ Code généré : lecture puis écriture séparées, sans pcall
+local DataStoreService = game:GetService("DataStoreService")
+
+local victoires = DataStoreService:GetDataStore("Victoires_v1")
+
+local function ajouterVictoire(cle: string)
+	local ancien = victoires:GetAsync(cle) or 0
+	victoires:SetAsync(cle, ancien + 1)
+end
+
+ajouterVictoire("Joueur_1")
+```
+
+```luau
+-- ✅ Corrigé : une seule opération, dans un pcall
+local DataStoreService = game:GetService("DataStoreService")
+
+local victoires = DataStoreService:GetDataStore("Victoires_v1")
+
+local function ajouterVictoire(cle: string): boolean
+	local succes, erreur = pcall(function()
+		victoires:UpdateAsync(cle, function(ancien: number?)
+			return (ancien or 0) + 1
+		end)
+	end)
+	if not succes then
+		warn("Victoire non enregistrée :", erreur)
+	end
+	return succes
+end
+
+ajouterVictoire("Joueur_1")
+```
+
+### 5. La sauvegarde est aussi faite quand le serveur s’arrête
+
+L’IA oublie souvent ce cas : elle sauvegarde à `PlayerRemoving`, mais quand Roblox ferme un serveur (mise à jour du jeu, par exemple), les derniers joueurs peuvent perdre leur progression. `game:BindToClose` exécute une fonction avant l’arrêt ; selon la documentation, le serveur attend au plus 30 secondes.
+
+```luau
+-- ✅ À ajouter : sauvegarder tous les joueurs présents avant l'arrêt du serveur
+local Players = game:GetService("Players")
+
+local function sauvegarder(player: Player)
+	print("Sauvegarde de", player.Name) -- ici, la vraie sauvegarde (UpdateAsync dans un pcall)
+end
+
+Players.PlayerRemoving:Connect(sauvegarder)
+
+game:BindToClose(function()
+	local enCours = 0
+	for _, player in Players:GetPlayers() do
+		enCours += 1
+		task.spawn(function()
+			sauvegarder(player)
+			enCours -= 1
+		end)
+	end
+	-- On attend la fin des sauvegardes, sans dépasser 25 s (Roblox coupe à 30 s)
+	local debut = os.clock()
+	while enCours > 0 and os.clock() - debut < 25 do
+		task.wait(0.5)
+	end
+end)
+```
+
+La version complète et fiable (avec nouvelles tentatives et sans double sauvegarde) est construite au module 5, leçon 2.
+
+### 6. Les connexions sont nettoyées
+
+Chaque `:Connect` crée une connexion qui vit tant que l’objet écouté existe. Si l’objet vit toujours (un service comme `RunService` ou `Players`), la connexion ne s’arrête **jamais** : c’est une **fuite mémoire**, et le jeu ralentit au fil des rounds.
+
+```luau
+-- ❌ Code généré : appelée à chaque round, la connexion n'est jamais coupée
+local RunService = game:GetService("RunService")
+
+local function faireMonterLave(lave: BasePart, vitesse: number)
+	RunService.Heartbeat:Connect(function(dt: number)
+		lave.Size += Vector3.new(0, vitesse * dt, 0)
+	end)
+end
+```
+
+```luau
+-- ✅ Corrigé : la fonction renvoie la connexion ; la fin du round la coupe avec Disconnect
+local RunService = game:GetService("RunService")
+
+local function faireMonterLave(lave: BasePart, vitesse: number): RBXScriptConnection
+	return RunService.Heartbeat:Connect(function(dt: number)
+		lave.Size += Vector3.new(0, vitesse * dt, 0)
+	end)
+end
+
+-- Dans le round : local connexion = faireMonterLave(lave, 0.7)
+-- À la fin du round : connexion:Disconnect()
+```
+
+Même règle pour les **tables indexées par joueur** (`derniereDemande[player] = …`) : on les vide à `Players.PlayerRemoving`, sinon elles grossissent à chaque joueur qui passe.
+
+### 7. Les objets temporaires sont détruits avec `Destroy`
+
+`lave.Parent = nil` ou `laveActuelle = nil` font disparaître la Part de l’écran ou de ta variable, mais pas de la mémoire. La documentation de `Destroy()` est claire : la méthode retire l’objet, verrouille son parent, **coupe toutes ses connexions** et détruit ses enfants ; c’est « the correct way to dispose of objects that are no longer required ». Dans Lave Montante, `nettoyerRound` appelle `laveActuelle:Destroy()` avant d’oublier la variable.
+
+### 8. Rien de lourd à chaque image (pense aux téléphones)
+
+Beaucoup de joueurs jouent sur des téléphones modestes. Un travail répété à chaque image (60 fois par seconde) sans raison vide la batterie et fait ramer.
+
+```luau
+-- ❌ Code généré : LocalScript qui réécrit le texte à chaque image
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local etatRound = ReplicatedStorage:WaitForChild("EtatRound")
+local interface = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("InterfaceLave")
+local statut = interface:WaitForChild("Statut") :: TextLabel
+
+RunService.RenderStepped:Connect(function()
+	statut.Text = `Encore {etatRound:GetAttribute("TempsRestant")} s`
+end)
+```
+
+```luau
+-- ✅ Corrigé : on met à jour le texte seulement quand la valeur change
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local etatRound = ReplicatedStorage:WaitForChild("EtatRound")
+local interface = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("InterfaceLave")
+local statut = interface:WaitForChild("Statut") :: TextLabel
+
+etatRound:GetAttributeChangedSignal("TempsRestant"):Connect(function()
+	statut.Text = `Encore {etatRound:GetAttribute("TempsRestant")} s`
+end)
+```
+
+Vérifie aussi : pas de milliers de Parts créées par script, des effets (particules, lumières) raisonnables, une interface en Scale avec des boutons assez grands. Le module 10 est entièrement consacré aux performances.
+
+### 9. Aucune API obsolète ou inventée
+
+Une IA a appris sur des années de code, y compris du code ancien. Elle propose parfois des API **dépréciées** (encore présentes, mais à ne plus utiliser) ou **inventées** (qui n’ont jamais existé).
+
+| Code obsolète souvent généré | À utiliser aujourd’hui |
+|---|---|
+| `wait(1)`, `spawn(f)`, `delay(2, f)` | `task.wait(1)`, `task.spawn(f)`, `task.delay(2, f)` |
+| `signal:connect(f)` | `signal:Connect(f)` |
+| `humanoid:LoadAnimation(anim)` | `animator:LoadAnimation(anim)` (l’`Animator` est dans l’`Humanoid`) |
+| `BodyVelocity` | `LinearVelocity` |
+| `player:LoadCharacter()` | `player:LoadCharacterAsync()` |
+
+Pour une méthode inventée (`magasin:SaveAsync`, `Players:GetPlayerByName`…), le réflexe : mode strict de luau-lsp, puis recherche du nom exact dans la [référence de l’API](https://create.roblox.com/docs/reference/engine). Si la page n’existe pas, la méthode non plus. La leçon 8 revient en détail sur ces pièges.
+
+### 10. Toute boucle infinie contient un `task.wait`
+
+Une boucle `while true do` (ou `repeat … until`) qui ne rend jamais la main **bloque** le script : Studio se fige, puis Roblox finit par arrêter le script avec une erreur de délai dépassé.
+
+```luau
+-- ✅ La boucle rend la main à chaque tour grâce à task.wait
+local Workspace = game:GetService("Workspace")
+
+local plateforme = Workspace:WaitForChild("PlateformeTournante") :: BasePart
+
+while true do
+	plateforme.CFrame *= CFrame.Angles(0, math.rad(2), 0)
+	task.wait(0.03)
+end
+```
+
+Sans la ligne `task.wait(0.03)`, ce script gèlerait le jeu. Relis chaque `while`, `repeat` et chaque boucle d’attente.
+
+### 11. Noms et chemins conformes à ton CLAUDE.md
+
+L’IA « devine » parfois un nom proche du bon. Le code paraît juste, mais il cherche un objet qui n’existe pas :
+
+- `Workspace:WaitForChild("Checkpoint")` au lieu de `Checkpoints` : le script attend pour toujours, et l’Output affiche un avertissement « Infinite yield possible » ;
+- `leaderstats.Coins` au lieu de `leaderstats.Pieces` ;
+- un DataStore renommé (`"PlayerData"` au lieu de `"DonneesJoueurs_v1"`) : tous les joueurs repartent de zéro, leurs anciennes sauvegardes sont toujours sous l’ancien nom ;
+- avec Rojo, un fichier `Boutique.luau` au lieu de `Boutique.server.luau` : il devient un ModuleScript, qui **ne s’exécute jamais** tout seul.
+
+Compare chaque nom, chemin et suffixe de fichier avec ton `CLAUDE.md` et ton `default.project.json`.
+
+## Faire relire par un sous-agent
+
+Relire avec la checklist prend du temps. Un **sous-agent relecteur** peut faire une première passe à ta place. Il travaille dans son propre contexte et n’a pas écrit le code : il n’est pas tenté de défendre ses propres choix, et ta conversation principale reste légère. La [leçon 3](/modules/02/claude-code-de-a-a-z/) t’a fait créer une version courte de `.claude/agents/relecteur-roblox.md`. Remplace-la par cette version complète, qui reprend les onze points de la checklist :
+
+```markdown
+---
+name: relecteur-roblox
+description: Relit du code Luau Roblox à la recherche de failles client/serveur, de pertes de données, de fuites mémoire, d'API obsolètes et d'écarts avec CLAUDE.md. À utiliser après chaque nouveau système, avant le commit.
+tools: Read, Grep, Glob
+model: sonnet
+---
+
+Tu es un relecteur expert de jeux Roblox écrits en Luau et synchronisés avec Rojo.
+Tu ne modifies JAMAIS de fichier : tu lis, tu vérifies, tu rends un rapport.
+
+Avant de commencer : lis CLAUDE.md et default.project.json pour connaître les noms, les chemins et les règles du projet.
+Relis les fichiers qu'on te donne ; à défaut, tous les fichiers .luau de src/.
+
+Pour chaque fichier, contrôle ces 11 points :
+1. RemoteEvents : chaque OnServerEvent vérifie le type ET la valeur de chaque argument (typeof, plages, existence dans Catalogue ou Config), et limite la fréquence des demandes par joueur.
+2. Confiance : aucun prix, gain, score, position décisive ou résultat ne vient du client. Le client demande, le serveur décide.
+3. DataStores : chaque appel (GetAsync, SetAsync, UpdateAsync…) est dans un pcall, avec de nouvelles tentatives et une attente croissante. Un chargement raté n'est jamais écrasé par des valeurs par défaut.
+4. UpdateAsync est utilisé pour toute valeur qui dépend de l'ancienne.
+5. Sauvegarde à Players.PlayerRemoving ET dans game:BindToClose.
+6. Connexions : toute connexion liée à un joueur, un round ou un objet temporaire est coupée (Disconnect) ; les tables indexées par joueur sont vidées à PlayerRemoving.
+7. Les instances temporaires sont détruites avec Destroy (pas seulement Parent = nil).
+8. Performances mobiles : pas de travail lourd dans RenderStepped ou Heartbeat, pas de création massive d'instances, interface en Scale.
+9. API : pas de wait, spawn, delay, :connect, Humanoid:LoadAnimation, BodyVelocity, LoadCharacter. Si tu doutes qu'une méthode existe, dis-le clairement au lieu de supposer.
+10. Toute boucle infinie ou d'attente contient un task.wait.
+11. Noms, chemins et suffixes de fichiers (.server.luau, .client.luau, .luau) conformes à CLAUDE.md et default.project.json.
+
+Rapport : une ligne par problème, au format
+fichier:ligne — gravité (critique / important / mineur) — point n° — problème — correction proposée.
+Classe les problèmes du plus grave au moins grave. Ne signale pas de préférences de style.
+Termine par « Aucun problème critique » s'il n'y en a pas, et par la liste de ce qu'il faut tester dans Studio.
+```
+
+Rappel de la leçon 3 : seuls `name` et `description` sont obligatoires ; `tools: Read, Grep, Glob` ne lui donne que la lecture (il ne peut rien casser) ; `model: sonnet` utilise un modèle plus économique. Claude Code détecte le fichier modifié en quelques secondes, sans redémarrage.
+
+Pour l’utiliser, après une tâche et avant le commit :
+
+<Prompt titre="Lancer le relecteur">
+
+```text
+Utilise le sous-agent relecteur-roblox pour relire src/ServerScriptService/GestionRounds.server.luau et src/ServerScriptService/Lave.luau, que tu viens de modifier pour la tâche 7 de TACHES.md.
+Contexte utile pour lui : ce mini-jeu n'a aucun RemoteEvent client → serveur ; le nettoyage entre les rounds est fait par nettoyerRound().
+Quand il a fini, montre-moi son rapport tel quel, sans rien corriger. J'indiquerai ensuite les points à corriger.
+```
+
+</Prompt>
+
+Tu peux aussi taper `@`, choisir `relecteur-roblox` dans la liste, puis écrire ta demande : la documentation précise que la mention garantit que ce sous-agent est utilisé. Ensuite, **lis le rapport d’un œil critique** : vérifie chaque point dans le code, ignore ceux qui sont faux, et demande les corrections dans ta session principale, avec un prompt ciblé.
+
+<Astuce titre="Le relecteur se trompe aussi">
+Un relecteur IA peut signaler un faux problème ou en manquer un vrai. Demande-lui toujours fichier et ligne : tu peux alors vérifier chaque remarque en dix secondes. Si une remarque te semble fausse, demande « montre-moi la documentation qui le prouve » avant de modifier quoi que ce soit.
+</Astuce>
+
+## La commande intégrée : `/code-review`
+
+Claude Code fournit aussi une commande de relecture toute prête : **`/code-review`** (alias `/review`). D’après la documentation (octobre 2026) :
+
+- tapée seule, elle relit les changements de ta branche Git **et** ceux qui ne sont pas encore commités, à la recherche de bugs. Ton projet doit donc être un dépôt Git (leçon 2) ;
+- tu peux viser un dossier ou un fichier : `/code-review src/ServerScriptService` ;
+- elle suit les règles de ton `CLAUDE.md` ;
+- elle tourne en arrière-plan, comme un sous-agent, et ses résultats arrivent dans la conversation quand elle a fini. Sans option, elle rend seulement un rapport ; avec `--fix`, elle applique aussi les corrections (en respectant ton mode de permission) ;
+- un niveau d’effort peut être précisé : `/code-review low` ne rapporte que ce dont elle est le plus sûre (moins de fausses alertes) ; `medium` à `max` élargissent la recherche ;
+- elle consomme ton forfait comme le reste de la session.
+
+Il existe aussi une relecture approfondie dans le cloud (`/code-review ultra`), avec quelques essais gratuits sur les offres Pro et Max, puis des crédits payants : n’en lance pas sans l’accord de l’adulte qui gère l’abonnement. Et `/security-review` analyse les failles de sécurité, mais elle compare ta branche à un dépôt distant `origin` (sur GitHub, par exemple), qu’un projet purement local n’a pas.
+
+Sous-agent maison ou `/code-review` ? Les deux se complètent : `/code-review` cherche les bugs en général, ton relecteur applique **ta** checklist Roblox. Garde ton jugement pour la fin.
+
+## Les tests automatisés en Luau
+
+Un test automatisé est un petit programme qui appelle ton code avec des valeurs connues et vérifie le résultat. Avantage énorme avec une IA : Claude peut lancer les tests lui-même et voir s’il a cassé quelque chose. La documentation de Claude Code insiste : « Give Claude a check it can run » (donne à Claude une vérification qu’il peut exécuter).
+
+### Où en sont les outils de test (octobre 2026)
+
+Beaucoup de tutoriels datent : voici l’état vérifié sur les dépôts officiels le 24 octobre 2026.
+
+| Outil | État | Pour toi ? |
+|---|---|---|
+| **TestEZ** (Roblox) | Dépôt **archivé** par Roblox le 14 septembre 2024 (lecture seule) ; dernière version 0.4.2 (janvier 2022) | Non : encore cité partout, mais plus maintenu |
+| **Jest Lua** (`jsdotlua/jest-lua`) | Adaptation de Jest pour Luau ; dernière version 3.10.0 (décembre 2024). Son README précise : « Jest Lua can currently only run inside of Roblox » | Plus tard : il faut un lanceur dans Studio ou dans le cloud |
+| **run-in-roblox** | Lance un script dans Studio depuis le terminal ; dernière version 0.3.0 (juillet 2020) | Non |
+| **Lune** | Exécute du Luau **en dehors de Roblox**, comme un programme normal ; version 0.11.1 (21 octobre 2026) ; s’installe avec Rokit | **Oui**, pour la logique pure |
+| **Luau Execution** (Open Cloud) | API officielle de Roblox qui exécute du Luau dans une place publiée, présentée « for automated testing » ; demande une clé d’API | Avancé, plus tard (une clé d’API ne se colle jamais dans un prompt) |
+
+### La solution réaliste : tester la logique pure avec Lune
+
+Lune n’a pas le moteur de Roblox : pas de `game`, pas de personnages, pas de physique, pas de réseau. On ne peut donc pas y tester un `Touched` ou un RemoteEvent. En revanche, on y teste parfaitement les **calculs purs** : des fonctions qui reçoivent des nombres ou des textes et renvoient un résultat, sans aucun service Roblox.
+
+D’où l’astuce de Lave Montante (leçon 5) : toutes les règles de calcul vivent dans le ModuleScript `ReglesRound`, qui ne contient **aucun** `game:GetService`. Le serveur s’en sert dans Studio, et Lune le teste en dehors. Cette séparation est une bonne habitude pour tout jeu : prix, récompenses, niveaux, dégâts, chronomètres.
+
+**Installer Lune** (Windows et Mac, même commande) : dans un terminal ouvert dans le dossier du projet, tape :
+
+```bash
+rokit add lune-org/lune
+```
+
+Rokit télécharge Lune et l’ajoute à ton `rokit.toml`. S’il te demande si tu fais confiance à cet outil, réponds oui (c’est l’outil officiel de l’organisation `lune-org`). Vérifie ensuite avec `lune --version`, qui doit afficher un numéro de version (par exemple `lune 0.11.1`).
+
+### Le fichier de test complet
+
+Crée le dossier `tests` à la racine du projet (à côté de `src`), puis le fichier `tests/ReglesRound.spec.luau` :
+
+```luau
+-- Tests automatiques de la logique pure du round, exécutés avec Lune (hors de Studio) :
+--   lune run tests/ReglesRound.spec.luau
+local ReglesRound = require("../src/ReplicatedStorage/Modules/ReglesRound")
+
+local reussis, rates = 0, 0
+
+-- Compare la valeur obtenue à la valeur attendue et affiche le résultat
+local function verifier(nom: string, obtenu: any, attendu: any)
+	if obtenu == attendu then
+		reussis += 1
+		print(`OK    {nom}`)
+	else
+		rates += 1
+		print(`RATÉ  {nom} : attendu {attendu}, obtenu {obtenu}`)
+	end
+end
+
+-- assezDeJoueurs
+verifier("1 joueur sur 2 requis : pas assez", ReglesRound.assezDeJoueurs(1, 2), false)
+verifier("2 joueurs sur 2 requis : assez", ReglesRound.assezDeJoueurs(2, 2), true)
+
+-- hauteurLave(tempsEcoule, delai, dureeRound, hauteurMax)
+verifier("pendant le délai, la lave ne bouge pas", ReglesRound.hauteurLave(3, 5, 60, 40), 0)
+verifier("à mi-montée, la lave est à mi-hauteur", ReglesRound.hauteurLave(32.5, 5, 60, 40), 20)
+verifier("après la fin, la lave reste au maximum", ReglesRound.hauteurLave(90, 5, 60, 40), 40)
+verifier("à la fin du round, la lave est au maximum", ReglesRound.hauteurLave(60, 5, 60, 40), 40)
+
+-- estSousLaLave(hauteurJoueur, hauteurDessusLave)
+verifier("joueur au-dessus de la lave", ReglesRound.estSousLaLave(12, 10), false)
+verifier("joueur sous la lave", ReglesRound.estSousLaLave(8, 10), true)
+
+-- recompense(nombreSurvivants, nombreParticipants, base, bonusDernier)
+verifier("aucun survivant : 0 pièce", ReglesRound.recompense(0, 4, 25, 25), 0)
+verifier("plusieurs survivants : la base", ReglesRound.recompense(2, 4, 25, 25), 25)
+verifier("dernier survivant à plusieurs : base + bonus", ReglesRound.recompense(1, 4, 25, 25), 50)
+verifier("seul dans le round : pas de bonus", ReglesRound.recompense(1, 1, 25, 25), 25)
+
+print(`\n{reussis} réussi(s), {rates} raté(s)`)
+if rates > 0 then
+	error("Des tests ont échoué") -- code de sortie non nul : le terminal (et Claude Code) le voient
+end
+```
+
+Pas de bibliothèque à installer : une fonction `verifier` compare le résultat obtenu au résultat attendu. Le `require` utilise un chemin relatif au fichier de test (`../src/…`). Dans VS Code, luau-lsp peut souligner ce chemin, car il raisonne comme dans Studio : ce n’est pas un problème, Lune le comprend.
+
+Lance-le :
+
+```bash
+lune run tests/ReglesRound.spec.luau
+```
+
+Résultat attendu :
+
+```text
+OK    1 joueur sur 2 requis : pas assez
+OK    2 joueurs sur 2 requis : assez
+OK    pendant le délai, la lave ne bouge pas
+…
+OK    seul dans le round : pas de bonus
+
+12 réussi(s), 0 raté(s)
+```
+
+### Quand un test attrape une erreur de l’IA
+
+Imagine que Claude simplifie un jour la fonction `recompense` en écrivant `if nombreSurvivants == 1 then` (il oublie la condition « au moins 2 participants »). En Play, tu ne verrais rien : tu testes seul et tu gagnes 50 pièces au lieu de 25, rien ne plante. Le test, lui, le voit immédiatement :
+
+```text
+OK    dernier survivant à plusieurs : base + bonus
+RATÉ  seul dans le round : pas de bonus : attendu 25, obtenu 50
+
+11 réussi(s), 1 raté(s)
+…\tests/ReglesRound.spec:40: Des tests ont échoué
+```
+
+Grâce au `error()` final, Lune se termine avec un **code de sortie** différent de 0 : Claude Code voit que la commande a échoué, et il peut chercher pourquoi.
+
+### Faire travailler Claude avec les tests
+
+Ajoute la commande de test à la section « Vérification » de ton `CLAUDE.md` (« après chaque modification : … puis `lune run tests/ReglesRound.spec.luau` »). Pour une nouvelle règle de calcul, demande les tests **en même temps** que le code, avec les cas attendus écrits par toi :
+
+<Prompt titre="Nouvelle règle avec ses tests">
+
+```text
+Contexte : mini-jeu Lave Montante, module pur src/ReplicatedStorage/Modules/ReglesRound.luau, testé par tests/ReglesRound.spec.luau avec Lune.
+Objectif : ajouter un bonus de série. Fonction ReglesRound.bonusSerie(victoiresDAffilee, bonusParVictoire, bonusMax) -> number : bonusParVictoire × victoiresDAffilee, plafonné à bonusMax, et 0 si victoiresDAffilee vaut 0 ou moins.
+Fichiers concernés : ReglesRound.luau et tests/ReglesRound.spec.luau uniquement.
+Contraintes techniques : la fonction reste pure (aucun service Roblox). Écris d'abord les tests, lance-les (ils doivent échouer), puis écris la fonction.
+Cas à tester : bonusSerie(0, 10, 50) = 0 ; bonusSerie(-1, 10, 50) = 0 ; bonusSerie(3, 10, 50) = 30 ; bonusSerie(9, 10, 50) = 50.
+Vérification : montre-moi la sortie de « lune run tests/ReglesRound.spec.luau » avec tous les tests OK. Si un test te semble faux, dis-le-moi au lieu de le modifier.
+```
+
+</Prompt>
+
+<Erreur titre="Laisser l’IA modifier les tests pour qu’ils passent">
+Quand un test échoue, une IA pressée peut « corriger »… le test, ou écrire un code qui ne marche que pour les valeurs testées. La documentation d’Anthropic sur l’art du prompt le dit : « Tests are there to verify correctness, not to define the solution » (les tests servent à vérifier que le code est juste, pas à dicter la solution). Les cas attendus viennent de **toi** (de ton GDD), et tout changement d’un fichier de test doit être relu avec soin.
+</Erreur>
+
+## Ta routine de revue, en résumé
+
+Pour chaque tâche, avant le commit :
+
+1. StyLua et selene sans erreur (le hook s’en charge), luau-lsp sans soulignement.
+2. Tests Lune au vert, s’il y a de la logique pure.
+3. Lecture du changement (`git diff`) avec la checklist ; pour un système important, sous-agent `relecteur-roblox` ou `/code-review`.
+4. Corrections demandées par des prompts ciblés, puis nouvelle vérification.
+5. Test dans Studio : Play, puis **Server & Clients** dès que plusieurs joueurs sont concernés.
+6. Commit.
+
+<Defi>
+Reprends le code final de Lave Montante (leçon 5) et passe toi-même la checklist sur `GestionRounds.server.luau`, point par point. Note pour chaque point « OK » ou « à vérifier ». Lance ensuite le sous-agent relecteur sur le même fichier et compare : a-t-il trouvé quelque chose que tu as manqué ? As-tu trouvé quelque chose qu’il a manqué ?
+</Defi>
+
+<Resume>
+- Trois filets : outils statiques (StyLua, selene, luau-lsp), tests automatisés, relecture ; puis toujours un test dans Studio.
+- Les outils attrapent la forme (variables inutilisées, `wait` obsolète, méthodes inventées en mode strict), jamais l’intention : la checklist en onze points reste indispensable.
+- Les points clés : remotes validés, client jamais cru, `pcall` et tentatives, `UpdateAsync`, `BindToClose`, connexions coupées, `Destroy`, rien de lourd à chaque image, API à jour, `task.wait` dans les boucles, noms conformes au CLAUDE.md.
+- Un sous-agent `relecteur-roblox` en lecture seule et `/code-review` font une première passe ; tu restes le juge.
+- TestEZ est archivé et Jest Lua ne tourne que dans Roblox : pour débuter, isole la logique pure et teste-la avec Lune (`lune run tests/…`).
+</Resume>
+
+<Sources>
+- [Create custom subagents — documentation Claude Code](https://code.claude.com/docs/en/sub-agents)
+- [Review locally with /code-review — documentation Claude Code](https://code.claude.com/docs/en/code-review-local)
+- [Commands — documentation Claude Code (/code-review, /review, /security-review)](https://code.claude.com/docs/en/commands)
+- [Best practices for Claude Code (« Give Claude a check it can run »)](https://code.claude.com/docs/en/best-practices)
+- [Prompting best practices — documentation Anthropic (tests et solutions codées en dur)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)
+- [Lune — dépôt officiel](https://github.com/lune-org/lune) et [documentation de Lune](https://lune-org.github.io/docs)
+- [Jest Lua — dépôt officiel](https://github.com/jsdotlua/jest-lua)
+- [TestEZ — dépôt officiel (archivé)](https://github.com/Roblox/testez)
+- [run-in-roblox — dépôt officiel](https://github.com/rojo-rbx/run-in-roblox)
+- [Luau Execution — documentation Open Cloud de Roblox](https://create.roblox.com/docs/cloud/reference/features/luau-execution)
+- [selene — documentation officielle](https://kampfkarren.github.io/selene/)
+- [luau-lsp — dépôt officiel](https://github.com/JohnnyMorganz/luau-lsp)
+- [Security and cheat mitigation tactics — documentation Roblox](https://create.roblox.com/docs/scripting/security/security-tactics)
+- [Data stores — documentation Roblox](https://create.roblox.com/docs/cloud-services/data-stores)
+- [GlobalDataStore — référence de l’API (UpdateAsync)](https://create.roblox.com/docs/reference/engine/classes/GlobalDataStore)
+- [DataModel — référence de l’API (BindToClose)](https://create.roblox.com/docs/reference/engine/classes/DataModel)
+- [Instance — référence de l’API (Destroy)](https://create.roblox.com/docs/reference/engine/classes/Instance)
+- [BodyVelocity — référence de l’API (dépréciée, remplacée par LinearVelocity)](https://create.roblox.com/docs/reference/engine/classes/BodyVelocity)
+</Sources>

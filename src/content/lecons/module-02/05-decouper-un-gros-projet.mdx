@@ -1,0 +1,912 @@
+---
+titre: Découper un gros projet
+description: "Passe d’une idée de jeu à un mini game design doc, puis à un plan et à des petites tâches : une tâche par prompt, un test dans Studio, un commit. Exemple complet : le mini-jeu Lave Montante."
+duree: 75
+objectifs:
+  - Passer d’une idée à un mini game design doc, puis à un plan en mode plan
+  - Découper un jeu en petites tâches testables, avec un critère de réussite chacune
+  - Enchaîner une tâche par prompt, un test dans Studio et un commit Git
+  - Corriger un résultat décevant avec un prompt ciblé plutôt qu’en recommençant tout
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Pourquoi vaut-il mieux éviter de demander « fais-moi un simulator entier » en un seul prompt ? (plusieurs réponses possibles)
+    options:
+      - texte: Le contexte de l’IA se remplit vite et la qualité baisse quand il est plein
+        correct: true
+      - texte: Tu ne peux pas relire sérieusement des centaines de lignes produites d’un coup
+        correct: true
+      - texte: Si quelque chose casse, tu ne sais pas quelle partie fautive annuler
+        correct: true
+      - texte: Claude Code refuse les prompts de plus de dix lignes
+    explication: "Un énorme prompt produit un énorme résultat : impossible à relire, difficile à déboguer, impossible à annuler morceau par morceau. La documentation de Claude Code rappelle aussi que le contexte se remplit vite et que les performances baissent quand il se remplit. Il n’existe en revanche aucune limite de dix lignes."
+  - type: ameliore-le-prompt
+    question: "Tu as écrit le mini game design doc de ton jeu. Quel prompt donnera le meilleur point de départ ?"
+    prompt: "fais-moi un jeu de lave montante complet avec des rounds"
+    options:
+      - texte: "Fais-moi un jeu de lave montante complet et très bien codé, avec des rounds, un lobby, des pièces et une belle interface."
+      - texte: |
+          (en mode plan) Lis CLAUDE.md et GDD.md. Propose un plan découpé en 6 à 10 petites tâches, dans l'ordre.
+          Pour chaque tâche : les fichiers créés ou modifiés (1 à 3), ce qu'elle fait, et le test dans Studio qui prouve qu'elle marche.
+          Le serveur décide de tout ; prévois une tâche pour le nettoyage entre les rounds. Ne code rien : quand je validerai, écris seulement la liste dans TACHES.md.
+        correct: true
+      - texte: "Lis GDD.md et code tout le jeu d'un coup, puis fais un seul commit à la fin pour garder l'historique propre."
+      - texte: "Écris le script GestionRounds.server.luau qui gère tout le jeu : rounds, lave, récompenses et interface."
+    explication: "La bonne version demande un **plan**, pas du code : des tâches petites, chacune avec ses fichiers et son test, et une règle de sécurité. Les autres demandent tout le jeu d’un coup (même la quatrième, qui met tout dans un seul script) : impossible à relire et à tester étape par étape."
+  - type: vrai-faux
+    question: "Une fois le plan validé, le plus efficace est d’envoyer toutes les tâches dans un seul prompt pour gagner du temps."
+    reponse: false
+    explication: "Le plan sert justement à avancer **une tâche par prompt** : tu testes chaque tâche dans Studio et tu la commites avant de passer à la suivante. Si une tâche casse quelque chose, tu le vois tout de suite et tu sais quoi annuler."
+  - type: qcm
+    question: Dans quel ordre enchaîner chaque tâche ?
+    options:
+      - texte: "Prompt de la tâche → commit → test dans Studio"
+      - texte: "Prompt de la tâche → relecture et test dans Studio → commit"
+        correct: true
+      - texte: "Commit → prompt de la tâche → test à la fin du projet"
+      - texte: "Prompt de toutes les tâches → un seul grand test → commit"
+    explication: "On ne commite que ce qui a été relu et testé : chaque commit devient alors un point de retour sûr. Commiter avant de tester enregistrerait du code peut-être cassé."
+  - type: qcm
+    question: "Dans l’exemple, la première version élimine les joueurs avec l’événement `Touched` de la lave, qui monte en changeant sa taille et son `CFrame`. Pourquoi un joueur immobile survit-il parfois ?"
+    options:
+      - texte: "`Touched` ne se déclenche que lors d’un mouvement physique, pas quand on change le `CFrame` ou la taille d’une Part"
+        correct: true
+      - texte: "`Touched` ne fonctionne que dans les LocalScripts"
+      - texte: "Une Part en matériau Neon ne peut pas toucher un personnage"
+      - texte: "`Humanoid.Health = 0` n’élimine pas un joueur côté serveur"
+    explication: "La documentation de `BasePart.Touched` précise que l’événement ne se déclenche pas quand une Part est déplacée en changeant son `CFrame`. La correction confie l’élimination au serveur, qui compare régulièrement la hauteur de chaque personnage à celle du dessus de la lave."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Cette fonction doit tout remettre à zéro entre deux rounds."
+    code: |
+      type Participant = { connexionMort: RBXScriptConnection }
+
+      local participants: { [Player]: Participant } = {}
+      local laveActuelle: BasePart? = nil
+
+      -- Appelée à la fin de chaque round
+      local function nettoyerRound()
+      	for player, participant in participants do
+      		participant.connexionMort:Disconnect()
+      		participants[player] = nil
+      	end
+      	laveActuelle = nil
+      end
+    options:
+      - texte: "Ligne 9 : `Disconnect` est inutile, les connexions se coupent seules à la fin du round"
+      - texte: "Ligne 10 : on ne peut pas retirer une clé d’une table pendant qu’on la parcourt"
+      - texte: "Ligne 12 : oublier la variable ne supprime pas la Part, il faut appeler `laveActuelle:Destroy()` avant"
+        correct: true
+      - texte: "Ligne 7 : la fonction doit recevoir la liste des participants en paramètre"
+    explication: "Mettre la variable à `nil` fait seulement oublier la Part au script : elle reste dans le Workspace. À chaque round, une nouvelle lave s’ajouterait aux anciennes. `Destroy()` retire la Part et coupe ses connexions. Retirer une clé existante pendant un parcours est autorisé, et une connexion ne se coupe jamais toute seule tant que l’objet existe."
+---
+
+Dans la [leçon précédente](/modules/02/l-art-du-prompt-precis/), tu as appris à écrire **un** prompt précis. Mais un jeu, même petit, c’est des dizaines de décisions et plusieurs scripts qui dépendent les uns des autres. La tentation est grande d’écrire « fais-moi un simulator entier » et d’attendre le miracle. Cette leçon te donne la méthode des pros pour l’éviter : **découper**. Et tu vas la voir appliquée de bout en bout, sur un vrai mini-jeu construit prompt par prompt avec Claude Code.
+
+## Pourquoi « fais-moi un simulator entier » ne marche pas
+
+Un prompt géant donne un résultat géant, et c’est justement le problème.
+
+- **Le contexte est limité.** Claude ne « se souvient » que de ce qui tient dans sa fenêtre de contexte (tout ce qu’il a lu et écrit dans la conversation). La documentation officielle de Claude Code le dit sans détour : cette fenêtre se remplit vite, et les performances baissent à mesure qu’elle se remplit. Sur un projet entier, Claude finit par oublier tes premières consignes.
+- **Tu ne peux pas relire.** Personne ne relit sérieusement 1 500 lignes produites en une fois. Or, tu l’as vu, relire est **ton** travail : c’est là qu’on attrape les failles de sécurité et les bugs.
+- **Tu ne sais plus quoi annuler.** Si le jeu plante, quelle partie est fautive ? Les rounds, la sauvegarde, l’interface ? Avec un seul énorme changement, tu ne peux que tout garder ou tout jeter.
+- **L’IA décide à ta place.** Un prompt vague laisse Claude inventer le game design : règles, chiffres, interface. Tu obtiens *un* jeu, pas *ton* jeu.
+
+<Erreur titre="Le prompt « tout-en-un »">
+« Fais-moi un simulator complet avec des pets, une boutique, des rebirths et une sauvegarde. » Tu obtiendras peut-être quelque chose qui démarre, mais tu seras incapable de dire si c’est sûr, de le corriger sans tout casser, ou d’ajouter une fonctionnalité sans que Claude réécrive la moitié du reste. Un gros projet se construit **brique par brique**.
+</Erreur>
+
+## La méthode : de l’idée au commit
+
+La méthode tient en six étapes. Les deux premières se font une seule fois ; les quatre dernières forment une boucle que tu répètes pour chaque tâche.
+
+```text
+1. Mini game design doc (GDD)   → ce que fait le jeu, en une page
+2. Plan (mode plan)             → Claude propose, tu corriges, tu valides
+3. Liste de petites tâches      → enregistrée dans TACHES.md
+   ┌──────────────────────────────────────────────────────────┐
+   │ 4. UNE tâche = UN prompt précis                           │
+   │ 5. Relecture + test dans Studio (+ selene et StyLua)      │
+   │ 6. Commit Git                                             │
+   └───────────── tâche suivante (et /clear) ─────────────────┘
+```
+
+**1. Le mini game design doc.** Un GDD (*game design document*, document de conception) décrit le jeu du point de vue du joueur : la boucle de jeu, les règles, les chiffres, l’interface, et surtout **ce qui n’est pas dans la version 1**. Une page suffit. Rédige-le toi-même : c’est là que tu prends les décisions de créateur. Enregistre-le dans le projet (`GDD.md`) pour que Claude puisse le lire.
+
+**2. Le plan.** En **mode plan**, Claude lit et explore le projet sans modifier aucun fichier, puis propose une démarche (la [leçon 3](/modules/02/claude-code-de-a-a-z/) explique comment l’activer avec `Shift+Tab` ou `/plan`). Tu lui demandes un plan découpé en tâches, tu le discutes, puis tu le fais enregistrer dans un fichier `TACHES.md`.
+
+**3. Les petites tâches.** Une bonne tâche :
+
+- ajoute **une seule** fonctionnalité, et touche en général 1 à 3 fichiers ;
+- peut être **testée seule** dans Studio, avec un critère de réussite clair (« en Play, je vois `Pieces 0` dans le classement ») ;
+- se décrit en une phrase. La documentation de Claude Code donne d’ailleurs ce repère : si tu peux décrire le changement en une phrase, il n’y a même pas besoin de plan.
+
+**4. Une tâche par prompt.** Chaque prompt suit le gabarit de la [leçon 4](/modules/02/l-art-du-prompt-precis/) (contexte, existant, objectif, fichiers, contraintes, sécurité, cas limites, vérification). Pas besoin d’y répéter les conventions : ton `CLAUDE.md` les donne déjà à chaque session.
+
+**5. Relire et tester.** Lis ce que Claude a modifié (les changements s’affichent dans la conversation, et la commande `git diff` les montre tous), lance `selene` et `StyLua`, puis teste **dans Studio** le critère de réussite de la tâche. La leçon 6 détaille la checklist de relecture.
+
+**6. Commiter.** Quand la tâche marche, enregistre-la dans Git. Dans un deuxième terminal ouvert dans le dossier du projet, tape ces deux commandes l’une après l’autre :
+
+```bash
+git add -A
+git commit -m "Tâche 1 : configuration du mini-jeu"
+```
+
+Tu peux aussi les taper dans Claude Code en commençant la ligne par `!` (mode shell), ou demander à Claude « fais le commit avec le message … ». Chaque commit devient un **point de retour sûr** : si la tâche suivante casse tout, tu reviens à cet état (les checkpoints de Claude Code et `/rewind`, vus en leçon 3, dépannent dans une session, mais la documentation rappelle qu’ils ne remplacent pas Git).
+
+<Astuce titre="Une tâche, une conversation">
+Entre deux tâches, tape `/clear` pour repartir d’un contexte vide. Rien n’est perdu : le plan est dans `TACHES.md`, les règles dans `CLAUDE.md`, le code dans les fichiers. Ton prompt commence simplement par « Tâche 4 de TACHES.md ». Claude travaille alors avec un contexte propre, centré sur la tâche du moment.
+</Astuce>
+
+## Exemple complet : le mini-jeu « Lave Montante »
+
+Place à la pratique. Tu vas suivre la construction complète d’un mini-jeu à rounds, très courant sur Roblox :
+
+1. les joueurs attendent dans un **lobby** (salle d’attente) ;
+2. quand il y a assez de joueurs, une **intermission** (compte à rebours) démarre ;
+3. tout le monde est téléporté dans une **arène** ;
+4. la **lave monte** : il faut grimper sur les plateformes pour survivre ;
+5. les **survivants gagnent des pièces**, puis tout le monde revient au lobby ;
+6. le jeu **nettoie** l’arène et recommence.
+
+C’est un projet séparé de l’Obby des Nuages : tu peux le réaliser comme entraînement, dans un nouveau dossier, avant d’appliquer la même méthode à ton obby. Le code final complet est donné à la fin de la leçon.
+
+### Étape 0 : préparer le projet
+
+Crée un projet Rojo versionné avec Git ([leçon 2](/modules/02/installer-un-workflow-pro/)), avec les outils `selene` et `StyLua`, et un `CLAUDE.md` (leçon 3). Pour ce mini-jeu, le `CLAUDE.md` reprend le modèle de la leçon 3 en l’adaptant : il précise en plus que tous les réglages chiffrés vont dans le module `Config`, et que le module `ReglesRound` ne contient que des calculs (sans service Roblox), pour pouvoir le tester automatiquement (leçon 6).
+
+Dans `default.project.json`, déclare dans `ReplicatedStorage` un Folder `Remotes` contenant un RemoteEvent `Notification`, et un Folder vide `EtatRound` (le serveur y publiera l’état du round sous forme d’**attributs**, des valeurs attachées à une instance et répliquées aux clients).
+
+Puis construis le décor **à la main** dans Studio (les modules 1 et 3 t’ont appris à le faire) :
+
+- supprime la SpawnLocation du modèle Baseplate ;
+- crée un Folder `Lobby` avec un sol et une **SpawnLocation** nommée `ApparitionLobby` (la seule du jeu, pour que les éliminés réapparaissent au lobby) ;
+- crée un Folder `Arene`, loin du lobby, avec des plateformes ancrées jusqu’à 45 studs de haut, un Folder `PointsApparition` (quelques Parts ancrées, invisibles, sans collision, posées au sol de l’arène) et une Part `DepartLave` (ancrée, à plat, invisible, sans collision, aussi large que l’arène et posée à son niveau de sol).
+
+### Le mini game design doc
+
+Voici le `GDD.md` du jeu. Il tient en une page, et chaque chiffre y est décidé par toi, pas par l’IA.
+
+```markdown
+# Lave Montante — mini game design doc (v1)
+
+## Le jeu en une phrase
+Des rounds courts : les joueurs attendent dans un lobby, sont téléportés dans une arène,
+et doivent grimper pour échapper à la lave qui monte. Les survivants gagnent des pièces.
+
+## Boucle de jeu
+1. Attente dans le lobby tant qu'il y a moins de JOUEURS_MIN joueurs.
+2. Intermission : compte à rebours de 15 s dans le lobby.
+3. Round : téléportation dans l'arène ; 5 s de répit ; la lave monte jusqu'à 40 studs en 60 s.
+4. Un joueur touché par la lave est éliminé (il réapparaît dans le lobby).
+5. Fin : chaque survivant gagne 25 pièces (+25 s'il est le dernier survivant d'un round
+   à plusieurs) et 1 victoire, puis retour au lobby.
+6. On recommence.
+
+## Règles
+- Le serveur décide de tout : phases, chronomètre, élimination, récompenses. Le client n'envoie rien.
+- Un joueur qui arrive pendant un round attend le suivant dans le lobby.
+- Un joueur qui part pendant un round est retiré proprement.
+- Entre deux rounds, il ne reste rien : lave détruite, connexions coupées, participants oubliés.
+
+## Interface
+- Un bandeau en haut : « En attente de joueurs (1/2) », « Prochain round dans 12 s »,
+  « La lave monte ! Encore 34 s », « Fin du round : 2 survivant(s) ».
+- Un message personnel au survivant : « Tu as survécu ! +25 pièces ».
+
+## Hors périmètre de la v1
+Sauvegarde des pièces (DataStore), boutique, plusieurs arènes, sons, classement global.
+```
+
+Remarque la dernière section : dire ce qu’on **ne fait pas** protège la v1 contre l’ajout sans fin de fonctionnalités (le *scope creep* du module 0).
+
+### Le prompt de planification
+
+Active le mode plan (`Shift+Tab` jusqu’à voir `⏸ plan mode on`, ou commence ton message par `/plan`), puis envoie :
+
+<Prompt titre="Planifier Lave Montante">
+
+```text
+Contexte : je crée le mini-jeu Roblox « Lave Montante » dans ce projet Rojo. Lis d'abord CLAUDE.md et GDD.md.
+Ce qui existe déjà : aucun script. default.project.json déclare ReplicatedStorage.Remotes.Notification (RemoteEvent) et le Folder ReplicatedStorage.EtatRound. J'ai construit à la main dans Studio Workspace.Lobby (SpawnLocation ApparitionLobby) et Workspace.Arene (Folder PointsApparition, Part DepartLave).
+Objectif : propose un plan de construction découpé en 6 à 10 petites tâches, dans l'ordre où les faire. Ne code rien.
+Contraintes techniques : chaque tâche ajoute une seule fonctionnalité, touche 1 à 3 fichiers et peut se tester seule dans Studio. Pour chaque tâche, donne : un titre, les fichiers créés ou modifiés, ce qu'elle fait, et le test qui prouve qu'elle marche.
+Sécurité : le serveur décide de tout (phases, élimination, récompenses) ; le client ne fait qu'afficher. Prévois une tâche pour le nettoyage entre les rounds et les cas limites.
+Cas limites : joueur qui part en plein round, joueur qui arrive en plein round, pas assez de joueurs.
+Vérification : quand je validerai le plan, ta seule action sera d'écrire la liste dans TACHES.md, sans coder aucune tâche.
+```
+
+</Prompt>
+
+Claude lit les deux fichiers, explore le projet et propose un plan. **Lis-le de près** et discute-le avant de valider : c’est le moment le moins cher pour changer d’avis. Par exemple, si une tâche mélange l’interface et les phases du jeu, réponds simplement « sépare l’interface dans une tâche à part, à la fin ». Une fois le plan validé, Claude écrit `TACHES.md`.
+
+<Info titre="Ton résultat sera un peu différent">
+Une IA ne répond jamais deux fois exactement de la même façon. Ton plan et ton code ne seront pas identiques mot pour mot à ceux de cette leçon. Ce qui compte, c’est qu’ils respectent les mêmes règles et passent les mêmes tests. Le plan ci-dessous, les prompts et le code final te servent de **référence** pour comparer.
+</Info>
+
+### La liste des tâches
+
+| # | Tâche | Fichiers | Test de réussite |
+|---|---|---|---|
+| 1 | Réglages du jeu | `Config.luau` | la Command Bar affiche une valeur de `Config` |
+| 2 | Tableau des scores | `Leaderstats.server.luau` | en Play, le classement montre `Pieces` et `Victoires` à 0 |
+| 3 | Règles du round (calculs purs) | `ReglesRound.luau` + test | `lune run tests/ReglesRound.spec.luau` : tout est « OK » |
+| 4 | Boucle des phases | `GestionRounds.server.luau` | les attributs d’`EtatRound` passent par toutes les phases |
+| 5 | Téléportation | `GestionRounds.server.luau` | arène au début du round, lobby à la fin |
+| 6 | La lave qui monte | `Lave.luau`, `GestionRounds.server.luau` | la lave monte et élimine qui reste en bas |
+| 7 | Récompenses, nettoyage, cas limites | `GestionRounds.server.luau` | à 2 clients : bons gains, rien ne reste entre les rounds |
+| 8 | Interface | `InterfaceLave`, `AffichageRound.client.luau` | le bandeau suit les phases |
+| 9 | Revue finale | aucun nouveau fichier | relecture, `/code-review`, test à 3 clients |
+
+Neuf tâches, chacune vérifiable en quelques minutes. Pour chacune, voici le prompt, ce qu’il faut tester, ce qu’il faut relire et le message de commit.
+
+### Tâche 1 : les réglages du jeu
+
+<Prompt titre="Tâche 1 : Config">
+
+```text
+Contexte : tâche 1 de TACHES.md, mini-jeu Lave Montante.
+Objectif : regrouper tous les réglages chiffrés du GDD dans un ModuleScript.
+Fichiers concernés : crée src/ReplicatedStorage/Modules/Config.luau. Ne modifie rien d'autre.
+Contraintes techniques : une table de constantes en MAJUSCULES, chacune commentée en français : JOUEURS_MIN = 2, DUREE_INTERMISSION = 15, DUREE_ROUND = 60, DELAI_AVANT_LAVE = 5, HAUTEUR_MAX_LAVE = 40, RECOMPENSE_SURVIE = 25, BONUS_DERNIER_SURVIVANT = 25, INTERVALLE_VERIFICATION = 0.2 (secondes entre deux mises à jour de la lave), DUREE_FIN_ROUND = 5. Renvoie la table gelée avec table.freeze.
+Vérification : selene et StyLua sans erreur ; dis-moi quelle commande taper dans la Command Bar de Studio pour afficher DUREE_ROUND.
+```
+
+</Prompt>
+
+**À tester dans Studio :** dans la Command Bar (module 1), `print(require(game.ReplicatedStorage.Modules.Config).DUREE_ROUND)` affiche `60`.
+
+**À relire :** toutes les valeurs du GDD sont présentes, avec les bons chiffres ; aucune valeur inventée en plus.
+
+**Commit :** `git add -A`, puis `git commit -m "Tâche 1 : configuration du mini-jeu"` (même chose à chaque tâche, seul le message change).
+
+### Tâche 2 : le tableau des scores
+
+<Prompt titre="Tâche 2 : leaderstats">
+
+```text
+Contexte : tâche 2 de TACHES.md.
+Objectif : chaque joueur voit dans le classement ses pièces et ses victoires, à 0 en arrivant.
+Fichiers concernés : crée src/ServerScriptService/Leaderstats.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : Script serveur ; à Players.PlayerAdded, crée le Folder « leaderstats » avec deux IntValue « Pieces » et « Victoires ». Traite aussi les joueurs déjà présents au démarrage du script (task.spawn).
+Sécurité : seul le serveur crée et modifie ces valeurs.
+Vérification : en Play, le classement en haut à droite affiche Pieces 0 et Victoires 0.
+```
+
+</Prompt>
+
+**À tester dans Studio :** en Play, le classement affiche les deux colonnes.
+
+**À relire :** le dossier s’appelle exactement `leaderstats` (en minuscules, sinon Roblox ne l’affiche pas) ; le script est un Script serveur (`.server.luau`), pas un LocalScript.
+
+**Commit :** `git commit -m "Tâche 2 : leaderstats Pieces et Victoires"`
+
+### Tâche 3 : les règles du round, testées
+
+Cette tâche isole les **calculs** du jeu dans un module sans aucun service Roblox. Avantage : on peut les vérifier automatiquement, en une seconde, sans lancer Studio, avec **Lune** (un programme qui exécute du Luau en dehors de Roblox). Installe-le dans le dossier du projet avec `rokit add lune-org/lune` ; la leçon 6 explique en détail ces tests.
+
+<Prompt titre="Tâche 3 : ReglesRound">
+
+```text
+Contexte : tâche 3 de TACHES.md. Config existe (tâche 1).
+Objectif : un ModuleScript de calculs purs, utilisé par le serveur, et ses tests automatiques.
+Fichiers concernés : crée src/ReplicatedStorage/Modules/ReglesRound.luau et tests/ReglesRound.spec.luau. Ne modifie rien d'autre.
+Contraintes techniques : ReglesRound ne contient AUCUN service Roblox ni instance (il doit tourner avec Lune). Fonctions, avec des paramètres explicites (pas de require de Config) :
+- assezDeJoueurs(nombreJoueurs, minimum) -> boolean
+- hauteurLave(tempsEcoule, delai, dureeRound, hauteurMax) -> number : 0 pendant le délai, puis montée régulière jusqu'à hauteurMax à la fin du round, jamais au-delà
+- recompense(nombreSurvivants, nombreParticipants, base, bonusDernier) -> number : 0 sans survivant ; base + bonusDernier pour un survivant unique d'un round à au moins 2 participants ; base sinon
+Le fichier de test affiche OK ou RATÉ pour chaque cas et finit par error() si un test échoue.
+Cas limites à tester : 1 joueur sur 2 requis, temps dans le délai, mi-montée, temps après la fin, aucun survivant, survivant seul dans un round à 1 joueur.
+Vérification : lance « lune run tests/ReglesRound.spec.luau » et montre-moi la sortie.
+```
+
+</Prompt>
+
+**À tester :** la sortie de Lune n’affiche que des lignes `OK` (pas besoin de Studio pour cette tâche).
+
+**À relire :** les cas de test correspondent bien au GDD (vérifie toi-même un calcul : à mi-montée, la lave doit être à 20 studs) ; le module ne contient aucun `game:GetService`.
+
+**Commit :** `git commit -m "Tâche 3 : règles du round et tests"`
+
+### Tâche 4 : la boucle des phases
+
+<Prompt titre="Tâche 4 : boucle des phases">
+
+```text
+Contexte : tâche 4 de TACHES.md. Config et ReglesRound existent (tâches 1 et 3).
+Objectif : la boucle des phases du jeu, SANS téléportation ni lave pour l'instant. « Attente » tant qu'il y a moins de Config.JOUEURS_MIN joueurs ; « Intermission » avec compte à rebours de Config.DUREE_INTERMISSION secondes ; « EnJeu » pendant Config.DUREE_ROUND secondes ; « Fin » pendant Config.DUREE_FIN_ROUND secondes ; puis on recommence.
+Fichiers concernés : crée src/ServerScriptService/GestionRounds.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : publie l'état dans les attributs Phase (string) et TempsRestant (number) du Folder ReplicatedStorage.EtatRound, via une fonction changerPhase(phase, tempsRestant). Une fonction par phase : attendreJoueurs, intermission, jouerRound, terminerRound. Utilise ReglesRound.assezDeJoueurs.
+Sécurité : n'écoute aucun RemoteEvent : le client n'a rien à envoyer dans ce jeu.
+Cas limites : chaque boucle contient un task.wait ; si des joueurs partent pendant l'intermission et qu'il n'y en a plus assez, on repasse en Attente.
+Vérification : avec JOUEURS_MIN = 1, en Play, les attributs de EtatRound (fenêtre Properties, vue Server) passent par Attente, Intermission (15 à 1), EnJeu, Fin, puis Intermission. selene et StyLua sans erreur.
+```
+
+</Prompt>
+
+**À tester dans Studio :** mets temporairement `JOUEURS_MIN = 1` dans `Config`, lance Play, passe en vue **Server**, sélectionne `ReplicatedStorage.EtatRound` et regarde la section **Attributes** de la fenêtre Properties changer chaque seconde.
+
+**À relire :** chaque `while` et chaque `for` qui attend contient un `task.wait` ; aucun `OnServerEvent` ; les durées viennent de `Config`, pas de chiffres écrits en dur.
+
+**Commit :** `git commit -m "Tâche 4 : boucle des phases du round"`
+
+### Tâche 5 : la téléportation
+
+<Prompt titre="Tâche 5 : téléportation">
+
+```text
+Contexte : tâche 5 de TACHES.md. GestionRounds.server.luau gère déjà les phases (tâche 4).
+Objectif : au début de la phase EnJeu, chaque joueur dont le personnage est vivant est téléporté dans l'arène et devient « participant » ; à la fin du round, les participants encore en vie reviennent au lobby.
+Fichiers concernés : modifie uniquement src/ServerScriptService/GestionRounds.server.luau.
+Contraintes techniques : points d'arrivée = les BasePart de Workspace.Arene.PointsApparition, répartis à tour de rôle ; retour sur Workspace.Lobby.ApparitionLobby. Téléporte avec personnage:PivotTo(cible.CFrame + Vector3.new(0, 4, 0)). Garde les participants dans une table [Player] = { personnage, connexionMort }, où connexionMort est la connexion à Humanoid.Died qui retire le joueur des participants. Une fonction retirerParticipant(player) coupe la connexion (Disconnect) puis retire le joueur.
+Sécurité : la liste des participants est construite par le serveur uniquement.
+Cas limites : joueur sans personnage ou mort au début du round → pas participant ; joueur qui arrive pendant le round → reste au lobby ; erreur claire si PointsApparition est vide.
+Vérification : en Play, je suis dans l'arène pendant EnJeu et au lobby après Fin ; si je fais Reset dans l'arène, je réapparais au lobby et je ne suis plus téléporté à la fin.
+```
+
+</Prompt>
+
+**À tester dans Studio :** le scénario de la ligne « Vérification », puis le même en réinitialisant ton personnage pendant le round (touche Échap, puis **Reset Character**).
+
+**À relire :** chaque `Died:Connect` a son `Disconnect` dans `retirerParticipant` ; `PivotTo` est appelé sur le **personnage** (le Model), pas sur une seule Part ; aucun joueur n’est téléporté sans personnage.
+
+**Commit :** `git commit -m "Tâche 5 : téléportation arène et lobby"`
+
+### Tâche 6 : la lave qui monte (et le moment où ça ne marche pas)
+
+Premier essai, avec ce prompt :
+
+<Prompt titre="Tâche 6 : la lave (première version)">
+
+```text
+Contexte : tâche 6 de TACHES.md. GestionRounds téléporte déjà les participants (tâche 5).
+Objectif : pendant EnJeu, une lave monte depuis Workspace.Arene.DepartLave et élimine les joueurs qu'elle touche.
+Fichiers concernés : crée src/ServerScriptService/Lave.luau (ModuleScript) et modifie GestionRounds.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : Lave.creer(depart, parent) crée une Part ancrée, sans collision, Neon orange, de la largeur de DepartLave ; Lave.mettreAHauteur(lave, depart, hauteur) règle sa taille et sa position. Dans jouerRound, toutes les Config.INTERVALLE_VERIFICATION secondes, calcule la hauteur avec ReglesRound.hauteurLave.
+Sécurité : l'élimination est faite par le serveur.
+Vérification : la lave monte pendant le round ; un joueur resté en bas est éliminé ; un joueur sur une plateforme haute survit.
+```
+
+</Prompt>
+
+Avec ce prompt, Claude choisira très probablement la solution qu’on voit dans la plupart des tutoriels : l’événement `Touched`. Le module est propre, la lave monte bien… mais au test, **un joueur qui reste immobile au sol n’est pas toujours éliminé**, alors qu’il est noyé dans la lave. En relisant le code, on trouve quelque chose comme ceci :
+
+```luau
+-- Première version proposée par Claude (extrait du ModuleScript Lave) :
+-- la lave élimine les joueurs qu'elle touche
+local Lave = {}
+
+function Lave.activer(lave: BasePart): RBXScriptConnection
+	return lave.Touched:Connect(function(partieTouchee: BasePart)
+		local personnage = partieTouchee.Parent
+		local humanoid = if personnage then personnage:FindFirstChildOfClass("Humanoid") else nil
+		if humanoid then
+			humanoid.Health = 0
+		end
+	end)
+end
+
+return Lave
+```
+
+Le code est lisible et ne provoque aucune erreur, mais il repose sur une hypothèse fausse. La documentation de `BasePart.Touched` précise que l’événement se déclenche seulement à la suite d’un **mouvement physique** : il ne se déclenche pas quand on change le `CFrame` d’une Part pour qu’elle chevauche une autre Part. Or la lave monte justement en changeant sa taille et son `CFrame`. Un joueur qui bouge déclenche le contact ; un joueur immobile, pas toujours.
+
+Remarque que le prompt est en partie responsable : « élimine les joueurs qu’elle touche » laissait Claude choisir la méthode, et il a choisi la plus courante. Pas besoin de tout recommencer, ni de taper « ça marche pas, corrige » (un prompt vague donnerait une correction au hasard). On écrit un **prompt ciblé** qui décrit le symptôme, la cause et la solution attendue :
+
+<Prompt titre="Tâche 6 : correction ciblée">
+
+```text
+Contexte : tâche 6. Test dans Studio : la lave monte bien, mais un joueur immobile au sol n'est pas toujours éliminé. Cause : Lave.activer utilise Touched, or la doc de BasePart.Touched indique qu'il ne se déclenche pas quand on change le CFrame d'une Part (la lave monte par CFrame et Size).
+Objectif : remplacer la détection par Touched par une vérification de hauteur faite par le serveur.
+Fichiers concernés : src/ServerScriptService/Lave.luau, src/ServerScriptService/GestionRounds.server.luau, src/ReplicatedStorage/Modules/ReglesRound.luau et tests/ReglesRound.spec.luau. Ne modifie rien d'autre.
+Contraintes techniques : supprime Lave.activer et mets CanTouch = false sur la lave. Ajoute Lave.dessus(lave) qui renvoie la coordonnée Y du dessus de la lave. Ajoute la fonction pure ReglesRound.estSousLaLave(hauteurJoueur, hauteurDessusLave) et deux tests (au-dessus, en dessous). Dans la boucle de jouerRound, après chaque mise à jour de la lave : pour chaque participant, si la PrimaryPart de son personnage est sous le dessus de la lave, mets Health = 0 sur son Humanoid et retire-le des participants.
+Cas limites : participant dont le personnage, la PrimaryPart ou l'Humanoid a disparu → simplement retiré. Le round s'arrête aussi quand il ne reste aucun participant.
+Vérification : un joueur immobile au sol est éliminé quand la lave atteint sa taille ; un joueur en haut d'une plateforme survit ; lune run tests/ReglesRound.spec.luau tout OK ; selene et StyLua sans erreur.
+```
+
+</Prompt>
+
+**À tester dans Studio :** reste immobile au sol (élimination attendue), puis recommence en grimpant (survie attendue). Lance aussi les tests Lune.
+
+**À relire :** plus aucun `Touched` ; la boucle de `jouerRound` contient un `task.wait` ; un participant est retiré **avant** de passer au suivant (pas d’élimination comptée deux fois).
+
+**Commit :** `git commit -m "Tâche 6 : lave montante et élimination par le serveur"`
+
+<Info titre="La leçon à retenir de ce raté">
+Le premier résultat n’était pas « bête » : `Touched` est la solution qu’on voit dans des milliers de tutoriels. C’est le test dans Studio qui a révélé le problème, et la documentation officielle qui a donné la cause. Si tu avais tout demandé d’un coup, ce défaut serait passé inaperçu au milieu du reste. Et la prochaine fois, ton prompt précisera la méthode de détection dès le départ.
+</Info>
+
+### Tâche 7 : récompenses, nettoyage et cas limites
+
+<Prompt titre="Tâche 7 : récompenses et nettoyage">
+
+```text
+Contexte : tâche 7 de TACHES.md. Les phases, la téléportation et la lave fonctionnent (tâches 4 à 6).
+Objectif : à la fin du round, chaque survivant gagne ReglesRound.recompense(...) pièces et 1 victoire, et reçoit le message « Tu as survécu ! +N pièces » ; entre deux rounds, il ne reste plus rien du round précédent.
+Fichiers concernés : modifie uniquement src/ServerScriptService/GestionRounds.server.luau.
+Contraintes techniques : terminerRound calcule le gain une fois (nombre de survivants, nombre de participants au départ, Config.RECOMPENSE_SURVIE, Config.BONUS_DERNIER_SURVIVANT), met à jour leaderstats.Pieces et leaderstats.Victoires (vérifie qu'elles existent), envoie le message avec Remotes.Notification:FireClient, publie l'attribut Survivants sur EtatRound, attend Config.DUREE_FIN_ROUND, puis ramène les survivants au lobby. Une fonction nettoyerRound() retire tous les participants (avec Disconnect) et détruit la lave avec Destroy.
+Sécurité : le gain est calculé par le serveur ; aucun montant ne vient du client.
+Cas limites : Players.PlayerRemoving retire le joueur des participants ; le cycle d'un round est exécuté dans un pcall et nettoyerRound() est appelé après, même en cas d'erreur (warn de l'erreur), pour que le jeu ne s'arrête jamais.
+Vérification : en Server & Clients avec 2 clients et JOUEURS_MIN = 2 : si un seul survit, il gagne 50 pièces ; si les deux survivent, 25 chacun ; si un client quitte en plein round, le round continue sans erreur ; après 3 rounds, Workspace.Arene ne contient aucune Part « Lave ».
+```
+
+</Prompt>
+
+**À tester dans Studio :** le test à 2 clients de la ligne « Vérification » (module 1, leçon 4). Pendant la phase Attente, vérifie dans l’Explorer (vue Server) qu’aucune Part `Lave` ne traîne dans `Arene`.
+
+**À relire :** `nettoyerRound` appelle bien `Destroy` sur la lave et `Disconnect` sur chaque connexion ; les pièces sont ajoutées côté serveur ; le `pcall` entoure le round entier et le nettoyage est fait après.
+
+**Commit :** `git commit -m "Tâche 7 : récompenses, nettoyage et cas limites"`
+
+### Tâche 8 : l’interface
+
+<Prompt titre="Tâche 8 : interface">
+
+```text
+Contexte : tâche 8 de TACHES.md. Le serveur publie Phase, TempsRestant et Survivants dans les attributs de ReplicatedStorage.EtatRound, et envoie des messages par Remotes.Notification (tâches 4 et 7).
+Objectif : un bandeau en haut de l'écran affiche l'état du round (textes exacts dans GDD.md) et un message central affiche les notifications pendant 3 secondes.
+Fichiers concernés : crée src/StarterGui/InterfaceLave/ (init.meta.json : ScreenGui avec ResetOnSpawn = false ; Statut.model.json et Message.model.json : deux TextLabel en Scale, TextScaled avec UITextSizeConstraint) et src/StarterPlayer/StarterPlayerScripts/AffichageRound.client.luau. Ne modifie rien d'autre.
+Contraintes techniques : LocalScript ; mets à jour le texte avec GetAttributeChangedSignal, jamais dans une boucle à chaque image ; en phase Attente, affiche « En attente de joueurs (X/Config.JOUEURS_MIN) ». Un message plus récent ne doit pas être caché par le délai d'un message plus ancien.
+Sécurité : ce script n'envoie rien au serveur.
+Vérification : le bandeau suit les phases en Play ; le message « Tu as survécu ! » s'affiche 3 s ; affichage lisible dans l'émulateur de téléphone de Studio.
+```
+
+</Prompt>
+
+**À tester dans Studio :** les textes du bandeau à chaque phase, le message de survie, et l’affichage sur un petit écran avec l’émulateur d’appareils (module 1, leçon 4).
+
+**À relire :** aucun `FireServer` ; pas de `RenderStepped` ni de boucle `while` pour l’affichage ; les tailles sont en Scale (proportions de l’écran), pas en pixels.
+
+**Commit :** `git commit -m "Tâche 8 : interface du round"`
+
+### Tâche 9 : la revue finale
+
+Le jeu est complet. Avant de le considérer comme terminé :
+
+1. Repasse la checklist de la [leçon 6](/modules/02/relire-et-tester-le-code-de-l-ia/) sur chaque fichier, ou fais-la appliquer par un sous-agent relecteur (leçon 6).
+2. Lance `/code-review src` dans Claude Code pour une relecture automatique des fichiers du jeu (commande présentée en leçon 6).
+3. Teste en **Server & Clients avec 3 clients** : plusieurs rounds d’affilée, un client qui quitte pendant l’intermission, un autre pendant le round.
+4. Remets `JOUEURS_MIN = 2` si tu l’avais baissé pour tes tests.
+
+**Commit :** `git commit -m "Tâche 9 : revue finale, version 1 terminée"`
+
+<Defi>
+Ajoute une tâche 10 à `TACHES.md` : la sauvegarde des pièces et des victoires avec un DataStore (module 5, leçon 2). Écris toi-même le prompt avec le gabarit complet, sans oublier `pcall`, les nouvelles tentatives, `UpdateAsync` et `BindToClose`. Puis suis la boucle : prompt, relecture, test, commit.
+</Defi>
+
+## Le code final complet
+
+Voici le code de référence obtenu à la fin des neuf tâches. Le tien sera formulé un peu autrement, mais il doit faire la même chose et passer les mêmes vérifications. Si tu n’utilises pas Rojo, crée chaque script au bon endroit dans Studio (le type et l’emplacement sont indiqués en première ligne), puis crée à la main dans `StarterGui` un ScreenGui `InterfaceLave` (`ResetOnSpawn` décoché) contenant deux TextLabel : `Statut` (bandeau en haut, `TextScaled`) et `Message` (au centre, `Visible` décoché). Dans `ReplicatedStorage`, crée le Folder `EtatRound` et le Folder `Remotes` avec le RemoteEvent `Notification`.
+
+```luau
+-- ModuleScript « Config » dans ReplicatedStorage > Modules (lu par le serveur ET par le client)
+-- Tous les réglages du mini-jeu Lave Montante, au même endroit.
+local Config = {
+	JOUEURS_MIN = 2, -- joueurs nécessaires pour lancer un round (mets 1 pour tester seul)
+	DUREE_INTERMISSION = 15, -- secondes d'attente dans le lobby avant chaque round
+	DUREE_ROUND = 60, -- durée maximale d'un round, en secondes
+	DELAI_AVANT_LAVE = 5, -- secondes de répit dans l'arène avant que la lave commence à monter
+	HAUTEUR_MAX_LAVE = 40, -- hauteur atteinte par la lave à la fin du round, en studs
+	RECOMPENSE_SURVIE = 25, -- pièces gagnées par chaque survivant
+	BONUS_DERNIER_SURVIVANT = 25, -- bonus si un seul joueur survit à un round à plusieurs
+	INTERVALLE_VERIFICATION = 0.2, -- secondes entre deux contrôles de la lave par le serveur
+	DUREE_FIN_ROUND = 5, -- secondes d'affichage des résultats avant le retour au lobby
+}
+
+-- Personne ne peut modifier ces réglages pendant la partie (une erreur apparaîtrait)
+return table.freeze(Config)
+```
+
+```luau
+-- ModuleScript « ReglesRound » dans ReplicatedStorage > Modules
+-- Les règles du round sous forme de calculs PURS : aucun service Roblox, aucune instance.
+-- C'est ce qui permet de les tester automatiquement en dehors de Studio (module 2, leçon 6).
+local ReglesRound = {}
+
+-- Vrai si assez de joueurs sont connectés pour lancer un round
+function ReglesRound.assezDeJoueurs(nombreJoueurs: number, minimum: number): boolean
+	return nombreJoueurs >= minimum
+end
+
+-- Hauteur de la lave (en studs au-dessus de son point de départ) après « tempsEcoule » secondes de round.
+-- La lave attend « delai » secondes, puis monte régulièrement jusqu'à « hauteurMax » à la fin du round.
+function ReglesRound.hauteurLave(tempsEcoule: number, delai: number, dureeRound: number, hauteurMax: number): number
+	if tempsEcoule <= delai then
+		return 0
+	end
+	local progression = (tempsEcoule - delai) / (dureeRound - delai)
+	return math.clamp(progression, 0, 1) * hauteurMax
+end
+
+-- Vrai si le centre du personnage (sa HumanoidRootPart) est passé sous le dessus de la lave
+function ReglesRound.estSousLaLave(hauteurJoueur: number, hauteurDessusLave: number): boolean
+	return hauteurJoueur < hauteurDessusLave
+end
+
+-- Pièces gagnées par CHAQUE survivant à la fin du round
+function ReglesRound.recompense(
+	nombreSurvivants: number,
+	nombreParticipants: number,
+	base: number,
+	bonusDernier: number
+): number
+	if nombreSurvivants <= 0 then
+		return 0
+	end
+	if nombreSurvivants == 1 and nombreParticipants >= 2 then
+		return base + bonusDernier -- le dernier survivant d'un round à plusieurs gagne un bonus
+	end
+	return base
+end
+
+return ReglesRound
+```
+
+```luau
+-- Script « Leaderstats » dans ServerScriptService (côté serveur)
+-- Crée le tableau des scores de chaque joueur : Pieces et Victoires.
+local Players = game:GetService("Players")
+
+local function creerLeaderstats(player: Player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats" -- nom exact attendu par Roblox (en minuscules)
+
+	local pieces = Instance.new("IntValue")
+	pieces.Name = "Pieces"
+	pieces.Parent = leaderstats
+
+	local victoires = Instance.new("IntValue")
+	victoires.Name = "Victoires"
+	victoires.Parent = leaderstats
+
+	leaderstats.Parent = player
+end
+
+Players.PlayerAdded:Connect(creerLeaderstats)
+
+-- Joueurs déjà présents avant le démarrage du script (fréquent en test dans Studio)
+for _, player in Players:GetPlayers() do
+	task.spawn(creerLeaderstats, player)
+end
+```
+
+```luau
+-- ModuleScript « Lave » dans ServerScriptService (côté serveur)
+-- Crée la lave d'un round, la fait monter et donne la hauteur de son dessus.
+local Lave = {}
+
+local EPAISSEUR_MIN = 0.2 -- une Part ne peut pas avoir une taille nulle
+
+-- Crée une Part de lave posée sur « depart » (la Part repère DepartLave de l'arène)
+function Lave.creer(depart: BasePart, parent: Instance): BasePart
+	local lave = Instance.new("Part")
+	lave.Name = "Lave"
+	lave.Anchored = true
+	lave.CanCollide = false -- on la traverse : c'est le serveur qui élimine, pas une collision
+	lave.CanTouch = false -- on n'utilise pas Touched (voir la leçon : peu fiable ici)
+	lave.CanQuery = false
+	lave.CastShadow = false
+	lave.Material = Enum.Material.Neon
+	lave.Color = Color3.fromRGB(255, 85, 0)
+	lave.Transparency = 0.2
+	lave.Size = Vector3.new(depart.Size.X, EPAISSEUR_MIN, depart.Size.Z)
+	lave.CFrame = CFrame.new(depart.Position + Vector3.new(0, EPAISSEUR_MIN / 2, 0))
+	lave.Parent = parent
+	return lave
+end
+
+-- Place le dessus de la lave à « hauteur » studs au-dessus du centre de « depart »
+function Lave.mettreAHauteur(lave: BasePart, depart: BasePart, hauteur: number)
+	local epaisseur = math.max(hauteur, EPAISSEUR_MIN)
+	lave.Size = Vector3.new(lave.Size.X, epaisseur, lave.Size.Z)
+	lave.CFrame = CFrame.new(depart.Position + Vector3.new(0, epaisseur / 2, 0))
+end
+
+-- Hauteur (coordonnée Y) du dessus de la lave
+function Lave.dessus(lave: BasePart): number
+	return lave.Position.Y + lave.Size.Y / 2
+end
+
+return Lave
+```
+
+```luau
+-- Script « GestionRounds » dans ServerScriptService (côté serveur)
+-- La boucle du jeu : attente des joueurs → intermission → round dans l'arène → récompenses → lobby.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
+
+local modules = ReplicatedStorage:WaitForChild("Modules")
+local Config = require(modules:WaitForChild("Config"))
+local ReglesRound = require(modules:WaitForChild("ReglesRound"))
+local Lave = require(ServerScriptService:WaitForChild("Lave"))
+
+local etatRound = ReplicatedStorage:WaitForChild("EtatRound")
+local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
+
+-- Construits à la main dans Studio (voir le README)
+local apparitionLobby = Workspace:WaitForChild("Lobby"):WaitForChild("ApparitionLobby") :: BasePart
+local arene = Workspace:WaitForChild("Arene")
+local dossierPoints = arene:WaitForChild("PointsApparition")
+local departLave = arene:WaitForChild("DepartLave") :: BasePart
+
+type Participant = {
+	personnage: Model,
+	connexionMort: RBXScriptConnection,
+}
+
+-- Joueurs encore en vie dans le round en cours
+local participants: { [Player]: Participant } = {}
+local laveActuelle: BasePart? = nil
+
+-- L'état du round est publié dans des attributs : le client les lit, il n'envoie jamais rien
+local function changerPhase(phase: string, tempsRestant: number)
+	etatRound:SetAttribute("Phase", phase)
+	etatRound:SetAttribute("TempsRestant", tempsRestant)
+end
+
+local function compterParticipants(): number
+	local nombre = 0
+	for _ in participants do
+		nombre += 1
+	end
+	return nombre
+end
+
+-- Retire un joueur du round (éliminé, parti ou fin du round) et coupe sa connexion
+local function retirerParticipant(player: Player)
+	local participant = participants[player]
+	if participant then
+		participant.connexionMort:Disconnect()
+		participants[player] = nil
+	end
+end
+
+local function teleporter(personnage: Model, cible: BasePart)
+	-- PivotTo déplace tout le personnage d'un coup ; +4 studs pour ne pas apparaître dans le sol
+	personnage:PivotTo(cible.CFrame + Vector3.new(0, 4, 0))
+end
+
+local function listerPointsApparition(): { BasePart }
+	local points: { BasePart } = {}
+	for _, enfant in dossierPoints:GetChildren() do
+		if enfant:IsA("BasePart") then
+			table.insert(points, enfant)
+		end
+	end
+	return points
+end
+
+-- Remet tout à zéro : appelée à la fin de CHAQUE round, même après une erreur
+local function nettoyerRound()
+	for player in participants do
+		retirerParticipant(player)
+	end
+	if laveActuelle then
+		laveActuelle:Destroy()
+		laveActuelle = nil
+	end
+end
+
+local function attendreJoueurs()
+	while not ReglesRound.assezDeJoueurs(#Players:GetPlayers(), Config.JOUEURS_MIN) do
+		changerPhase("Attente", 0)
+		task.wait(1)
+	end
+end
+
+-- Compte à rebours dans le lobby ; renvoie false si des joueurs partent entre-temps
+local function intermission(): boolean
+	for reste = Config.DUREE_INTERMISSION, 1, -1 do
+		if not ReglesRound.assezDeJoueurs(#Players:GetPlayers(), Config.JOUEURS_MIN) then
+			return false
+		end
+		changerPhase("Intermission", reste)
+		task.wait(1)
+	end
+	return true
+end
+
+-- Téléporte dans l'arène chaque joueur vivant et l'inscrit au round ; renvoie leur nombre
+local function demarrerRound(): number
+	local points = listerPointsApparition()
+	if #points == 0 then
+		error("Aucune Part dans Workspace.Arene.PointsApparition")
+	end
+	for index, player in Players:GetPlayers() do
+		local personnage = player.Character
+		local humanoid = if personnage then personnage:FindFirstChildOfClass("Humanoid") else nil
+		if personnage and humanoid and humanoid.Health > 0 then
+			teleporter(personnage, points[(index - 1) % #points + 1])
+			participants[player] = {
+				personnage = personnage,
+				connexionMort = humanoid.Died:Connect(function()
+					retirerParticipant(player) -- mort (lave, chute, reset) : éliminé
+				end),
+			}
+		end
+	end
+	return compterParticipants()
+end
+
+-- Fait monter la lave et élimine ceux qu'elle rattrape, jusqu'à la fin du temps ou du dernier survivant
+local function jouerRound()
+	local lave = Lave.creer(departLave, arene)
+	laveActuelle = lave
+	local debut = os.clock()
+	while true do
+		local ecoule = os.clock() - debut
+		local hauteur =
+			ReglesRound.hauteurLave(ecoule, Config.DELAI_AVANT_LAVE, Config.DUREE_ROUND, Config.HAUTEUR_MAX_LAVE)
+		Lave.mettreAHauteur(lave, departLave, hauteur)
+		local dessusLave = Lave.dessus(lave)
+
+		-- C'est le SERVEUR qui regarde où sont les personnages : le client ne déclare rien
+		for player, participant in participants do
+			local personnage = participant.personnage
+			local racine = personnage.PrimaryPart
+			local humanoid = personnage:FindFirstChildOfClass("Humanoid")
+			if racine == nil or humanoid == nil or personnage.Parent == nil then
+				retirerParticipant(player) -- personnage disparu : on ne le compte plus
+			elseif ReglesRound.estSousLaLave(racine.Position.Y, dessusLave) then
+				humanoid.Health = 0
+				retirerParticipant(player)
+			end
+		end
+
+		changerPhase("EnJeu", math.max(0, math.ceil(Config.DUREE_ROUND - ecoule)))
+		if ecoule >= Config.DUREE_ROUND or compterParticipants() == 0 then
+			return
+		end
+		task.wait(Config.INTERVALLE_VERIFICATION)
+	end
+end
+
+local function recompenser(player: Player, gain: number)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	if leaderstats == nil then
+		return
+	end
+	local pieces = leaderstats:FindFirstChild("Pieces")
+	local victoires = leaderstats:FindFirstChild("Victoires")
+	if pieces and pieces:IsA("IntValue") then
+		pieces.Value += gain
+	end
+	if victoires and victoires:IsA("IntValue") then
+		victoires.Value += 1
+	end
+end
+
+-- Récompense les survivants, affiche le résultat, puis les ramène au lobby
+local function terminerRound(nombreDepart: number)
+	local survivants: { Player } = {}
+	for player in participants do
+		table.insert(survivants, player)
+	end
+	local gain =
+		ReglesRound.recompense(#survivants, nombreDepart, Config.RECOMPENSE_SURVIE, Config.BONUS_DERNIER_SURVIVANT)
+	for _, player in survivants do
+		recompenser(player, gain)
+		notification:FireClient(player, `Tu as survécu ! +{gain} pièces`)
+	end
+
+	etatRound:SetAttribute("Survivants", #survivants)
+	changerPhase("Fin", Config.DUREE_FIN_ROUND)
+	task.wait(Config.DUREE_FIN_ROUND)
+
+	-- Ceux qui sont morts pendant la pause ont déjà été retirés (connexion Died)
+	for _, participant in participants do
+		teleporter(participant.personnage, apparitionLobby)
+	end
+end
+
+local function jouerUnCycle()
+	local nombreDepart = demarrerRound()
+	if nombreDepart == 0 then
+		return -- personne n'avait de personnage vivant : on recommence l'intermission
+	end
+	jouerRound()
+	terminerRound(nombreDepart)
+end
+
+-- Un joueur qui quitte le jeu en plein round ne doit plus être compté
+Players.PlayerRemoving:Connect(retirerParticipant)
+
+changerPhase("Attente", 0)
+while true do
+	attendreJoueurs()
+	if intermission() then
+		-- pcall : une erreur pendant un round ne doit pas arrêter le jeu pour toujours
+		local ok, erreur = pcall(jouerUnCycle)
+		if not ok then
+			warn("Round interrompu :", erreur)
+		end
+		nettoyerRound()
+	end
+end
+```
+
+```luau
+-- LocalScript « AffichageRound » dans StarterPlayer > StarterPlayerScripts (côté client)
+-- Affiche l'état du round et les messages du serveur. Il n'envoie RIEN au serveur.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+local etatRound = ReplicatedStorage:WaitForChild("EtatRound")
+local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
+
+local joueur = Players.LocalPlayer
+local interface = joueur:WaitForChild("PlayerGui"):WaitForChild("InterfaceLave")
+local statut = interface:WaitForChild("Statut") :: TextLabel
+local message = interface:WaitForChild("Message") :: TextLabel
+
+local DUREE_MESSAGE = 3 -- secondes d'affichage d'un message
+
+local function texteStatut(): string
+	local phase = etatRound:GetAttribute("Phase")
+	local temps = etatRound:GetAttribute("TempsRestant") or 0
+	if phase == "Intermission" then
+		return `Prochain round dans {temps} s`
+	elseif phase == "EnJeu" then
+		return `La lave monte ! Encore {temps} s`
+	elseif phase == "Fin" then
+		local survivants = etatRound:GetAttribute("Survivants") or 0
+		return `Fin du round : {survivants} survivant(s)`
+	end
+	return `En attente de joueurs ({#Players:GetPlayers()}/{Config.JOUEURS_MIN})`
+end
+
+local function actualiser()
+	statut.Text = texteStatut()
+end
+
+-- On réagit aux changements au lieu de vérifier à chaque image : rien ne tourne pour rien
+etatRound:GetAttributeChangedSignal("Phase"):Connect(actualiser)
+etatRound:GetAttributeChangedSignal("TempsRestant"):Connect(actualiser)
+Players.PlayerAdded:Connect(actualiser)
+Players.PlayerRemoving:Connect(function()
+	task.defer(actualiser) -- le joueur qui part est encore dans la liste à cet instant
+end)
+actualiser()
+
+local numeroMessage = 0
+notification.OnClientEvent:Connect(function(texte: string)
+	numeroMessage += 1
+	local numero = numeroMessage
+	message.Text = texte
+	message.Visible = true
+	task.delay(DUREE_MESSAGE, function()
+		if numero == numeroMessage then -- un message plus récent ne doit pas être caché trop tôt
+			message.Visible = false
+		end
+	end)
+end)
+```
+
+Le fichier de test `tests/ReglesRound.spec.luau` est expliqué et donné en entier dans la leçon 6.
+
+<Astuce titre="Le plan est un document vivant">
+Si, en cours de route, tu découvres une tâche oubliée (un bug, un cas limite), ne l’ajoute pas en douce à la tâche en cours : note-la dans `TACHES.md` et traite-la à son tour, avec son propre prompt et son propre commit. Ton historique Git reste lisible, et chaque commit fait une seule chose.
+</Astuce>
+
+<Resume>
+- Ne demande jamais un jeu entier en un prompt : le contexte se remplit, tu ne peux plus relire, et tu ne sais plus quoi annuler.
+- La méthode : mini GDD écrit par toi → plan en mode plan → liste de petites tâches dans `TACHES.md`.
+- Puis, pour chaque tâche : **un prompt précis → relecture et test dans Studio → commit Git**, avec `/clear` entre deux tâches.
+- Une bonne tâche ajoute une seule fonctionnalité, touche peu de fichiers et a un critère de réussite testable.
+- Quand le résultat n’est pas bon, écris un prompt ciblé : symptôme observé, cause, solution attendue, vérification.
+- Isoler les calculs dans un module pur (comme `ReglesRound`) permet de les tester automatiquement.
+</Resume>
+
+<Sources>
+- [Best practices for Claude Code — documentation officielle (contexte, plan, une phrase = pas de plan)](https://code.claude.com/docs/en/best-practices)
+- [Permission modes — documentation Claude Code (mode plan)](https://code.claude.com/docs/en/permission-modes)
+- [Checkpointing — documentation Claude Code (les checkpoints ne remplacent pas Git)](https://code.claude.com/docs/en/checkpointing)
+- [BasePart — référence de l’API Roblox (événement Touched)](https://create.roblox.com/docs/reference/engine/classes/BasePart)
+- [PVInstance — référence de l’API Roblox (PivotTo)](https://create.roblox.com/docs/reference/engine/classes/PVInstance)
+- [Instance — référence de l’API Roblox (Destroy, attributs)](https://create.roblox.com/docs/reference/engine/classes/Instance)
+- [Attributes — documentation Roblox](https://create.roblox.com/docs/scripting/attributes)
+- [Rojo — documentation officielle](https://rojo.space/docs/v7/)
+</Sources>

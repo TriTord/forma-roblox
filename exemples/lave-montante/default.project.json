@@ -1,0 +1,34 @@
+{
+  "name": "LaveMontante",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Modules": {
+        "$path": "src/ReplicatedStorage/Modules"
+      },
+      "Remotes": {
+        "$className": "Folder",
+        "Notification": { "$className": "RemoteEvent" }
+      },
+      "EtatRound": {
+        "$className": "Folder"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src/ServerScriptService"
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "$path": "src/StarterGui"
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      }
+    }
+  }
+}

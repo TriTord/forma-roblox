@@ -1,0 +1,3 @@
+# selene : linter Luau (https://kampfkarren.github.io/selene/)
+# « roblox » ajoute les globales et les API de Roblox (game, Instance, task…)
+std = "roblox"
