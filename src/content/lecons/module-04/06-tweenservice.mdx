@@ -39,7 +39,7 @@ quiz:
   - type: vrai-faux
     question: Un joueur debout sur une plateforme ancrée qu’un tween déplace horizontalement est emporté avec elle, comme sur un tapis roulant.
     reponse: false
-    explication: "Un tween change la position de la Part directement, sans passer par la physique. D’après de nombreux retours sur le DevForum, le personnage n’est pas entraîné : la plateforme glisse sous ses pieds. Pour transporter le joueur, on utilise plutôt une solution physique, comme une PrismaticConstraint."
+    explication: "Un tween change la position de la Part directement, sans passer par la physique. D’après des retours de développeurs sur le DevForum (ce n’est pas décrit dans la documentation officielle), le personnage n’est pas entraîné : la plateforme glisse sous ses pieds. Pour transporter le joueur, on utilise plutôt une solution physique, comme une PrismaticConstraint motorisée."
   - type: qcm
     question: Où lancer le tween qui fait glisser la fenêtre de la boutique à l’écran ?
     options:
@@ -197,7 +197,7 @@ On tweene la `CFrame` plutôt que la `Position` : la CFrame contient la position
 
 ### Et le personnage, dans tout ça ?
 
-C’est le piège classique des obbys. Un tween **change directement** la position d’une Part ancrée, sans passer par le moteur physique. Résultat, d’après de nombreux retours de développeurs sur le DevForum :
+C’est un piège classique des obbys. Un tween **change directement** la position d’une Part ancrée, sans passer par le moteur physique. La documentation officielle ne décrit pas ce cas ; voici ce que rapportent des développeurs sur le DevForum (par exemple le fil cité dans les sources), à vérifier toi-même en test :
 
 - une plateforme qui **monte** pousse en général le personnage vers le haut, car il reste posé dessus : c’est le cas le plus simple ;
 - une plateforme qui se déplace **horizontalement** glisse sous les pieds du personnage, qui ne suit pas et finit par tomber.
@@ -288,7 +288,7 @@ Les animations d’interface doivent rester **courtes** (souvent moins d’une d
 - Un tween anime une propriété d’une valeur à une autre : `TweenService:Create(objet, infos, objectif)` puis `:Play()`.
 - `TweenInfo.new(durée, style, direction, répétitions, allerRetour, délai)` : l’ordre compte ; `-1` répète à l’infini.
 - Le style (`Sine`, `Back`, `Bounce`…) et la direction (`In`, `Out`, `InOut`) donnent son caractère au mouvement.
-- Une plateforme ancrée tweenée n’emporte pas le personnage horizontalement : réserve les tweens aux ascenseurs, obstacles et effets.
+- D’après des retours de développeurs, une plateforme ancrée tweenée n’emporte pas le personnage horizontalement : réserve les tweens aux ascenseurs, obstacles et effets.
 - Objets du monde : tween côté serveur ; interface : tween côté client, avec `Completed` pour enchaîner les actions.
 </Resume>
 
@@ -298,5 +298,5 @@ Les animations d’interface doivent rester **courtes** (souvent moins d’une d
 - [TweenBase (Play, Cancel, Completed) — référence API](https://create.roblox.com/docs/reference/engine/classes/TweenBase)
 - [UI animation/tweens — documentation Roblox](https://create.roblox.com/docs/ui/animation)
 - [PrismaticConstraint — documentation Roblox](https://create.roblox.com/docs/physics/constraints/prismatic)
-- [Platform moves while character doesn’t — fil d’entraide du DevForum](https://devforum.roblox.com/t/platform-moves-while-character-doesnt/1051218)
+- [Platform moves while character doesn’t — fil d’entraide du DevForum (retour de développeurs, 2021)](https://devforum.roblox.com/t/platform-moves-while-character-doesnt/1051218)
 </Sources>

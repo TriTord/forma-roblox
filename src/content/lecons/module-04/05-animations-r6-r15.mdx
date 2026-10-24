@@ -73,7 +73,7 @@ Un personnage Roblox est un **rig** : un modèle fait de parties reliées par de
 
 ### Choisir le type d’avatar de ton expérience
 
-Le réglage se trouve dans la fenêtre **Avatar Settings**, accessible depuis le menu **File** ou l’onglet **Avatar** de Studio. Le bouton **⋯** en haut de la fenêtre permet de choisir **R6**, **R15** ou **R15 & R6** (le joueur garde son choix).
+Le réglage se trouve dans la fenêtre **Avatar Settings**, accessible depuis le menu **File** ou l’onglet **Avatar** de Studio. Le bouton **⋯** en haut de la fenêtre permet de choisir le type d’avatar par défaut : **R6**, **R15** ou **R15 & R6**.
 
 Une animation est créée sur un rig d’un type donné : une animation faite pour un R15 est prévue pour des personnages R15. Le plus simple est donc de choisir **un seul type** pour ton jeu et de créer tes animations sur ce type. Pour l’Obby des Nuages, on choisit **R15**.
 
@@ -249,7 +249,7 @@ piste.Ended:Connect(function()
 end)
 ```
 
-Quand le personnage meurt ou réapparaît, l’ancien script est détruit avec l’ancien personnage (et ses connexions avec lui), puis une nouvelle copie démarre sur le nouveau personnage. Pas de connexions en double.
+Quand le personnage réapparaît, une nouvelle copie du script démarre sur le nouveau personnage, avec son propre `Animator` et sa propre piste : l’animation se joue toujours sur le personnage actuel.
 
 <Info>
 Le RemoteEvent ne transporte aucune donnée sensible : il dit juste « joue l’animation ». Même si un exploiteur le déclenchait chez lui, il ne ferait que danser sur son écran (et chez les autres, puisque c’est son personnage). Aucune récompense ne dépend de ce message : les récompenses restent décidées par le serveur.

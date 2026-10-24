@@ -5,7 +5,7 @@
 - [x] 1. ARCHITECTE : stack, structure, composants (quiz, progression, badges, recherche), plan des leçons
 - [x] 2. Validation du plan par le chef d'orchestre (58 leçons, fil rouge « Obby des Nuages »)
 - [x] 3. RÉDACTEURS : modules 0 à 10 (58 leçons + 11 examens)
-- [ ] 4. VÉRIFICATEURS passe 1 (faits + sources) — lancée module par module dès qu'un rédacteur finit
+- [x] 4. VÉRIFICATEURS passe 1 (faits + sources) — 11 modules
 - [ ] 5. VÉRIFICATEURS passe 2 (indépendants : code Luau + quiz + re-vérif faits)
 - [ ] 6. Consolidation VERIFICATION.md
 - [ ] 7. QA : build, tests auto (Playwright/Vitest), bugs — phase 1 (infra de tests) EN COURS
@@ -20,7 +20,7 @@
 | 01 | FAIT | FAIT (12 corrections) | FAIT (9 corr.) ✅ |
 | 02 | FAIT | FAIT (14 corrections) | en cours |
 | 03 | FAIT | FAIT (8 corrections) | en cours |
-| 04 | FAIT | en cours | |
+| 04 | FAIT | FAIT (13 corr., 1 suppr.) | en cours |
 | 05 | FAIT | FAIT (21 corr., 2 suppr.) | FAIT (9 corr.) ✅ |
 | 06 | FAIT | FAIT (22 corrections) | en cours |
 | 07 | FAIT | FAIT (11 corrections) | FAIT (14 corr.) ✅ |

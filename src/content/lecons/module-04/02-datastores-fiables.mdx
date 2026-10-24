@@ -130,14 +130,14 @@ else
 end
 ```
 
-En cas d’échec, on **réessaie** quelques fois en attendant un peu plus à chaque tentative. La documentation recommande un délai croissant avec un peu de hasard, pour que tous les serveurs ne réessaient pas au même instant.
+En cas d’échec, on **réessaie** quelques fois en attendant un peu plus à chaque tentative. La page « Best practices for data stores » recommande un délai croissant (*exponential backoff*) avec un peu de hasard, pour que tous les serveurs ne réessaient pas au même instant, en plafonnant le délai et le nombre d’essais. Elle conseille aussi de ne pas réessayer une requête invalide (par exemple une valeur impossible à enregistrer) : notre version, volontairement simple, réessaie tout, mais trois fois au maximum.
 
 ### Règle 2 : un échec n’est pas un nouveau joueur
 
 C’est **le** piège qui détruit des sauvegardes. `GetAsync` renvoie `nil` pour un joueur qui n’a jamais joué : on lui donne alors des données de départ. Mais si `GetAsync` **échoue**, il ne faut surtout pas faire pareil ! Sinon, au départ du joueur, ces données vides seront sauvegardées par-dessus sa vraie progression.
 
 <Erreur titre="Sauvegarder des données par défaut après un chargement raté">
-Si le chargement échoue, ne crée pas de données de départ et ne sauvegarde **rien** pour ce joueur. Dans notre code, on l’expulse poliment avec un message pour qu’il revienne un peu plus tard. C’est frustrant sur le moment, mais bien moins que de perdre des heures de progression.
+Si le chargement échoue, ne sauvegarde **jamais rien** pour ce joueur, sinon tu écrases sa vraie progression. Dans notre code, on choisit la solution la plus simple : l’expulser poliment avec un message pour qu’il revienne un peu plus tard. Le code de référence de Roblox fait un autre choix, qu’il recommande plutôt que l’expulsion : laisser jouer avec des données par défaut marquées « à ne jamais sauvegarder », avec un message clair. Les deux respectent la règle d’or : on n’écrit jamais par-dessus des données qu’on n’a pas pu charger.
 </Erreur>
 
 ### Règle 3 : peu de requêtes, au bon moment
@@ -175,11 +175,15 @@ local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
 
 local VERSION_DONNEES = 1 -- à augmenter quand la structure des données change
 local MAX_TENTATIVES = 3
+local DELAI_MAX_FERMETURE = 25 -- secondes : Roblox n'attend que 30 s à la fermeture
 
 local DonneesJoueurs = {}
 
 -- Données en mémoire pendant la partie : [Player] = table de données
 local sessions: { [Player]: { [string]: any } } = {}
+-- Nombre de sauvegardes en cours, toutes origines confondues
+-- (départ du joueur, sauvegarde automatique, fermeture du serveur)
+local sauvegardesEnCours = 0
 
 -- Structure d'une sauvegarde toute neuve
 local function donneesParDefaut(): { [string]: any }
@@ -198,6 +202,11 @@ local function completer(donnees: { [string]: any }): { [string]: any }
 		if donnees[cle] == nil then
 			donnees[cle] = valeurParDefaut
 		end
+	end
+	-- La sauvegarde a maintenant la structure actuelle : on met à jour son
+	-- numéro de version (sans jamais baisser celui d'une sauvegarde plus récente)
+	if donnees.version < VERSION_DONNEES then
+		donnees.version = VERSION_DONNEES
 	end
 	return donnees
 end
@@ -269,6 +278,7 @@ function DonneesJoueurs.Sauvegarder(player: Player): boolean
 	end
 	lireLeaderstats(player, donnees)
 
+	sauvegardesEnCours += 1
 	local cle = "Joueur_" .. player.UserId
 	local succes, erreur = avecTentatives(function()
 		return magasin:UpdateAsync(cle, function(ancienne)
@@ -281,6 +291,7 @@ function DonneesJoueurs.Sauvegarder(player: Player): boolean
 			return donnees, { player.UserId }
 		end)
 	end)
+	sauvegardesEnCours -= 1
 	if not succes then
 		warn(`Sauvegarde impossible pour {player.Name} : {erreur}`)
 	end
@@ -292,6 +303,19 @@ function DonneesJoueurs.Liberer(player: Player)
 	sessions[player] = nil
 end
 
+-- Fermeture du serveur : sauvegarde EN PARALLÈLE toutes les sessions encore
+-- en mémoire, puis attend la fin de TOUTES les sauvegardes en cours,
+-- y compris celles déjà lancées par PlayerRemoving
+function DonneesJoueurs.SauvegarderTout()
+	for player in sessions do
+		task.spawn(DonneesJoueurs.Sauvegarder, player)
+	end
+	local debut = os.clock()
+	while sauvegardesEnCours > 0 and os.clock() - debut < DELAI_MAX_FERMETURE do
+		task.wait()
+	end
+end
+
 return DonneesJoueurs
 ```
 
@@ -299,8 +323,9 @@ Quelques explications :
 
 - **La clé** suit la convention du projet : `"Joueur_" .. player.UserId`. On utilise toujours le `UserId`, qui ne change jamais, et pas le nom du joueur, qui peut changer. La documentation recommande justement des clés stables comme `User_123456`.
 - **Une seule clé par joueur**, qui contient toute sa table : moins de requêtes, et tout est enregistré d’un bloc.
-- **Le champ `version`** prépare l’avenir. Quand tu ajouteras un champ (par exemple `meilleurTemps`), `completer` le remplira pour les anciennes sauvegardes, sans rien casser.
-- **Le deuxième élément renvoyé** par la fonction d’`UpdateAsync`, `{ player.UserId }`, associe la clé au joueur. La référence API le recommande fortement pour faciliter le suivi et la suppression des données personnelles (RGPD).
+- **Le champ `version`** prépare l’avenir. Quand tu ajouteras un champ (par exemple `meilleurTemps`), augmente `VERSION_DONNEES` : `completer` remplira le nouveau champ dans les anciennes sauvegardes et passera leur `version` au nouveau numéro. À la sauvegarde suivante, la clé porte donc le numéro le plus récent, et un serveur qui tourne encore avec l’ancienne version du jeu refusera de l’écraser (grâce au test sur `ancienne.version` dans `Sauvegarder`).
+- **Le deuxième élément renvoyé** par la fonction d’`UpdateAsync`, `{ player.UserId }`, associe la clé au joueur. La référence API le recommande fortement (paramètre `userIds`) pour faciliter le suivi et la suppression des données personnelles (RGPD). On le renvoie à chaque sauvegarde : d’après la référence d’`UpdateAsync`, des UserIds non renvoyés sont effacés.
+- **Le compteur `sauvegardesEnCours`** compte toutes les sauvegardes en cours, quelle que soit leur origine. `SauvegarderTout` s’en sert à la fermeture du serveur (voir plus bas).
 
 ### Le Script GestionJoueurs
 
@@ -308,11 +333,15 @@ Quelques explications :
 -- Script « GestionJoueurs » dans ServerScriptService (côté serveur)
 -- Remplace le Script « Leaderstats » de la leçon 1.
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs"))
 
 local INTERVALLE_SAUVEGARDE = 180 -- secondes, comme dans l'exemple officiel de Roblox
+-- false = comme l'exemple officiel : pas de sauvegarde à la fermeture d'un test Studio.
+-- Passe-le à true, sur ta copie de test uniquement, pour tester la sauvegarde dans Studio.
+local SAUVEGARDER_EN_STUDIO = false
 
 -- Crée les leaderstats à partir des données chargées
 local function creerLeaderstats(player: Player, donnees: { [string]: any })
@@ -357,20 +386,12 @@ for _, player in Players:GetPlayers() do
 	task.spawn(surArrivee, player)
 end
 
--- Fermeture du serveur : on sauvegarde tous les joueurs EN PARALLÈLE
+-- Fermeture du serveur : on sauvegarde tout le monde EN PARALLÈLE et on attend
 game:BindToClose(function()
-	local sauvegardesEnCours = 0
-	for _, player in Players:GetPlayers() do
-		sauvegardesEnCours += 1
-		task.spawn(function()
-			DonneesJoueurs.Sauvegarder(player)
-			sauvegardesEnCours -= 1
-		end)
+	if RunService:IsStudio() and not SAUVEGARDER_EN_STUDIO then
+		return -- recommandation de la référence API pour les tests dans Studio
 	end
-	-- On attend la fin de toutes les sauvegardes (30 secondes au maximum)
-	while sauvegardesEnCours > 0 do
-		task.wait()
-	end
+	DonneesJoueurs.SauvegarderTout()
 end)
 
 -- Sauvegarde automatique : un filet de sécurité si la sauvegarde finale échoue
@@ -387,11 +408,19 @@ end)
 
 ### Pourquoi BindToClose ?
 
-Quand un serveur s’arrête (mise à jour du jeu, dernier joueur parti, redémarrage), les sauvegardes lancées par `PlayerRemoving` pourraient ne pas avoir le temps de finir. `game:BindToClose` enregistre une fonction appelée **avant** l’arrêt. D’après la référence API, le serveur attend **30 secondes** que les fonctions liées se terminent, puis s’arrête quoi qu’il arrive. C’est pour ça qu’on sauvegarde tous les joueurs **en parallèle** avec `task.spawn` : 20 sauvegardes d’une seconde chacune prennent environ une seconde, et non vingt.
+Quand un serveur s’arrête (mise à jour du jeu, dernier joueur parti, redémarrage), les sauvegardes lancées par `PlayerRemoving` pourraient ne pas avoir le temps de finir. `game:BindToClose` enregistre une fonction appelée **avant** l’arrêt. D’après la référence API, le serveur attend **30 secondes** que les fonctions liées se terminent, puis s’arrête quoi qu’il arrive. D’où trois précautions dans `SauvegarderTout` :
 
-<Info>
-En test dans Studio, quand tu cliques sur **Stop**, `PlayerRemoving` et `BindToClose` peuvent tous deux sauvegarder ton joueur : c’est sans danger avec `UpdateAsync`. Studio peut aussi sembler figé quelques secondes, le temps que les sauvegardes se terminent. C’est normal.
-</Info>
+- elle sauvegarde **en parallèle** avec `task.spawn` : 20 sauvegardes d’une seconde chacune prennent environ une seconde, et non vingt ;
+- elle parcourt les **sessions en mémoire**, et pas `Players:GetPlayers()` : à la fermeture, les joueurs sont déconnectés et peuvent avoir déjà quitté la liste des joueurs alors que leur sauvegarde de départ n’est pas finie ;
+- elle attend que le compteur `sauvegardesEnCours` revienne à 0, donc aussi la fin des sauvegardes **déjà lancées** par `PlayerRemoving`, avec une limite de 25 secondes pour rester sous les 30 secondes.
+
+Un même joueur peut ainsi être sauvegardé deux fois de suite (départ + fermeture) : c’est sans danger, car les deux écritures contiennent la même table.
+
+### Et dans Studio ?
+
+La référence de `DataModel:BindToClose` conseille de vérifier `RunService:IsStudio()`, et son exemple officiel de sauvegarde **ne sauvegarde pas** à la fermeture d’un test Studio, pour deux raisons données en commentaire : ne pas écrire des données de test dans les données réelles du jeu, et ne pas bloquer l’arrêt du test. On suit cette recommandation : avec `SAUVEGARDER_EN_STUDIO = false`, la fonction liée s’arrête tout de suite dans Studio.
+
+Conséquence : dans Studio, seule la sauvegarde de `PlayerRemoving` est tentée quand tu cliques sur **Stop**, et rien ne garantit qu’elle ait le temps de se terminer avant la fin du test. Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUVEGARDER_EN_STUDIO` à `true` : l’arrêt du test peut alors prendre quelques secondes, le temps que les sauvegardes se terminent. Remets-le à `false` ensuite. Sur les serveurs en ligne, `IsStudio()` renvoie `false` : la sauvegarde à la fermeture a toujours lieu.
 
 <Astuce>
 Pour vérifier ta sauvegarde, ouvre le **Data Stores Manager** : dans le Creator Dashboard, sélectionne ton expérience, puis **Configurations ⟩ Data stores manager**. Tu peux y consulter tes DataStores et leurs clés, sans écrire une ligne de code. Pratique pour voir si `Joueur_` suivi de ton UserId contient bien tes pièces.
@@ -416,7 +445,7 @@ Il existe aussi une limite **à l’échelle de l’expérience** (tous serveurs
 
 **Stockage total** : `500 Mo + 1 Mo × nombre de joueurs uniques` ayant déjà rejoint l’expérience. Seule la dernière version de chaque clé compte.
 
-Avec notre code, un joueur coûte une lecture à l’arrivée, puis une écriture toutes les trois minutes environ, et une au départ. On est très loin des limites.
+Avec notre code, un joueur coûte une lecture à l’arrivée (`GetAsync`), puis un `UpdateAsync` toutes les trois minutes environ et un au départ. Chaque `UpdateAsync` compte à la fois comme une lecture et comme une écriture. On reste très loin des limites.
 
 ## Versions et métadonnées
 
@@ -440,7 +469,7 @@ Changer `"DonneesJoueurs_v1"` en `"DonneesJoueurs_v2"` crée un DataStore **vide
 
 Notre code a une faiblesse connue. Imagine : un joueur quitte le serveur A, dont la sauvegarde est lente (nouvelles tentatives, file d’attente). Pendant ce temps, il rejoint le serveur B, qui charge… l’**ancienne** sauvegarde. Le serveur A finit sa sauvegarde, puis, plus tard, le serveur B sauvegarde ses données périmées par-dessus. Résultat : des pertes, voire des objets dupliqués si ton jeu permet des échanges. La documentation de Roblox décrit précisément ce scénario.
 
-Le **verrouillage de session** (session locking) règle le problème : quand un serveur charge les données d’un joueur, il pose un « verrou » dans la clé (dans le même `UpdateAsync`). Tant que ce verrou est actif, les autres serveurs attendent au lieu de charger. Le serveur retire le verrou lors de la sauvegarde finale, et le verrou expire tout seul si le serveur plante.
+Le **verrouillage de session** (session locking) règle le problème : quand un serveur charge les données d’un joueur, il pose un « verrou » dans les métadonnées de la clé, dans le même `UpdateAsync` que la lecture. Tant que ce verrou est actif, les autres serveurs refusent de lire ou d’écrire cette clé. Le serveur retire le verrou lors de la sauvegarde finale, et le verrou expire s’il n’est plus rafraîchi (par exemple si le serveur plante).
 
 Pour l’Obby des Nuages version 1 (des pièces et des traînées cosmétiques, sans échanges entre joueurs), le risque reste limité et notre code suffit pour apprendre. Pour un jeu avec des échanges, des objets rares ou beaucoup d’achats, utilise une solution qui gère le verrouillage.
 
@@ -448,7 +477,7 @@ Pour l’Obby des Nuages version 1 (des pièces et des traînées cosmétiques, 
 
 La documentation de Roblox indique que les modules de DataStore tiers sont « toujours une option », souvent préférable à un système écrit de zéro, à condition de vérifier qui les maintient et comment récupérer tes données sans eux. Deux pistes :
 
-- **ProfileStore**, de loleris, successeur de ProfileService. Ce module communautaire gère pour toi le verrouillage de session et la sauvegarde automatique (toutes les 300 secondes par défaut). Son auteur précise qu’il est conçu pour les données des joueurs, pas pour les classements ni les données globales. Présentation et lien vers la documentation : [fil officiel de ProfileStore sur le DevForum](https://devforum.roblox.com/t/profilestore-save-your-player-data-easy-datastore-module/3190543).
+- **ProfileStore**, de loleris (MadStudioRoblox), successeur de ProfileService. Ce module **communautaire** (il n’est pas développé par Roblox) gère pour toi le verrouillage de session et la sauvegarde automatique (toutes les 300 secondes par défaut, d’après son auteur). Son auteur précise qu’il est conçu pour les données des joueurs, pas pour les classements ni les données globales. Liens de l’auteur : [documentation de ProfileStore](https://madstudioroblox.github.io/ProfileStore/) et [fil de présentation sur le DevForum](https://devforum.roblox.com/t/profilestore-save-your-player-data-easy-datastore-module/3190543) (octobre 2024).
 - **Le code de référence de Roblox** (« Player data and purchasing systems ») : il montre une implémentation complète avec nouvelles tentatives ordonnées et verrouillage de session. Roblox prévient qu’il sert d’exemple à étudier, pas à copier tel quel sans tests approfondis.
 
 <Info>
@@ -456,16 +485,16 @@ La documentation précise aussi que **DataStore2** est une bibliothèque ancienn
 </Info>
 
 <Defi>
-1. Publie ton expérience, active **Enable Studio Access to API Services**, puis crée `DonneesJoueurs` et `GestionJoueurs`.
+1. Sur une **copie de test** publiée de ton expérience, active **Enable Studio Access to API Services**, puis crée `DonneesJoueurs` et `GestionJoueurs`. Passe `SAUVEGARDER_EN_STUDIO` à `true` le temps de l’exercice.
 2. Lance un test, gagne quelques pièces (ou change `Pieces.Value` dans l’Explorer **côté serveur**), puis arrête le test.
-3. Relance : tes pièces doivent être revenues.
-4. Bonus : ajoute un champ `victoires = 0` dans `donneesParDefaut`. Relance un test : grâce à `completer`, ton ancienne sauvegarde reçoit le nouveau champ sans rien perdre.
+3. Relance : tes pièces doivent être revenues. Remets ensuite `SAUVEGARDER_EN_STUDIO` à `false`.
+4. Bonus : ajoute un champ `victoires = 0` dans `donneesParDefaut` et passe `VERSION_DONNEES` à 2. Relance un test : grâce à `completer`, ton ancienne sauvegarde reçoit le nouveau champ sans rien perdre.
 </Defi>
 
 <Resume>
 - `DataStoreService` sauvegarde des données côté serveur ; on active l’accès dans Studio via **Experience Settings ⟩ Security**, de préférence sur une copie de test.
 - Chaque appel est protégé par `pcall`, avec quelques nouvelles tentatives ; un **échec de chargement** ne doit jamais être traité comme un nouveau joueur.
-- On charge une fois, on garde en mémoire, et on sauvegarde au départ, à la fermeture (`BindToClose`, 30 secondes maximum) et régulièrement.
+- On charge une fois, on garde en mémoire, et on sauvegarde au départ, à la fermeture (`BindToClose`, 30 secondes maximum, en attendant **toutes** les sauvegardes en cours) et régulièrement ; dans Studio, on suit l’exemple officiel qui saute la sauvegarde de fermeture.
 - `UpdateAsync` est préférable à `SetAsync` quand plusieurs serveurs peuvent écrire la même clé ; un champ `version` permet de faire évoluer la structure.
 - Le verrouillage de session évite les écrasements entre serveurs ; ProfileStore le gère pour toi si ton jeu en a besoin.
 </Resume>
@@ -478,5 +507,6 @@ La documentation précise aussi que **DataStore2** est une bibliothèque ancienn
 - [Implement player data and purchasing systems (verrouillage de session) — Roblox](https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing)
 - [DataModel:BindToClose — référence API](https://create.roblox.com/docs/reference/engine/classes/DataModel#BindToClose)
 - [GlobalDataStore:UpdateAsync — référence API](https://create.roblox.com/docs/reference/engine/classes/GlobalDataStore#UpdateAsync)
-- [ProfileStore — fil officiel sur le DevForum](https://devforum.roblox.com/t/profilestore-save-your-player-data-easy-datastore-module/3190543)
+- [ProfileStore — documentation de l’auteur (module communautaire)](https://madstudioroblox.github.io/ProfileStore/)
+- [ProfileStore — fil de présentation de l’auteur sur le DevForum (module communautaire)](https://devforum.roblox.com/t/profilestore-save-your-player-data-easy-datastore-module/3190543)
 </Sources>
