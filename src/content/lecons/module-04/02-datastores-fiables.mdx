@@ -106,13 +106,19 @@ Par défaut, les tests dans Studio n’ont **pas** accès aux DataStores. Pour l
 3. active **Enable Studio Access to API Services** ;
 4. clique sur **Save**.
 
-Sans cette option, tu obtiens une erreur `StudioAccessToApisNotAllowed`. Avec le code de cette leçon, le chargement échoue alors à chaque test et tu es expulsé au bout de quelques secondes : c’est normal, active l’option (ou teste sur ton jeu publié). La documentation met en garde : Studio lit et écrit **les mêmes données** que le jeu en ligne. Pour un jeu déjà lancé, active plutôt cette option sur une **copie de test** de ton jeu, pour ne pas abîmer les sauvegardes des vrais joueurs.
+Sans cette option, tu obtiens une erreur `StudioAccessToApisNotAllowed`. Avec le code de cette leçon, le chargement échoue alors à chaque test et tu es expulsé au bout de quelques secondes : c’est normal, active l’option (ou teste sur ton jeu publié).
+
+La documentation met en garde : Studio lit et écrit **les mêmes données** que le jeu en ligne. Pour un jeu déjà lancé, active plutôt cette option sur une **copie de test** de ton jeu, pour ne pas abîmer les sauvegardes des vrais joueurs.
+
+<Info titre="Créer une copie de test">
+Une copie de test est un **second jeu**, séparé du vrai, qui contient le même place. Ouvre ton place dans Studio, puis utilise **File › Publish As** et publie-le comme un **nouveau jeu** (pas comme un nouveau place de ton jeu actuel : d’après la documentation, tous les places d’un même jeu partagent les mêmes DataStores). Active ensuite l’accès aux API **uniquement** dans les paramètres de cette copie. Pour un jeu que personne ne joue encore, ton jeu principal peut servir de copie de test.
+</Info>
 
 ## Les trois règles d’une sauvegarde fiable
 
 ### Règle 1 : tout appel réseau peut échouer
 
-Chaque appel à un DataStore passe par Internet. Il peut échouer : service momentanément indisponible, limite de requêtes atteinte… Quand ça arrive, la méthode lève une **erreur**, qui arrêterait ton script. On entoure donc chaque appel de `pcall` (« protected call »), qui attrape l’erreur au lieu de planter :
+Chaque appel à un DataStore passe par Internet. Il peut échouer : service momentanément indisponible, limite de requêtes atteinte… Quand ça arrive, la méthode déclenche (« lève ») une **erreur**, qui arrêterait ton script. On entoure donc chaque appel de `pcall` (« protected call »), qui attrape l’erreur au lieu de planter :
 
 ```luau
 -- Script serveur : exemple minimal de lecture protégée
@@ -165,6 +171,13 @@ On découpe la sauvegarde en deux scripts, tous deux côté serveur :
 - un **Script** `GestionJoueurs` dans **ServerScriptService** : il branche le module sur les événements du jeu. Il **remplace** le Script `Leaderstats` de la leçon 1 (supprime ce dernier).
 
 Vérifie aussi qu’aucun autre script ne crée de dossier `leaderstats` : depuis la leçon 1, le Script « Progression » du module 3 ne le fait plus. C’est important : un second dossier `leaderstats` (à 0) pourrait être celui que la sauvegarde lit, et elle enregistrerait alors 0 pièce.
+
+Dans l’ordre, dans Studio :
+
+1. Dans l’Explorer, survole **ServerScriptService**, clique sur ⊕ et choisis **ModuleScript**. Renomme-le `DonneesJoueurs`, **efface** le code de départ que Studio y a mis (`local module = {}` … `return module`), puis colle le code du module ci-dessous.
+2. Toujours dans ServerScriptService, crée un **Script** nommé `GestionJoueurs` et colle son code (plus bas).
+3. Supprime le Script `Leaderstats` de la leçon 1 (clic droit › **Delete**).
+4. Active l’accès aux API (section précédente), puis lance un test : ton nom doit apparaître dans le tableau avec `Etape` et `Pieces` (à 0 la première fois). Pour vérifier que la sauvegarde fonctionne vraiment, suis le Défi en fin de leçon.
 
 Le code utilise des **annotations de type**, comme `player: Player` ou `{ [string]: any }` (« une table dont les clés sont des textes et les valeurs n’importe quoi »). Elles sont facultatives en Luau : elles ne changent rien à l’exécution, mais aident Studio à repérer tes fautes de frappe.
 
@@ -466,7 +479,9 @@ Un même joueur peut ainsi être sauvegardé deux fois de suite (départ + ferme
 
 La référence de `DataModel:BindToClose` conseille de vérifier `RunService:IsStudio()`, et son exemple officiel de sauvegarde **ne sauvegarde pas** à la fermeture d’un test Studio, pour deux raisons données en commentaire : ne pas écrire des données de test dans les données réelles du jeu, et ne pas bloquer l’arrêt du test. On suit cette recommandation : avec `SAUVEGARDER_EN_STUDIO = false`, la fonction liée s’arrête tout de suite dans Studio.
 
-Conséquence : dans Studio, seule la sauvegarde de `PlayerRemoving` est tentée quand tu cliques sur **Stop**, et rien ne garantit qu’elle ait le temps de se terminer avant la fin du test. Attention : si l’accès aux API est activé, cette sauvegarde-là écrit bel et bien dans les données du jeu. C’est une raison de plus pour ne tester que sur une copie de test. Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUVEGARDER_EN_STUDIO` à `true` : l’arrêt du test peut alors prendre quelques secondes, le temps que les sauvegardes se terminent. Remets-le à `false` ensuite. Sur les serveurs en ligne, `IsStudio()` renvoie `false` : la sauvegarde à la fermeture a toujours lieu.
+Conséquence : dans Studio, seule la sauvegarde de `PlayerRemoving` est tentée quand tu cliques sur **Stop**, et rien ne garantit qu’elle ait le temps de se terminer avant la fin du test. Attention : si l’accès aux API est activé, cette sauvegarde-là écrit bel et bien dans les données du jeu. C’est une raison de plus pour ne tester que sur une copie de test.
+
+Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUVEGARDER_EN_STUDIO` à `true` : l’arrêt du test peut alors prendre quelques secondes, le temps que les sauvegardes se terminent. Remets-le à `false` ensuite. Sur les serveurs en ligne, `IsStudio()` renvoie `false` : la sauvegarde à la fermeture a toujours lieu.
 
 <Astuce>
 Pour vérifier ta sauvegarde, ouvre le **Data Stores Manager** : dans le Creator Dashboard, sélectionne ton jeu, puis **Configurations › Data stores manager**. Tu peux y consulter tes DataStores et leurs clés, sans écrire une ligne de code. Pratique pour voir si `Joueur_` suivi de ton UserId contient bien tes pièces.
@@ -532,7 +547,7 @@ La documentation précise aussi que **DataStore2** est une bibliothèque ancienn
 
 <Defi>
 1. Sur une **copie de test** publiée de ton jeu, active **Enable Studio Access to API Services**, puis crée `DonneesJoueurs` et `GestionJoueurs`. Passe `SAUVEGARDER_EN_STUDIO` à `true` le temps de l’exercice.
-2. Lance un test, gagne quelques pièces (ou change `Pieces.Value` dans l’Explorer **côté serveur**), puis arrête le test.
+2. Lance un test, gagne quelques pièces (ou, en vue serveur, change `Value` de **Players** › ton nom › `leaderstats` › `Pieces` dans la fenêtre Properties), puis arrête le test.
 3. Relance : tes pièces doivent être revenues. Remets ensuite `SAUVEGARDER_EN_STUDIO` à `false`.
 4. Bonus : ajoute un champ `victoires = 0` dans `donneesParDefaut` et passe `VERSION_DONNEES` à 2. Relance un test : grâce à `completer`, ton ancienne sauvegarde reçoit le nouveau champ sans rien perdre.
 </Defi>
@@ -546,7 +561,8 @@ La documentation précise aussi que **DataStore2** est une bibliothèque ancienn
 </Resume>
 
 <Sources>
-- [Data stores — guide Roblox](https://create.roblox.com/docs/cloud-services/data-stores)
+- [Data stores — guide Roblox (accès dans Studio, DataStores partagés par les places d’un jeu)](https://create.roblox.com/docs/cloud-services/data-stores)
+- [Create and publish games and places — Publish As (Roblox)](https://create.roblox.com/docs/production/publishing/publish-games-and-places)
 - [Data store error codes and limits — limites officielles](https://create.roblox.com/docs/cloud-services/data-stores/error-codes-and-limits)
 - [Best practices for data stores — Roblox](https://create.roblox.com/docs/cloud-services/data-stores/best-practices)
 - [Versioning, listing, and caching — Roblox](https://create.roblox.com/docs/cloud-services/data-stores/versioning-listing-and-caching)

@@ -123,7 +123,7 @@ Ajouter un objet à la boutique ne demande qu’une nouvelle entrée dans `Catal
 Rappel du module 3 : le client **demande**, le serveur **vérifie et décide**. Pour l’inventaire, il faut deux RemoteEvents dans **ReplicatedStorage › Remotes** :
 
 - `AcheterObjet` (déjà créé au module 3) : le client envoie l’identifiant de l’objet voulu ;
-- `EquiperObjet` (à créer) : le client envoie l’identifiant de l’objet à porter, ou `""` pour tout retirer.
+- `EquiperObjet` (à créer : survole le Folder `Remotes`, clique sur ⊕, choisis **RemoteEvent** et renomme-le) : le client envoie l’identifiant de l’objet à porter, ou `""` pour tout retirer.
 
 Le client n’envoie **que** l’identifiant. Jamais le prix, jamais le solde, jamais « j’ai le droit ».
 
@@ -320,7 +320,7 @@ Il n’y a rien à ajouter ! `DonneesJoueurs.Obtenir(player)` renvoie **la même
 
 ## Côté client : lire l’inventaire
 
-Pour vérifier que tout fonctionne, voici un petit **LocalScript** de test à placer dans **StarterPlayerScripts**. À la leçon 4, l’interface de la boutique utilisera exactement les mêmes appels.
+Pour vérifier que tout fonctionne, voici un petit **LocalScript** de test : crée-le dans **StarterPlayer › StarterPlayerScripts** et nomme-le `TestInventaire`. À la leçon 4, l’interface de la boutique utilisera exactement les mêmes appels, et tu pourras alors supprimer ce script.
 
 ```luau
 -- LocalScript dans StarterPlayer > StarterPlayerScripts (côté client)
@@ -349,11 +349,17 @@ joueur:GetAttributeChangedSignal("TrailEquipe"):Connect(afficherInventaire)
 afficherInventaire()
 ```
 
-Pour tester un achat sans interface, donne-toi des pièces en modifiant `Pieces.Value` dans l’Explorer **en vue serveur**, puis exécute dans la **Command Bar**, en vue client : `game.ReplicatedStorage.Remotes.AcheterObjet:FireServer("TrailNuage")`.
+Pour tester un achat sans interface (l’interface arrive à la leçon 4) :
+
+1. lance un test et passe en **vue serveur** (bouton **Client/Server**, module 1) ;
+2. dans l’Explorer, ouvre **Players** › ton nom › `leaderstats` › `Pieces` et mets `Value` à 100 dans la fenêtre Properties ;
+3. repasse en **vue client** et exécute dans la **Command Bar** (onglet **Script**, module 1) : `game.ReplicatedStorage.Remotes.AcheterObjet:FireServer("TrailNuage")`.
+
+La fenêtre Output affiche alors la ligne « Traînée Nuage | possédé : true | équipé : false », et ta colonne `Pieces` passe de 100 à 75 dans le tableau des scores.
 
 <Defi>
-1. Complète `Catalogue`, crée le RemoteEvent `EquiperObjet` et remplace le contenu du Script `Boutique`.
-2. Achète `TrailNuage` comme indiqué ci-dessus, puis équipe-le avec `EquiperObjet:FireServer("TrailNuage")`. Une traînée blanche doit te suivre.
+1. Complète `Catalogue`, crée le RemoteEvent `EquiperObjet`, remplace le contenu du Script `Boutique`, supprime le LocalScript de démonstration du module 3 et crée `TestInventaire`.
+2. Achète `TrailNuage` comme indiqué ci-dessus, puis équipe-le avec `game.ReplicatedStorage.Remotes.EquiperObjet:FireServer("TrailNuage")` (Command Bar, vue client). Une traînée blanche doit te suivre.
 3. Essaie d’équiper `TrailAurore` sans l’avoir acheté : rien ne doit se passer.
 4. Arrête le test, relance : la traînée est toujours équipée, grâce à la sauvegarde (sur ta copie de test, avec `SAUVEGARDER_EN_STUDIO` à `true` le temps de l’essai, comme à la leçon 2).
 5. Bonus : ajoute une quatrième traînée au catalogue, sans toucher à aucun autre script.

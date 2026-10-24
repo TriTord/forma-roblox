@@ -140,7 +140,7 @@ Deux autres propriétés du `ScreenGui` existent : `ClipToDeviceSafeArea` (activ
 
 ## Construire l’interface de l’Obby des Nuages
 
-Dans **StarterGui**, crée cette hiérarchie (clic droit › **Insert Object**) :
+Dans **StarterGui**, crée cette hiérarchie. Pour chaque objet, survole son futur parent dans l’Explorer, clique sur ⊕ (ou clic droit › **Insert Object**) et choisis le type indiqué entre parenthèses. Renomme ensuite l’objet exactement comme dans le schéma : le script les retrouve par leur nom.
 
 ```text
 StarterGui
@@ -149,6 +149,7 @@ StarterGui
     │   ├── UICorner
     │   ├── UIAspectRatioConstraint   (AspectRatio = 3)
     │   └── Texte            (TextLabel)
+    │       └── UITextSizeConstraint  (MinTextSize = 12)
     ├── BoutonBoutique       (TextButton, Text = « Boutique »)
     ├── Boutique             (Frame, Visible = false)
     │   ├── UICorner
@@ -158,19 +159,20 @@ StarterGui
     └── ScriptInterface      (LocalScript)
 ```
 
-Réglages conseillés :
+Réglages conseillés (sélectionne l’objet, puis modifie ses propriétés dans la fenêtre Properties) :
 
+- **InterfaceObby** : décoche `ResetOnSpawn`.
 - **CompteurPieces** : `AnchorPoint = (0, 0)`, `Position = {0.02, 0}, {0.03, 0}`, `Size = {0.2, 0}, {0.08, 0}`. Le `UIAspectRatioConstraint` le garde trois fois plus large que haut.
-- **Texte** : `Size = {1, 0}, {1, 0}` (tout le cadre), `BackgroundTransparency = 1`, `TextScaled = true`, plus un `UITextSizeConstraint` (`MinTextSize = 12`).
-- **BoutonBoutique** : `AnchorPoint = (0, 0.5)`, `Position = {0.02, 0}, {0.5, 0}`, `Size = {0.15, 0}, {0.08, 0}` : sur le bord gauche, à mi-hauteur. Évite les coins inférieurs : d’après la documentation, sur mobile, Roblox y affiche le joystick (en bas à gauche) et le bouton de saut (en bas à droite), et un bouton placé là serait caché par le pouce ou touché par erreur. On approfondira le mobile au module 9.
-- **Boutique** : `AnchorPoint = (0.5, 0.5)`, `Position = {0.5, 0}, {0.5, 0}`, `Size = {0.6, 0}, {0.6, 0}`.
+- **Texte** : `Size = {1, 0}, {1, 0}` (tout le cadre), `BackgroundTransparency = 1`, `TextScaled = true`, et son enfant `UITextSizeConstraint` avec `MinTextSize = 12`.
+- **BoutonBoutique** : `AnchorPoint = (0, 0.5)`, `Position = {0.02, 0}, {0.5, 0}`, `Size = {0.15, 0}, {0.08, 0}`, `Text = Boutique` : sur le bord gauche, à mi-hauteur. Évite les coins inférieurs : d’après la documentation, sur mobile, Roblox y affiche le joystick (en bas à gauche) et le bouton de saut (en bas à droite), et un bouton placé là serait caché par le pouce ou touché par erreur. On approfondira le mobile au module 9.
+- **Boutique** : `AnchorPoint = (0.5, 0.5)`, `Position = {0.5, 0}, {0.5, 0}`, `Size = {0.6, 0}, {0.6, 0}`, et décoche `Visible` (la fenêtre est cachée au départ).
 - **Liste** : `Size = {1, 0}, {1, 0}`, `BackgroundTransparency = 1`. Dans son **UIGridLayout** : `CellSize = {0.3, 0}, {0.4, 0}` et `CellPadding = {0.03, 0}, {0.03, 0}`.
 
 Les boutons des objets ne sont pas créés à la main : le script les fabrique à partir du `Catalogue` (leçon 3).
 
 ### Le LocalScript qui relie tout
 
-L’interface est côté client : on utilise donc un **LocalScript**. Placé dans un `ScreenGui` de StarterGui, il s’exécute une fois copié dans le PlayerGui du joueur.
+L’interface est côté client : on utilise donc un **LocalScript**. Placé dans un `ScreenGui` de StarterGui, il s’exécute une fois copié dans le PlayerGui du joueur. Crée le LocalScript `ScriptInterface` directement dans `InterfaceObby` et colle ce code. Tu peux aussi supprimer le LocalScript `TestInventaire` de la leçon 3 : l’interface le remplace.
 
 ```luau
 -- LocalScript « ScriptInterface » dans StarterGui > InterfaceObby (côté client)
@@ -277,7 +279,7 @@ Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portra
 <Defi>
 1. Construis la hiérarchie `InterfaceObby` et colle le LocalScript.
 2. Teste : le compteur affiche tes pièces, la boutique s’ouvre et se ferme.
-3. Donne-toi 100 pièces (Explorer, vue serveur), achète puis équipe la Traînée Nuage depuis l’interface.
+3. Donne-toi 100 pièces (vue serveur, `Value` de `leaderstats` › `Pieces`, comme à la leçon 3), puis achète et équipe la Traînée Nuage depuis l’interface.
 4. Simule un téléphone en mode paysage : tout doit rester lisible et cliquable.
 5. Bonus : ajoute une `ImageLabel` d’icône de pièce dans `CompteurPieces`, avec un `UIAspectRatioConstraint` à 1 pour qu’elle reste ronde.
 </Defi>

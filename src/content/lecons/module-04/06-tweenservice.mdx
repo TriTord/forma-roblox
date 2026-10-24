@@ -145,10 +145,12 @@ Attention : si deux tweens modifient **la même propriété** du même objet, le
 
 ## Les plateformes mobiles de l’Obby des Nuages
 
-Crée un Folder `PlateformesMobiles` dans **Workspace** et ranges-y les Parts qui doivent bouger. Pour régler chaque plateforme sans toucher au code, on utilise des **attributs** (section **Attributes** de la fenêtre Properties) :
+Crée un Folder `PlateformesMobiles` dans **Workspace** et ranges-y les Parts qui doivent bouger. Pour régler chaque plateforme sans toucher au code, on utilise des **attributs**. Pour en ajouter un, sélectionne la Part, descends jusqu’à la section **Attributes** de la fenêtre Properties et clique sur **+** : donne un nom, choisis le type, valide avec **Save**, puis règle la valeur comme une propriété normale. Deux attributs, tous deux facultatifs :
 
 - `Deplacement` (Vector3) : de combien la plateforme se déplace, en studs. Par exemple `0, 8, 0` pour monter de 8 studs ;
 - `Duree` (number) : la durée d’un aller, en secondes.
+
+Sans attribut, le script utilise des valeurs par défaut (8 studs vers le haut, 3 secondes). Crée ensuite un **Script** `PlateformesMobiles` dans **ServerScriptService** :
 
 ```luau
 -- Script « PlateformesMobiles » dans ServerScriptService (côté serveur)
@@ -298,5 +300,6 @@ Les animations d’interface doivent rester **courtes** (souvent moins d’une d
 - [TweenBase (Play, Cancel, Completed) — référence API](https://create.roblox.com/docs/reference/engine/classes/TweenBase)
 - [UI animation/tweens — documentation Roblox](https://create.roblox.com/docs/ui/animation)
 - [PrismaticConstraint — documentation Roblox](https://create.roblox.com/docs/physics/constraints/prismatic)
+- [Properties window — créer un attribut dans Studio (Roblox)](https://create.roblox.com/docs/studio/properties#instance-attributes)
 - [Platform moves while character doesn’t — fil d’entraide du DevForum (retour de développeurs, 2021)](https://devforum.roblox.com/t/platform-moves-while-character-doesnt/1051218)
 </Sources>

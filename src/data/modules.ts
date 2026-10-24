@@ -23,7 +23,7 @@ export const MODULES: ModuleInfo[] = [
     titre: 'Bienvenue : comprendre Roblox avant de créer',
     titreCourt: 'Bienvenue et mindset',
     description:
-      "Comment fonctionne la plateforme, comment les joueurs découvrent les jeux, l'état d'esprit qui permet d'aller au bout, et le projet que tu vas construire tout au long de la formation.",
+      "Comment fonctionne la plateforme, comment les joueurs découvrent les jeux, l’état d’esprit qui permet d’aller au bout, et le projet que tu vas construire tout au long de la formation.",
     emoji: '🧭',
     objectifs: [
       'Comprendre comment Roblox fonctionne pour les joueurs et pour les créateurs',
@@ -38,10 +38,10 @@ export const MODULES: ModuleInfo[] = [
     titre: 'Roblox Studio de zéro',
     titreCourt: 'Roblox Studio',
     description:
-      "Installer Studio, maîtriser l'interface, construire avec des Parts, organiser son jeu et le tester comme un pro. Tu termines avec le premier niveau jouable de ton obby.",
+      "Installer Studio, maîtriser l’interface, construire avec des Parts, organiser son jeu et le tester comme un pro. Tu termines avec le premier niveau jouable de ton obby, publié en privé.",
     emoji: '🛠️',
     objectifs: [
-      "Naviguer dans l'interface de Roblox Studio sans te perdre",
+      "Naviguer dans l’interface de Roblox Studio sans te perdre",
       'Construire et organiser une scène avec des Parts, Models et Folders',
       'Tester ton jeu en solo et en multijoueur local',
       'Publier une première version privée de ton jeu',
@@ -68,13 +68,13 @@ export const MODULES: ModuleInfo[] = [
     titre: 'Client, serveur et sécurité',
     titreCourt: 'Client / serveur',
     description:
-      'Comprendre qui exécute quoi, faire communiquer client et serveur avec les RemoteEvents et RemoteFunctions, et protéger ton jeu contre les exploits.',
+      'Comprendre qui exécute quoi, faire communiquer client et serveur avec les RemoteEvents et RemoteFunctions, et protéger ton jeu contre la triche (les exploits).',
     emoji: '🛡️',
     objectifs: [
       'Expliquer le modèle client/serveur et la réplication',
       'Utiliser RemoteEvents et RemoteFunctions correctement',
       'Valider côté serveur tout ce qui vient du client',
-      'Sécuriser les checkpoints et les pièces de ton obby',
+      'Sécuriser les checkpoints, les pièces et la boutique de ton obby',
     ],
     badge: { nom: 'Gardien', emoji: '🛡️' },
   },
@@ -143,7 +143,7 @@ export const MODULES: ModuleInfo[] = [
     titre: 'Analytics : mesurer pour progresser',
     titreCourt: 'Analytics',
     description:
-      'Rétention D1/D7/D30, sessions, engagement, conversion : lire le Creator Dashboard, instrumenter ton jeu et prendre des décisions à partir des données.',
+      'Rétention D1/D7/D30, sessions, engagement, conversion : lire le Creator Dashboard, ajouter tes propres mesures dans ton jeu et prendre des décisions à partir des données.',
     emoji: '📊',
     objectifs: [
       'Lire les métriques clés du Creator Dashboard',

@@ -145,13 +145,13 @@ Appliquons tout ça à notre fil rouge :
 1. **Action** : le joueur saute de nuage en nuage, en évitant les kill bricks.
 2. **Récompense immédiate** : il ramasse des pièces sur le chemin et atteint un checkpoint.
 3. **Progression** : son étape (`Etape`) augmente et ses pièces (`Pieces`) s’accumulent.
-4. **Retour à l’action** : avec ses pièces, il achète une traînée dans la boutique, qu’il exhibe en continuant le parcours… et il repart vers l’étape suivante.
+4. **Retour à l’action** : avec ses pièces, il achète une traînée dans la boutique, qu’il montre fièrement en continuant le parcours… et il repart vers l’étape suivante.
 
 Il manque souvent une chose dans les premiers obbys : le **retour visible** (feedback). Dans l’Obby des Nuages, la valeur `Pieces` change bien dans les leaderstats, mais rien ne le signale vraiment au joueur. Or la documentation Roblox sur les techniques d’onboarding est claire : chaque fois qu’un joueur fait une action, il est impératif de lui donner un retour clair.
 
 ### Rendre la récompense visible
 
-Le script ci-dessous affiche un message bref au centre de l’écran quand le joueur gagne des pièces ou atteint une nouvelle étape. Il ne **modifie** rien : il se contente de **regarder** les valeurs que le serveur met à jour (module 4) et de les mettre en scène.
+Le script ci-dessous affiche un message bref en haut de l’écran quand le joueur gagne des pièces ou atteint une nouvelle étape. Crée-le comme un **LocalScript** nommé `MessagesProgression` dans **StarterPlayer › StarterPlayerScripts** : il fabrique lui-même sa petite interface, rien à construire à la main. Il ne **modifie** rien : il se contente de **regarder** les valeurs que le serveur met à jour (module 4) et de les mettre en scène.
 
 ```luau
 -- LocalScript « MessagesProgression » à placer dans StarterPlayer > StarterPlayerScripts
@@ -230,7 +230,7 @@ Quelques points à remarquer :
 - Le texte apparaît puis disparaît en fondu grâce à TweenService (module 4) : le feedback doit être **bref**, pas envahissant.
 
 <Astuce titre="Le feedback se joue aussi avec le son">
-Un son court et joyeux au ramassage d’une pièce peut renforcer la sensation de récompense : à toi de le vérifier en playtest (leçon 5). Dans ses exemples de feedback, la documentation Roblox montre un jeu où des pièces jaillissent à l’écran quand le joueur remporte un combat : le même gain, mais bien plus satisfaisant. Ajoute un objet `Sound` et appelle `:Play()` dans la fonction `afficher` pour essayer.
+Un son court et joyeux au ramassage d’une pièce peut renforcer la sensation de récompense : à toi de le vérifier en playtest (leçon 5). Dans ses exemples de feedback, la documentation Roblox montre un jeu où des pièces jaillissent à l’écran quand le joueur remporte un combat : le même gain, mais bien plus satisfaisant. Pour essayer : crée par script un objet `Sound` (par exemple rangé dans le ScreenGui `ecran`), donne-lui le `SoundId` d’un son court, puis appelle `son:Play()` au début de la fonction `afficher`.
 </Astuce>
 
 <Defi>

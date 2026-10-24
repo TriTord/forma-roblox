@@ -170,11 +170,11 @@ Notre animation de victoire se joue donc côté client. Mais c’est le **serveu
 
 ## L’animation de victoire de l’Obby des Nuages
 
-Crée un **RemoteEvent** `Victoire` dans **ReplicatedStorage › Remotes**.
+Crée un **RemoteEvent** `Victoire` dans **ReplicatedStorage › Remotes** (bouton ⊕ sur `Remotes`, comme pour `EquiperObjet` à la leçon 3).
 
 ### Côté serveur : détecter la victoire
 
-Rappel de la convention : `Etape` contient le numéro du dernier checkpoint validé. Le joueur a gagné quand `Etape` atteint le numéro du dernier checkpoint.
+Rappel de la convention : `Etape` contient le numéro du dernier checkpoint validé. Le joueur a gagné quand `Etape` atteint le numéro du dernier checkpoint. Crée un **Script** `Victoire` dans **ServerScriptService** avec ce code :
 
 ```luau
 -- Script « Victoire » dans ServerScriptService (côté serveur)
@@ -259,7 +259,7 @@ Le RemoteEvent ne transporte aucune donnée sensible : il dit juste « joue l’
 1. Choisis R15 dans **Avatar Settings**, insère un rig R15 avec le Rig Builder.
 2. Crée une animation `Victoire` d’environ une seconde, avec la priorité **Action**, et publie-la.
 3. Crée le RemoteEvent `Victoire`, le Script serveur et le LocalScript, en remplaçant l’ID.
-4. Teste : atteins le dernier checkpoint (ou modifie `Etape` dans l’Explorer **côté serveur**) et admire ta danse.
+4. Teste : atteins le dernier checkpoint (ou, en vue serveur, mets `Etape` au numéro du dernier checkpoint dans l’Explorer) et admire ta danse.
 5. Bonus : lance un test à 2 joueurs et vérifie que l’autre joueur voit bien l’animation.
 </Defi>
 
