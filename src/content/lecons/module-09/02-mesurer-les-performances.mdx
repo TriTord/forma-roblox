@@ -141,7 +141,7 @@ Le **MicroProfiler** est l’outil le plus précis. Il montre, image par image, 
 
 ### L’ouvrir
 
-- Dans le client sur ordinateur et dans Studio : <kbd>Ctrl</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>F6</kbd> sur Mac). C’est le raccourci de la page consacrée au MicroProfiler, la plus récemment mise à jour (octobre 2026). D’autres pages de la documentation (« Identify performance issues », « Test on hardware », le pas-à-pas du MicroProfiler) indiquent encore <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>F6</kbd>), l’ancien raccourci : si l’un ne marche pas, essaie l’autre.
+- Dans le client sur ordinateur et dans Studio : <kbd>Ctrl</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>F6</kbd> sur Mac), selon la page consacrée au MicroProfiler. Au moment de la rédaction (octobre 2026), d’autres pages de la documentation donnent encore <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>F6</kbd>) : si un raccourci ne marche pas, essaie l’autre.
 - Sur mobile : dans le menu **Settings**, passe **MicroProfiler** sur **On**. Le téléphone affiche une adresse IP et un port. Depuis un ordinateur **sur le même réseau Wi-Fi**, tape cette adresse dans un navigateur (par exemple `172.18.56.105:1338`) : tu vois les dernières images du téléphone.
 
 La documentation insiste : le téléphone est souvent le meilleur endroit pour profiler, car un PC puissant masque les problèmes.
@@ -165,30 +165,30 @@ Quelques commandes utiles : <kbd>Ctrl</kbd> + <kbd>P</kbd> met en pause (et ouvr
 
 ### Ajouter tes propres étiquettes
 
-Le MicroProfiler affiche les tâches du moteur, mais pas le nom de *tes* fonctions. Tu peux les étiqueter avec `debug.profilebegin` et `debug.profileend`. Voici un script suspect de l’Obby des Nuages, étiqueté pour le mesurer :
+Le MicroProfiler affiche les tâches du moteur, mais pas le nom de *tes* fonctions. Tu peux les étiqueter avec `debug.profilebegin` et `debug.profileend`. Reprenons le Script `PiecesTournantes` du module 2 (leçon 6), qui fait tourner toutes les pièces de l’obby. On le soupçonne d’être coûteux : on y ajoute seulement deux lignes d’étiquette pour le mesurer.
 
 ```luau
--- Script placé dans ServerScriptService
--- Fait tourner toutes les pièces du dossier Workspace.Pieces à chaque image.
--- (On le soupçonne d'être coûteux : on l'étiquette pour le vérifier.)
-local RunService = game:GetService("RunService")
+-- Script « PiecesTournantes » dans ServerScriptService (version du module 2)
+-- Seules les deux lignes debug.profilebegin / debug.profileend sont nouvelles.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
-local dossierPieces = Workspace:WaitForChild("Pieces")
-local VITESSE_ROTATION = math.rad(90) -- 90 degrés par seconde
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
 
-local function fairePivoterLesPieces(deltaTime: number)
+local dossierPieces = Workspace:WaitForChild("Pieces")
+
+while true do
+	-- task.wait() reprend à chaque battement du moteur : environ 60 fois par seconde
+	local ecoule = task.wait()
 	debug.profilebegin("ObbyRotationPieces") -- début de l'étiquette
+	local rotation = CFrame.Angles(0, math.rad(Config.VITESSE_ROTATION_PIECES * ecoule), 0)
 	for _, piece in dossierPieces:GetChildren() do
 		if piece:IsA("BasePart") then
-			piece.CFrame = piece.CFrame * CFrame.Angles(0, VITESSE_ROTATION * deltaTime, 0)
+			piece.CFrame = piece.CFrame * rotation
 		end
 	end
 	debug.profileend() -- fin de l'étiquette : à appeler sur tous les chemins
 end
-
--- Heartbeat se déclenche à chaque image : ce code tourne environ 60 fois par seconde
-RunService.Heartbeat:Connect(fairePivoterLesPieces)
 ```
 
 Dans le MicroProfiler (côté serveur pour ce script), l’étiquette `ObbyRotationPieces` apparaît dans la frise : sa largeur te dit combien elle coûte. Spoiler : à la leçon 4, on verra pourquoi ce script coûte surtout… en **réseau**, et comment le réécrire.

@@ -99,15 +99,18 @@ Corrige d’abord le problème le plus visible pour les joueurs, une chose à la
 
 ### Avant / après n° 1 : le compteur de pièces
 
-**Avant** : le compteur relit tout, environ 60 fois par seconde, même quand rien ne change.
+Au module 4, ton compteur de pièces est déjà bien écrit. Mais on voit souvent des débutants écrire ce genre de version, qui relit tout environ 60 fois par seconde, même quand rien ne change.
+
+**Avant** (version maladroite, à ne pas copier) :
 
 ```luau
 -- AVANT
--- LocalScript placé dans StarterGui > InterfaceObby (ScreenGui contenant le TextLabel « CompteurPieces »)
+-- LocalScript dans StarterGui > InterfaceObby
+-- (CompteurPieces est un Frame qui contient le TextLabel « Texte », comme au module 4)
 local RunService = game:GetService("RunService")
 
 local interface = script.Parent
-local etiquette = interface:WaitForChild("CompteurPieces") :: TextLabel
+local etiquette = interface:WaitForChild("CompteurPieces"):WaitForChild("Texte") :: TextLabel
 
 RunService.Heartbeat:Connect(function()
 	-- À chaque image : on récupère le service, on cherche le dossier, puis la valeur…
@@ -122,16 +125,16 @@ RunService.Heartbeat:Connect(function()
 end)
 ```
 
-**Après** : on récupère les références **une fois**, et on ne met à jour le texte que quand la valeur change.
+**Après** : on récupère les références **une fois**, et on ne met à jour le texte que quand la valeur change. C’est exactement ce que fait la partie « compteur » du LocalScript `ScriptInterface` du module 4 : si ton compteur ressemble déjà à ça, tu n’as rien à changer (n’ajoute pas un second script qui ferait le même travail).
 
 ```luau
--- APRÈS
--- LocalScript placé dans StarterGui > InterfaceObby
+-- APRÈS (même principe que la partie « compteur » de ScriptInterface, module 4)
+-- LocalScript dans StarterGui > InterfaceObby
 local Players = game:GetService("Players")
 
 local joueur = Players.LocalPlayer
 local interface = script.Parent
-local etiquette = interface:WaitForChild("CompteurPieces") :: TextLabel
+local etiquette = interface:WaitForChild("CompteurPieces"):WaitForChild("Texte") :: TextLabel
 -- Références mises en cache une seule fois, au démarrage
 local pieces = joueur:WaitForChild("leaderstats"):WaitForChild("Pieces") :: IntValue
 
@@ -143,7 +146,7 @@ afficherPieces(pieces.Value) -- affichage initial
 pieces.Changed:Connect(afficherPieces) -- puis uniquement quand la valeur change
 ```
 
-Le résultat à l’écran est identique. Mais au lieu de 60 mises à jour par seconde, il n’y en a qu’une par pièce ramassée.
+Le résultat à l’écran est identique. Mais au lieu de 60 mises à jour par seconde, il n’y en a qu’une par pièce ramassée. Pour un seul petit script, le gain est modeste ; c’est l’accumulation de ces petits travaux « à chaque image » qui finit par coûter cher.
 
 ### Avant / après n° 2 : un chronomètre par joueur
 
@@ -304,22 +307,27 @@ Chaque information envoyée entre le serveur et les clients coûte du temps de c
 
 - **Envoie moins, moins souvent.** Ne déclenche pas un RemoteEvent à chaque image ou à chaque entrée du joueur sans limite. Envoie un état quand il **change**. Après un achat, envoie l’objet acheté, pas tout l’inventaire.
 - **Les effets visuels côté client.** Le serveur n’a besoin que du résultat (le joueur a ramassé la pièce) ; l’effet d’étincelles peut être créé par le client.
-- **Les animations décoratives côté client.** Selon la documentation, une propriété animée par TweenService côté serveur est répliquée à chaque client à chaque image (avec, en prime, une animation saccadée quand la latence varie). C’est la même chose pour une boucle serveur qui modifie une propriété à chaque image : chaque changement est répliqué.
+- **Les animations décoratives côté client.** Selon la documentation, une propriété animée par TweenService côté serveur est répliquée à chaque client à chaque image (avec, en prime, une animation saccadée quand la latence varie). C’est la même chose pour une boucle serveur qui modifie une propriété à chaque image : chaque changement est répliqué. Les plateformes mobiles du module 4 sont un cas à part : ce sont des objets du **gameplay**, que tous les joueurs doivent voir au même endroit. Pour un débutant, garde-les côté serveur comme au module 4, et réserve l’animation côté client aux effets purement décoratifs.
 - **Ne mets pas tout dans ReplicatedStorage.** Tout son contenu est envoyé à chaque joueur avant qu’il puisse jouer. Ce dont seul le serveur a besoin va dans `ServerStorage`.
 
 ### Avant / après n° 3 : les pièces qui tournent
 
-À la leçon 2, tu as étiqueté un Script serveur qui fait tourner toutes les pièces à chaque image avec `Heartbeat`. Son vrai coût : chaque changement de `CFrame` fait côté serveur doit être répliqué à **tous** les joueurs chez qui la pièce est chargée, pour **chaque** pièce, environ 60 fois par seconde. La rotation est purement décorative : faisons-la côté client, et seulement pour les pièces chargées chez le joueur.
+À la leçon 2, tu as étiqueté le Script serveur `PiecesTournantes` du module 2, qui fait tourner toutes les pièces environ 60 fois par seconde. Son vrai coût : chaque changement de `CFrame` fait côté serveur doit être répliqué à **tous** les joueurs chez qui la pièce est chargée, pour **chaque** pièce, environ 60 fois par seconde. La rotation est purement décorative : faisons-la côté client, et seulement pour les pièces chargées chez le joueur.
 
 ```luau
 -- APRÈS
--- LocalScript placé dans StarterPlayerScripts
--- (Supprime l'ancien Script serveur, et les éventuels scripts de rotation placés dans chaque pièce.)
+-- LocalScript « PiecesTournantesClient » placé dans StarterPlayerScripts
+-- (Supprime le Script serveur « PiecesTournantes » et les éventuels scripts
+-- de rotation restés dans chaque pièce.)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+-- Config est dans ReplicatedStorage.Modules : le client peut le lire
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+
 local dossierPieces = Workspace:WaitForChild("Pieces")
-local VITESSE_ROTATION = math.rad(90) -- 90 degrés par seconde
+local VITESSE_ROTATION = math.rad(Config.VITESSE_ROTATION_PIECES) -- en radians par seconde
 
 -- Les pièces actuellement chargées chez CE joueur (le streaming en ajoute et en retire)
 local piecesChargees: { [BasePart]: boolean } = {}
@@ -352,10 +360,10 @@ RunService.PreRender:Connect(function(deltaTime: number)
 end)
 ```
 
-Ce qui change : **zéro** trafic réseau pour la rotation, et chaque appareil ne fait tourner que les pièces proches de son joueur. Le ramassage reste validé par le serveur, comme au module 3 : la pièce tourne sur elle-même, sa position ne change pas.
+Ce qui change : **zéro** trafic réseau pour la rotation, et chaque appareil ne fait tourner que les pièces proches de son joueur. Le ramassage reste géré par le Script serveur `Pieces` du module 3, sans aucune modification : la pièce tourne sur elle-même, sa position ne change pas. Quand elle est ramassée, le serveur la rend invisible ; elle continue de tourner chez le client, ce qui ne se voit pas.
 
 <Defi>
-Mesure avant, applique, mesure après : lance l’obby avec la barre **Performance Stats** ouverte (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F7</kbd>), qui affiche notamment les données réseau envoyées et reçues, et note les valeurs. Remplace ensuite la rotation serveur des pièces par le LocalScript ci-dessus, et compare. Fais de même avec le compteur de pièces et le Script Profiler.
+Mesure avant, applique, mesure après : lance l’obby avec la barre **Performance Stats** ouverte (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F7</kbd>), qui affiche notamment les données réseau envoyées et reçues, et note les valeurs. Remplace ensuite la rotation serveur des pièces par le LocalScript ci-dessus, et compare. Enfin, lance le Script Profiler côté client puis côté serveur : aucun de tes scripts ne devrait apparaître en tête de liste sans raison.
 </Defi>
 
 <Resume>

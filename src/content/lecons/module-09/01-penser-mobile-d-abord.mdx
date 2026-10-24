@@ -47,9 +47,9 @@ quiz:
 
       local function adapter()
       	if UserInputService.PreferredInput == "Touch" then
-      		bouton.Size = UDim2.fromScale(0.16, 0.12)
+      		bouton.Size = UDim2.fromScale(0.2, 0.12)
       	else
-      		bouton.Size = UDim2.fromScale(0.1, 0.07)
+      		bouton.Size = UDim2.fromScale(0.15, 0.08)
       	end
       end
 
@@ -92,7 +92,7 @@ Quand un téléphone chauffe, il réduit volontairement la vitesse de son proces
 Un écran de 5 ou 6 pouces, des pouces qui cachent une partie de l’image, pas de souris ni de clavier : l’interface et les contrôles doivent être pensés pour ça.
 
 <Info>
-Tu verras peut-être circuler des pourcentages précis sur la part de joueurs mobiles. Au moment de la rédaction (octobre 2026), la page « Test on hardware » de la documentation donne des statistiques générales, sans date : Android représenterait environ 65 % des joueurs d’un jeu typique, et environ 60 % de ces joueurs Android ont un appareil de 2 à 4 Go de mémoire vive. Ces chiffres varient selon les pays, les âges et les genres de jeux. Pour **ton** jeu, la donnée qui compte est celle de ton Creator Dashboard : la page Performance affiche la répartition par appareil de tes joueurs (on l’utilisera dans la leçon 5).
+Tu verras peut-être circuler des pourcentages précis sur la part de joueurs mobiles. Méfie-toi : la documentation donne quelques statistiques générales sur les appareils, mais sans dire de quand elles datent ni sur quelle période elles portent, et elle précise que la répartition varie selon les pays, les âges et les genres de jeux. On ne les reprend donc pas ici. Pour **ton** jeu, la donnée qui compte est celle de ton Creator Dashboard : la page Performance affiche la répartition par appareil de tes joueurs (on l’utilisera dans la leçon 5).
 </Info>
 
 ## Des contrôles tactiles confortables
@@ -102,6 +102,10 @@ Sur mobile, Roblox affiche par défaut un joystick virtuel en bas à gauche et u
 ### Les zones réservées
 
 Les coins inférieurs gauche et droit sont **réservés** aux contrôles par défaut. N’y place jamais d’information importante ni de bouton : il serait caché par le pouce, ou déclenché par erreur au milieu d’un saut.
+
+<Attention titre="Le bouton de la boutique du module 4">
+Au module 4, on a placé `BoutonBoutique` en bas à gauche (`AnchorPoint = (0, 1)`, `Position = {0.02, 0}, {0.97, 0}`). Sur ordinateur, c’est très bien. Mais sur téléphone, c’est justement la zone du joystick ! Déplace-le sur le bord gauche, à mi-hauteur : `AnchorPoint = (0, 0.5)` et `Position = {0.02, 0}, {0.5, 0}`. Il reste facile à atteindre et ne gêne plus les déplacements. Vérifie ensuite le résultat avec le Device Simulator (plus bas dans cette leçon).
+</Attention>
 
 ### Les zones accessibles au pouce
 
@@ -127,17 +131,17 @@ La propriété `UserInputService.PreferredInput` indique le mode de contrôle **
 Ce LocalScript agrandit le bouton de la boutique quand le joueur joue au tactile :
 
 ```luau
--- LocalScript placé dans StarterGui > InterfaceObby (un ScreenGui)
--- InterfaceObby contient un TextButton nommé « BoutonBoutique ».
--- Adapte ces noms à l'interface que tu as créée au module 4.
+-- Nouveau LocalScript « AdaptationMobile », placé dans StarterGui > InterfaceObby
+-- (le ScreenGui du module 4, à côté de ScriptInterface).
+-- InterfaceObby contient le TextButton « BoutonBoutique » créé au module 4.
 local UserInputService = game:GetService("UserInputService")
 
 local interface = script.Parent
-local boutonBoutique = interface:WaitForChild("BoutonBoutique")
+local boutonBoutique = interface:WaitForChild("BoutonBoutique") :: TextButton
 
--- Tailles en Scale : un pourcentage de l'écran, pas des pixels
-local TAILLE_TACTILE = UDim2.fromScale(0.16, 0.12)
-local TAILLE_CLAVIER_SOURIS = UDim2.fromScale(0.1, 0.07)
+-- Tailles en Scale : une fraction de l'écran, pas des pixels
+local TAILLE_TACTILE = UDim2.fromScale(0.2, 0.12) -- plus grand pour le doigt
+local TAILLE_CLAVIER_SOURIS = UDim2.fromScale(0.15, 0.08) -- la taille du module 4
 
 local function adapterInterface()
 	if UserInputService.PreferredInput == Enum.PreferredInput.Touch then
@@ -174,7 +178,7 @@ Ce qu’il permet :
 1. **Choisir une catégorie d’appareil** : Phone (téléphones et tablettes), Desktop, Console, Headset (casques VR).
 2. **Choisir un modèle** dans le menu de l’appareil. Les téléphones sont classés en **Flagship** (haut de gamme), **Mid-range** (milieu de gamme) et **Entry level** (entrée de gamme).
 3. **Tourner l’appareil** avec le bouton Rotate.
-4. **Simuler le tactile** à la souris : un pincement se fait avec <kbd>Alt</kbd> + glisser, un déplacement à deux doigts avec <kbd>Alt</kbd> + <kbd>Shift</kbd> + glisser.
+4. **Simuler le tactile** à la souris : un pincement (avec rotation) se fait avec <kbd>Alt</kbd> + glisser, un déplacement à deux doigts avec <kbd>Alt</kbd> + <kbd>Shift</kbd> + glisser.
 5. **Changer d’appareil pendant un test**, sans arrêter la partie.
 
 Le menu **Display scaling** est très utile. En mode **Physical size**, l’écran simulé est affiché à sa **taille réelle** : tu vois tes boutons aussi grands qu’ils le seront dans la main du joueur. Pour que ce mode soit exact, Studio doit connaître la taille de ton moniteur : l’option **Calibrate physical scaling** te fait aligner une image avec une carte au format carte d’étudiant.
@@ -213,7 +217,7 @@ Note chaque problème trouvé : ce sera le début de ton audit de la leçon 5.
 
 <Resume>
 - Selon la documentation Roblox, la majorité des sessions se jouent sur mobile, et la majorité des joueurs ont des appareils peu puissants : mémoire limitée, processeur plus lent, surchauffe.
-- Les coins inférieurs de l’écran sont réservés au joystick et au saut ; garde tes boutons à portée de pouce.
+- Les coins inférieurs de l’écran sont réservés au joystick et au saut (déplace le `BoutonBoutique` du module 4) ; garde tes boutons à portée de pouce.
 - Garde `ScreenInsets` sur `CoreUISafeInsets` et utilise `PreferredInput` pour adapter l’interface au mode de contrôle.
 - Le Device Simulator vérifie l’affichage et les contrôles, pas la mémoire ni les vraies performances.
 - Teste régulièrement sur un vrai appareil de référence, avec des sessions de 10 à 15 minutes.

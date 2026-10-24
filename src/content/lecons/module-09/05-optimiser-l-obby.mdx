@@ -138,7 +138,7 @@ Passe chaque catégorie, coche ce qui est bon, note ce qui ne l’est pas. Ne co
 
 ### Interface mobile
 
-- [ ] Aucun bouton dans les coins inférieurs ; tous restent à portée de pouce, sur téléphone et sur tablette.
+- [ ] Aucun bouton dans les coins inférieurs (pense au `BoutonBoutique` du module 4, à déplacer comme vu à la leçon 1) ; tous restent à portée de pouce, sur téléphone et sur tablette.
 - [ ] Le texte est lisible sur un téléphone d’entrée de gamme (Device Simulator en **Physical size**, puis vrai appareil).
 - [ ] Rien n’est caché par une encoche ou la barre de Roblox (`ScreenInsets` sur `CoreUISafeInsets`).
 
@@ -240,7 +240,7 @@ Pour l’Obby des Nuages, les corrections les plus probables sont :
 - ancrer les Parts oubliées ;
 - passer les décors (nuages, rambardes, îles décoratives) en `CanCollide`, `CanTouch` et `CanQuery` à `false`, et leur `CollisionFidelity` en `Box` ou `Hull` s’il s’agit de MeshParts ;
 - remplacer la rotation des pièces côté serveur par le LocalScript de la leçon 4 ;
-- remplacer le compteur de pièces mis à jour à chaque image par un `Changed` ;
+- vérifier que le compteur de pièces réagit à `Changed` (comme `ScriptInterface` au module 4) et ne tourne pas à chaque image ;
 - réduire les nuages semi-transparents superposés et les lumières avec ombres ;
 - vérifier les réglages de streaming et corriger les LocalScripts qui plantent avec un petit rayon.
 

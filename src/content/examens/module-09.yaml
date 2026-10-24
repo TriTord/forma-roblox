@@ -63,18 +63,23 @@ questions:
       local Players = game:GetService("Players")
       local joueur = Players.LocalPlayer
 
-      joueur.CharacterAdded:Connect(function(personnage)
+      local function surPersonnage(personnage)
       	local humanoid = personnage.Humanoid
       	humanoid.Died:Connect(function()
       		print("Tu es tombé des nuages !")
       	end)
-      end)
+      end
+
+      if joueur.Character then
+      	surPersonnage(joueur.Character)
+      end
+      joueur.CharacterAdded:Connect(surPersonnage)
     options:
       - texte: "Ligne 2 : `LocalPlayer` n’est pas accessible dans un LocalScript"
       - texte: "Ligne 5 : avec le streaming, le personnage peut arriver avant ses enfants ; il faut `personnage:WaitForChild(\"Humanoid\")`"
         correct: true
       - texte: "Ligne 6 : l’événement `Died` n’existe pas"
-    explication: "La documentation sur le streaming le précise : le modèle du personnage est placé dans le Workspace avant que tous ses descendants soient arrivés. L’accès direct `personnage.Humanoid` peut donc échouer. `WaitForChild(\"Humanoid\")` attend que l’objet existe."
+    explication: "La documentation sur le streaming le précise : le modèle du personnage est placé dans le Workspace avant que tous ses descendants soient arrivés. L’accès direct `personnage.Humanoid` peut donc échouer. `WaitForChild(\"Humanoid\")` attend que l’objet existe. Le reste est correct : le test `if joueur.Character` gère le personnage déjà présent au lancement du script, et `CharacterAdded` les suivants."
 
   - type: vrai-faux
     question: Après un appel à `Player:RequestStreamAroundAsync`, tout le contenu autour de la position demandée est garanti présent chez le joueur.

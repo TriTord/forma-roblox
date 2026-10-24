@@ -101,21 +101,23 @@ Le serveur, lui, voit **toujours** tout le Workspace. Les scripts serveur de l�
 
 ## Les réglages de Workspace
 
-Toutes ces propriétés se règlent **dans Studio**, sur l’objet `Workspace` : aucun script ne peut les modifier. Voici les valeurs par défaut et les recommandations de la documentation, au moment de la rédaction (octobre 2026).
+Toutes ces propriétés se règlent **dans Studio**, sur l’objet `Workspace` : aucun script ne peut les modifier. Voici le comportement par défaut et les recommandations de la documentation, au moment de la rédaction (octobre 2026).
 
-| Propriété | Rôle | Défaut | Recommandation |
+| Propriété | Rôle | Comportement par défaut | Recommandation |
 | :--- | :--- | :--- | :--- |
 | `StreamingMinRadius` | Rayon (en studs) chargé en priorité maximale, jamais déchargé | 64 | garder 64 |
 | `StreamingTargetRadius` | Distance maximale à laquelle le contenu est envoyé | 1024 | garder 1024 |
-| `StreamingIntegrityMode` | Que faire si le joueur entre dans une zone pas encore chargée | `Default` (comportement non détaillé par la doc) | `PauseOutsideLoadedArea` |
-| `StreamOutBehavior` | Quand décharger le contenu lointain | `LowMemory` | `Opportunistic` |
-| `ModelStreamingBehavior` | Façon de streamer les modèles « normaux » | `Legacy` | `Improved` |
-| `PredictiveStreamingMode` | Anticiper les zones dont le joueur aura bientôt besoin (réapparition…) | `Default` (se comporte comme `Disabled`) | `Enabled` en option |
+| `StreamingIntegrityMode` | Que faire si le joueur entre dans une zone pas encore chargée | non détaillé par la doc | `PauseOutsideLoadedArea` |
+| `StreamOutBehavior` | Quand décharger le contenu lointain | comme `LowMemory` | `Opportunistic` |
+| `ModelStreamingBehavior` | Façon de streamer les modèles « normaux » | comme `Legacy` | `Improved` |
+| `PredictiveStreamingMode` | Anticiper les zones dont le joueur aura bientôt besoin (réapparition…) | comme `Disabled` | `Enabled` en option |
+
+Dans la fenêtre Properties, tu verras peut-être la valeur `Default` sur certaines de ces propriétés. La référence API la décrit comme le « comportement par défaut, susceptible de changer » : c’est une raison de plus pour choisir **explicitement** la valeur recommandée.
 
 Quelques explications :
 
 - **Les deux rayons.** `StreamingTargetRadius` doit rester plus grand que `StreamingMinRadius` : l’espace entre les deux sert de tampon si le réseau a un raté. Augmenter les rayons coûte plus de mémoire et de bande passante.
-- **`StreamingIntegrityMode`.** Ses valeurs sont `Default` (que la référence API décrit seulement comme un « comportement par défaut, susceptible de changer » : ne compte pas dessus, choisis explicitement un mode), `Disabled` (jamais de pause), `MinimumRadiusPause` (pause si le rayon minimum n’est pas chargé) et `PauseOutsideLoadedArea` (pause si le personnage sort de la zone chargée). Avec ce dernier mode, recommandé, le joueur ne tombe pas à travers une plateforme pas encore arrivée : le jeu se met brièvement en pause et Roblox affiche un message.
+- **`StreamingIntegrityMode`.** Ses valeurs sont `Default` (le comportement par défaut, susceptible de changer : ne compte pas dessus), `Disabled` (jamais de pause), `MinimumRadiusPause` (pause si le rayon minimum n’est pas chargé) et `PauseOutsideLoadedArea` (pause si le personnage sort de la zone chargée). Avec ce dernier mode, recommandé, le joueur ne tombe pas à travers une plateforme pas encore arrivée : le jeu se met brièvement en pause et Roblox affiche un message.
 - **`StreamOutBehavior`.** Avec `LowMemory`, le client ne décharge que s’il manque de mémoire. Avec `Opportunistic`, il peut décharger ce qui dépasse le rayon cible même sans manque de mémoire, ce qui réduit fortement la consommation et aide à éviter les plantages.
 
 <Astuce titre="Voir le streaming en direct">
@@ -244,7 +246,7 @@ D’après la page « Techniques » de la documentation sur le streaming :
 
 Quand ton jeu téléporte un joueur loin, la zone d’arrivée n’est peut-être pas chargée chez lui : il risque une pause ou un décor manquant. La méthode `Player:RequestStreamAroundAsync(position, delaiMax)`, appelée **côté serveur**, demande au moteur d’envoyer la zone autour de `position` au joueur. Elle met le script en attente (elle *yield*). Le second paramètre, facultatif, est la durée maximale de la tentative ; sans lui, l’attente n’a pas de limite (sauf si l’appareil manque de mémoire).
 
-Dans l’obby, c’est utile quand tu renvoies un joueur à son checkpoint, ou pour le produit « Passer l’étape » du module 6 :
+Dans l’obby, c’est utile quand tu renvoies un joueur vers un checkpoint lointain, par exemple avec la téléportation sécurisée vers un checkpoint déjà atteint du module 3 (leçon 4). Attention : la fonction ci-dessous peut attendre jusqu’à `DELAI_MAX` avant de déplacer le joueur.
 
 ```luau
 -- ModuleScript nommé « Teleportation », placé dans ServerScriptService
