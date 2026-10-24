@@ -78,7 +78,7 @@ C’est la même entité vue sous deux angles. Au moment de la rédaction, la do
 
 ### Ce qu’une communauté apporte
 
-D’après la documentation de Roblox sur la promotion, quand un jeu appartient à une communauté, les joueurs qui veulent en savoir plus arrivent souvent sur la page de cette communauté. Ils peuvent y trouver tes liens sociaux et suivre tes nouveautés. Roblox recommande notamment :
+D’après la documentation de Roblox sur la promotion, quand un jeu appartient à une communauté, les joueurs qui veulent en savoir plus arrivent souvent sur la page de cette communauté. Ils peuvent y trouver tes liens sociaux (visibles seulement par les 16 ans et plus à l’âge vérifié, on y revient plus bas) et suivre tes nouveautés. Roblox recommande notamment :
 
 - de nommer la communauté d’après ton studio ;
 - de soigner son image et sa description ;
@@ -86,7 +86,7 @@ D’après la documentation de Roblox sur la promotion, quand un jeu appartient 
 
 La page de communauté propose aussi :
 
-- des **forums**, ouverts à toutes les communautés depuis août 2025 (réservés, selon l’annonce de lancement, aux utilisateurs connectés de 13 ans et plus). Les anciens « murs » (*Walls*) ont été passés en lecture seule en décembre 2025, et Roblox a annoncé leur suppression complète pour début 2026 (les messages des murs ne sont pas transférés vers les forums) ;
+- des **forums**, ouverts à toutes les communautés depuis août 2025. Selon l’annonce officielle, ils sont réservés aux utilisateurs connectés de **13 ans et plus**. Ils remplacent les anciens « murs » (*Walls*), passés en lecture seule en décembre 2025 puis dont Roblox a annoncé la suppression pour début 2026 ;
 - des **annonces** et des **événements** (l’onglet Events vu à la leçon 4) ;
 - un système de **rôles et permissions** pour répartir les tâches.
 
@@ -117,7 +117,7 @@ Les **Community Standards** interdisent d’afficher des adresses de sites exter
 Chaque plateforme a ses propres règles. Par exemple, Discord exige d’avoir **au moins 13 ans**, et davantage dans certains pays (jusqu’à 16 ans selon son centre d’aide). Une partie de tes joueurs n’a donc **pas le droit** d’y être.
 
 <Erreur titre="Tout miser sur un serveur externe">
-Si toute ta communauté vit sur un serveur Discord, tu laisses de côté les joueurs trop jeunes pour y aller, et tous ceux qui ne voient même pas tes liens sociaux (moins de 16 ans ou âge non vérifié). Garde ta **communauté Roblox** et le **jeu lui-même** comme canaux principaux : c’est là que tous tes joueurs peuvent te suivre. Les réseaux externes viennent en complément.
+Si toute ta communauté vit sur un serveur Discord, tu laisses de côté les joueurs trop jeunes pour y aller, et tous ceux qui ne voient même pas tes liens sociaux (moins de 16 ans ou âge non vérifié). Le seul canal qui touche **tous** tes joueurs, c’est **le jeu lui-même** (message au spawn, panneau des nouveautés). Viennent ensuite ta **communauté Roblox** (attention, ses forums sont réservés aux 13 ans et plus), puis les réseaux externes, en complément.
 </Erreur>
 
 ## Modérer et protéger les joueurs
@@ -242,7 +242,7 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Un script d’interface pourra ensuite lire l’attribut `RoleCommunaute` pour afficher un badge « Testeur » au-dessus du personnage ou dans le classement.
 
 <Info>
-La documentation précise que ces résultats sont **mis en cache** par utilisateur et par communauté : si un joueur rejoint ou quitte la communauté pendant sa partie, un nouvel appel peut renvoyer l’ancien résultat tant que le cache n’a pas expiré. Ici, on ne lit les rôles qu’à l’arrivée du joueur, donc le changement ne sera pris en compte qu’à sa prochaine connexion. Seuls les rôles **publics** sont renvoyés. Elle conseille aussi d’identifier un rôle par son identifiant (`Id`, stable) plutôt que par son nom : si tu renommes un rôle, pense à mettre à jour `ROLES_SPECIAUX`. Enfin, n’utilise ces rôles que pour des **signes de reconnaissance**, jamais pour donner des pouvoirs de modération en jeu sans vérifications supplémentaires.
+La documentation précise que ces résultats sont **mis en cache** par utilisateur et par communauté : si un joueur rejoint ou quitte la communauté pendant sa partie, un nouvel appel peut renvoyer l’ancien résultat tant que le cache n’a pas expiré. Ici, on ne lit les rôles qu’à l’arrivée du joueur, donc le changement ne sera pris en compte, au plus tôt, qu’à sa prochaine connexion. Seuls les rôles **publics** sont renvoyés. Elle conseille aussi d’identifier un rôle par son identifiant (`Id`, stable) plutôt que par son nom : si tu renommes un rôle, pense à mettre à jour `ROLES_SPECIAUX`. Enfin, n’utilise ces rôles que pour des **signes de reconnaissance**, jamais pour donner des pouvoirs de modération en jeu sans vérifications supplémentaires.
 </Info>
 
 <Defi>
@@ -255,7 +255,7 @@ La documentation précise que ces résultats sont **mis en cache** par utilisate
 <Resume>
 - Les groupes s’appellent **communautés** côté joueurs ; « Groups » reste le terme du Creator Hub et des API.
 - Les liens externes passent **uniquement** par les Social Links, visibles par les 16 ans et plus avec âge vérifié ; Discord et les autres plateformes ont leurs propres limites d’âge.
-- Ta **communauté Roblox** et ton jeu restent les canaux qui touchent **tous** tes joueurs.
+- Le **jeu lui-même** est le seul canal qui touche **tous** tes joueurs ; ta **communauté Roblox** vient ensuite (forums réservés aux 13 ans et plus).
 - Modère avec des règles écrites, des rôles de confiance et les outils de Roblox ; ne pousse jamais des mineurs vers des échanges privés.
 - Trie les retours selon leur fréquence, leur impact et leur effort ; cherche la raison derrière chaque demande.
 </Resume>

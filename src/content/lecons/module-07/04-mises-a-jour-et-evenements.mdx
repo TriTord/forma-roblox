@@ -23,14 +23,14 @@ quiz:
       - texte: Pour que la mise à jour soit annoncée automatiquement aux joueurs
     explication: "Cette option ne redémarre que les serveurs qui font tourner une ancienne version. La documentation la recommande dans presque tous les cas, pour éviter de déranger des joueurs qui ont déjà la bonne version."
   - type: qcm
-    question: "Tu ajoutes un champ `ZoneOragesDebloquee` aux données sauvegardées. Que faut-il faire pour les anciens joueurs ?"
+    question: "Tu ajoutes un champ `zoneOragesDebloquee` aux données sauvegardées. Que faut-il faire pour les anciens joueurs ?"
     options:
       - texte: Effacer toutes les anciennes sauvegardes pour repartir de zéro
       - texte: Changer le nom du DataStore à chaque mise à jour
       - texte: Au chargement, donner une valeur par défaut aux champs absents des anciennes sauvegardes
         correct: true
       - texte: Rien, Luau ajoute automatiquement les nouveaux champs
-    explication: "Les anciennes sauvegardes ne contiennent pas le nouveau champ : il vaut `nil`. On complète donc les données au chargement avec des valeurs par défaut. Effacer les sauvegardes ou changer de DataStore ferait perdre leur progression aux joueurs."
+    explication: "Les anciennes sauvegardes ne contiennent pas le nouveau champ : il vaut `nil`. On complète donc les données au chargement avec des valeurs par défaut : c’est le rôle de la fonction `completer` écrite au module 4. Effacer les sauvegardes ou changer de DataStore ferait perdre leur progression aux joueurs."
   - type: qcm
     question: "Que dit la documentation sur les annonces de mise à jour (*update announcements*) au moment de la rédaction ?"
     options:
@@ -100,39 +100,49 @@ La pire mise à jour, c’est celle qui fait perdre leur progression aux joueurs
 2. **Ajoute** des champs, avec une **valeur par défaut** pour les anciens joueurs.
 3. **Teste** la mise à jour dans Studio avec un compte qui a déjà une ancienne sauvegarde.
 
-Voici une fonction qui complète les anciennes sauvegardes avec les champs ajoutés au fil des mises à jour. Adapte la liste à la structure de tes propres données :
+Bonne nouvelle : tu as déjà tout ce qu’il faut. Au module 4, le ModuleScript `DonneesJoueurs` contient `donneesParDefaut()` (la structure d’une sauvegarde neuve) et `completer()`, qui remplit les champs absents d’une ancienne sauvegarde à chaque chargement. Pour ajouter un champ, il suffit donc de l’ajouter dans `donneesParDefaut()` :
 
 ```luau
--- Extrait à intégrer dans ton Script de sauvegarde (ServerScriptService), voir module 4
--- Valeurs par défaut de TOUS les champs, y compris ceux ajoutés par les mises à jour
-local DONNEES_PAR_DEFAUT = {
-	Etape = 1,
-	Pieces = 0,
-	Inventaire = {},
-	-- Ajouté dans la mise à jour « Zone des Orages » :
-	ZoneOragesDebloquee = false,
-}
+-- Extrait du ModuleScript « DonneesJoueurs » (ServerScriptService), écrit au module 4
+local VERSION_DONNEES = 1
 
--- Complète une sauvegarde chargée avec les champs qui lui manquent
-local function completerDonnees(donnees: { [string]: any }): { [string]: any }
-	for cle, valeurParDefaut in DONNEES_PAR_DEFAUT do
+-- Structure d'une sauvegarde toute neuve : on y AJOUTE les nouveaux champs
+local function donneesParDefaut(): { [string]: any }
+	return {
+		version = VERSION_DONNEES,
+		etape = 0,
+		pieces = 0,
+		inventaire = {},
+		equipe = "",
+		-- Ajouté dans la mise à jour « Zone des Orages » :
+		zoneOragesDebloquee = false,
+	}
+end
+
+-- Inchangée depuis le module 4 : complète une ancienne sauvegarde
+local function completer(donnees: { [string]: any }): { [string]: any }
+	for cle, valeurParDefaut in donneesParDefaut() do
 		if donnees[cle] == nil then
-			if typeof(valeurParDefaut) == "table" then
-				-- On copie la table pour que chaque joueur ait la sienne
-				donnees[cle] = table.clone(valeurParDefaut)
-			else
-				donnees[cle] = valeurParDefaut
-			end
+			donnees[cle] = valeurParDefaut
 		end
 	end
 	return donnees
 end
 
 -- Exemple : une sauvegarde d'avant la mise à jour
-local ancienneSauvegarde = { Etape = 12, Pieces = 340, Inventaire = { "TraineeBleue" } }
-local donnees = completerDonnees(ancienneSauvegarde)
-print(donnees.ZoneOragesDebloquee) --> false : le nouveau champ existe maintenant
+local ancienneSauvegarde = {
+	version = 1,
+	etape = 12,
+	pieces = 340,
+	inventaire = { TrailNuage = true },
+	equipe = "TrailNuage",
+}
+local donnees = completer(ancienneSauvegarde)
+print(donnees.zoneOragesDebloquee) --> false : le nouveau champ existe maintenant
+print(donnees.etape) --> 12 : la progression est conservée
 ```
+
+Comme `donneesParDefaut()` fabrique une **nouvelle** table à chaque appel, chaque joueur reçoit sa propre copie des tables par défaut (comme `inventaire`) : aucun risque que deux joueurs partagent le même inventaire.
 
 <Info>
 Si quelque chose tourne mal malgré tout, l’**historique des versions** (vu au module 1) permet de revenir à une version précédente d’un lieu. Note quand même la version qui fonctionnait avant de publier.
@@ -269,7 +279,7 @@ Les joueurs qui cliquent sur **Notify Me** reçoivent une notification au début
 Pour un premier jeu, ces vitrines sont difficiles à atteindre : concentre-toi sur un événement simple, bien annoncé à tes joueurs actuels.
 
 <Defi>
-1. Ajoute la fonction `completerDonnees` à ton script de sauvegarde et teste-la avec une ancienne sauvegarde.
+1. Ajoute le champ `zoneOragesDebloquee` dans `donneesParDefaut()` et vérifie dans Studio qu’un compte qui a déjà une sauvegarde garde sa progression.
 2. Crée le RemoteEvent `AnnonceRedemarrage` et les deux scripts de redémarrage.
 3. Publie une petite mise à jour (une nouvelle étape), puis redémarre les serveurs avec **Restart only servers with outdated versions** et un délai de 2 minutes. Rejoins le jeu avant pour voir la notification.
 4. Prépare en privé un événement « Ciel d’automne » de deux semaines avec sa miniature.

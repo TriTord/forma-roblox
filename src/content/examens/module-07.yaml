@@ -63,7 +63,7 @@ questions:
         correct: true
       - texte: Changer le nom du jeu chaque jour
       - texte: Ajouter « ROBUX GRATUITS » dans le titre
-    explication: "La publicité amène des joueurs mais ne les retient pas, et elle ne change pas le classement dans Recommended For You. La documentation d’Ads Manager conseille elle-même d’améliorer l’onboarding quand une campagne ne donne pas de résultats."
+    explication: "La publicité amène des joueurs mais ne les retient pas, et elle ne change pas le classement dans Recommended For You. La documentation d’Ads Manager conseille elle-même d’améliorer l’onboarding et la première expérience du joueur si une campagne ne progresse pas après 3 à 5 jours."
 
   - type: vrai-faux
     question: "Les données de lancement (*LaunchData*) d’une campagne ou d’un lien de partage sont secrètes : on peut s’en servir pour donner une grosse récompense sans risque."
@@ -102,7 +102,7 @@ questions:
   - type: trouve-le-bug
     question: "Cette fonction doit compléter les anciennes sauvegardes avec les champs ajoutés par une mise à jour. Où est le bug ?"
     code: |
-      local DEFAUT = { Etape = 1, Pieces = 0, ZoneOragesDebloquee = false }
+      local DEFAUT = { etape = 0, pieces = 0, zoneOragesDebloquee = false }
 
       local function completerDonnees(donnees)
       	for cle, valeur in DEFAUT do
@@ -118,7 +118,7 @@ questions:
       - texte: "Ligne 5 : la condition est inversée ; avec `~= nil`, on écrase les valeurs existantes au lieu de remplir les champs manquants"
         correct: true
       - texte: "Ligne 9 : une fonction ne peut pas renvoyer une table"
-    explication: "Il faut écrire `if donnees[cle] == nil then` : on ne remplit que les champs **absents**. Avec `~= nil`, un joueur à l’étape 12 serait remis à l’étape 1 : c’est exactement la perte de progression qu’on veut éviter. En Luau, on peut parcourir une table directement avec `for … in`."
+    explication: "Il faut écrire `if donnees[cle] == nil then` : on ne remplit que les champs **absents**. Avec `~= nil`, un joueur à l’étape 12 serait remis à l’étape 0 : c’est exactement la perte de progression qu’on veut éviter. En Luau, on peut parcourir une table directement avec `for … in`."
 
   - type: qcm
     question: "Tu prépares un événement « Ciel d’automne » qui commence dans dix jours et tu ne veux pas encore qu’il soit visible. Que fais-tu ?"
@@ -134,11 +134,11 @@ questions:
     question: "Quel canal permet de toucher **tous** les joueurs de l’Obby des Nuages, quel que soit leur âge ?"
     options:
       - texte: Un serveur Discord annoncé par les liens sociaux
-      - texte: Le jeu lui-même et ta communauté Roblox
+      - texte: "Le jeu lui-même : un message au spawn ou un panneau des nouveautés"
         correct: true
       - texte: Une adresse e-mail affichée sur un panneau dans le jeu
       - texte: Une chaîne YouTube citée dans la description
-    explication: "Les liens sociaux ne sont visibles que par les 16 ans et plus avec âge vérifié, et Discord impose au moins 13 ans. Afficher une adresse dans le jeu est interdit. Le jeu et ta communauté Roblox restent les canaux qui atteignent tout le monde."
+    explication: "Les liens sociaux ne sont visibles que par les 16 ans et plus avec âge vérifié, et Discord impose au moins 13 ans. Afficher une adresse ou un lien externe dans le jeu (ou dans la description) est interdit. Seul le jeu lui-même atteint tous tes joueurs ; ta communauté Roblox vient ensuite, mais ses forums sont réservés aux 13 ans et plus."
 
   - type: vrai-faux
     question: "Pour connaître les rôles d’un joueur dans ta communauté, la méthode recommandée aujourd’hui est `Player:GetRankInGroupAsync()`."
