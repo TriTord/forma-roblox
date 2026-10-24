@@ -264,7 +264,7 @@ Fichiers concernés : 1) default.project.json : ajoute le RemoteEvent AnnonceRed
 Contraintes techniques : serveur : game.ServerRestartScheduled:Connect(function(restartTime, source)) ; restartTime est un DateTime : secondes restantes = restartTime.UnixTimestamp - DateTime.now().UnixTimestamp, au minimum 0, converties en minutes avec math.ceil ; message différent si source == Enum.CloseReason.DeveloperUpdate ; envoi avec AnnonceRedemarrage:FireAllClients(message). Client : AnnonceRedemarrage.OnClientEvent affiche StarterGui:SetCore("SendNotification", { Title = "Mise à jour", Text = message, Duration = 15 }) dans un pcall, avec warn si l'appel échoue.
 Sécurité : seul le serveur envoie l'annonce ; aucun script n'écoute AnnonceRedemarrage.OnServerEvent (un client ne doit pas pouvoir envoyer un message à tout le serveur).
 Cas limites : heure de redémarrage déjà passée (0 min, pas de nombre négatif) ; interface Roblox pas encore prête (pcall) ; maintenance de Roblox ; message honnête, sans fausse urgence.
-Vérification : publie le jeu, rejoins-le, puis dans le Creator Dashboard (Configurations > Server management) lance Restart Servers avec un délai de 2 minutes : la notification annonce « 2 min » ; aucune erreur dans la console développeur (F9) ; selene src et stylua --check src sans erreur.
+Vérification : publie le jeu et rejoins-le ; publie ensuite une petite modification (ton serveur fait alors tourner une ancienne version), puis dans le Creator Dashboard (Configurations > Server management) lance Restart Servers avec « Restart only servers with outdated versions » et un délai de 2 minutes : la notification annonce « 2 min » ; aucune erreur dans la console développeur (F9) ; selene src et stylua --check src sans erreur.
 ```
 
 </Prompt>

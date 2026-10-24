@@ -177,7 +177,7 @@ Si lundi ton ARPPU est de 100 Robux (2 payeurs) et mardi de 20 Robux (30 payeurs
 
 <AvecClaudeCode>
 
-Pour le défi de fin de leçon, tu peux demander à Claude Code (module 2) une calculatrice qui traite toute une semaine. Le prompt donne les formules exactes de Roblox et interdit la moyenne de moyennes : sans cette précision, une IA fait très souvent la moyenne des ARPPU de chaque jour.
+Pour le défi de fin de leçon, tu peux demander à Claude Code (module 2) une calculatrice qui traite toute une semaine. Le prompt donne les formules exactes de Roblox et interdit la moyenne de moyennes : sans cette précision, une IA peut très bien faire la moyenne des ARPPU de chaque jour, une erreur qui passe inaperçue si tu ne connais pas la formule.
 
 <Prompt titre="Calculatrice de monétisation sur une semaine">
 
@@ -192,7 +192,7 @@ Contraintes techniques :
 - Ajoute un commentaire qui prévient qu'un joueur qui paie deux jours différents est compté deux fois dans le total des payeurs.
 - Luau typé, commentaires en français, aucun service Roblox nécessaire.
 Cas limites : jour à 0 DAU ou à 0 payeur (aucune division par zéro : afficher 0 et le signaler) ; tableau vide.
-Vérification : avec l'exemple de la leçon (1 000 DAU, 20 payeurs, 1 500 Robux), l'outil affiche 2,0 %, 75,0 Robux et 1,50 Robux, plus la vérification conversion × ARPPU = ARPDAU. selene outils sans erreur.
+Vérification : avec l'exemple de la leçon (1 000 DAU, 20 payeurs, 1 500 Robux), l'outil affiche 2.0 %, 75.0 Robux et 1.50 Robux (string.format écrit les décimales avec un point), plus la vérification conversion × ARPPU = ARPDAU. selene outils sans erreur.
 ```
 
 </Prompt>

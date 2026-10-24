@@ -61,7 +61,7 @@ quiz:
     reponse: true
     explication: "Une instance déchargée est rangée hors du jeu (son parent devient `nil`). À son retour, elle peut avoir repris l’état envoyé par le serveur. Un script client doit donc réappliquer ses changements locaux quand l’objet revient, par exemple avec `ChildAdded`."
   - type: trouve-le-bug
-    question: "Trouve la faille dans ce code généré par IA. Ce LocalScript doit colorer chez le joueur tous les checkpoints de l’obby, qui utilise le streaming. Il ne plante pas, mais les checkpoints lointains restent gris. Pourquoi ?"
+    question: "Trouve la faille dans ce code généré par IA. Ce LocalScript doit colorer chez le joueur tous les checkpoints de l’obby, qui utilise le streaming. Il ne plante pas, mais les checkpoints lointains gardent leur couleur d’origine. Pourquoi ?"
     code: |
       local Workspace = game:GetService("Workspace")
 
@@ -83,7 +83,7 @@ quiz:
         correct: true
       - texte: "Ligne 4 : `Color3.fromRGB` attend des valeurs entre 0 et 1"
       - texte: "Ligne 8 : `IsA` ne reconnaît pas les Parts streamées"
-    explication: "Côté client, `GetChildren()` ne voit que ce qui est chargé au moment de l’appel. Les checkpoints lointains arrivent plus tard (ou reviennent après un déchargement) et ne sont jamais colorés. Il faut aussi connecter `dossierCheckpoints.ChildAdded` à une fonction qui colore la Part reçue. Le Folder, lui, est envoyé dès l’arrivée : `WaitForChild` suffit pour lui. Une IA écrit souvent ce code, qui marche parfaitement… sans streaming."
+    explication: "Côté client, `GetChildren()` ne voit que ce qui est chargé au moment de l’appel. Les checkpoints lointains arrivent plus tard (ou reviennent après un déchargement) et ne sont jamais colorés. Il faut aussi connecter `dossierCheckpoints.ChildAdded` à une fonction qui colore la Part reçue. Le Folder, lui, est envoyé dès l’arrivée : `WaitForChild` suffit pour lui. C’est le code typique d’un tutoriel écrit sans streaming, donc une proposition plausible d’une IA : il marche parfaitement… tant que le streaming est désactivé."
 ---
 
 Imagine que l’Obby des Nuages grandisse : 50 étapes, des îles flottantes, des décors partout. Sans précaution, chaque joueur doit télécharger **tout** le monde avant de faire son premier saut, et le garder en mémoire jusqu’au bout. Sur un téléphone modeste, c’est un chargement interminable, voire un plantage. Le **streaming d’instances** règle ce problème : Roblox n’envoie au joueur que ce qui est autour de lui. Dans cette leçon, tu vas comprendre son fonctionnement, le régler et surtout adapter tes scripts.

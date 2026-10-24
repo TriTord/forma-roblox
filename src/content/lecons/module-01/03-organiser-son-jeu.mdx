@@ -230,6 +230,7 @@ Vérification : en lançant un test, le nombre affiché est égal au nombre de P
 
 - le nom cherché est exactement `Plateformes`, avec la même casse que dans ton Explorer ;
 - c’est un **Script** placé dans `ServerScriptService`, comme le demande le prompt ;
+- avec un délai, `WaitForChild("Plateformes", 10)` renvoie `nil` si le Folder n’apparaît pas : le code doit tester ce `nil` (et afficher son `warn`) **avant** d’appeler `GetChildren` ;
 - en test, le nombre affiché correspond bien à ce que tu comptes dans l’Explorer.
 
 </AvecClaudeCode>

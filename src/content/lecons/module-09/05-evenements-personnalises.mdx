@@ -314,13 +314,13 @@ Le jour où tu publies ce script, les joueurs qui avaient déjà joué avant von
 
 <AvecClaudeCode>
 
-Ce script, Claude Code peut l’écrire pour toi… à condition de lui donner le **plan exact** de l’entonnoir : numéros, noms et déclencheurs des étapes. Sans ce plan, une IA invente ses propres étapes (souvent dans le désordre), multiplie les noms d’événements ou appelle `AnalyticsService` depuis un LocalScript.
+Ce script, Claude Code peut l’écrire pour toi… à condition de lui donner le **plan exact** de l’entonnoir : numéros, noms et déclencheurs des étapes. Sans ce plan, une IA risque d’inventer ses propres étapes (parfois dans un ordre que le jeu ne garantit pas), de multiplier les noms d’événements ou d’appeler `AnalyticsService` depuis un LocalScript.
 
 <Prompt titre="Entonnoirs de l’Obby des Nuages">
 
 ```text
 Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je veux savoir où les nouveaux joueurs abandonnent, avec AnalyticsService.
-Ce qui existe déjà : leaderstats.Etape (IntValue), créée et modifiée uniquement par le serveur (dans src/ServerScriptService : GestionJoueurs.server.luau, Progression.server.luau, et Achats.server.luau pour « passer l'étape »). Au chargement de la sauvegarde, Etape peut passer d'un coup de 0 à la valeur sauvegardée.
+Ce qui existe déjà : leaderstats.Etape (IntValue), créée et modifiée uniquement par le serveur (dans src/ServerScriptService : GestionJoueurs.server.luau qui la crée et y charge la sauvegarde, Progression.server.luau via le ModuleScript RecompensesEtapes.luau, et Achats.server.luau pour « passer l'étape »). Au chargement de la sauvegarde, Etape peut passer d'un coup de 0 à la valeur sauvegardée.
 Objectif :
 - Entonnoir d'onboarding avec LogOnboardingFunnelStepEvent : 1 "Arrivée" (PlayerAdded), 2 "Personnage apparu" (premier CharacterAdded), 3 "Checkpoint 1", 4 "Checkpoint 2", 5 "Checkpoint 3" (Etape passe à 1, 2, 3).
 - Entonnoir de progression avec LogFunnelStepEvent : nom "ProgressionObby", funnelSessionId nil, étape N = "Checkpoint N", pour N de 1 à 100.
@@ -334,7 +334,7 @@ Contraintes techniques :
 - Aucune méthode dépréciée (FireEvent, FireCustomEvent...). Un seul nom d'événement par mesure (pas de MortEtape1, MortEtape2...).
 Sécurité : aucune donnée d'analytics ne vient du client ; n'ajoute aucun RemoteEvent.
 Cas limites : leaderstats lentes à arriver (WaitForChild avec délai, warn si introuvables) ; joueurs déjà présents quand le script démarre ; personnage sans Humanoid.
-Vérification : en Play, franchir 3 checkpoints puis tomber 2 fois affiche dans l'ordre les onboarding 1 à 5, les progressions 1 à 3, le temps du checkpoint 1 et les deux morts. selene src et stylua --check src sans erreur.
+Vérification : en Play, en partant de l'étape 0, franchir 3 checkpoints puis tomber 2 fois affiche dans l'Output les onboarding 1 et 2, puis pour chaque checkpoint l'onboarding correspondant (3, 4, 5) et la progression (1, 2, 3), le temps du checkpoint 1 juste après le premier checkpoint, et enfin deux lignes « Mort ». selene src et stylua --check src sans erreur.
 ```
 
 </Prompt>

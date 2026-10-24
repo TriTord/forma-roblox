@@ -17,27 +17,33 @@ const urlBibliotheque =
   lecons.find((l) => l.module === '02' && l.slug === 'bibliotheque-de-prompts')?.url ?? lien('/modules/02/bibliotheque-de-prompts/');
 
 // Le prompt affiché dans le héros : la demande précise qui produit le script juste en dessous.
-const promptHero = `Contexte : Obby des Nuages, projet Rojo. Les checkpoints sont les Parts "1", "2"… de Workspace.Checkpoints.
+const promptHero = `Contexte : Obby des Nuages, projet Rojo. Les checkpoints sont les Parts "1", "2"… de Workspace.Checkpoints ; leaderstats.Etape existe déjà.
 Objectif : toucher un checkpoint ne valide que l’étape suivante (étape actuelle + 1).
+Fichiers concernés : crée src/ServerScriptService/Progression.server.luau.
 Sécurité : c’est le serveur qui décide, jamais le client.
 Vérification : en Play, sauter un checkpoint ne change pas l’étape.`;
 
-const extrait = `-- Obby des Nuages : un Script dans chaque checkpoint
+const extrait = `-- Obby des Nuages : un seul Script serveur pour tous les checkpoints
 local Players = game:GetService("Players")
-local checkpoint = script.Parent
-local numero = tonumber(checkpoint.Name) -- "1", "2"…
+local Workspace = game:GetService("Workspace")
 
-local function onTouched(hit: BasePart)
+local function onTouched(checkpoint: BasePart, hit: BasePart)
 	local player = Players:GetPlayerFromCharacter(hit.Parent)
-	if not player then return end
+	local leaderstats = player and player:FindFirstChild("leaderstats")
+	local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+	if not etape then return end
 	-- Le serveur décide : seulement l'étape suivante
-	local etape = player:GetAttribute("Etape") or 0
-	if numero == etape + 1 then
-		player:SetAttribute("Etape", numero)
+	local numero = tonumber(checkpoint.Name) -- "1", "2"…
+	if numero == etape.Value + 1 then
+		etape.Value = numero
 	end
 end
 
-checkpoint.Touched:Connect(onTouched)`;
+for _, checkpoint in Workspace:WaitForChild("Checkpoints"):GetChildren() do
+	if checkpoint:IsA("BasePart") then
+		checkpoint.Touched:Connect(function(hit) onTouched(checkpoint, hit) end)
+	end
+end`;
 
 const methode = [
   {
@@ -217,7 +223,7 @@ const faq: QuestionFaq[] = [
           <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-indigo-500/10 dark:border-slate-800 dark:bg-slate-900">
             <div class="flex items-center gap-1.5 px-2 pb-3" aria-hidden="true">
               <span class="size-3 rounded-full bg-rose-400"></span><span class="size-3 rounded-full bg-amber-400"></span><span class="size-3 rounded-full bg-emerald-400"></span>
-              <span class="ml-3 text-xs text-slate-500 dark:text-slate-400">Checkpoint.server.luau · le code que tu relis</span>
+              <span class="ml-3 text-xs text-slate-500 dark:text-slate-400">Progression.server.luau · le code que tu relis</span>
             </div>
             <Code code={extrait} lang="luau" themes={THEMES_CODE} defaultColor="light" />
           </div>
@@ -267,10 +273,10 @@ const faq: QuestionFaq[] = [
         Plus ton prompt est <strong class="font-semibold text-slate-800 dark:text-slate-100">précis</strong> (contexte, objectif,
         contraintes, critères de réussite), meilleur est le résultat. Compare :
       </p>
-      <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <figure class="rounded-2xl border border-rose-300 bg-white p-5 dark:border-rose-800 dark:bg-slate-950">
           <figcaption class="text-sm font-bold text-rose-800 dark:text-rose-300">✗ Prompt vague</figcaption>
-          <pre class="mt-3 font-mono text-sm whitespace-pre-wrap text-slate-800 dark:text-slate-200">{promptVague}</pre>
+          <pre class="mt-3 font-mono text-sm whitespace-pre-wrap [overflow-wrap:anywhere] text-slate-800 dark:text-slate-200">{promptVague}</pre>
           <p class="mt-4 text-sm text-slate-600 dark:text-slate-400">
             L’IA doit tout deviner : où placer le script, combien rapporte une pièce, qui décide du gain… Elle peut très bien laisser
             le client annoncer lui-même ses pièces, ce qui ouvre la porte à la triche.
@@ -278,7 +284,7 @@ const faq: QuestionFaq[] = [
         </figure>
         <figure class="rounded-2xl border border-emerald-300 bg-white p-5 dark:border-emerald-800 dark:bg-slate-950">
           <figcaption class="text-sm font-bold text-emerald-800 dark:text-emerald-300">✓ Prompt précis</figcaption>
-          <pre class="mt-3 font-mono text-sm leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-200">{promptPrecis}</pre>
+          <pre class="mt-3 font-mono text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere] text-slate-800 dark:text-slate-200">{promptPrecis}</pre>
         </figure>
       </div>
       <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">

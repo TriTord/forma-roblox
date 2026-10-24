@@ -319,7 +319,7 @@ Objectif : pour chaque point ci-dessous, réponds « OK », « À corriger » ou
 - Technique : aucune API dépréciée (wait, spawn, delay, BodyVelocity, Humanoid:LoadAnimation...) ; aucun WaitForChild sans délai sur un objet qui peut manquer.
 - Sécurité : chaque OnServerEvent vérifie le type, l'existence, une valeur plausible et la fréquence ; aucun prix, aucune récompense, aucun numéro d'étape venu du client ; aucun InvokeClient.
 - Sauvegarde : DataStore "DonneesJoueurs_v1", clé "Joueur_" .. player.UserId ; chargement dans un pcall avec nouvelles tentatives ; aucune sauvegarde après un chargement raté ; sauvegarde à PlayerRemoving, dans game:BindToClose et périodiquement.
-- Monétisation : UserOwnsGamePassAsync dans un pcall côté serveur ; un seul ProcessReceipt, qui ne renvoie PurchaseGranted qu'après avoir réellement fait passer l'étape, et jamais deux fois pour le même achat.
+- Monétisation : UserOwnsGamePassAsync dans un pcall côté serveur ; un seul ProcessReceipt, qui ne renvoie PurchaseGranted qu'après avoir réellement fait passer l'étape, noté le PurchaseId et sauvegardé, et qui n'accorde jamais deux fois le même achat (PurchaseId déjà noté : on confirme sans redonner).
 - Analytics : événements AnalyticsService envoyés uniquement depuis le serveur.
 - Texte : tout texte saisi par un joueur et montré aux autres passe par TextService:FilterStringAsync côté serveur.
 - Dépôt : aucun secret (cookie .ROBLOSECURITY, clé d'API, mot de passe) dans les fichiers suivis par Git.

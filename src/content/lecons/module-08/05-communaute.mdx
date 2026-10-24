@@ -286,7 +286,7 @@ Fichiers concernés : crée uniquement le Script src/ServerScriptService/RolesCo
 Contraintes techniques : GroupService:GetRolesInGroupAsync(player.UserId, ID_COMMUNAUTE) dans un pcall ; si l'appel échoue, warn et return sans poser d'attribut ; lire resultat.IsMember, puis parcourir tous les rôles de resultat.Roles (un membre peut en avoir plusieurs) ; ROLES_SPECIAUX = { "Moderateur", "Testeur" } du plus important au moins important. N'utilise aucune méthode dépréciée : ni Player:GetRankInGroup, ni Player:GetRoleInGroup, ni leurs variantes Async.
 Sécurité : l'attribut sert uniquement à l'affichage : n'ajoute aucune commande, aucun pouvoir de modération (expulser, bannir…) et aucun avantage de jeu à partir de ce rôle.
 Cas limites : service indisponible ; joueur non membre ; joueur avec plusieurs rôles ; rôle renommé dans la communauté (il faudra mettre à jour ROLES_SPECIAUX) ; changement de rôle pendant la partie (pris en compte à la prochaine connexion, à cause du cache).
-Vérification : avec le vrai ID et mon compte, en Play, l'Output affiche « MonNom : Membre » (ou Moderateur, ou Testeur, si j'ai ce rôle) et l'attribut apparaît dans les propriétés de mon joueur (Players) ; avec l'ID à 0, un avertissement s'affiche sans erreur bloquante ; selene src et stylua --check src sans erreur.
+Vérification : avec le vrai ID et mon compte, en Play, l'Output affiche « MonNom : Membre » (ou Moderateur, ou Testeur, si j'ai ce rôle) et l'attribut apparaît dans les propriétés de mon joueur (Players) ; avec l'ID à 0, aucune erreur bloquante (soit un avertissement, soit l'attribut RoleCommunaute = "Joueur") ; selene src et stylua --check src sans erreur.
 ```
 
 </Prompt>
