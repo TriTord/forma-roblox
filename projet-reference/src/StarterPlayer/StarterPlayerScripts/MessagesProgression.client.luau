@@ -2,12 +2,14 @@
 -- Affiche un message quand le joueur gagne des pièces ou atteint une nouvelle étape.
 -- Le serveur reste le seul à modifier les valeurs : ici, on ne fait que les afficher.
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local joueur = Players.LocalPlayer
 local leaderstats = joueur:WaitForChild("leaderstats")
-local etape = leaderstats:WaitForChild("Etape") :: IntValue
 local pieces = leaderstats:WaitForChild("Pieces") :: IntValue
+-- RemoteEvent du module 3 : le Script « Progression » l'utilise après chaque étape validée
+local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
 
 -- Petite interface créée par le script
 local ecran = Instance.new("ScreenGui")
@@ -57,11 +59,8 @@ pieces.Changed:Connect(function(nouvelleValeur: number)
 	end
 end)
 
-local ancienneEtape = etape.Value
-etape.Changed:Connect(function(nouvelleEtape: number)
-	local progresse = nouvelleEtape > ancienneEtape
-	ancienneEtape = nouvelleEtape
-	if pret and progresse then
-		afficher("Étape " .. nouvelleEtape .. " atteinte !")
-	end
+-- Les étapes : le SERVEUR envoie déjà « Étape N atteinte ! » (Script « Progression »,
+-- module 3) une fois le checkpoint validé. Il suffit d'écouter et d'afficher.
+notification.OnClientEvent:Connect(function(texte: string)
+	afficher(texte)
 end)

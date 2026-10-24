@@ -61,7 +61,7 @@ for (const [module, passes] of parModule) {
   }
 }
 
-const annexes = ["coherence-inter-modules.md", "relecture-finale.md"].filter((f) => existsSync(join(dossier, f)));
+const annexes = readdirSync(dossier).filter((f) => /^(coherence|relecture|qa)-.*.md$/.test(f)).sort();
 const intro = readFileSync(join(racine, "scripts", "verification-intro.md"), "utf8");
 
 writeFileSync(

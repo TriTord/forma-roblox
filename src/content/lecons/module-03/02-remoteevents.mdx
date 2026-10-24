@@ -188,7 +188,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
 
 notification.OnClientEvent:Connect(function(message: string)
-	-- Pour l'instant on affiche dans l'Output (au module 5, tu célébreras chaque étape à l'écran)
+	-- Pour l'instant on affiche dans l'Output (au module 5, un LocalScript l'affichera à l'écran)
 	print("Notification :", message)
 end)
 ```

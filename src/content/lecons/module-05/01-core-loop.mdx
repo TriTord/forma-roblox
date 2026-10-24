@@ -158,12 +158,14 @@ Le script ci-dessous affiche un message bref au centre de l’écran quand le jo
 -- Affiche un message quand le joueur gagne des pièces ou atteint une nouvelle étape.
 -- Le serveur reste le seul à modifier les valeurs : ici, on ne fait que les afficher.
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local joueur = Players.LocalPlayer
 local leaderstats = joueur:WaitForChild("leaderstats")
-local etape = leaderstats:WaitForChild("Etape") :: IntValue
 local pieces = leaderstats:WaitForChild("Pieces") :: IntValue
+-- RemoteEvent du module 3 : le Script « Progression » l'utilise après chaque étape validée
+local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
 
 -- Petite interface créée par le script
 local ecran = Instance.new("ScreenGui")
@@ -213,13 +215,10 @@ pieces.Changed:Connect(function(nouvelleValeur: number)
 	end
 end)
 
-local ancienneEtape = etape.Value
-etape.Changed:Connect(function(nouvelleEtape: number)
-	local progresse = nouvelleEtape > ancienneEtape
-	ancienneEtape = nouvelleEtape
-	if pret and progresse then
-		afficher("Étape " .. nouvelleEtape .. " atteinte !")
-	end
+-- Les étapes : le SERVEUR envoie déjà « Étape N atteinte ! » (Script « Progression »,
+-- module 3) une fois le checkpoint validé. Il suffit d'écouter et d'afficher.
+notification.OnClientEvent:Connect(function(texte: string)
+	afficher(texte)
 end)
 ```
 
@@ -227,6 +226,7 @@ Quelques points à remarquer :
 
 - C’est un **LocalScript** : l’affichage ne concerne que le joueur concerné. Les valeurs, elles, restent modifiées par le serveur, comme on l’a vu au module 3.
 - On mémorise l’ancienne valeur pour calculer le **gain** et pour ne célébrer que les progrès (pas une baisse de pièces après un achat).
+- Pour les étapes, pas besoin de surveiller `Etape` : depuis le module 3, ton Script « Progression » envoie « Étape N atteinte ! » par le RemoteEvent `Notification`, juste après avoir validé le checkpoint. Le LocalScript l’écoute avec `OnClientEvent` et l’affiche.
 - Le texte apparaît puis disparaît en fondu grâce à TweenService (module 4) : le feedback doit être **bref**, pas envahissant.
 
 <Astuce titre="Le feedback se joue aussi avec le son">

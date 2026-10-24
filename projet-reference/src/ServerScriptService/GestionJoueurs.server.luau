@@ -1,5 +1,5 @@
 -- Script « GestionJoueurs » dans ServerScriptService (côté serveur)
--- Remplace le Script « Leaderstats » de la leçon 1.
+-- Remplace le Script « Leaderstats » de la leçon 1 (dont il reprend rendrePrincipale).
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -11,7 +11,16 @@ local INTERVALLE_SAUVEGARDE = 180 -- secondes, comme dans l'exemple officiel de 
 -- Passe-le à true, sur ta copie de test uniquement, pour tester la sauvegarde dans Studio.
 local SAUVEGARDER_EN_STUDIO = false
 
+-- Fait d'une statistique la colonne principale du tableau (leçon 1)
+local function rendrePrincipale(stat: IntValue)
+	local estPrincipale = Instance.new("BoolValue")
+	estPrincipale.Name = "IsPrimary"
+	estPrincipale.Value = true
+	estPrincipale.Parent = stat
+end
+
 -- Crée les leaderstats à partir des données chargées
+-- (même ordre qu'à la leçon 1 : Etape en colonne principale, puis Pieces)
 local function creerLeaderstats(player: Player, donnees: { [string]: any })
 	local leaderstats = Instance.new("Folder")
 	leaderstats.Name = "leaderstats"
@@ -19,6 +28,7 @@ local function creerLeaderstats(player: Player, donnees: { [string]: any })
 	local etape = Instance.new("IntValue")
 	etape.Name = "Etape"
 	etape.Value = donnees.etape
+	rendrePrincipale(etape)
 	etape.Parent = leaderstats
 
 	local pieces = Instance.new("IntValue")
