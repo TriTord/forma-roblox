@@ -41,7 +41,7 @@ quiz:
 
       	local etape = Instance.new("IntValue")
       	etape.Name = "Etape"
-      	etape.Value = 1
+      	etape.Value = 0
       	etape.Parent = dossier
 
       	dossier.Parent = player
@@ -97,10 +97,10 @@ local function creerLeaderstats(player: Player)
 	local leaderstats = Instance.new("Folder")
 	leaderstats.Name = "leaderstats"
 
-	-- 2. L'étape atteinte : on commence à l'étape 1
+	-- 2. Le numéro du dernier checkpoint validé : 0 avant le premier checkpoint
 	local etape = Instance.new("IntValue")
 	etape.Name = "Etape" -- ce nom s'affiche tel quel dans le tableau
-	etape.Value = 1
+	etape.Value = 0
 	etape.Parent = leaderstats
 
 	-- 3. Les pièces ramassées
@@ -123,7 +123,7 @@ for _, player in Players:GetPlayers() do
 end
 ```
 
-Lance un test (**Play**) : ton nom apparaît en haut à droite avec deux colonnes, `Etape` à 1 et `Pieces` à 0.
+Lance un test (**Play**) : ton nom apparaît en haut à droite avec deux colonnes, `Etape` et `Pieces`, toutes deux à 0. Dans tout le projet, `Etape` contient le **numéro du dernier checkpoint validé** : 0 tant que le joueur n’a touché aucun checkpoint.
 
 <Info titre="Pourquoi pas d’accents ?">
 Le nom de l’objet s’affiche tel quel dans le tableau. Dans cette formation, on garde des noms d’instances **sans accents** (`Etape`, `Pieces`) pour que tous les scripts les retrouvent sans risque de faute de frappe. Tes interfaces (leçon 4) pourront afficher « Étape » et « Pièces » avec leurs accents.
@@ -197,7 +197,7 @@ local function brancherCheckpoint(checkpoint: Instance)
 			return -- ce n'est pas un personnage de joueur
 		end
 		local etape = obtenirStat(player, "Etape")
-		-- On n'accepte que l'étape suivante : pas de saut d'étapes
+		-- On n'accepte que le checkpoint suivant (N == Etape + 1) : pas de saut d'étapes
 		if etape and numero == etape.Value + 1 then
 			etape.Value = numero
 		end

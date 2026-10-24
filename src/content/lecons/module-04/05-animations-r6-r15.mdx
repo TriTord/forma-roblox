@@ -1,0 +1,284 @@
+---
+titre: Animer les personnages (R6 et R15)
+description: Comprends la différence entre R6 et R15, crée une animation de victoire avec l’Animation Editor, publie-la avec les bonnes permissions et joue-la depuis un script avec l’Animator.
+duree: 40
+objectifs:
+  - Distinguer les rigs R6 et R15 et choisir le type d’avatar de ton expérience
+  - Créer et publier une animation avec l’Animation Editor
+  - Comprendre qui a le droit de charger une animation dans quelle expérience
+  - Jouer une animation avec Animator:LoadAnimation et contrôler l’AnimationTrack
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Quelle est la principale différence entre un rig R6 et un rig R15 ?
+    options:
+      - texte: Le R6 est réservé aux téléphones, le R15 aux ordinateurs
+      - texte: Le R6 a 6 parties, le R15 en a 15, avec beaucoup plus d’articulations
+        correct: true
+      - texte: Le R15 ne peut pas être animé
+    explication: "Le chiffre indique le nombre de parties du corps. Le R6 (6 parties, présenté comme « legacy », c’est-à-dire ancien) bouge de façon plus rigide ; le R15 (15 parties) a des coudes, des genoux, etc., et accepte les vêtements superposables."
+  - type: vrai-faux
+    question: Pour jouer une animation, la méthode recommandée aujourd’hui est `Humanoid:LoadAnimation`.
+    reponse: false
+    explication: "`Humanoid:LoadAnimation` est marquée comme dépréciée dans la référence API. On utilise `Animator:LoadAnimation`, sur l’objet `Animator` qui se trouve dans le `Humanoid`."
+  - type: trouve-le-bug
+    question: "Ce LocalScript (dans StarterCharacterScripts) doit jouer une animation de salut. Il provoque une erreur. Où est le bug ?"
+    code: |
+      local personnage = script.Parent
+      local humanoid = personnage:WaitForChild("Humanoid")
+      local animator = humanoid:WaitForChild("Animator")
+
+      local animation = Instance.new("Animation")
+      animation.AnimationId = "rbxassetid://1234567890"
+
+      local piste = animator:LoadAnimation("rbxassetid://1234567890")
+      piste:Play()
+    options:
+      - texte: "Ligne 3 : l’Animator se trouve dans le personnage, pas dans le Humanoid"
+      - texte: "Ligne 6 : l’identifiant doit être un nombre, sans `rbxassetid://`"
+      - texte: "Ligne 8 : `LoadAnimation` attend l’objet `Animation`, pas un texte"
+        correct: true
+      - texte: "Ligne 9 : il faut appeler `piste:Start()`"
+    explication: "`LoadAnimation` prend en paramètre une instance `Animation` (ici, la variable `animation` créée ligne 5), et renvoie une `AnimationTrack`. L’Animator est bien dans le Humanoid, l’`AnimationId` s’écrit au format `rbxassetid://…`, et la méthode s’appelle `Play`."
+  - type: qcm
+    question: Ton animation de victoire ne s’affiche pas bien parce que l’animation de marche de Roblox « gagne » sur les jambes. Que faire ?
+    options:
+      - texte: Lui donner la priorité `Core`
+      - texte: Lui donner une priorité plus haute, par exemple `Action`
+        correct: true
+      - texte: Appeler `LoadAnimation` deux fois
+    explication: "Les animations par défaut de Roblox jouent en priorité `Core`, la plus basse. Pour qu’une animation passe devant la marche et l’attente, on choisit `Action` (ou `Action2` à `Action4`), dans l’Animation Editor ou via `AnimationTrack.Priority`."
+  - type: vrai-faux
+    question: Depuis l’été 2025, une animation est un asset « Restricted » ; une expérience ne peut la charger que si elle a reçu la permission de l’utiliser.
+    reponse: true
+    explication: "Roblox l’a annoncé sur le DevForum le 31 juillet 2025. La permission est donnée automatiquement quand une personne qui a le droit de partager l’animation l’utilise dans Studio (insertion, test, collage de l’ID), ou manuellement depuis le Creator Hub."
+  - type: qcm
+    question: Où placer le LocalScript qui joue une animation sur le personnage du joueur, pour qu’elle soit vue par tous ?
+    options:
+      - texte: Côté client, par exemple dans StarterCharacterScripts
+        correct: true
+      - texte: Uniquement dans ServerStorage
+      - texte: Nulle part, une animation jouée par le client n’est jamais vue par les autres
+    explication: "D’après la référence d’`Animator:LoadAnimation`, les animations lancées par un joueur sur son propre personnage sont répliquées au serveur et aux autres clients. Pour un objet qui n’est pas un personnage de joueur (un PNJ, par exemple), il faut au contraire les lancer depuis le serveur."
+---
+
+Le joueur a enfin atteint le dernier checkpoint de l’Obby des Nuages. Bravo… et ensuite ? Une petite danse de victoire rend ce moment beaucoup plus satisfaisant ! Dans cette leçon, tu découvres les deux types de personnages de Roblox, tu crées ta propre animation, tu comprends les règles de permissions (qui ont changé récemment) et tu la joues depuis un script.
+
+## R6 et R15 : deux types de personnages
+
+Un personnage Roblox est un **rig** : un modèle fait de parties reliées par des articulations. Il en existe deux familles :
+
+- **R6** : 6 parties (tête, torse, deux bras, deux jambes). Mouvements plus rigides, style « classique ». L’outil Rig Builder le présente comme un rig **legacy** (ancien).
+- **R15** : 15 parties, avec coudes, genoux, poignets… Les mouvements sont bien plus naturels, et seul le R15 accepte les vêtements et accessoires superposables (layered clothing).
+
+### Choisir le type d’avatar de ton expérience
+
+Le réglage se trouve dans la fenêtre **Avatar Settings**, accessible depuis le menu **File** ou l’onglet **Avatar** de Studio. Le bouton **⋯** en haut de la fenêtre permet de choisir **R6**, **R15** ou **R15 & R6** (le joueur garde son choix).
+
+Une animation est créée sur un rig d’un type donné : une animation faite pour un R15 est prévue pour des personnages R15. Le plus simple est donc de choisir **un seul type** pour ton jeu et de créer tes animations sur ce type. Pour l’Obby des Nuages, on choisit **R15**.
+
+<Attention>
+La documentation prévient que les réglages d’Avatar Settings modifient des valeurs par défaut invisibles ailleurs dans Studio. Après un changement, fais un test (**Play**) pour vérifier que les personnages se comportent comme prévu avant de publier.
+</Attention>
+
+## Créer une animation avec l’Animation Editor
+
+### 1. Insérer un rig de travail
+
+Dans l’onglet **Avatar**, ouvre le **Rig Builder** et insère un rig **R15** (le type de ton jeu). C’est une « marionnette » sur laquelle tu vas poser les mouvements.
+
+### 2. Ouvrir l’éditeur
+
+Toujours dans l’onglet **Avatar**, ouvre l’**Animation Editor**, sélectionne ton rig et donne un nom à l’animation, par exemple `Victoire`.
+
+### 3. Poser des images clés
+
+Une animation est une suite de **poses** placées dans le temps, les **images clés** (keyframes). L’éditeur calcule automatiquement le mouvement entre deux poses. Pour une victoire simple :
+
+1. à 0 s, la pose de départ (bras le long du corps) ;
+2. à 0,3 s, les deux bras levés au-dessus de la tête ;
+3. à 0,6 s, un petit saut (le torse monte légèrement) ;
+4. à 1 s, retour à la pose de départ.
+
+Fais pivoter les articulations avec l’outil de rotation, puis lis le résultat avec le bouton **Play** de l’éditeur. Tu peux aussi activer ou non la **boucle** (Looped) et choisir la **priorité** de l’animation (voir plus bas).
+
+### 4. Sauvegarder ou publier ?
+
+Attention à ne pas confondre :
+
+- **Save** enregistre ton travail dans le projet (un objet `KeyframeSequence` rangé dans ServerStorage). C’est un brouillon : ton jeu ne doit pas l’utiliser directement.
+- **Publish to Roblox** (bouton **⋯** de l’éditeur) publie l’animation comme un **asset** (une ressource) sur Roblox. Elle reçoit alors un **identifiant d’asset** (asset ID), que tes scripts utiliseront.
+
+Lors de la publication, si ton jeu appartient à un **groupe** (une communauté), la documentation demande de choisir ce groupe dans le champ **Creator**. Récupère ensuite l’identifiant de l’animation (par exemple depuis la Toolbox, dans tes créations).
+
+## Qui a le droit de jouer quelle animation ?
+
+C’est un point qui a changé récemment. Le 31 juillet 2025, Roblox a annoncé sur le DevForum que les animations deviennent des assets **« Restricted »** (à usage restreint), comme l’audio et la vidéo. Au moment de la rédaction (octobre 2026), voici ce que ça implique :
+
+- une expérience ne peut charger une animation que si elle a **la permission** de l’utiliser. Une fois cette permission obtenue, l’animation se charge pour **tous les joueurs** de l’expérience ;
+- la permission est donnée **automatiquement** quand une personne qui a le droit de partager l’animation l’utilise dans Studio pour cette expérience : insertion depuis la Toolbox, chargement pendant un test, collage de l’animation ou de son ID dans une autre place ;
+- on peut aussi la donner à la main depuis le **Creator Hub**, dans les permissions de l’asset ;
+- une animation ne peut pas être passée en **Open Use** (utilisable par tous) ;
+- la permission accordée à une expérience **ne peut pas être retirée**, pour éviter de casser des jeux ;
+- depuis le 21 août 2025, on peut partager une animation avec ses **amis** (connexions) et des **groupes** depuis la page de configuration de l’asset (onglet **Permissions**).
+
+Concrètement, pour l’Obby des Nuages : publie l’animation avec **le même propriétaire que le jeu** (ton compte, ou le groupe si le jeu appartient à un groupe), puis teste-la dans Studio. Les animations publiées par d’autres créateurs ne fonctionneront pas dans ton jeu, sauf s’ils te les partagent.
+
+<Erreur titre="Utiliser l’ID d’une animation trouvée en ligne">
+Copier l’identifiant d’une animation publiée par quelqu’un d’autre ne marche pas : ton expérience n’a pas la permission de la charger, et l’animation ne se joue pas. Si une animation refuse de se lancer, vérifie la fenêtre Output et les permissions de l’asset dans le Creator Hub. Crée tes propres animations, ou demande à leur auteur de te les partager.
+</Erreur>
+
+## Jouer une animation depuis un script
+
+### Le trio Animation, Animator, AnimationTrack
+
+Trois objets entrent en jeu :
+
+1. un objet **`Animation`**, qui contient l’identifiant (`AnimationId = "rbxassetid://…"`) ;
+2. l’**`Animator`**, rangé dans le `Humanoid` du personnage, qui s’occupe de jouer et de répliquer les animations ;
+3. une **`AnimationTrack`** (piste d’animation), obtenue avec `animator:LoadAnimation(animation)`, que tu contrôles.
+
+Les méthodes et propriétés utiles d’une `AnimationTrack` :
+
+| Élément | Rôle |
+|---|---|
+| `Play(fadeTime, weight, speed)` | lance l’animation ; les trois paramètres sont facultatifs (par défaut : fondu de 0,1 s, poids 1, vitesse 1) |
+| `Stop(fadeTime)` | arrête l’animation |
+| `Looped` | `true` = l’animation recommence en boucle |
+| `Priority` | la priorité (voir ci-dessous) |
+| `IsPlaying` | `true` si elle est en cours |
+| `Ended` | événement déclenché quand l’animation est complètement terminée |
+
+<Astuce>
+Charge chaque animation **une seule fois**, puis réutilise la même piste. La référence API précise que `LoadAnimation` crée toujours une **nouvelle** piste : l’appeler à chaque clic gaspille de la mémoire. Si tu dois retrouver une piste déjà chargée, il existe `Animator:GetTrackByAnimationId`.
+</Astuce>
+
+### Les priorités d’animation
+
+Quand plusieurs animations bougent les mêmes articulations, la **priorité** décide laquelle s’affiche. De la plus forte à la plus faible : `Action4`, `Action3`, `Action2`, `Action`, `Movement`, `Idle`, `Core`.
+
+Les animations par défaut des personnages Roblox (marche, saut, attente) jouent en priorité **`Core`**, la plus basse. Pour une animation de victoire qui doit passer devant tout le reste, choisis **`Action`**. À priorité égale, les animations se mélangent selon leur poids.
+
+### Client ou serveur ?
+
+La référence de `Animator:LoadAnimation` est claire :
+
+- pour le **personnage d’un joueur**, une animation lancée **par ce joueur** (dans un LocalScript) est répliquée au serveur et aux autres joueurs : tout le monde la voit ;
+- pour un modèle qui n’est **pas** un personnage de joueur (un PNJ, par exemple), il faut charger et jouer l’animation **depuis le serveur**.
+
+Notre animation de victoire se joue donc côté client. Mais c’est le **serveur** qui sait quand le joueur a gagné : il préviendra le client avec un RemoteEvent.
+
+## L’animation de victoire de l’Obby des Nuages
+
+Crée un **RemoteEvent** `Victoire` dans **ReplicatedStorage ⟩ Remotes**.
+
+### Côté serveur : détecter la victoire
+
+Rappel de la convention : `Etape` contient le numéro du dernier checkpoint validé. Le joueur a gagné quand `Etape` atteint le numéro du dernier checkpoint.
+
+```luau
+-- Script « Victoire » dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local victoire = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Victoire") :: RemoteEvent
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+
+-- Le dernier checkpoint porte le plus grand numéro (le dossier ne contient que les Parts "1", "2"…)
+local derniereEtape = #dossierCheckpoints:GetChildren()
+
+local function surArrivee(player: Player)
+	-- Les leaderstats apparaissent une fois les données chargées (leçon 2)
+	local leaderstats = player:WaitForChild("leaderstats", 60)
+	if leaderstats == nil then
+		return
+	end
+	local etape = leaderstats:WaitForChild("Etape")
+	if not etape:IsA("IntValue") then
+		return
+	end
+
+	-- Changed donne la nouvelle valeur à chaque changement d'étape
+	etape.Changed:Connect(function(nouvelleEtape: number)
+		if nouvelleEtape == derniereEtape then
+			victoire:FireClient(player) -- « tu as gagné, joue l'animation ! »
+		end
+	end)
+end
+
+Players.PlayerAdded:Connect(surArrivee)
+for _, player in Players:GetPlayers() do
+	task.spawn(surArrivee, player)
+end
+```
+
+### Côté client : jouer l’animation
+
+Crée un **LocalScript** `AnimationVictoire` dans **StarterPlayer ⟩ StarterCharacterScripts**. Les scripts de ce dossier sont copiés dans le personnage à **chaque apparition** : `script.Parent` est donc toujours le personnage actuel.
+
+```luau
+-- LocalScript « AnimationVictoire » dans StarterPlayer > StarterCharacterScripts
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local personnage = script.Parent
+local humanoid = personnage:WaitForChild("Humanoid") :: Humanoid
+local animator = humanoid:WaitForChild("Animator") :: Animator
+
+local victoire = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Victoire") :: RemoteEvent
+
+-- 1. L'objet Animation : remplace l'ID par celui de TON animation publiée
+local animation = Instance.new("Animation")
+animation.AnimationId = "rbxassetid://0000000000"
+
+-- 2. On charge l'animation UNE fois et on garde la piste
+local piste = animator:LoadAnimation(animation)
+piste.Priority = Enum.AnimationPriority.Action -- passe devant marche et attente
+piste.Looped = false -- une seule fois
+
+-- 3. Le serveur annonce la victoire : on joue l'animation
+victoire.OnClientEvent:Connect(function()
+	if not piste.IsPlaying then
+		piste:Play()
+	end
+end)
+
+-- 4. Facultatif : réagir à la fin de l'animation
+piste.Ended:Connect(function()
+	print("Animation de victoire terminée !")
+end)
+```
+
+Quand le personnage meurt ou réapparaît, l’ancien script est détruit avec l’ancien personnage (et ses connexions avec lui), puis une nouvelle copie démarre sur le nouveau personnage. Pas de connexions en double.
+
+<Info>
+Le RemoteEvent ne transporte aucune donnée sensible : il dit juste « joue l’animation ». Même si un exploiteur le déclenchait chez lui, il ne ferait que danser sur son écran (et chez les autres, puisque c’est son personnage). Aucune récompense ne dépend de ce message : les récompenses restent décidées par le serveur.
+</Info>
+
+<Defi>
+1. Choisis R15 dans **Avatar Settings**, insère un rig R15 avec le Rig Builder.
+2. Crée une animation `Victoire` d’environ une seconde, avec la priorité **Action**, et publie-la.
+3. Crée le RemoteEvent `Victoire`, le Script serveur et le LocalScript, en remplaçant l’ID.
+4. Teste : atteins le dernier checkpoint (ou modifie `Etape` dans l’Explorer **côté serveur**) et admire ta danse.
+5. Bonus : lance un test à 2 joueurs et vérifie que l’autre joueur voit bien l’animation.
+</Defi>
+
+<Resume>
+- R6 (6 parties, legacy) et R15 (15 parties, plus expressif) : choisis un type dans **Avatar Settings** et anime sur ce même type.
+- L’Animation Editor crée des poses dans le temps ; **Publish to Roblox** donne un identifiant d’asset utilisable par les scripts.
+- Depuis 2025, les animations sont des assets « Restricted » : seule une expérience qui a la permission peut les charger ; publie-les avec le même propriétaire que le jeu.
+- On joue une animation avec `Animator:LoadAnimation(animation)` puis `piste:Play()` ; on charge une fois, on réutilise la piste.
+- La priorité (`Action` pour une victoire) décide quelle animation l’emporte ; sur le personnage du joueur, une animation lancée côté client est vue par tous.
+</Resume>
+
+<Sources>
+- [Use animations — documentation Roblox](https://create.roblox.com/docs/animation/using)
+- [Animation Editor — documentation Roblox](https://create.roblox.com/docs/animation/editor)
+- [Animator:LoadAnimation — référence API](https://create.roblox.com/docs/reference/engine/classes/Animator#LoadAnimation)
+- [AnimationTrack — référence API](https://create.roblox.com/docs/reference/engine/classes/AnimationTrack)
+- [Enum AnimationPriority — référence API](https://create.roblox.com/docs/reference/engine/enums/AnimationPriority)
+- [Avatar Settings — documentation Roblox](https://create.roblox.com/docs/studio/avatar-settings)
+- [Rig Builder — documentation Roblox](https://create.roblox.com/docs/studio/rig-builder)
+- [Improving Animation Asset Permissions — annonce officielle (DevForum, 31 juillet 2025)](https://devforum.roblox.com/t/improving-animation-asset-permissions/3852101)
+- [Sharing Animation Assets with Connections and Groups — annonce officielle (DevForum, 21 août 2025)](https://devforum.roblox.com/t/sharing-animation-assets-with-connections-and-groups/3892540)
+</Sources>

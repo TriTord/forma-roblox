@@ -1,0 +1,145 @@
+module: "06"
+titre: Examen du module 6 — Monétisation et DevEx
+description: Vérifie que tu sais vendre honnêtement et de façon fiable dans l’Obby des Nuages, et que tu comprends le circuit des Robux jusqu’au DevEx (chiffres d’octobre 2026).
+seuil: 70
+questions:
+  - type: qcm
+    question: Un joueur dépense 250 Robux pour un Developer Product de ton jeu. Combien de Robux arrivent sur ton compte, en attente, au taux en vigueur en octobre 2026 ?
+    options:
+      - texte: "250"
+      - texte: "175"
+        correct: true
+      - texte: "125"
+      - texte: "75"
+    explication: "Le créateur reçoit **70 %** d’un achat en Robux : 250 × 0,7 = 175 Robux. Ces Robux restent d’abord en attente (environ 5 jours pour les passes et produits) avant d’être disponibles."
+
+  - type: qcm
+    question: "Pour l’Obby des Nuages, tu veux vendre : (A) une zone VIP accessible pour toujours, (B) des sacs de 100 pièces, (C) un bonus de pièces actif tant que le joueur paie chaque mois. Quelle association est correcte ?"
+    options:
+      - texte: "A : Developer Product, B : Game Pass, C : abonnement"
+      - texte: "A : Game Pass, B : Developer Product, C : abonnement"
+        correct: true
+      - texte: "A : abonnement, B : Developer Product, C : Game Pass"
+    explication: "Achat unique et permanent = **Game Pass** ; achat répétable = **Developer Product** ; avantage récurrent payé chaque mois = **abonnement**."
+
+  - type: trouve-le-bug
+    question: "Ce Script serveur doit donner l’accès VIP aux joueurs qui possèdent le pass. Pourtant, il ne reconnaît jamais personne. Où est le bug ?"
+    code: |
+      local MarketplaceService = game:GetService("MarketplaceService")
+      local Players = game:GetService("Players")
+      local ID_PASS_VIP = 123456789
+
+      Players.PlayerAdded:Connect(function(player)
+      	local ok, possede = pcall(function()
+      		return MarketplaceService:UserOwnsGamePassAsync(player, ID_PASS_VIP)
+      	end)
+      	if ok and possede then
+      		player:SetAttribute("EstVIP", true)
+      	end
+      end)
+    options:
+      - texte: "Ligne 3 : l’ID d’un pass doit être écrit entre guillemets"
+      - texte: "Ligne 7 : il faut passer `player.UserId`, pas l’objet `player`"
+        correct: true
+      - texte: "Ligne 9 : il faut tester `possede.IsSubscribed`"
+      - texte: "Ligne 10 : un attribut ne peut pas être modifié côté serveur"
+    explication: "`UserOwnsGamePassAsync` attend l’**UserId** (un nombre) du joueur. `IsSubscribed` concerne les abonnements (`GetUserSubscriptionStatusAsync`), et les attributs se modifient très bien côté serveur."
+
+  - type: vrai-faux
+    question: "Quand `PromptGamePassPurchaseFinished` se déclenche, cela prouve que le joueur a acheté le pass."
+    reponse: false
+    explication: "L’événement se déclenche à chaque fermeture de la fenêtre d’achat, même en cas d’annulation ou d’erreur. Il faut vérifier le troisième paramètre (`wasPurchased`), et écouter l’événement côté serveur."
+
+  - type: qcm
+    question: "Dans ton `ProcessReceipt`, l’appel `UpdateAsync` qui enregistre le `PurchaseId` échoue (DataStore indisponible). Rien n’a encore été donné au joueur. Que faire ?"
+    options:
+      - texte: Donner le produit quand même et renvoyer `PurchaseGranted`
+      - texte: "Renvoyer `NotProcessedYet` : le reçu sera retraité plus tard"
+        correct: true
+      - texte: Ne rien renvoyer pour que Roblox rembourse automatiquement le joueur
+    explication: "Rien n’a été donné et rien n’a été enregistré : `NotProcessedYet` laisse l’achat non résolu, il reviendra (par exemple quand le joueur rejoindra un serveur). Roblox ne rembourse pas automatiquement les achats non résolus."
+
+  - type: qcm
+    question: "Pourquoi un `ProcessReceipt` doit-il être idempotent ? (plusieurs réponses possibles)"
+    options:
+      - texte: Le même reçu peut être traité sur deux serveurs en même temps si le joueur change de serveur
+        correct: true
+      - texte: "Même après `PurchaseGranted`, l’enregistrement côté Roblox peut échouer et le reçu revenir"
+        correct: true
+      - texte: Roblox rappelle le callback toutes les 10 secondes jusqu’à recevoir une réponse
+      - texte: Chaque achat déclenche obligatoirement deux appels du callback
+    explication: "La référence officielle mentionne ces deux cas. En revanche, il n’y a **pas** de nouvelle tentative basée sur le temps : après `NotProcessedYet`, le reçu revient lors d’un autre achat ou quand le joueur rejoint un serveur."
+
+  - type: trouve-le-bug
+    question: "Ce Script serveur propose « Passer l’étape » quand le client le demande. Où est le problème de sécurité ?"
+    code: |
+      local MarketplaceService = game:GetService("MarketplaceService")
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local remotes = ReplicatedStorage:WaitForChild("Remotes")
+      local demande = remotes:WaitForChild("DemanderPasserEtape") :: RemoteEvent
+
+      demande.OnServerEvent:Connect(function(player, idProduit)
+      	MarketplaceService:PromptProductPurchase(player, idProduit)
+      end)
+    options:
+      - texte: "Ligne 3 : les RemoteEvents doivent être rangés dans Workspace"
+      - texte: "Ligne 6 : le serveur ne peut pas recevoir d’arguments du client"
+      - texte: "Ligne 7 : le serveur utilise l’ID de produit envoyé par le client au lieu de son propre ID"
+        correct: true
+    explication: "Ne jamais faire confiance au client (module 3) : un tricheur peut envoyer n’importe quel ID. Le serveur doit utiliser **sa** constante d’ID et vérifier qu’une étape suivante existe avant d’ouvrir la fenêtre d’achat."
+
+  - type: vrai-faux
+    question: "Pour savoir si un joueur est abonné à « Nuage+ », un LocalScript peut appeler `GetUserSubscriptionStatusAsync` et donner lui-même le bonus de pièces."
+    reponse: false
+    explication: "La vérification d’abonnement doit se faire côté serveur, et c’est le serveur qui applique l’avantage. Le client peut seulement afficher l’offre et appeler `PromptSubscriptionPurchase`."
+
+  - type: qcm
+    question: Un abonnement payé en monnaie locale est vendu 4,99 $. Que gagne le créateur, d’après la documentation officielle (octobre 2026) ?
+    options:
+      - texte: 70 % de la valeur chaque mois
+      - texte: 70 % de la valeur le premier mois, puis 100 % les mois suivants
+        correct: true
+      - texte: 100 % dès le premier mois
+    explication: "Pour un abonnement en monnaie locale : 70 % le premier mois, puis 100 % ensuite, versés en Robux après une attente de 30 jours. Pour un abonnement payé en Robux, c’est 70 % chaque mois."
+
+  - type: qcm
+    question: "Un ancien tutoriel te conseille de « miser sur les Premium Payouts » et de tester `player.MembershipType == Enum.MembershipType.Premium`. Qu’en penser en octobre 2026 ?"
+    options:
+      - texte: Le conseil est toujours valable tel quel
+      - texte: Les Premium Payouts ont été remplacés par les Creator Rewards (juillet 2025), et `MembershipType` est déprécié au profit de `HasRobloxSubscription`
+        correct: true
+      - texte: Les Premium Payouts ont été remplacés par DevEx
+    explication: "Le programme Engagement-Based Payouts (Premium Payouts) est remplacé par les **Creator Rewards** depuis le 24 juillet 2025, et Roblox Plus succède à Premium en 2026. Pour reconnaître un abonné, la documentation recommande `Player.HasRobloxSubscription`."
+
+  - type: qcm
+    question: "Ton jeu vend des « potions de chance » qui augmentent les chances d’obtenir un œuf rare. Que demandent les règles de Roblox ?"
+    options:
+      - texte: Rien, car la potion elle-même n’est pas aléatoire
+      - texte: Expliquer chiffres à l’appui l’effet de la potion avant l’achat, et afficher les probabilités mises à jour quand elle est active
+        correct: true
+      - texte: Afficher seulement le mot « Chance + » sur la potion
+    explication: "Les objets qui modifient des probabilités font partie des objets aléatoires payants : leur effet doit être expliqué numériquement avant l’achat, et les probabilités affichées doivent refléter les vraies chances quand ils sont actifs."
+
+  - type: vrai-faux
+    question: "Un message « DERNIÈRE CHANCE ! » affiché à chaque connexion pour un objet qui reste toujours en vente respecte les règles de Roblox, puisque le prix est correct."
+    reponse: false
+    explication: "Roblox interdit la fausse urgence : fausse rareté, durée limitée inventée, comptes à rebours qui redémarrent. Il recommande aussi des formulations neutres (« Voir l’objet ») plutôt que des injonctions pressantes, surtout envers les mineurs."
+
+  - type: qcm
+    question: "Tu as accumulé 45 000 Earned Robux, tous gagnés en 2026, sans éligibilité au taux U.S. 18+. Combien représentent-ils au taux standard de 0,0038 $, avant frais et impôts ?"
+    options:
+      - texte: "157,50 $"
+      - texte: "171 $"
+        correct: true
+      - texte: "243 $"
+      - texte: "450 $"
+    explication: "45 000 × 0,0038 = **171 $**. 157,50 $ correspondrait à l’ancien taux (0,0035) et 243 $ au taux U.S. 18+ (0,0054). Il faudra encore retirer les frais de paiement et les éventuels impôts."
+
+  - type: qcm
+    question: "Quelle affirmation sur DevEx et les impôts est exacte ?"
+    options:
+      - texte: Roblox calcule et paie pour toi tous les impôts dus dans ton pays
+      - texte: "Tu es responsable de déclarer tes gains ; Roblox ne donne pas de conseil fiscal et des retenues américaines peuvent s’appliquer à partir du 1er novembre 2026"
+        correct: true
+      - texte: Les gains DevEx ne sont jamais imposables pour un mineur
+    explication: "Les conditions DevEx rendent chaque participant responsable de ses impôts, Roblox ne donne aucun conseil fiscal, et la page officielle annonce qu’à partir du 1er novembre 2026 des retenues américaines peuvent s’appliquer selon les informations fiscales fournies. Pour ta situation, consulte un professionnel."

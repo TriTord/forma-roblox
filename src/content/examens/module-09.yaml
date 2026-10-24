@@ -1,0 +1,145 @@
+module: "09"
+titre: Examen du module 9 — Optimisation et performances
+description: Mobile, outils de mesure, streaming, réduction du lag et audit de performance. Au moins 70 % de bonnes réponses pour débloquer le badge.
+seuil: 70
+questions:
+  - type: qcm
+    question: Tu veux vérifier que l’interface de l’Obby des Nuages reste lisible sur les téléphones les plus modestes. Quel réglage du Device Simulator choisis-tu ?
+    options:
+      - texte: Un téléphone de la catégorie **Flagship**
+      - texte: Un téléphone de la catégorie **Entry level**, en mode d’affichage **Physical size**
+        correct: true
+      - texte: La catégorie **Desktop**, c’est la même chose en plus grand
+      - texte: La catégorie **Headset**
+    explication: "Les téléphones **Entry level** représentent le bas de la gamme, là où les problèmes apparaissent en premier. Le mode **Physical size** affiche l’écran simulé à sa taille réelle, pour juger la taille des boutons et du texte comme dans la main du joueur."
+
+  - type: vrai-faux
+    question: Pour un ScreenGui qui contient des boutons, la documentation recommande de régler `ScreenInsets` sur `None`.
+    reponse: false
+    explication: "`None` n’ajoute aucune marge de sécurité : les boutons peuvent se retrouver sous une encoche ou sous la barre de Roblox. Pour une interface interactive, on garde `CoreUISafeInsets`, la valeur par défaut. `None` est réservé aux contenus non interactifs comme une image de fond."
+
+  - type: qcm
+    question: "Comment ouvrir la Developer Console pendant une partie ? (plusieurs réponses)"
+    options:
+      - texte: Appuyer sur F9
+        correct: true
+      - texte: Taper `/console` dans le chat
+        correct: true
+      - texte: Passer par le menu Roblox, onglet Settings, Developer Console
+        correct: true
+      - texte: Elle ne s’ouvre que dans Studio
+    explication: La Developer Console fonctionne dans Studio et dans le vrai jeu, y compris sur mobile. On l’ouvre avec F9, avec la commande `/console` dans le chat ou depuis les réglages du menu Roblox.
+
+  - type: qcm
+    question: Tu veux analyser les performances de ton obby directement sur ton téléphone Android avec le MicroProfiler. Comment fais-tu ?
+    options:
+      - texte: C’est impossible, le MicroProfiler n’existe que dans Studio
+      - texte: Dans le menu Settings du jeu, tu passes MicroProfiler sur On, puis tu ouvres l’adresse IP et le port affichés dans un navigateur d’un ordinateur sur le même réseau
+        correct: true
+      - texte: Tu branches le téléphone en USB et tu appuies sur F6 sur l’ordinateur
+    explication: Sur mobile, le MicroProfiler s’active dans les réglages du client. Il expose une page web consultable depuis un ordinateur connecté au même réseau. La documentation considère d’ailleurs le mobile comme le meilleur endroit pour profiler, car un PC puissant masque les problèmes.
+
+  - type: qcm
+    question: Dans l’outil Server Jobs de la Developer Console, la valeur Steps Per Sec de la ligne Heartbeat tombe souvent à 35. Qu’en conclure ?
+    options:
+      - texte: Tout va bien, le serveur n’est pas censé dépasser 30
+      - texte: Le serveur n’arrive pas à suivre son rythme maximal de 60 mises à jour par seconde, ce qui ralentit tous les joueurs
+        correct: true
+      - texte: Le téléphone du joueur est trop lent
+    explication: Le heartbeat du serveur est plafonné à 60 par seconde. Une valeur nettement plus basse indique que le serveur a trop de travail à chaque mise à jour (scripts, physique…), ce qui augmente aussi la latence de tous les joueurs. Le MicroProfiler côté serveur aide à trouver la cause.
+
+  - type: qcm
+    question: "Dans un jeu avec streaming, que garantit la propriété `StreamingMinRadius` (64 studs par défaut) ?"
+    options:
+      - texte: Les objets dans ce rayon autour du joueur sont chargés en priorité et ne sont jamais déchargés
+        correct: true
+      - texte: Aucun objet n’est jamais envoyé au-delà de 64 studs
+      - texte: Le jeu se met en pause dès que le joueur parcourt 64 studs
+    explication: "`StreamingMinRadius` définit la zone chargée en priorité maximale, qui ne repart jamais. Au-delà, le contenu est envoyé jusqu’à `StreamingTargetRadius` (1024 par défaut). La documentation recommande de garder ces valeurs par défaut."
+
+  - type: trouve-le-bug
+    question: "Ce LocalScript, dans un jeu avec streaming, doit afficher un message quand le personnage du joueur meurt. Il produit parfois une erreur à l’apparition du personnage. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+      local joueur = Players.LocalPlayer
+
+      joueur.CharacterAdded:Connect(function(personnage)
+      	local humanoid = personnage.Humanoid
+      	humanoid.Died:Connect(function()
+      		print("Tu es tombé des nuages !")
+      	end)
+      end)
+    options:
+      - texte: "Ligne 2 : `LocalPlayer` n’est pas accessible dans un LocalScript"
+      - texte: "Ligne 5 : avec le streaming, le personnage peut arriver avant ses enfants ; il faut `personnage:WaitForChild(\"Humanoid\")`"
+        correct: true
+      - texte: "Ligne 6 : l’événement `Died` n’existe pas"
+    explication: "La documentation sur le streaming le précise : le modèle du personnage est placé dans le Workspace avant que tous ses descendants soient arrivés. L’accès direct `personnage.Humanoid` peut donc échouer. `WaitForChild(\"Humanoid\")` attend que l’objet existe."
+
+  - type: vrai-faux
+    question: Après un appel à `Player:RequestStreamAroundAsync`, tout le contenu autour de la position demandée est garanti présent chez le joueur.
+    reponse: false
+    explication: La référence API précise que l’effet est temporaire et sans garantie. La mémoire de l’appareil et les conditions réseau peuvent limiter ce qui est réellement chargé. C’est une aide qui réduit les risques de pause ou de décor manquant, pas une promesse.
+
+  - type: qcm
+    question: Un LocalScript doit accéder à un modèle réglé en `ModelStreamingMode` `Persistent`. Que conseille la documentation ?
+    options:
+      - texte: Attendre que l’événement `Workspace.PersistentLoaded` se soit déclenché avant d’y accéder
+        correct: true
+      - texte: Changer le mode du modèle depuis le LocalScript
+      - texte: Rien, un modèle persistant est présent avant même que les LocalScripts démarrent
+    explication: "Les modèles persistants sont envoyés peu après l’arrivée du joueur, avant le déclenchement de `PersistentLoaded`. Côté client, il faut donc attendre cet événement. Et on ne modifie jamais `ModelStreamingMode` depuis un LocalScript : la documentation précise que c’est un comportement indéfini."
+
+  - type: trouve-le-bug
+    question: "Ce Script serveur garde la dernière étape de chaque joueur et doit faire le ménage à son départ. Sur un serveur ouvert longtemps, la mémoire grimpe quand même. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+      local derniereEtape = {}
+
+      Players.PlayerAdded:Connect(function(joueur)
+      	derniereEtape[joueur] = 0
+      end)
+
+      Players.PlayerRemoving:Connect(function(joueur)
+      	derniereEtape[joueur.Name] = nil
+      end)
+    options:
+      - texte: "Ligne 2 : une table vide ne peut pas recevoir de joueurs"
+      - texte: "Ligne 5 : on ne peut pas utiliser un objet `Player` comme clé"
+      - texte: "Ligne 9 : la table est indexée par l’objet `joueur`, pas par son nom ; l’entrée n’est jamais supprimée"
+        correct: true
+    explication: "Les entrées sont créées avec la clé `joueur` (l’objet) mais supprimées avec la clé `joueur.Name` (un texte) : ce n’est pas la même clé. Les entrées s’accumulent et gardent chaque objet `Player` en mémoire. Il faut écrire `derniereEtape[joueur] = nil`."
+
+  - type: vrai-faux
+    question: Passer `CanQuery` à `false` suffit à exclure des raycasts une Part qui a toujours `CanCollide` à `true`.
+    reponse: false
+    explication: "Selon la référence API, `CanQuery` ne prend effet que si `CanCollide` est désactivé. Pour un décor que l’on veut ignorer par les requêtes spatiales, on désactive donc d’abord `CanCollide`, puis `CanQuery`."
+
+  - type: qcm
+    question: Un grand rocher décoratif en MeshPart flotte loin du parcours ; aucun joueur ne peut l’atteindre. Quelle `CollisionFidelity` choisir ?
+    options:
+      - texte: "`PreciseConvexDecomposition`, pour être fidèle à la forme"
+      - texte: "`Box` (ou `Hull`), le plus léger, puisque personne ne le touche"
+        correct: true
+      - texte: Peu importe, sans collision la géométrie de collision n’occupe pas de mémoire
+    explication: "Même pour un objet sans collision, la géométrie de collision reste stockée en mémoire. La documentation conseille `Box` ou `Hull` pour ces objets, et de réserver les modes précis aux cas où la forme exacte compte vraiment pour le joueur."
+
+  - type: qcm
+    question: "Lesquelles de ces tâches vaut-il mieux faire côté client dans l’Obby des Nuages ? (plusieurs réponses)"
+    options:
+      - texte: Faire tourner les pièces sur elles-mêmes (effet décoratif)
+        correct: true
+      - texte: Afficher des étincelles quand une pièce est ramassée
+        correct: true
+      - texte: Décider si une pièce ramassée rapporte bien une pièce au joueur
+      - texte: Valider un achat dans la boutique
+    explication: "Les effets purement visuels se font côté client : aucun trafic réseau, et chaque appareil ne gère que ce qu’il voit. En revanche, tout ce qui touche aux règles du jeu (pièces gagnées, achats) reste validé par le serveur, comme vu au module 3."
+
+  - type: qcm
+    question: Dans quel ordre mener l’audit de performance de ton obby ?
+    options:
+      - texte: Corriger tout ce qui semble lent, puis publier
+      - texte: Sauvegarder, mesurer (avant), passer la checklist, corriger un problème à la fois en mesurant, rejouer tout le gameplay, puis documenter
+        correct: true
+      - texte: Publier, attendre les plaintes des joueurs, puis optimiser
+    explication: "Ce cycle reprend la démarche « identifier, améliorer, surveiller » de la documentation Roblox. La sauvegarde permet de revenir en arrière, les mesures prouvent le gain, et le test complet du gameplay évite les régressions."

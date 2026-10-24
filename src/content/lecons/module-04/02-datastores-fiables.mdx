@@ -31,7 +31,7 @@ quiz:
       		return magasin:GetAsync(cle)
       	end)
       	if not succes or donnees == nil then
-      		donnees = { etape = 1, pieces = 0 }
+      		donnees = { etape = 0, pieces = 0 }
       	end
       	sessions[player] = donnees
       end
@@ -70,7 +70,7 @@ quiz:
     explication: "Si un joueur change vite de serveur pendant que l’ancien serveur n’a pas fini de sauvegarder, le nouveau serveur peut charger des données périmées puis les réécrire. C’est une source classique de pertes et de duplication d’objets. Des bibliothèques comme ProfileStore gèrent ce verrouillage pour toi."
 ---
 
-Rien ne fait fuir un joueur plus vite qu’une progression perdue. Il a passé une heure à grimper jusqu’à l’étape 30 de l’Obby des Nuages, il revient le lendemain… et il est à l’étape 1. Dans cette leçon, tu construis une sauvegarde **fiable** : elle charge les données à l’arrivée, les garde en mémoire, les sauvegarde régulièrement et ne les écrase jamais par erreur.
+Rien ne fait fuir un joueur plus vite qu’une progression perdue. Il a passé une heure à grimper jusqu’à l’étape 30 de l’Obby des Nuages, il revient le lendemain… et il est revenu au tout début. Dans cette leçon, tu construis une sauvegarde **fiable** : elle charge les données à l’arrivée, les garde en mémoire, les sauvegarde régulièrement et ne les écrase jamais par erreur.
 
 C’est la leçon la plus technique du module. Prends ton temps, et teste chaque étape dans Studio.
 
@@ -185,7 +185,7 @@ local sessions: { [Player]: { [string]: any } } = {}
 local function donneesParDefaut(): { [string]: any }
 	return {
 		version = VERSION_DONNEES,
-		etape = 1,
+		etape = 0, -- dernier checkpoint validé (0 = aucun)
 		pieces = 0,
 		inventaire = {}, -- objets possédés (leçon 3)
 		equipe = "", -- objet équipé (leçon 3), "" = aucun

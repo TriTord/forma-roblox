@@ -277,7 +277,7 @@ end)
 
 ## Fil rouge : les checkpoints de l’Obby des Nuages
 
-Objectif : quand un joueur touche un checkpoint, on retient son étape ; quand il meurt (kill brick !), il réapparaît sur son dernier checkpoint.
+Objectif : quand un joueur touche le checkpoint suivant, on retient son étape ; quand il meurt (kill brick !), il réapparaît sur son dernier checkpoint.
 
 ### Préparer la scène
 
@@ -305,9 +305,10 @@ local function surCheckpointTouche(checkpoint, autrePart)
 	local numero = tonumber(checkpoint.Name) -- "3" devient 3 (nil si le nom n'est pas un nombre)
 	local etapeActuelle = player:GetAttribute("Etape") or 0
 
-	-- On n'avance que vers une étape PLUS LOINTAINE.
+	-- Un checkpoint n'est accepté que s'il est le SUIVANT (étape actuelle + 1) :
+	-- impossible de sauter des étapes ou de revenir en arrière.
 	-- Cette condition sert aussi de debounce naturel : retoucher le même checkpoint ne fait rien.
-	if numero and numero > etapeActuelle then
+	if numero and numero == etapeActuelle + 1 then
 		player:SetAttribute("Etape", numero)
 		print(`{player.Name} a atteint l'étape {numero}`)
 	end
@@ -356,7 +357,8 @@ end
 
 Ce qu’il faut comprendre :
 
-- l’étape de chaque joueur est rangée dans un **attribut** `Etape` sur son objet `Player` ;
+- l’étape de chaque joueur est rangée dans un **attribut** `Etape` sur son objet `Player` : c’est le numéro du **dernier checkpoint validé**, 0 au départ ;
+- un checkpoint `N` n’est accepté que si `N == etape + 1` : le joueur doit les valider dans l’ordre ;
 - `tonumber(checkpoint.Name)` transforme le nom de la Part en nombre : c’est pour ça que les checkpoints s’appellent `1`, `2`, `3`… ;
 - on utilise une **fonction anonyme** dans `Touched:Connect` pour transmettre aussi le `checkpoint` concerné à `surCheckpointTouche` ;
 - `PivotTo` déplace tout le Model du personnage d’un coup, vers une position et une orientation (un CFrame) ; on ajoute 4 studs de hauteur pour ne pas apparaître dans la Part.
@@ -366,7 +368,7 @@ D’après la documentation de `Player`, `CharacterAdded` se déclenche **avant*
 </Info>
 
 <Attention>
-Ces checkpoints sont **basiques** : un joueur pourrait toucher le checkpoint 8 en sautant directement au bon endroit, et sa progression est perdue quand il quitte la partie. Au module 3, tu n’accepteras un checkpoint que s’il suit l’étape actuelle ; au module 4, l’étape sera affichée dans les leaderstats et sauvegardée.
+Ces checkpoints restent **basiques** : la progression est perdue quand le joueur quitte la partie, et le serveur fait entièrement confiance à l’événement `Touched`. Au module 3, tu renforceras la validation côté serveur ; au module 4, l’étape sera affichée dans les leaderstats et sauvegardée.
 </Attention>
 
 <Defi>

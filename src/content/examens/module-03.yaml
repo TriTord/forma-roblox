@@ -1,0 +1,167 @@
+module: "03"
+titre: Examen du module 3
+description: Client, serveur, remotes et sécurité. Montre que tu sais faire communiquer ton jeu et le protéger contre les tricheurs.
+seuil: 70
+questions:
+  - type: qcm
+    question: Tu veux qu’une plateforme de l’Obby des Nuages devienne rouge pour tous les joueurs. Où places-tu le code ?
+    options:
+      - texte: Dans un LocalScript de StarterPlayerScripts
+      - texte: Dans un Script de ServerScriptService
+        correct: true
+      - texte: Dans un ModuleScript de ServerStorage, sans aucun script pour l’appeler
+      - texte: Dans un LocalScript placé dans ReplicatedStorage
+    explication: "Seul un changement fait par le **serveur** est répliqué à tous les clients. Un LocalScript ne changerait la couleur que pour son joueur (et il ne s’exécute de toute façon pas depuis ReplicatedStorage)."
+
+  - type: vrai-faux
+    question: Le serveur est toujours le propriétaire réseau des Parts ancrées, et on ne peut pas changer cela.
+    reponse: true
+    explication: "C’est ce qu’indique la documentation sur la propriété réseau. C’est pour cela qu’on ancre les plateformes de l’obby : aucun client ne peut les déplacer pour les autres."
+
+  - type: qcm
+    question: Pourquoi un tricheur peut-il faire voler ou téléporter son personnage, alors que les changements des clients ne sont normalement pas répliqués ?
+    options:
+      - texte: Parce que FilteringEnabled est désactivé dans certains jeux
+      - texte: Parce que le client est propriétaire réseau de son personnage et que Roblox ne peut pas vérifier sa physique
+        correct: true
+      - texte: Parce que le personnage est rangé dans ReplicatedStorage
+      - texte: Parce que les LocalScripts s’exécutent sur le serveur
+    explication: "Pour la réactivité, le client simule la physique de son personnage et envoie sa position aux autres. Le serveur ne peut pas vérifier ces calculs : il doit donc valider ce qui compte (étapes, distances). FilteringEnabled, lui, est déprécié et n’a plus d’effet."
+
+  - type: qcm
+    question: "Le serveur veut annoncer à **tous** les joueurs que quelqu’un a terminé l’obby. Quelle méthode utilise-t-il ?"
+    options:
+      - texte: "`RemoteEvent:FireServer()`"
+      - texte: "`RemoteEvent:FireAllClients()`"
+        correct: true
+      - texte: "`RemoteFunction:InvokeClient()` pour chaque joueur"
+      - texte: "`BindableEvent:Fire()`"
+    explication: "`FireAllClients` envoie le message à tous les clients connectés, sans attendre de réponse. Un BindableEvent ne traverse pas la frontière client/serveur, et `InvokeClient` exposerait le serveur à une attente infinie."
+
+  - type: qcm
+    question: "Un LocalScript envoie `{ \"TraineeAzur\", equipee = true }` au serveur. Quel est le problème ?"
+    options:
+      - texte: Les tables ne peuvent jamais passer par un RemoteEvent
+      - texte: C’est une table mixte (liste et dictionnaire), à éviter ; il faut envoyer soit une liste, soit un dictionnaire
+        correct: true
+      - texte: Les booléens ne passent pas par un RemoteEvent
+      - texte: Il n’y a aucun problème
+    explication: "La documentation demande de ne pas mélanger clés numériques et clés texte dans une table envoyée par un remote. Choisis une liste pure ou un dictionnaire pur."
+
+  - type: trouve-le-bug
+    question: "Côté serveur, `AcheterObjet.OnServerEvent:Connect(function(player, idObjet) ... end)` répond « Requête invalide » à chaque fois. Le bug est dans ce LocalScript. Où ?"
+    code: |
+      local Players = game:GetService("Players")
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet")
+      local player = Players.LocalPlayer
+
+      acheterObjet:FireServer(player, "TraineeAzur")
+    options:
+      - texte: "Ligne 4 : il faut utiliser `FindFirstChild` sur le client"
+      - texte: "Ligne 5 : `LocalPlayer` est `nil` dans un LocalScript"
+      - texte: "Ligne 7 : il ne faut pas passer le joueur, Roblox l’ajoute déjà ; le serveur reçoit ici le joueur à la place de l’identifiant"
+        correct: true
+      - texte: "Ligne 7 : il faut appeler `FireClient` depuis un LocalScript"
+    explication: "Roblox ajoute automatiquement le joueur en premier paramètre côté serveur. Avec ce code, `idObjet` reçoit le `Player` et l’identifiant arrive en troisième position. Il faut écrire `acheterObjet:FireServer(\"TraineeAzur\")`."
+
+  - type: vrai-faux
+    question: Un message envoyé par un UnreliableRemoteEvent dont le contenu dépasse 1 000 octets est abandonné.
+    reponse: true
+    explication: "La documentation indique que les messages de plus de 1 000 octets sont abandonnés. Un UnreliableRemoteEvent ne garantit ni l’arrivée ni l’ordre : on le réserve aux données éphémères et légères."
+
+  - type: qcm
+    question: Le serveur veut afficher une fenêtre de confirmation chez un joueur et connaître sa réponse. Quelle solution est la plus sûre ?
+    options:
+      - texte: "`InvokeClient`, puis attendre la réponse dans le script principal"
+      - texte: "Un `FireClient` pour la question, puis un `FireServer` du client pour la réponse, que le serveur valide"
+        correct: true
+      - texte: Un BindableFunction partagé entre le serveur et le client
+      - texte: Modifier directement l’interface du joueur depuis le serveur et lire ce qu’il coche
+    explication: "Avec `InvokeClient`, un client qui ne répond pas bloque le serveur pour toujours, et une erreur côté client remonte au serveur. Deux messages à sens unique évitent toute attente, et la réponse est validée comme n’importe quelle requête client."
+
+  - type: trouve-le-bug
+    question: "Ce LocalScript veut récupérer son inventaire grâce à la **RemoteFunction** `ObtenirInventaire`. Il ne fonctionne pas. Où est le bug ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local obtenirInventaire = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ObtenirInventaire")
+
+      local inventaire = obtenirInventaire:FireServer()
+      print("Objets possédés :", #inventaire)
+    options:
+      - texte: "Ligne 2 : une RemoteFunction ne peut pas être dans un Folder"
+      - texte: "Ligne 4 : une RemoteFunction s’appelle avec `InvokeServer`, `FireServer` est réservé aux RemoteEvents"
+        correct: true
+      - texte: "Ligne 5 : `#` ne fonctionne pas sur une table"
+      - texte: "Ligne 1 : il faut `game.ReplicatedStorage`"
+    explication: "`FireServer` n’existe pas sur une RemoteFunction. `InvokeServer()` envoie la requête, attend la réponse du callback `OnServerInvoke` et la renvoie."
+
+  - type: vrai-faux
+    question: "Si un script appelle `BindableFunction:Invoke()` alors qu’aucun `OnInvoke` n’a jamais été défini, il ne reprend jamais son exécution."
+    reponse: true
+    explication: "La documentation le précise : l’appel attend que le callback soit défini. S’il ne l’est jamais, le script reste bloqué. Vérifie toujours qu’un script définit bien `OnInvoke`."
+
+  - type: qcm
+    question: "Un remote reçoit un montant. Quelle vérification rejette à la fois NaN et l’infini ?"
+    options:
+      - texte: "`typeof(montant) == \"number\"`"
+      - texte: "`montant >= 0`"
+      - texte: "`math.isfinite(montant)`"
+        correct: true
+      - texte: "`montant ~= nil`"
+    explication: "NaN et l’infini sont de type `\"number\"`, et NaN fait échouer toutes les comparaisons (même `montant >= 0` et `montant < 0` sont faux). `math.isfinite` renvoie `false` pour les deux."
+
+  - type: qcm
+    question: "Un RemoteEvent nommé `DonnerPiecesAdmin`, qu’aucun de tes scripts n’utilise, reçoit un message d’un joueur. Que peux-tu en conclure ?"
+    options:
+      - texte: Rien, c’est sûrement un joueur honnête qui a cliqué au mauvais endroit
+      - texte: C’est un signal très fiable de triche, car aucun client légitime ne peut appeler ce remote
+        correct: true
+      - texte: Le RemoteEvent est cassé et doit être supprimé
+      - texte: Le serveur doit donner les pièces demandées
+    explication: "C’est le principe du **honeypot** (pot de miel) décrit par la documentation. Aucun de tes LocalScripts ne l’appelle, donc seul un client modifié peut le faire."
+
+  - type: qcm
+    question: Ton obby utilise un ClickDetector pour ouvrir une porte secrète réservée à l’étape 10. Que doit faire ton script serveur ?
+    options:
+      - texte: Rien de plus, le ClickDetector vérifie déjà la distance côté serveur
+      - texte: Vérifier lui-même l’étape du joueur, sa distance à la porte et un cooldown
+        correct: true
+      - texte: Vérifier que `MaxActivationDistance` n’a pas été modifié par le client
+      - texte: Remplacer le ClickDetector par un LocalScript
+    explication: "D’après la documentation, le serveur ne fait **aucune** vérification sur les événements d’un ClickDetector : un tricheur peut les déclencher à n’importe quelle distance. Ton script doit donc tout valider."
+
+  - type: trouve-le-bug
+    question: "Cette fonction serveur gère les achats de la boutique. Un joueur peut pourtant acheter avec un solde insuffisant. Où est le bug ?"
+    code: |
+      local function acheter(player, id)
+      	if typeof(id) ~= "string" then
+      		return false
+      	end
+      	local objet = Catalogue[id]
+      	if objet == nil or possedes[player][id] then
+      		return false
+      	end
+      	local pieces = player.leaderstats.Pieces
+      	pieces.Value -= objet.prix
+      	possedes[player][id] = true
+      	return true
+      end
+    options:
+      - texte: "Ligne 2 : il faut tester `typeof(id) ~= \"number\"`"
+      - texte: "Ligne 5 : le prix devrait être envoyé par le client"
+      - texte: "Ligne 10 : il manque la vérification `pieces.Value >= objet.prix` avant de retirer le prix"
+        correct: true
+      - texte: "Ligne 11 : il faut ajouter l’objet avant de vérifier le catalogue"
+    explication: "Le serveur vérifie le type, l’existence et la possession, mais jamais le solde : le joueur se retrouve avec des pièces négatives. Le prix vient bien du catalogue du serveur, c’est la bonne pratique."
+
+  - type: qcm
+    question: Dans le script des pièces, pourquoi désactive-t-on la pièce (`disponible = false`) avant d’ajouter la récompense ?
+    options:
+      - texte: Pour que la pièce tourne plus vite
+      - texte: Pour qu’un second contact (une autre partie du corps ou un autre joueur) ne compte pas la même pièce deux fois
+        correct: true
+      - texte: Parce que `Touched` ne fonctionne qu’une seule fois par Part
+      - texte: Pour que le client puisse la réactiver lui-même
+    explication: "Un personnage touche souvent une Part avec plusieurs parties du corps, et deux joueurs peuvent arriver en même temps. En marquant la pièce indisponible avant de récompenser, le serveur garantit qu’elle ne rapporte qu’une fois."

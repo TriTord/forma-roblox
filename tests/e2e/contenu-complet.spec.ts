@@ -7,7 +7,6 @@ import { join } from 'node:path';
 import { test } from '@playwright/test';
 import { aucunProbleme, catalogue, DIST, lectureDuPlan, lecons, pagesHtml } from './outils';
 
-
 test.describe('[CONTENU] complétude par rapport à PLAN.md', () => {
   test('chaque module a toutes ses leçons publiées, dans l’ordre du plan', () => {
     const plan = lectureDuPlan();
