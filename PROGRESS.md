@@ -23,7 +23,7 @@
 | 04 | FAIT | en cours | |
 | 05 | FAIT | en cours | |
 | 06 | FAIT | en cours | |
-| 07 | FAIT | en cours | |
+| 07 | FAIT | FAIT (11 corrections) | en cours |
 | 08 | FAIT | FAIT (11 corrections) | en cours |
 | 09 | FAIT | en cours | |
 | 10 | FAIT | en cours | |
