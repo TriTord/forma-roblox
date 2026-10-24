@@ -1,0 +1,168 @@
+module: "02"
+titre: Examen du module 2 — Luau de A à Z
+seuil: 70
+questions:
+  - type: qcm
+    question: "Tu as placé un LocalScript dans ServerScriptService. Que se passe-t-il quand tu lances le jeu ?"
+    options:
+      - texte: Il s’exécute sur le serveur
+      - texte: Il s’exécute chez chaque joueur
+      - texte: Il ne s’exécute pas du tout
+        correct: true
+      - texte: Studio le déplace automatiquement dans StarterPlayerScripts
+    explication: "Un LocalScript ne s’exécute que dans les conteneurs côté client (StarterPlayerScripts, StarterCharacterScripts, StarterGui…). Dans ServerScriptService, il est simplement ignoré, souvent sans message d’erreur. Vérifie toujours le type ET l’emplacement d’un script qui « ne fait rien »."
+
+  - type: qcm
+    question: "L’Output affiche : `Workspace.Lave.Script:7: attempt to index nil with 'Health'`. Que t’apprend ce message ? (plusieurs réponses possibles)"
+    options:
+      - texte: "L’erreur vient du Script rangé dans la Part `Lave`"
+        correct: true
+      - texte: "Elle se produit à la ligne 7"
+        correct: true
+      - texte: "À cette ligne, la variable devant `.Health` vaut `nil` (par exemple, aucun Humanoid trouvé)"
+        correct: true
+      - texte: "La propriété `Health` n’existe pas sur les Humanoid"
+    explication: "Un message d’erreur donne le **chemin du script**, le **numéro de ligne** et la **cause**. « attempt to index nil with 'Health' » signifie qu’on a lu `.Health` sur une valeur `nil` : il manque un test `if humanoid then`. `Health` est bien une propriété du Humanoid."
+
+  - type: qcm
+    question: "Que vaut `affichage` après ce code : `local pseudo = nil` puis `local affichage = pseudo or \"Invité\"` ?"
+    options:
+      - texte: "`nil`"
+      - texte: "`\"Invité\"`"
+        correct: true
+      - texte: "`false`"
+      - texte: Une erreur
+    explication: "`or` renvoie sa première valeur si elle est vraie, sinon la seconde. Comme `pseudo` vaut `nil` (faux), `affichage` reçoit `\"Invité\"`. C’est l’astuce classique de la valeur par défaut."
+
+  - type: qcm
+    question: "Avec `local pieces = 4`, tu appelles `print` en lui passant un texte entre **accents graves** : `Tu as {pieces * 2} pièces`. Qu’affiche l’Output ?"
+    options:
+      - texte: "`Tu as {pieces * 2} pièces`"
+      - texte: "`Tu as 8 pièces`"
+        correct: true
+      - texte: "`Tu as 42 pièces`"
+      - texte: Une erreur, il faut utiliser `..`
+    explication: "Entre accents graves, Luau remplace chaque expression entre accolades par sa valeur : `pieces * 2` vaut 8. Avec des guillemets normaux, les accolades seraient affichées telles quelles."
+
+  - type: vrai-faux
+    question: "Dans une boucle `while`, l’instruction `continue` arrête définitivement la boucle."
+    reponse: false
+    explication: "`continue` passe au **tour suivant** : pour un `while`, la condition est testée à nouveau. C’est `break` qui arrête définitivement la boucle."
+
+  - type: trouve-le-bug
+    question: "Ce Script doit saluer chaque joueur qui arrive. L’Output affiche une erreur dès le lancement. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      Players.PlayerAdded:Connect(accueillir)
+
+      local function accueillir(player)
+      	print("Bienvenue " .. player.Name)
+      end
+    options:
+      - texte: "Ligne 1 : il faut écrire `game.Players`"
+      - texte: "Ligne 3 : `accueillir` est utilisée avant d’être déclarée, elle vaut encore `nil` à ce moment-là"
+        correct: true
+      - texte: "Ligne 6 : on ne peut pas coller un texte et `player.Name` avec `..`"
+      - texte: "Ligne 5 : une fonction locale ne peut pas avoir de paramètre"
+    explication: "Luau lit le script de haut en bas. À la ligne 3, la fonction locale `accueillir` n’existe pas encore : on passe `nil` à `Connect`, ce qui provoque une erreur. Il faut déclarer la fonction **avant** de la connecter."
+
+  - type: qcm
+    question: "Que vaut `#prix` si `local prix = {TraineeRouge = 50, TraineeBleue = 75}` ?"
+    options:
+      - texte: "`2`"
+      - texte: "`0`"
+        correct: true
+      - texte: "`125`"
+      - texte: "`nil`"
+    explication: "L’opérateur `#` mesure la partie **tableau** (indices 1, 2, 3…). Un dictionnaire dont les clés sont des textes n’en a pas : `#prix` vaut 0. Pour compter ses entrées, il faut une boucle `for cle, valeur in prix do`."
+
+  - type: vrai-faux
+    question: "Après `local copie = table.clone(niveaux)`, où `niveaux` est un tableau de dictionnaires, modifier `copie[1].nom` modifie aussi `niveaux[1].nom`."
+    reponse: true
+    explication: "`table.clone` fait une copie **superficielle** : le tableau est copié, mais les dictionnaires qu’il contient sont partagés. `copie[1]` et `niveaux[1]` désignent donc la même sous-table."
+
+  - type: qcm
+    question: "Tu programmes un checkpoint avec `Touched`. Quelles pratiques sont correctes ? (plusieurs réponses possibles)"
+    options:
+      - texte: "Utiliser `Players:GetPlayerFromCharacter(autrePart.Parent)` et ignorer le contact s’il renvoie `nil`"
+        correct: true
+      - texte: "Protéger l’action par un debounce ou une condition qui empêche de la répéter"
+        correct: true
+      - texte: "Écrire `checkpoint.Touched:Connect(surContact())` avec des parenthèses"
+      - texte: "Mettre un `wait(1)` au début de la fonction pour éviter les doublons"
+    explication: "Il faut vérifier que c’est bien un joueur qui touche, et se protéger des déclenchements multiples. On passe la fonction **sans** parenthèses à `Connect`, et `wait` est dépréciée (de plus, attendre ne remplace pas un verrou)."
+
+  - type: trouve-le-bug
+    question: "Ce Script doit afficher la nouvelle étape d’un joueur à chaque changement. L’Output affiche « attempt to concatenate string with nil ». Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      Players.PlayerAdded:Connect(function(player)
+      	player:SetAttribute("Etape", 0)
+      	player:GetAttributeChangedSignal("Etape"):Connect(function(nouvelleEtape)
+      		print(player.Name .. " passe à l'étape " .. nouvelleEtape)
+      	end)
+      end)
+    options:
+      - texte: "Ligne 4 : un attribut ne peut pas valoir 0"
+      - texte: "Lignes 5-6 : la fonction connectée à `GetAttributeChangedSignal` ne reçoit aucun argument, il faut lire `player:GetAttribute(\"Etape\")`"
+        correct: true
+      - texte: "Ligne 3 : `PlayerAdded` ne transmet pas le joueur"
+      - texte: "Ligne 6 : `player.Name` vaut `nil` sur le serveur"
+    explication: "`GetAttributeChangedSignal` ne passe **aucun** paramètre à la fonction : `nouvelleEtape` vaut donc `nil`, d’où l’erreur de concaténation. On relit la valeur avec `player:GetAttribute(\"Etape\")`."
+
+  - type: qcm
+    question: "Quelle instruction programme une action dans 3 secondes **sans mettre en pause** la suite du script ?"
+    options:
+      - texte: "`task.wait(3)` puis l’action"
+      - texte: "`task.delay(3, function() ... end)`"
+        correct: true
+      - texte: "`delay(3, function() ... end)`"
+      - texte: "`repeat task.wait() until 3`"
+    explication: "`task.delay` exécute la fonction plus tard, dans un fil séparé, et le script continue immédiatement. `task.wait(3)` met le script en pause. `delay` sans `task.` est dépréciée."
+
+  - type: qcm
+    question: "Deux Scripts serveur font `require` du module `Config`. Le premier exécute `Config.VALEUR_PIECE = 5` (la table n’est pas gelée). Que lit ensuite le second dans `Config.VALEUR_PIECE` ?"
+    options:
+      - texte: La valeur d’origine écrite dans le module
+      - texte: "`5`, car les deux scripts partagent la même table"
+        correct: true
+      - texte: "`nil`"
+      - texte: Une erreur, car un module ne peut être chargé qu’une fois
+    explication: "Le module s’exécute une seule fois par environnement et `require` renvoie ensuite la **même** table à tout le monde. Une modification faite par un script est donc visible des autres. C’est pourquoi on gèle souvent `Config` avec `table.freeze`."
+
+  - type: trouve-le-bug
+    question: "Avec cette classe, `Plateforme.new(part):cacher()` provoque « attempt to call a nil value ». Où est le bug ?"
+    code: |
+      local Plateforme = {}
+      Plateforme.__index = Plateforme
+
+      function Plateforme.new(part)
+      	local self = {}
+      	self.part = part
+      	return self
+      end
+
+      function Plateforme:cacher()
+      	self.part.Transparency = 1
+      end
+
+      return Plateforme
+    options:
+      - texte: "Ligne 2 : `__index` doit pointer vers une table vide"
+      - texte: "Ligne 5 : l’objet n’a pas de métatable, il faut `local self = setmetatable({}, Plateforme)`"
+        correct: true
+      - texte: "Ligne 10 : une méthode ne peut pas s’appeler `cacher`"
+      - texte: "Ligne 11 : il faut écrire `Plateforme.part` au lieu de `self.part`"
+    explication: "Sans `setmetatable`, l’objet est une table ordinaire : quand on appelle `:cacher()`, la clé `cacher` est absente et Luau ne sait pas qu’il doit la chercher dans `Plateforme`. Le constructeur doit attacher la classe comme métatable."
+
+  - type: qcm
+    question: "Dans `local function soigner(humanoid: Humanoid, montant: number?)`, que signifie `number?` ?"
+    options:
+      - texte: Un nombre obligatoirement positif
+      - texte: "Un nombre ou `nil` (le paramètre est facultatif)"
+        correct: true
+      - texte: Un nombre entier uniquement
+      - texte: Un nombre converti automatiquement en texte
+    explication: "Le `?` à la fin d’un type le rend **optionnel** : `number?` équivaut à « `number` ou `nil` ». Ces annotations aident l’analyseur de Studio, surtout avec `--!strict`, sans changer l’exécution."
