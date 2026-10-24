@@ -21,7 +21,7 @@
 | 02 | FAIT | en cours | |
 | 03 | FAIT | en cours | |
 | 04 | FAIT | en cours | |
-| 05 | FAIT | en cours | |
+| 05 | FAIT | FAIT (21 corr., 2 suppr.) | en cours |
 | 06 | FAIT | en cours | |
 | 07 | FAIT | FAIT (11 corrections) | en cours |
 | 08 | FAIT | FAIT (11 corrections) | en cours |
