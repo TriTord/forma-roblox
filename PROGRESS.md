@@ -34,3 +34,5 @@
 - Analyse Luau : `node scripts/verifier-luau.mjs XX` (luau-lsp dans C:\tmp\luau-tools)
 
 ## Notes
+- QA phase 1 terminée (suite de tests). Agent DEV lancé pour corriger 7 bugs site (mobile overflow, liens soulignés, label recherche, checklist interactive, focus menu mobile, site/canonical/sitemap, logo 44px).
+- À FAIRE en passe de cohérence inter-modules : contenu du ModuleScript `Config` (module 02 vs `Config.Zones` du module 05), structure des données joueur (module 04 vs 05/06/08), convention `Etape`.
