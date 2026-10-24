@@ -13,11 +13,11 @@ quiz:
     question: "Dans la boucle de jeu de l’Obby des Nuages, quel élément joue le rôle de « moteur de progression » ?"
     options:
       - texte: Le fait de déplacer son personnage avec le clavier
-      - texte: "Les étapes franchies et les pièces accumulées, qui débloquent des trails dans la boutique"
+      - texte: "Les étapes franchies et les pièces accumulées, qui débloquent des traînées dans la boutique"
         correct: true
       - texte: La couleur du ciel
       - texte: Le chat entre joueurs
-    explication: "Selon la documentation de Roblox, une boucle de jeu combine l’interaction de chaque instant (se déplacer, sauter), l’action la plus répétée (franchir un obstacle jusqu’au checkpoint) et un **moteur de progression**. Dans l’obby, ce sont les étapes atteintes et les pièces dépensées en trails qui font avancer le joueur."
+    explication: "Selon la documentation de Roblox, une boucle de jeu combine l’interaction de chaque instant (se déplacer, sauter), l’action la plus répétée (franchir un obstacle jusqu’au checkpoint) et un **moteur de progression**. Dans l’obby, ce sont les étapes atteintes et les pièces dépensées en traînées qui font avancer le joueur."
   - type: qcm
     question: "Laquelle de ces fonctionnalités fait partie de la version 1 de l’Obby des Nuages ?"
     options:
@@ -28,15 +28,15 @@ quiz:
       - texte: Un mode combat entre joueurs
     explication: "Les checkpoints sont au cœur d’un obby : sans eux, chaque chute renvoie au départ. Les familiers, les mondes multiples et le combat sont des idées « plus tard » : elles agrandiraient le projet sans être nécessaires pour qu’il soit amusant."
   - type: vrai-faux
-    question: "Dans l’Obby des Nuages, les objets de la boutique (trails) donnent un avantage de vitesse ou de saut."
+    question: "Dans l’Obby des Nuages, les objets de la boutique (des traînées, ou *trails*) donnent un avantage de vitesse ou de saut."
     reponse: false
-    explication: "Les trails sont **purement cosmétiques** : ils changent l’apparence, pas les capacités. C’est un choix volontaire pour un jeu équitable, où l’on ne peut pas acheter la victoire. On reparlera de ce choix éthique au module 6."
+    explication: "Les traînées sont **purement cosmétiques** : elles changent l’apparence, pas les capacités. C’est un choix volontaire pour un jeu équitable, où l’on ne peut pas acheter la victoire. On reparlera de ce choix éthique au module 6."
   - type: qcm
     question: "Lesquels de ces critères font partie de la définition de « terminé » pour la version 1 ? (plusieurs réponses possibles)"
     options:
       - texte: On peut finir le parcours du début à la fin, sur ordinateur et sur mobile
         correct: true
-      - texte: "La progression (étape, pièces, trails) est conservée d’une session à l’autre"
+      - texte: "La progression (étape, pièces, traînées) est conservée d’une session à l’autre"
         correct: true
       - texte: Le jeu a atteint au moins 1 000 joueurs simultanés
       - texte: Des personnes extérieures ont testé le jeu et les problèmes bloquants sont corrigés
@@ -68,9 +68,9 @@ La documentation de Roblox décrit la **boucle de jeu** (*core loop*) comme la p
 
 1. **L’interaction de chaque instant** : se déplacer, sauter, viser la plateforme suivante, éviter le vide et les obstacles.
 2. **L’action la plus répétée** : franchir une étape pour atteindre le checkpoint suivant, en ramassant les pièces au passage.
-3. **Le moteur de progression** : le numéro d’étape qui grimpe, les pièces qui s’accumulent et qui se dépensent en **trails** dans la boutique.
+3. **Le moteur de progression** : le numéro d’étape qui grimpe, les pièces qui s’accumulent et qui se dépensent en **traînées** (*trails*) dans la boutique.
 
-En une phrase : **je saute, j’atteins un checkpoint, je gagne des pièces, je débloque un trail, et j’ai envie d’aller plus loin**. Tout ce qui ne sert pas cette boucle attendra. Tu approfondiras ce sujet au module 5.
+En une phrase : **je saute, j’atteins un checkpoint, je gagne des pièces, je débloque une traînée, et j’ai envie d’aller plus loin**. Tout ce qui ne sert pas cette boucle attendra. Tu approfondiras ce sujet au module 5.
 
 ## Le cahier des charges de la version 1
 
@@ -84,8 +84,8 @@ En une phrase : **je saute, j’atteins un checkpoint, je gagne des pièces, je 
 | **Checkpoints** | Des plateformes numérotées qui enregistrent l’étape atteinte ; après une chute, le joueur réapparaît au dernier checkpoint validé |
 | **Pièces** | Des pièces qui tournent sur elles-mêmes, à ramasser en chemin |
 | **Statistiques visibles** | L’étape et le nombre de pièces affichés dans le classement en haut à droite de l’écran (les leaderstats) |
-| **Sauvegarde** | L’étape, les pièces et les trails possédés sont conservés d’une session à l’autre |
-| **Boutique** | Une interface pour acheter et équiper des trails avec ses pièces |
+| **Sauvegarde** | L’étape, les pièces et les traînées possédées sont conservées d’une session à l’autre |
+| **Boutique** | Une interface pour acheter et équiper des traînées avec ses pièces |
 | **Plateformes animées** | Quelques plateformes mobiles pour varier le parcours |
 | **Victoire** | Une animation et un message à l’arrivée |
 
@@ -95,13 +95,13 @@ En une phrase : **je saute, j’atteins un checkpoint, je gagne des pièces, je 
 |---|---|
 | **Sécurité** | Le serveur vérifie les checkpoints, les pièces et les achats : impossible de tricher en modifiant son client |
 | **Premières secondes soignées** | Un début clair, sans mur de texte, avec un objectif visible tout de suite |
-| **Monétisation éthique** | Un Game Pass cosmétique (un trail exclusif) et un achat optionnel « passer l’étape », sans pression sur le joueur |
+| **Monétisation éthique** | Un Game Pass cosmétique (une traînée exclusive) et un achat optionnel « passer l’étape », sans pression sur le joueur |
 | **Page du jeu** | Un titre clair, une description honnête, une icône et des miniatures personnalisées qui montrent le vrai jeu |
 | **Statistiques** | Des événements qui mesurent où les joueurs abandonnent le parcours |
 | **Mobile** | Une interface et des contrôles confortables sur téléphone, sans lag |
 
 <Info>
-Les trails de l’Obby des Nuages sont **uniquement cosmétiques** : ils ne rendent ni plus rapide, ni meilleur sauteur. Personne ne peut acheter la victoire. Ce choix rend le jeu équitable pour tous, et tu verras au module 6 pourquoi c’est aussi une monétisation plus saine, surtout pour un public souvent jeune.
+Les traînées de l’Obby des Nuages sont **uniquement cosmétiques** : elles ne rendent ni plus rapide, ni meilleur sauteur. Personne ne peut acheter la victoire. Ce choix rend le jeu équitable pour tous, et tu verras au module 6 pourquoi c’est aussi une monétisation plus saine, surtout pour un public souvent jeune.
 </Info>
 
 ### La liste « plus tard »
@@ -130,7 +130,7 @@ Chaque module ajoute une brique à l’Obby des Nuages :
 | 1 | Le premier niveau construit à la main (plateformes, point d’apparition), publié en privé |
 | 2 | Kill bricks, pièces qui tournent, premiers checkpoints et un module de configuration |
 | 3 | Checkpoints et pièces validés par le serveur, achat en boutique sécurisé |
-| 4 | Statistiques Étape et Pièces, sauvegarde, inventaire de trails, interface de boutique, plateformes animées, animation de victoire |
+| 4 | Statistiques Étape et Pièces, sauvegarde, inventaire de traînées, interface de boutique, plateformes animées, animation de victoire |
 | 5 | Premières secondes, courbe de difficulté, récompenses et objectifs |
 | 6 | Game Pass cosmétique, achat « passer l’étape », prix et éthique |
 | 7 | Page du jeu, icône, miniatures, lancement et première mise à jour |
@@ -155,7 +155,7 @@ Renommer des objets en cours de projet casse les scripts qui les cherchent par l
 Sans définition claire, un projet n’est jamais fini : on trouve toujours un détail à améliorer. Voici la **définition de « terminé »** de la version 1. Le jeu est prêt quand :
 
 1. on peut finir le parcours **du début à la fin**, sur ordinateur et sur mobile ;
-2. l’étape, les pièces et les trails sont **conservés** d’une session à l’autre ;
+2. l’étape, les pièces et les traînées sont **conservées** d’une session à l’autre ;
 3. la fenêtre Output ne montre **aucune erreur** pendant une partie complète ;
 4. les checkpoints, les pièces et les achats sont **validés par le serveur** ;
 5. au moins trois personnes extérieures au projet l’ont **testé**, et les problèmes bloquants qu’elles ont trouvés sont corrigés ;
@@ -165,7 +165,7 @@ Sans définition claire, un projet n’est jamais fini : on trouve toujours un d
 Remarque bien ce qui n’est **pas** dans la liste : un nombre de joueurs, de visites ou de Robux. Ces chiffres dépendent aussi de facteurs que tu ne contrôles pas (on l’a vu dans la leçon sur la découverte). Ta définition de « terminé » ne doit contenir que des critères qui dépendent de toi.
 
 <Info>
-Publier en public ne veut pas dire toucher tout le monde dès le premier jour. Au moment de la rédaction (octobre 2026), Roblox impose des vérifications côté créateur et une évaluation du jeu avant qu’il soit accessible aux joueurs de moins de 16 ans (voir la leçon 2 et la page officielle « Roblox Kids and Select »). On préparera tout cela au module 7.
+Publier en public ne veut pas dire toucher tout le monde dès le premier jour. Au moment de la rédaction (octobre 2026), Roblox impose des vérifications côté créateur et une évaluation du jeu avant qu’il soit accessible aux joueurs de moins de 16 ans (voir [la leçon 2](/modules/00/roblox-pour-les-createurs/) et la page officielle « Roblox Kids and Select »). On préparera tout cela au module 7, dans [Préparer la page du jeu](/modules/07/preparer-la-page-du-jeu/).
 </Info>
 
 ## Planifier ta construction
@@ -183,8 +183,8 @@ Dessine sur papier les trois premières étapes de l’Obby des Nuages, vues de 
 </Defi>
 
 <Resume>
-- L’**Obby des Nuages** : un parcours dans le ciel, avec checkpoints, pièces et une boutique de trails **cosmétiques**.
-- Sa **boucle de jeu** : sauter, atteindre un checkpoint, gagner des pièces, débloquer un trail, recommencer plus loin.
+- L’**Obby des Nuages** : un parcours dans le ciel, avec checkpoints, pièces et une boutique de traînées **cosmétiques**.
+- Sa **boucle de jeu** : sauter, atteindre un checkpoint, gagner des pièces, débloquer une traînée, recommencer plus loin.
 - La **version 1** contient le cœur jouable et ce qu’il faut pour lancer ; les autres idées vont dans la liste « plus tard ».
 - Chaque module ajoute une brique, avec des **noms fixés** dès maintenant (Checkpoints, KillBricks, Pieces, Remotes, Modules, Etape, Pieces).
 - Le jeu est « terminé » selon des critères **que tu contrôles** : complet, sauvegardé, sécurisé, testé, page soignée, checklist cochée.

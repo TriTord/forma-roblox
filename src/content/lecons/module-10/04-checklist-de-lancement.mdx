@@ -30,12 +30,12 @@ quiz:
   - type: qcm
     question: "Où remplis-tu le questionnaire de maturité et de conformité (Maturity & Compliance Questionnaire) de ton jeu ?"
     options:
-      - texte: Dans Studio, menu File > Publish
-      - texte: "Dans le Creator Dashboard, page du jeu, Publish settings > Content rating"
+      - texte: Dans Studio, menu File › Publish
+      - texte: "Dans le Creator Dashboard, page du jeu, Publish settings › Content rating"
         correct: true
       - texte: Sur le DevForum, dans la catégorie Announcements
       - texte: Il n’existe plus depuis 2026
-    explication: "Au moment de la rédaction, la documentation indique de passer par le Creator Dashboard : page du jeu, puis **Publish settings > Content rating**. Un jeu sans informations de maturité voit sa jouabilité restreinte pour tous les joueurs."
+    explication: "Au moment de la rédaction, la documentation indique de passer par le Creator Dashboard : page du jeu, puis **Publish settings › Content rating**. Un jeu sans informations de maturité voit sa jouabilité restreinte pour tous les joueurs."
   - type: vrai-faux
     question: "Une fois le questionnaire de maturité rempli, tu n’as plus jamais à y toucher, même si tu ajoutes du contenu au jeu."
     reponse: false
@@ -81,7 +81,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] La difficulté monte progressivement ; les checkpoints sont réguliers. ([Progression et récompenses](/modules/05/progression-et-recompenses/))
 - [ ] Les kill bricks sont clairement reconnaissables (couleur ou matériau cohérent dans tout le jeu).
 - [ ] La dernière étape est célébrée (animation de victoire, message, récompense). ([Animer les personnages](/modules/04/animations-r6-r15/))
-- [ ] Les gains de pièces et les prix des trails sont équilibrés et réglés dans le module `Config`.
+- [ ] Les gains de pièces et les prix des traînées sont équilibrés et réglés dans le module `Config`.
 - [ ] Au moins trois personnes qui ne connaissent pas le jeu ont été observées pendant un playtest, et les points bloquants sont corrigés. ([Tester avec de vrais joueurs](/modules/05/tester-avec-de-vrais-joueurs/))
 
 ## 2. Technique
@@ -109,7 +109,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] Sauvegarde au départ du joueur (`PlayerRemoving`), à la fermeture du serveur (`game:BindToClose`) et périodiquement.
 - [ ] Le DataStore et la clé sont les bons : `"DonneesJoueurs_v1"`, `"Joueur_" .. player.UserId`.
 - [ ] Testé : quitter puis revenir, changer de serveur, quitter pendant le chargement, arrêter le serveur avec des joueurs connectés.
-- [ ] L’inventaire de trails est sauvegardé et rechargé correctement. ([Un inventaire simple et sécurisé](/modules/04/inventaire/))
+- [ ] L’inventaire de traînées est sauvegardé et rechargé correctement. ([Un inventaire simple et sécurisé](/modules/04/inventaire/))
 - [ ] Tu sais que Studio utilise les **mêmes** DataStores que le jeu publié quand l’accès aux API est activé : tes tests n’ont pas abîmé de vraies données.
 
 ## 5. Mobile et performances
@@ -123,7 +123,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 
 ## 6. Monétisation
 
-- [ ] Le Game Pass du trail exclusif est vérifié côté serveur (`UserOwnsGamePassAsync` dans un `pcall`) et l’avantage est appliqué par le serveur. ([Les Game Passes](/modules/06/game-passes/))
+- [ ] Le Game Pass de la traînée exclusive est vérifié côté serveur (`UserOwnsGamePassAsync` dans un `pcall`) et l’avantage est appliqué par le serveur. ([Les Game Passes](/modules/06/game-passes/))
 - [ ] Le Developer Product « Passer l’étape » est traité par **un seul** `ProcessReceipt`, qui ne renvoie `PurchaseGranted` qu’une fois l’avantage réellement accordé, sans double attribution. ([Les Developer Products](/modules/06/developer-products/))
 - [ ] Les descriptions des produits disent exactement ce que le joueur obtient.
 - [ ] Pas de pay-to-win, pas de pop-up d’achat à l’arrivée, pas de faux compte à rebours. ([Prix et éthique](/modules/06/prix-et-ethique/))
@@ -148,7 +148,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 
 ## 9. Communauté
 
-- [ ] Une Communauté Roblox (le nouveau nom des « groupes ») existe si tu veux rassembler tes joueurs. ([Construire et animer une communauté](/modules/07/communaute/))
+- [ ] Une communauté Roblox (le nom des « groupes » côté joueurs) existe si tu veux rassembler tes joueurs. ([Construire et animer une communauté](/modules/07/communaute/))
 - [ ] Des règles de conduite claires et, si besoin, des modérateurs de confiance.
 - [ ] Un moyen simple de signaler un bug ou de donner son avis.
 - [ ] Les liens vers des réseaux externes (Discord, YouTube…) passent **uniquement** par la fonctionnalité officielle de liens sociaux (Social Links), affichés sur la **page du jeu** : jamais de lien ni d’adresse dans le jeu lui-même. Dans le jeu, tu peux seulement inviter à consulter les liens de la page du jeu. Au moment de la rédaction, il faut avoir fait vérifier son âge (16 ans ou plus) pour en ajouter, et seuls les utilisateurs de 16 ans et plus à l’âge vérifié les voient.
@@ -162,35 +162,28 @@ Les conditions de publication ont été profondément revues en 2026 (comptes Ro
 
 ### Questionnaire de maturité et de conformité
 
-- [ ] Le **Maturity & Compliance Questionnaire** est rempli : Creator Dashboard, page du jeu, **Publish settings > Content rating**. Sans informations de maturité, la jouabilité du jeu est restreinte pour tous les joueurs.
+- [ ] Le **Maturity & Compliance Questionnaire** est rempli : Creator Dashboard, page du jeu, **Publish settings › Content rating**. Sans informations de maturité, la jouabilité du jeu est restreinte pour tous les joueurs. ([Préparer la page du jeu](/modules/07/preparer-la-page-du-jeu/))
 - [ ] Les réponses décrivent le contenu **le plus mature** du jeu, honnêtement. Des informations inexactes exposent le jeu et le compte à la modération.
 - [ ] Tu sais que tu devras **soumettre à nouveau** le questionnaire si une mise à jour change tes réponses.
 - [ ] Tu connais le label obtenu (Minimal, Mild, Moderate…) et ce qu’il implique pour l’audience de ton jeu. Attention : si, au moment de publier, tu réponds seulement à la première question (« Non », pas de contenu à accès restreint selon l’âge), ton jeu reçoit le label **Content May Vary** et n’est accessible qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ; pour viser les plus jeunes, il faut remplir le questionnaire **en entier**.
 
 ### Exigences de publication
 
-Au moment de la rédaction, la documentation distingue deux niveaux de publication publique :
+Au moment de la rédaction, la documentation distingue deux niveaux de publication publique, détaillés dans [Préparer la page du jeu](/modules/07/preparer-la-page-du-jeu/) :
 
 - **Joueurs de 16 ans et plus (et Trusted Friends)** : compte en règle, créé depuis au moins 2 jours, vérification de l’âge (estimation faciale ou pièce d’identité), et réponse à la première question du questionnaire, celle sur le contenu à accès restreint selon l’âge.
-- **Tous les âges** (y compris Roblox Kids et Roblox Select) : en plus, compte vérifié (estimation faciale de l’âge si tu as moins de 18 ans, pièce d’identité si tu as 18 ans ou plus), validation en deux étapes (2FA), abonnement Roblox Plus ou Premium actif depuis deux mois consécutifs **ou** frais de publication remboursables (1 000 Robux par jeu au moment de la rédaction), questionnaire complet avec un label Minimal, Mild ou Moderate, et réussite d’un **processus d’évaluation** basé sur de vrais joueurs de 16 ans et plus.
+- **Tous les âges** (y compris Roblox Kids et Roblox Select) : en plus, compte vérifié (estimation faciale de l’âge si tu as moins de 18 ans, pièce d’identité si tu as 18 ans ou plus), validation en deux étapes (2FA), abonnement Roblox Plus ou Premium actif depuis deux mois consécutifs **ou** frais de publication remboursables (1 000 Robux par jeu au moment de la rédaction), questionnaire complet avec un label Minimal, Mild ou Moderate, et réussite d’un **processus d’évaluation**.
 
-Ce processus d’évaluation, décrit sur la page officielle « Roblox Kids and Select », se déroule ainsi au moment de la rédaction :
-
-1. **Phase d’essai** : le jeu n’est d’abord accessible qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié.
-2. **Analyse des joueurs « très engagés »** (*highly engaged players*) : Roblox vérifie qu’il s’agit de vrais joueurs (ancienneté du compte, historique de jeu, achats sur la plateforme), pas de robots.
-3. **Revue de sécurité** : les signalements et le gameplay sont examinés pour vérifier que le jeu convient aux plus jeunes.
-4. **Seuil** : le jeu doit atteindre **250 parties uniques** jouées par des joueurs très engagés dont l’âge a été vérifié, sur une période de **60 jours**. Il devient alors éligible aux audiences Roblox Kids et Roblox Select (dans la limite de son label de maturité).
-
-La progression se suit dans le tableau **Audience Reach** du Creator Hub. Ce seuil et la définition des joueurs « très engagés » ont déjà changé plusieurs fois en 2026, et les annonces du DevForum ont cité d’autres chiffres que la documentation : fie-toi à la page officielle « Roblox Kids and Select » au moment où tu t’organises.
+Rappel de ce processus, décrit sur la page officielle « Roblox Kids and Select » : le jeu n’est d’abord proposé qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ; Roblox vérifie que de vrais joueurs « très engagés » (*highly engaged players*) y jouent et fait une revue de sécurité ; le jeu devient éligible aux comptes Roblox Kids et Roblox Select (dans la limite de son label) après **250 parties uniques** de ces joueurs en **60 jours**. Ce seuil était de 500 au lancement mondial (juin 2026), puis Roblox l’a abaissé à 250 le 19 août 2026 : il peut encore changer, tout comme les conditions de remboursement des frais. La progression se suit dans le tableau **Audience Reach** du Creator Hub ; fie-toi à la page officielle « Roblox Kids and Select » au moment où tu t’organises.
 
 - [ ] Ton compte remplit les conditions du niveau de publication que tu vises. Elles sont vérifiées à **chaque** publication, y compris pour une mise à jour d’un jeu déjà sorti.
 - [ ] La validation en deux étapes est activée sur ton compte (indispensable pour tous les âges, et une bonne protection dans tous les cas).
 - [ ] Si tu vises tous les âges : tu sais que ton jeu passera d’abord par la phase d’évaluation (16 ans et plus) et tu suis sa progression dans le tableau Audience Reach.
 - [ ] Ton label de maturité est compatible avec l’audience visée : Minimal ou Mild pour Roblox Kids (5-8 ans), jusqu’à Moderate pour Roblox Select (9-15 ans).
 
-### Règles communautaires et contenu
+### Règles de la communauté et contenu
 
-- [ ] Le jeu respecte les **règles communautaires** (Community Standards) : pas de contenu ou de métadonnées trompeurs ou dupliqués, pas de violation de propriété intellectuelle (pour les liens externes, voir la section 9).
+- [ ] Le jeu respecte les **règles de la communauté** (Community Standards) : pas de contenu ou de métadonnées trompeurs ou dupliqués, pas de violation de propriété intellectuelle (pour les liens externes, voir la section 9).
 - [ ] Tous les assets (images, sons, musiques, modèles) t’appartiennent ou tu as le droit de les utiliser.
 - [ ] Tout texte saisi par un joueur et affiché aux autres (nom de familier, panneau…) est filtré côté serveur avec `TextService:FilterStringAsync` (puis `GetNonChatStringForBroadcastAsync` pour un texte visible par tout le serveur). Roblox peut retirer un jeu qui ne filtre pas, jusqu’à ce que le filtrage soit ajouté.
 
@@ -332,7 +325,7 @@ Passe toute la checklist sur l’Obby des Nuages. Ajoute le script `AutoVerifica
 - [« Introducing Roblox Communities » — annonce officielle du DevForum (novembre 2024)](https://devforum.roblox.com/t/introducing-roblox-communities/3268307)
 - [« New Publishing Requirements & Evaluation Process for Games » — annonce officielle du DevForum (avril 2026)](https://devforum.roblox.com/t/new-publishing-requirements-evaluation-process-for-games/4573166)
 - [« Alternate Publishing Requirements for Roblox Kids and Select » — annonce officielle du DevForum (mai 2026)](https://devforum.roblox.com/t/alternate-publishing-requirements-for-roblox-kids-and-select/4630944)
-- [Règles communautaires de Roblox](https://about.roblox.com/community-standards)
+- [Règles de la communauté de Roblox](https://about.roblox.com/community-standards)
 - [Text filtering — documentation Roblox](https://create.roblox.com/docs/ui/text-filtering)
 - [Paid random items — documentation Roblox](https://create.roblox.com/docs/production/monetization/paid-random-items)
 - [Thumbnails — documentation Roblox](https://create.roblox.com/docs/production/publishing/thumbnails)

@@ -83,7 +83,7 @@ Il te reste à fixer le **prix** et à **mettre le pass en vente** depuis la pag
 
 ### Récupérer l’identifiant du pass
 
-Pour le script, tu as besoin de l’**ID du pass** : dans **Monetization ⟩ Passes**, survole la vignette du pass, clique sur le bouton **⋯** puis sur **Copy Asset ID**. Garde ce nombre de côté.
+Pour le script, tu as besoin de l’**ID du pass** : dans **Monetization › Passes**, survole la vignette du pass, clique sur le bouton **⋯** puis sur **Copy Asset ID**. Garde ce nombre de côté.
 
 <Info titre="Prix régionaux activés par défaut">
 Au moment de la rédaction (octobre 2026), Roblox applique par défaut des **prix régionaux** aux passes (système **Managed Pricing**) : un joueur d’un pays où le pouvoir d’achat est plus faible peut voir un prix plus bas, jamais en dessous de 30 % de ton prix par défaut. Tu peux le désactiver pass par pass. On en reparle à la leçon 5.
@@ -209,11 +209,11 @@ Si c’est un LocalScript qui ajoute la traînée ou qui décide que le joueur �
 
 ## Le bouton de la boutique : proposer l’achat
 
-Côté client, on affiche le **vrai prix** et on ouvre la fenêtre d’achat quand le joueur clique. Ce LocalScript se place dans le bouton de ta boutique (celle construite au module 4).
+Côté client, on affiche le **vrai prix** et on ouvre la fenêtre d’achat quand le joueur clique. Dans la boutique du module 4, crée un TextButton nommé `BoutonTrailDore` dans `InterfaceObby` › `Boutique` › `Liste` (le `UIGridLayout` le range avec les traînées), puis place ce LocalScript dedans.
 
 ```luau
--- LocalScript placé dans un TextButton « BoutonTrailDore »
--- (par exemple StarterGui > Boutique > Cadre > BoutonTrailDore)
+-- LocalScript placé dans le TextButton « BoutonTrailDore »
+-- (StarterGui > InterfaceObby > Boutique > Liste > BoutonTrailDore)
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 
@@ -280,7 +280,7 @@ Crée le Game Pass « Traînée dorée » dans le Creator Hub, colle son ID dans
 </Defi>
 
 <Resume>
-- Un **Game Pass** est un achat unique pour un avantage permanent ; on le crée dans **Monetization ⟩ Passes** et on copie son ID avec **Copy Asset ID**.
+- Un **Game Pass** est un achat unique pour un avantage permanent ; on le crée dans **Monetization › Passes** et on copie son ID avec **Copy Asset ID**.
 - `UserOwnsGamePassAsync(userId, gamePassId)` vérifie la possession : toujours dans un `pcall`, côté serveur, à l’arrivée du joueur.
 - `PromptGamePassPurchase(player, gamePassId)` ouvre la fenêtre d’achat ; `PromptGamePassPurchaseFinished` se déclenche même en cas d’annulation : vérifie `wasPurchased`.
 - L’avantage est appliqué **par le serveur** et mémorisé (attribut), puis réappliqué à chaque réapparition.

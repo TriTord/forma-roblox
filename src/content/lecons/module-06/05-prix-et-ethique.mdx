@@ -86,7 +86,7 @@ Roblox permet de mettre un Game Pass en avant (« promoted ») sur la page d’a
 
 ### Managed Pricing
 
-Au moment de la rédaction (octobre 2026), Roblox regroupe deux outils sous le nom de **Managed Pricing**, dans **Monetization ⟩ Managed Pricing** du Creator Hub :
+Au moment de la rédaction (octobre 2026), Roblox regroupe deux outils sous le nom de **Managed Pricing**, dans **Monetization › Managed Pricing** du Creator Hub :
 
 - **Regional pricing** (prix régionaux) : Roblox ajuste le prix selon la « localisation économique » du joueur (pouvoir d’achat, taux de change, habitudes de dépense). Le prix régional reste **entre 30 % et 100 %** de ton prix par défaut. Il est activé par défaut pour les passes (désactivable pass par pass) et appliqué automatiquement, sans possibilité de le désactiver, aux abonnements en Robux.
 - **Price optimization** (optimisation des prix) : Roblox répartit automatiquement tes joueurs en groupes qui voient des prix différents, mesure les achats, puis te recommande les meilleurs prix. Un test dure environ **3 semaines**, et les nouveaux prix ne sont appliqués que s’ils augmentent le revenu total.
@@ -102,7 +102,8 @@ Avec les prix régionaux, un même objet peut coûter moins cher dans certains p
 Tous ces outils, ainsi que les réductions Roblox Plus, supposent que ton interface lit le prix **depuis Roblox**. La documentation fournit même un outil, **Dynamic Price Check**, qui affiche de faux prix à des comptes de test pour repérer les prix écrits « en dur ». Voici le bouton « Passer l’étape » de la leçon 3, avec un prix toujours exact :
 
 ```luau
--- LocalScript dans le bouton « BoutonPasserEtape » (StarterGui > Boutique)
+-- LocalScript dans le TextButton « BoutonPasserEtape »
+-- (StarterGui > InterfaceObby > Boutique > Liste > BoutonPasserEtape)
 local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

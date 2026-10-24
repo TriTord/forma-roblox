@@ -10,7 +10,7 @@ objectifs:
 miseAJour: 2026-10-24
 quiz:
   - type: qcm
-    question: Selon la documentation Roblox, quels leviers aident surtout la rétention à long terme (J30) ? (plusieurs réponses possibles)
+    question: Selon la documentation Roblox, quels leviers aident surtout la rétention à long terme (D30) ? (plusieurs réponses possibles)
     options:
       - texte: Des mises à jour de contenu régulières
         correct: true
@@ -18,7 +18,7 @@ quiz:
         correct: true
       - texte: Un tutoriel plus long
       - texte: Des notifications envoyées plusieurs fois par jour
-    explication: "La page Retention relie la rétention J30 au contenu ajouté régulièrement et aux mécaniques sociales. Un long tutoriel nuit plutôt au début de partie, et les notifications sont limitées par Roblox à une par jour et par expérience pour chaque utilisateur."
+    explication: "La page Retention relie la rétention D30 au contenu ajouté régulièrement et aux mécaniques sociales. Un long tutoriel nuit plutôt au début de partie, et les notifications sont limitées par Roblox à une par jour et par expérience pour chaque utilisateur."
   - type: vrai-faux
     question: Un jeu peut exiger que le joueur active les notifications d’expérience pour débloquer la zone suivante.
     reponse: false
@@ -64,17 +64,17 @@ quiz:
     explication: "`os.time() / 86400` donne un nombre à virgule (par exemple 20385.4127) qui augmente à chaque seconde. Il faut l’arrondir vers le bas avec `math.floor` pour obtenir un numéro de jour qui ne change qu’à minuit UTC. Une journée compte bien 86 400 secondes."
 ---
 
-Ton obby est amusant la première fois. Mais un joueur qui l’a terminé a-t-il une raison d’y revenir demain ? Sur Roblox, cette question est centrale : la page officielle « Design for Roblox » distingue les **touristes**, qui passent d’un jeu à l’autre en privilégiant la variété, et les **habitués** (*locals*), qui se concentrent sur un petit nombre de jeux et forment presque toute la base de joueurs engagés d’une expérience. Cette leçon passe en revue les leviers qui transforment un touriste en habitué, et ceux qu’il ne faut **jamais** utiliser.
+Ton obby est amusant la première fois. Mais un joueur qui l’a terminé a-t-il une raison d’y revenir demain ? Sur Roblox, cette question est centrale : la page officielle « Design for Roblox » distingue les **touristes**, qui passent d’un jeu à l’autre en privilégiant la variété, et les **habitués** (*locals*), qui se concentrent sur un petit nombre de jeux et forment presque toute la base de joueurs engagés d’un jeu. Cette leçon passe en revue les leviers qui transforment un touriste en habitué, et ceux qu’il ne faut **jamais** utiliser.
 
 ## Ce que dit Roblox sur la rétention à long terme
 
 La page Retention du Creator Hub associe chaque horizon de rétention à une partie du jeu :
 
-- **J1** (le lendemain) : la core loop, le début de partie et les performances (leçons 1 et 2) ;
-- **J7** (une semaine plus tard) : le système de progression, avec des objectifs clairs à court et long terme, de la **variété** de contenu et une difficulté équilibrée (leçon 3) ;
-- **J30** (un mois plus tard) : ce que les joueurs peuvent faire **après** les objectifs principaux, avec du **contenu ajouté régulièrement** et des **mécaniques sociales** (la page cite les échanges, les groupes, les guildes et les systèmes compétitifs).
+- **D1** (le lendemain) : la core loop, le début de partie et les performances (leçons 1 et 2) ;
+- **D7** (une semaine plus tard) : le système de progression, avec des objectifs clairs à court et long terme, de la **variété** de contenu et une difficulté équilibrée (leçon 3) ;
+- **D30** (un mois plus tard) : ce que les joueurs peuvent faire **après** les objectifs principaux, avec du **contenu ajouté régulièrement** et des **mécaniques sociales** (la page cite les échanges, les groupes, les guildes et les systèmes compétitifs).
 
-Les définitions précises de ces indicateurs et leur lecture dans le Creator Dashboard sont au programme du module 8. Ici, on s’intéresse aux leviers de conception.
+Les définitions précises de ces indicateurs et leur lecture dans le Creator Dashboard sont au programme du module 8 ([La rétention : D1, D7, D30](/modules/08/retention/)). Ici, on s’intéresse aux leviers de conception.
 
 ## Levier 1 : la variété
 
@@ -212,7 +212,7 @@ Deux conseils officiels à garder en tête :
 
 Notre conseil, pour un créateur seul : mieux vaut un rythme mensuel tenu dans la durée qu’un rythme hebdomadaire abandonné au bout d’un mois.
 
-La préparation et l’annonce des mises à jour et des événements sont détaillées au module 7.
+La préparation et l’annonce des mises à jour et des événements sont détaillées au module 7 ([Mises à jour et événements](/modules/07/mises-a-jour-et-evenements/)).
 
 ## Levier 6 : les notifications d’expérience
 
@@ -226,7 +226,7 @@ Roblox permet d’envoyer des **notifications d’expérience** personnalisées 
 La documentation conseille de demander l’autorisation dans un contexte qui justifie une future notification : par exemple quand le joueur vient de **terminer le parcours**, pour être prévenu de la prochaine zone. Ce LocalScript reprend le modèle officiel (vérification avec `CanPromptOptInAsync`, puis `PromptOptIn`, chacun dans un `pcall`) :
 
 ```luau
--- LocalScript à placer dans StarterPlayer > StarterPlayerScripts
+-- LocalScript « ProposerNotifications » à placer dans StarterPlayer > StarterPlayerScripts
 -- Propose d'activer les notifications une fois le parcours terminé.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -281,7 +281,7 @@ Un **dark pattern** (aujourd’hui souvent appelé *deceptive pattern*, « sché
 Elle précise aussi qu’un jeu ne doit **pas exiger** l’activation des notifications pour participer ou progresser. Plus largement, les Community Standards de Roblox interdisent les contenus ou métadonnées trompeurs, sensationnalistes ou mensongers utilisés pour gagner en visibilité, en monétisation ou en engagement.
 
 <Attention>
-Les mêmes pièges existent en dehors des notifications : faux compte à rebours sur une offre, « Il ne reste que 3 traînées ! » pour un objet numérique illimité, bouton « Non merci, je préfère être nul » (on appelle cela le *confirmshaming*, la culpabilisation). Le site de référence deceptive.design les recense. Ton public compte beaucoup de mineurs : n’utilise aucun de ces procédés. Les règles propres à la monétisation sont détaillées au module 6.
+Les mêmes pièges existent en dehors des notifications : faux compte à rebours sur une offre, « Il ne reste que 3 traînées ! » pour un objet numérique illimité, bouton « Non merci, je préfère être nul » (on appelle cela le *confirmshaming*, la culpabilisation). Le site de référence deceptive.design les recense. Ton public compte beaucoup de mineurs : n’utilise aucun de ces procédés. Les règles propres à la monétisation sont détaillées au module 6 ([Fixer ses prix et monétiser éthiquement](/modules/06/prix-et-ethique/)).
 </Attention>
 
 Les recommandations Roblox sur les season passes vont dans le même sens : une pause d’au moins une semaine entre deux saisons pour éviter l’épuisement des joueurs, des missions qui ne doivent pas occuper tout leur temps de jeu quotidien, et de la place pour jouer comme ils le souhaitent.
@@ -297,7 +297,7 @@ Puis code l’objectif quotidien et affiche sa progression (« Pièces du jour :
 </Defi>
 
 <Resume>
-- Roblox relie la rétention J7 à la progression et à la variété, la rétention J30 au contenu régulier et au social.
+- Roblox relie la rétention D7 à la progression et à la variété, la rétention D30 au contenu régulier et au social.
 - Les objectifs quotidiens doivent être courts, modestes et ne jamais punir un jour manqué.
 - Le social (invitations, classements, passages à deux) est un levier majeur sur Roblox.
 - Badges et collections donnent des objectifs à long terme ; le contenu renouvelé se construit sur les systèmes existants, à un rythme tenable.
@@ -305,7 +305,7 @@ Puis code l’objectif quotidien et affiche sa progression (« Pièces du jour :
 </Resume>
 
 <Sources>
-- [Retention — leviers J1, J7 et J30 (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
+- [Retention — leviers D1, D7 et D30 (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
 - [Design for Roblox — touristes, habitués et jeu entre amis (Roblox)](https://create.roblox.com/docs/production/game-design/design-for-roblox)
 - [Quest design — quêtes quotidiennes et succès (Roblox)](https://create.roblox.com/docs/production/game-design/introduction-to-quest-design)
 - [Experience notifications — conditions, limites et dark patterns interdits (Roblox)](https://create.roblox.com/docs/production/promotion/experience-notifications)

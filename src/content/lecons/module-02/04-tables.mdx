@@ -117,7 +117,7 @@ print(table.find(inventaire, "TraineeVerte")) --> nil
 ```
 
 <Astuce titre="table.find pour tester « est-ce que j’ai déjà… ? »">
-Comme `table.find` renvoie `nil` quand la valeur est absente, elle s’utilise directement dans un `if` : `if table.find(inventaire, "TraineeBleue") then print("Déjà possédée") end`. Tu t’en serviras pour l’inventaire de traînées au module 4.
+Comme `table.find` renvoie `nil` quand la valeur est absente, elle s’utilise directement dans un `if` : `if table.find(inventaire, "TraineeBleue") then print("Déjà possédée") end`. Au module 4, l’inventaire de traînées utilisera plutôt un dictionnaire (voir [Les dictionnaires](#les-dictionnaires)), où ce test s’écrit encore plus simplement : `if inventaire[idObjet] then`.
 </Astuce>
 
 ## Parcourir une table

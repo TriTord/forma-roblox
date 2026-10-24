@@ -48,7 +48,7 @@ quiz:
       - texte: La fenêtre Output de Studio
       - texte: La Command Bar
       - texte: Le Device Simulator
-    explication: "La page **Performance** (menu **Monitoring** d’une expérience dans le Creator Hub) affiche des graphiques client et serveur, ventilés par plateforme, et peut comparer les versions publiées. Au moment de la rédaction, les graphiques demandent au moins 100 utilisateurs actifs par jour."
+    explication: "La page **Performance** (menu **Monitoring** d’un jeu dans le Creator Hub) affiche des graphiques client et serveur, ventilés par plateforme, et peut comparer les versions publiées. Au moment de la rédaction, les graphiques demandent au moins 100 utilisateurs actifs par jour."
   - type: qcm
     question: Pourquoi tenir un journal de performance (date, changement, mesure avant, mesure après, décision) ?
     options:
@@ -138,7 +138,7 @@ Passe chaque catégorie, coche ce qui est bon, note ce qui ne l’est pas. Ne co
 
 ### Interface mobile
 
-- [ ] Aucun bouton dans les coins inférieurs (pense au `BoutonBoutique` du module 4, à déplacer comme vu à la leçon 1) ; tous restent à portée de pouce, sur téléphone et sur tablette.
+- [ ] Aucun bouton dans les coins inférieurs (le `BoutonBoutique` du module 4 est au bord gauche, à mi-hauteur ; vérifie aussi les boutons ajoutés depuis, voir la leçon 1) ; tous restent à portée de pouce, sur téléphone et sur tablette.
 - [ ] Le texte est lisible sur un téléphone d’entrée de gamme (Device Simulator en **Physical size**, puis vrai appareil).
 - [ ] Rien n’est caché par une encoche ou la barre de Roblox (`ScreenInsets` sur `CoreUISafeInsets`).
 
@@ -245,7 +245,7 @@ Pour l’Obby des Nuages, les corrections les plus probables sont :
 - vérifier les réglages de streaming et corriger les LocalScripts qui plantent avec un petit rayon.
 
 <Erreur titre="Optimiser au point de casser le jeu">
-Une optimisation qui casse une kill brick, empêche de valider un checkpoint ou fait perdre une sauvegarde est pire que le lag. Après chaque série de corrections, rejoue l’obby **en entier** : mourir sur une kill brick, valider chaque checkpoint, ramasser des pièces, acheter un trail, quitter puis revenir pour vérifier la sauvegarde.
+Une optimisation qui casse une kill brick, empêche de valider un checkpoint ou fait perdre une sauvegarde est pire que le lag. Après chaque série de corrections, rejoue l’obby **en entier** : mourir sur une kill brick, valider chaque checkpoint, ramasser des pièces, acheter une traînée, quitter puis revenir pour vérifier la sauvegarde.
 </Erreur>
 
 ## Étape 5 : vérifier le gain et traquer les régressions
@@ -259,7 +259,7 @@ Une **régression**, c’est quelque chose qui marchait et ne marche plus (ou de
 
 ### Surveiller après la publication
 
-Une fois la nouvelle version publiée, la page **Performance** du Creator Dashboard prend le relais. Dans le Creator Hub, ouvre **Creations**, choisis ton expérience, puis le menu **Monitoring** › **Performance**. Elle affiche notamment, ventilés par plateforme :
+Une fois la nouvelle version publiée, la page **Performance** du Creator Dashboard prend le relais. Dans le Creator Hub, ouvre **Creations**, choisis ton jeu, puis le menu **Monitoring** › **Performance**. Elle affiche notamment, ventilés par plateforme :
 
 - la fréquence d’images des clients ;
 - le taux de plantage des clients et les sorties inattendues par manque de mémoire ;

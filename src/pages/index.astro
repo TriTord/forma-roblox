@@ -10,15 +10,19 @@ const premiereLecon = lecons[0];
 const urlDepart = premiereLecon?.url ?? modules[0].url;
 const dureeTotale = modules.reduce((t, m) => t + m.duree, 0);
 
-const extrait = `-- Checkpoint de l'Obby des Nuages (module 3)
+const extrait = `-- Checkpoint de l'Obby des Nuages (exemple simplifié : un Script dans chaque Part du dossier Checkpoints)
 local Players = game:GetService("Players")
 local checkpoint = script.Parent
+local numero = tonumber(checkpoint.Name) -- la Part s'appelle "1", "2", "3"…
 
 local function onTouched(hit: BasePart)
-\tlocal player = Players:GetPlayerFromCharacter(hit.Parent)
-\tif not player then return end
-\t-- C'est le serveur qui décide, jamais le client
-\tplayer:SetAttribute("Etape", checkpoint:GetAttribute("Numero"))
+	local player = Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	-- C'est le serveur qui décide : on n'accepte que l'étape suivante
+	local etape = player:GetAttribute("Etape") or 0
+	if numero == etape + 1 then
+		player:SetAttribute("Etape", numero)
+	end
 end
 
 checkpoint.Touched:Connect(onTouched)`;
@@ -47,7 +51,7 @@ const benefices = [
   {
     emoji: '💎',
     titre: 'Monétiser sans trahir tes joueurs',
-    texte: 'Game Passes, Developer Products, abonnements, prix : les outils officiels, les règles de Roblox et une approche éthique.',
+    texte: 'Game Passes, Developer Products, abonnements, Creator Rewards, DevEx : les outils officiels, les règles de Roblox et une approche éthique, sans promesse de revenus.',
   },
   {
     emoji: '📊',
@@ -91,7 +95,7 @@ const faq = [
   },
   {
     q: 'Y a-t-il des conditions d’âge ?',
-    r: 'Le contenu est accessible aux adolescents comme aux adultes. Certaines fonctions de Roblox (vente d’articles, conversion des Robux en argent réel via DevEx, publicité…) sont soumises à des conditions fixées par Roblox, notamment d’âge et de vérification de compte : elles sont détaillées dans les modules concernés.',
+    r: 'Le contenu est accessible aux adolescents comme aux adultes. Certaines fonctions de Roblox (publication pour les moins de 16 ans, vente d’articles, conversion des Robux en argent réel via DevEx, publicité…) sont soumises à des conditions fixées par Roblox, notamment d’âge et de vérification de compte : elles sont détaillées dans les modules concernés.',
   },
   {
     q: 'Combien de temps faut-il ?',

@@ -100,11 +100,12 @@ La pire mise à jour, c’est celle qui fait perdre leur progression aux joueurs
 2. **Ajoute** des champs, avec une **valeur par défaut** pour les anciens joueurs.
 3. **Teste** la mise à jour dans Studio avec un compte qui a déjà une ancienne sauvegarde.
 
-Bonne nouvelle : tu as déjà tout ce qu’il faut. Au module 4, le ModuleScript `DonneesJoueurs` contient `donneesParDefaut()` (la structure d’une sauvegarde neuve) et `completer()`, qui remplit les champs absents d’une ancienne sauvegarde à chaque chargement. Pour ajouter un champ, il suffit donc de l’ajouter dans `donneesParDefaut()` :
+Bonne nouvelle : tu as déjà tout ce qu’il faut. Au module 4, le ModuleScript `DonneesJoueurs` contient `donneesParDefaut()` (la structure d’une sauvegarde neuve) et `completer()`, qui remplit les champs absents d’une ancienne sauvegarde à chaque chargement. Pour ajouter un champ, deux gestes suffisent : l’ajouter dans `donneesParDefaut()` **et** augmenter `VERSION_DONNEES` d’une unité (tu l’as déjà fait au module 6 avec le champ `achats`). `completer` remplit alors le nouveau champ des anciennes sauvegardes et met leur `version` à jour. Grâce au test sur `ancienne.version` dans `Sauvegarder` (module 4), un serveur qui fait encore tourner l’ancienne version du jeu refusera ensuite d’écraser ces données plus récentes.
 
 ```luau
 -- Extrait du ModuleScript « DonneesJoueurs » (ServerScriptService), écrit au module 4
-local VERSION_DONNEES = 1
+-- On augmente ce numéro à chaque nouveau champ : 1 au module 4, 2 au module 6 (achats), 3 ici
+local VERSION_DONNEES = 3
 
 -- Structure d'une sauvegarde toute neuve : on y AJOUTE les nouveaux champs
 local function donneesParDefaut(): { [string]: any }
@@ -114,6 +115,7 @@ local function donneesParDefaut(): { [string]: any }
 		pieces = 0,
 		inventaire = {},
 		equipe = "",
+		achats = {}, -- ajouté au module 6
 		-- Ajouté dans la mise à jour « Zone des Orages » :
 		zoneOragesDebloquee = false,
 	}
@@ -126,10 +128,15 @@ local function completer(donnees: { [string]: any }): { [string]: any }
 			donnees[cle] = valeurParDefaut
 		end
 	end
+	-- La sauvegarde a maintenant la structure actuelle : on met à jour son
+	-- numéro de version (sans jamais baisser celui d'une sauvegarde plus récente)
+	if donnees.version < VERSION_DONNEES then
+		donnees.version = VERSION_DONNEES
+	end
 	return donnees
 end
 
--- Exemple : une sauvegarde d'avant la mise à jour
+-- Exemple : une sauvegarde d'avant la mise à jour (et d'avant le module 6)
 local ancienneSauvegarde = {
 	version = 1,
 	etape = 12,
@@ -140,6 +147,7 @@ local ancienneSauvegarde = {
 local donnees = completer(ancienneSauvegarde)
 print(donnees.zoneOragesDebloquee) --> false : le nouveau champ existe maintenant
 print(donnees.etape) --> 12 : la progression est conservée
+print(donnees.version) --> 3 : la sauvegarde porte maintenant le numéro actuel
 ```
 
 Comme `donneesParDefaut()` fabrique une **nouvelle** table à chaque appel, chaque joueur reçoit sa propre copie des tables par défaut (comme `inventaire`) : aucun risque que deux joueurs partagent le même inventaire.
@@ -156,7 +164,7 @@ D’après la documentation officielle, publier une nouvelle version **ne dépla
 
 ### Le bouton « Restart Servers »
 
-Au moment de la rédaction, sur le Creator Dashboard : ouvre ton jeu, puis **Configurations > Server management**, sélectionne les lieux, et clique sur **Restart Servers**. Deux options sont proposées :
+Au moment de la rédaction, sur le Creator Dashboard : ouvre ton jeu, puis **Configurations › Server management**, sélectionne les lieux, et clique sur **Restart Servers**. Deux options sont proposées :
 
 - **Restart only servers with outdated versions** : ne redémarre que les serveurs qui font tourner une ancienne version. La documentation recommande de la cocher presque toujours.
 - **Delay server restart** : laisse aux joueurs un délai de **1 à 60 minutes** avant la fermeture, pour qu’ils puissent finir ce qu’ils font.
@@ -178,7 +186,7 @@ Quand tu lances un redémarrage **avec délai**, l’événement `game.ServerRes
 On s’en sert pour afficher un compte à rebours aux joueurs. Crée d’abord un RemoteEvent nommé `AnnonceRedemarrage` dans `ReplicatedStorage.Remotes`.
 
 ```luau
--- Script (côté serveur) à placer dans ServerScriptService
+-- Script « Redemarrage » (côté serveur) à placer dans ServerScriptService
 -- Prévient tous les joueurs quand un redémarrage est programmé
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -205,7 +213,7 @@ end)
 ```
 
 ```luau
--- LocalScript (côté client) à placer dans StarterPlayer > StarterPlayerScripts
+-- LocalScript « AffichageRedemarrage » (côté client) à placer dans StarterPlayer > StarterPlayerScripts
 -- Affiche l'annonce de redémarrage dans une notification Roblox
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
@@ -238,10 +246,10 @@ Une mise à jour que personne ne remarque ne sert pas à grand-chose. Plusieurs 
 
 - **La description du jeu** : une courte ligne « Nouveautés » en haut (leçon 1), qui ne repousse pas trop bas le reste.
 - **En jeu** : un panneau ou un message au spawn qui présente la nouveauté.
-- **Les annonces de mise à jour** (*update announcements*), dans **Engagement > Events & Updates** au moment de la rédaction : elles arrivent dans les notifications Roblox des joueurs qui ont activé les notifications de ton jeu. Elles sont limitées à **60 caractères** et à **une tous les trois jours**. La documentation conseille d’être précis (« Nouvelle Zone des Orages : 5 étapes ! » plutôt que « Corrections de bugs »).
+- **Les annonces de mise à jour** (*update announcements*), dans **Engagement › Events & Updates** au moment de la rédaction : elles arrivent dans les notifications Roblox des joueurs qui ont activé les notifications de ton jeu. Elles sont limitées à **60 caractères** et à **une tous les trois jours**. La documentation conseille d’être précis (« Nouvelle Zone des Orages : 5 étapes ! » plutôt que « Corrections de bugs »).
 - **Ta communauté** (leçon 5).
 
-Les **notifications d’expérience**, que ton jeu envoie lui-même aux joueurs qui les ont acceptées, sont abordées au module 5 (rejouabilité). Retiens juste que leurs règles d’usage interdisent les notifications publicitaires déguisées et la fausse urgence.
+Les **notifications d’expérience**, que ton jeu envoie lui-même aux joueurs qui les ont acceptées, sont abordées au module 5 ([Donner envie de revenir](/modules/05/rejouabilite/)). Retiens juste que leurs règles d’usage interdisent les notifications publicitaires déguisées et la fausse urgence.
 
 ## Organiser un événement
 
@@ -250,12 +258,12 @@ Les **notifications d’expérience**, que ton jeu envoie lui-même aux joueurs 
 La documentation de Roblox décrit le **contenu à durée limitée** comme un bon moyen de relancer l’intérêt : des objectifs à accomplir ou des objets à gagner pendant une période donnée. Pour l’Obby des Nuages, un événement « Ciel d’automne » pourrait proposer pendant deux semaines une étape spéciale et une traînée orange à débloquer.
 
 <Attention titre="Limité dans le temps, pas sous pression">
-« Limité dans le temps » ne veut pas dire « pression ». Les règles de Roblox sur les notifications interdisent par exemple les fausses urgences qui poussent à acheter (« Achète dans les 10 prochaines minutes ! »). Comme on l’a vu au module 6, ton public est souvent jeune : un événement doit donner envie de jouer, pas angoisser les joueurs qui ne peuvent pas venir.
+« Limité dans le temps » ne veut pas dire « pression ». Les règles de Roblox sur les notifications interdisent par exemple les fausses urgences qui poussent à acheter (« Achète dans les 10 prochaines minutes ! »). Comme on l’a vu au module 6 ([Fixer ses prix et monétiser éthiquement](/modules/06/prix-et-ethique/)), ton public est souvent jeune : un événement doit donner envie de jouer, pas angoisser les joueurs qui ne peuvent pas venir.
 </Attention>
 
 ### L’outil Events du Creator Hub
 
-Au moment de la rédaction, les événements se créent dans **Engagement > Events & Updates**, bouton **Create Event or Update**. Tu y définis :
+Au moment de la rédaction, les événements se créent dans **Engagement › Events & Updates**, bouton **Create Event or Update**. Tu y définis :
 
 - une **miniature** propre à l’événement (la documentation conseille qu’elle soit différente de celles du jeu) ;
 - une **catégorie**, un **titre**, un **sous-titre** et une **description** facultative ;
@@ -279,7 +287,7 @@ Les joueurs qui cliquent sur **Notify Me** reçoivent une notification au début
 Pour un premier jeu, ces vitrines sont difficiles à atteindre : concentre-toi sur un événement simple, bien annoncé à tes joueurs actuels.
 
 <Defi>
-1. Ajoute le champ `zoneOragesDebloquee` dans `donneesParDefaut()` et vérifie dans Studio qu’un compte qui a déjà une sauvegarde garde sa progression.
+1. Ajoute le champ `zoneOragesDebloquee` dans `donneesParDefaut()`, augmente `VERSION_DONNEES` d’une unité (3 si tu as suivi le parcours sans le bonus du module 4), et vérifie dans Studio qu’un compte qui a déjà une sauvegarde garde sa progression.
 2. Crée le RemoteEvent `AnnonceRedemarrage` et les deux scripts de redémarrage.
 3. Publie une petite mise à jour (une nouvelle étape), puis redémarre les serveurs avec **Restart only servers with outdated versions** et un délai de 2 minutes. Rejoins le jeu avant pour voir la notification.
 4. Prépare en privé un événement « Ciel d’automne » de deux semaines avec sa miniature.

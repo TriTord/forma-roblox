@@ -76,7 +76,7 @@ On stocke des **identifiants** (`"TrailNuage"`), jamais des objets Roblox. Un Da
 
 ## Le catalogue : une seule source pour les prix
 
-Les caractéristiques de chaque objet (nom affiché, prix, couleurs) vivent dans un **ModuleScript** partagé : le `Catalogue` que tu as créé au module 3 dans **ReplicatedStorage ⟩ Modules** (le Folder `Modules` du projet). Remplace son contenu par cette version complète : mêmes identifiants, mêmes prix, avec en plus les couleurs des traînées.
+Les caractéristiques de chaque objet (nom affiché, prix, couleurs) vivent dans un **ModuleScript** partagé : le `Catalogue` que tu as créé au module 3 dans **ReplicatedStorage › Modules** (le Folder `Modules` du projet). Remplace son contenu par cette version complète : mêmes identifiants, mêmes prix, avec en plus les couleurs des traînées.
 
 ```luau
 -- ModuleScript « Catalogue » dans ReplicatedStorage > Modules
@@ -120,7 +120,7 @@ Ajouter un objet à la boutique ne demande qu’une nouvelle entrée dans `Catal
 
 ## Le serveur, seule source de vérité
 
-Rappel du module 3 : le client **demande**, le serveur **vérifie et décide**. Pour l’inventaire, il faut deux RemoteEvents dans **ReplicatedStorage ⟩ Remotes** :
+Rappel du module 3 : le client **demande**, le serveur **vérifie et décide**. Pour l’inventaire, il faut deux RemoteEvents dans **ReplicatedStorage › Remotes** :
 
 - `AcheterObjet` (déjà créé au module 3) : le client envoie l’identifiant de l’objet voulu ;
 - `EquiperObjet` (à créer) : le client envoie l’identifiant de l’objet à porter, ou `""` pour tout retirer.
@@ -361,7 +361,7 @@ Pour tester un achat sans interface, donne-toi des pièces en modifiant `Pieces.
 
 <Resume>
 - Un inventaire se modélise simplement : une table « identifiant → `true` » et un identifiant pour l’objet équipé.
-- Le `Catalogue` (ModuleScript dans ReplicatedStorage ⟩ Modules) décrit les objets ; le serveur y lit les prix, le client l’affichage.
+- Le `Catalogue` (ModuleScript dans ReplicatedStorage › Modules) décrit les objets ; le serveur y lit les prix, le client l’affichage.
 - Le client n’envoie que des identifiants ; le serveur vérifie type, longueur, débit (cooldown), existence, possession et solde **avant** de modifier quoi que ce soit, comme au module 3.
 - Des attributs posés par le serveur (`Possede_…`, `TrailEquipe`) synchronisent l’état avec le client.
 - L’inventaire fait partie de la table de session : il est sauvegardé par le système de la leçon 2.

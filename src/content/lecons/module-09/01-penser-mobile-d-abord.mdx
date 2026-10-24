@@ -104,7 +104,7 @@ Sur mobile, Roblox affiche par défaut un joystick virtuel en bas à gauche et u
 Les coins inférieurs gauche et droit sont **réservés** aux contrôles par défaut. N’y place jamais d’information importante ni de bouton : il serait caché par le pouce, ou déclenché par erreur au milieu d’un saut.
 
 <Attention titre="Le bouton de la boutique du module 4">
-Au module 4, on a placé `BoutonBoutique` en bas à gauche (`AnchorPoint = (0, 1)`, `Position = {0.02, 0}, {0.97, 0}`). Sur ordinateur, c’est très bien. Mais sur téléphone, c’est justement la zone du joystick ! Déplace-le sur le bord gauche, à mi-hauteur : `AnchorPoint = (0, 0.5)` et `Position = {0.02, 0}, {0.5, 0}`. Il reste facile à atteindre et ne gêne plus les déplacements. Vérifie ensuite le résultat avec le Device Simulator (plus bas dans cette leçon).
+Au module 4, on a placé `BoutonBoutique` sur le bord gauche, à mi-hauteur (`AnchorPoint = (0, 0.5)`, `Position = {0.02, 0}, {0.5, 0}`), justement pour éviter le coin inférieur gauche, qui est la zone du joystick sur téléphone. Vérifie que tu n’as pas gardé une ancienne position en bas à gauche, et applique la même règle à tout bouton que tu ajoutes : jamais dans les coins inférieurs. Contrôle ensuite le résultat avec le Device Simulator (plus bas dans cette leçon).
 </Attention>
 
 ### Les zones accessibles au pouce
@@ -217,7 +217,7 @@ Note chaque problème trouvé : ce sera le début de ton audit de la leçon 5.
 
 <Resume>
 - Selon la documentation Roblox, la majorité des sessions se jouent sur mobile, et la majorité des joueurs ont des appareils peu puissants : mémoire limitée, processeur plus lent, surchauffe.
-- Les coins inférieurs de l’écran sont réservés au joystick et au saut (déplace le `BoutonBoutique` du module 4) ; garde tes boutons à portée de pouce.
+- Les coins inférieurs de l’écran sont réservés au joystick et au saut (c’est pour ça que le `BoutonBoutique` du module 4 est au bord gauche, à mi-hauteur) ; garde tes boutons à portée de pouce.
 - Garde `ScreenInsets` sur `CoreUISafeInsets` et utilise `PreferredInput` pour adapter l’interface au mode de contrôle.
 - Le Device Simulator vérifie l’affichage et les contrôles, pas la mémoire ni les vraies performances.
 - Teste régulièrement sur un vrai appareil de référence, avec des sessions de 10 à 15 minutes.

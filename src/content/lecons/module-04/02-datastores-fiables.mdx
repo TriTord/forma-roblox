@@ -46,11 +46,11 @@ quiz:
     question: Ton script de sauvegarde affiche une erreur `StudioAccessToApisNotAllowed` pendant tes tests. Que faire ?
     options:
       - texte: Déplacer le script dans un LocalScript
-      - texte: Activer **Enable Studio Access to API Services** dans File ⟩ Experience Settings ⟩ Security, sur une expérience publiée
+      - texte: Activer **Enable Studio Access to API Services** dans File › Experience Settings › Security, sur un jeu publié
         correct: true
       - texte: Renommer le DataStore
       - texte: Rien, les DataStores ne fonctionnent jamais dans Studio
-    explication: "Par défaut, Studio n’a pas accès aux DataStores. On active l’option dans les paramètres de l’expérience (qui doit être publiée). La documentation conseille de le faire sur une version de test, car Studio accède aux mêmes données que le jeu en ligne."
+    explication: "Par défaut, Studio n’a pas accès aux DataStores. On active l’option dans les paramètres du jeu (qui doit être publié). La documentation conseille de le faire sur une version de test, car Studio accède aux mêmes données que le jeu en ligne."
   - type: qcm
     question: "Au moment de la rédaction, la limite par défaut des lectures d’un serveur est de `60 + nombre de joueurs × 40` requêtes par minute. Combien de lectures par minute pour un serveur de 5 joueurs ?"
     options:
@@ -76,7 +76,7 @@ C’est la leçon la plus technique du module. Prends ton temps, et teste chaque
 
 ## Les DataStores en deux minutes
 
-Un **DataStore** est une base de données fournie par Roblox, partagée par tous les serveurs de ton expérience. On l’utilise via le service `DataStoreService`. Il fonctionne comme un grand dictionnaire :
+Un **DataStore** est une base de données fournie par Roblox, partagée par tous les serveurs de ton jeu. On l’utilise via le service `DataStoreService`. Il fonctionne comme un grand dictionnaire :
 
 - une **clé** (un texte) identifie une entrée, par exemple `"Joueur_123456"` ;
 - une **valeur** est associée à cette clé : un nombre, un texte, un booléen ou une table.
@@ -99,14 +99,14 @@ Les DataStores ne sont accessibles que **côté serveur**, depuis un Script. Un 
 
 ### Activer l’accès dans Studio
 
-Par défaut, les tests dans Studio n’ont **pas** accès aux DataStores. Pour l’activer, ton expérience doit être publiée, puis :
+Par défaut, les tests dans Studio n’ont **pas** accès aux DataStores. Pour l’activer, ton jeu doit être publié, puis :
 
-1. ouvre **File ⟩ Experience Settings** ;
+1. ouvre **File › Experience Settings** ;
 2. va dans **Security** ;
 3. active **Enable Studio Access to API Services** ;
 4. clique sur **Save**.
 
-Sans cette option, tu obtiens une erreur `StudioAccessToApisNotAllowed`. Avec le code de cette leçon, le chargement échoue alors à chaque test et tu es expulsé au bout de quelques secondes : c’est normal, active l’option (ou teste sur ton expérience publiée). La documentation met en garde : Studio lit et écrit **les mêmes données** que le jeu en ligne. Pour un jeu déjà lancé, active plutôt cette option sur une **copie de test** de ton expérience, pour ne pas abîmer les sauvegardes des vrais joueurs.
+Sans cette option, tu obtiens une erreur `StudioAccessToApisNotAllowed`. Avec le code de cette leçon, le chargement échoue alors à chaque test et tu es expulsé au bout de quelques secondes : c’est normal, active l’option (ou teste sur ton jeu publié). La documentation met en garde : Studio lit et écrit **les mêmes données** que le jeu en ligne. Pour un jeu déjà lancé, active plutôt cette option sur une **copie de test** de ton jeu, pour ne pas abîmer les sauvegardes des vrais joueurs.
 
 ## Les trois règles d’une sauvegarde fiable
 
@@ -456,10 +456,10 @@ Un même joueur peut ainsi être sauvegardé deux fois de suite (départ + ferme
 
 La référence de `DataModel:BindToClose` conseille de vérifier `RunService:IsStudio()`, et son exemple officiel de sauvegarde **ne sauvegarde pas** à la fermeture d’un test Studio, pour deux raisons données en commentaire : ne pas écrire des données de test dans les données réelles du jeu, et ne pas bloquer l’arrêt du test. On suit cette recommandation : avec `SAUVEGARDER_EN_STUDIO = false`, la fonction liée s’arrête tout de suite dans Studio.
 
-Conséquence : dans Studio, seule la sauvegarde de `PlayerRemoving` est tentée quand tu cliques sur **Stop**, et rien ne garantit qu’elle ait le temps de se terminer avant la fin du test. Attention : si l’accès aux API est activé, cette sauvegarde-là écrit bel et bien dans les données de l’expérience. C’est une raison de plus pour ne tester que sur une copie de test. Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUVEGARDER_EN_STUDIO` à `true` : l’arrêt du test peut alors prendre quelques secondes, le temps que les sauvegardes se terminent. Remets-le à `false` ensuite. Sur les serveurs en ligne, `IsStudio()` renvoie `false` : la sauvegarde à la fermeture a toujours lieu.
+Conséquence : dans Studio, seule la sauvegarde de `PlayerRemoving` est tentée quand tu cliques sur **Stop**, et rien ne garantit qu’elle ait le temps de se terminer avant la fin du test. Attention : si l’accès aux API est activé, cette sauvegarde-là écrit bel et bien dans les données du jeu. C’est une raison de plus pour ne tester que sur une copie de test. Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUVEGARDER_EN_STUDIO` à `true` : l’arrêt du test peut alors prendre quelques secondes, le temps que les sauvegardes se terminent. Remets-le à `false` ensuite. Sur les serveurs en ligne, `IsStudio()` renvoie `false` : la sauvegarde à la fermeture a toujours lieu.
 
 <Astuce>
-Pour vérifier ta sauvegarde, ouvre le **Data Stores Manager** : dans le Creator Dashboard, sélectionne ton expérience, puis **Configurations ⟩ Data stores manager**. Tu peux y consulter tes DataStores et leurs clés, sans écrire une ligne de code. Pratique pour voir si `Joueur_` suivi de ton UserId contient bien tes pièces.
+Pour vérifier ta sauvegarde, ouvre le **Data Stores Manager** : dans le Creator Dashboard, sélectionne ton jeu, puis **Configurations › Data stores manager**. Tu peux y consulter tes DataStores et leurs clés, sans écrire une ligne de code. Pratique pour voir si `Joueur_` suivi de ton UserId contient bien tes pièces.
 </Astuce>
 
 ## Les limites à connaître
@@ -475,11 +475,11 @@ Les chiffres suivants viennent de la page officielle « Data store error codes a
 | Liste | `ListKeysAsync`… | 5 + nombre de joueurs × 2 |
 | Suppression | `RemoveAsync` | 60 + nombre de joueurs × 40 |
 
-Il existe aussi une limite **à l’échelle de l’expérience** (tous serveurs confondus), qui dépend du nombre de joueurs connectés, ainsi qu’un débit maximal **par clé** : 25 Mo de lecture et 4 Mo d’écriture par minute.
+Il existe aussi une limite **à l’échelle du jeu** (tous serveurs confondus), qui dépend du nombre de joueurs connectés, ainsi qu’un débit maximal **par clé** : 25 Mo de lecture et 4 Mo d’écriture par minute.
 
 **Taille des données** : le nom d’un DataStore et le nom d’une clé sont limités à **50 caractères** ; la valeur d’une clé à **4 194 304 caractères** une fois convertie en JSON (environ 4 Mo). Une table d’obby n’en approche même pas.
 
-**Stockage total** : `500 Mo + 1 Mo × nombre de joueurs uniques` ayant déjà rejoint l’expérience. Seule la dernière version de chaque clé compte.
+**Stockage total** : `500 Mo + 1 Mo × nombre de joueurs uniques` ayant déjà rejoint le jeu. Seule la dernière version de chaque clé compte.
 
 Avec notre code, un joueur coûte une lecture à l’arrivée (`GetAsync`), puis un `UpdateAsync` toutes les trois minutes environ et un au départ. Chaque `UpdateAsync` compte à la fois comme une lecture et comme une écriture. On reste très loin des limites.
 
@@ -521,14 +521,14 @@ La documentation précise aussi que **DataStore2** est une bibliothèque ancienn
 </Info>
 
 <Defi>
-1. Sur une **copie de test** publiée de ton expérience, active **Enable Studio Access to API Services**, puis crée `DonneesJoueurs` et `GestionJoueurs`. Passe `SAUVEGARDER_EN_STUDIO` à `true` le temps de l’exercice.
+1. Sur une **copie de test** publiée de ton jeu, active **Enable Studio Access to API Services**, puis crée `DonneesJoueurs` et `GestionJoueurs`. Passe `SAUVEGARDER_EN_STUDIO` à `true` le temps de l’exercice.
 2. Lance un test, gagne quelques pièces (ou change `Pieces.Value` dans l’Explorer **côté serveur**), puis arrête le test.
 3. Relance : tes pièces doivent être revenues. Remets ensuite `SAUVEGARDER_EN_STUDIO` à `false`.
 4. Bonus : ajoute un champ `victoires = 0` dans `donneesParDefaut` et passe `VERSION_DONNEES` à 2. Relance un test : grâce à `completer`, ton ancienne sauvegarde reçoit le nouveau champ sans rien perdre.
 </Defi>
 
 <Resume>
-- `DataStoreService` sauvegarde des données côté serveur ; on active l’accès dans Studio via **Experience Settings ⟩ Security**, de préférence sur une copie de test.
+- `DataStoreService` sauvegarde des données côté serveur ; on active l’accès dans Studio via **Experience Settings › Security**, de préférence sur une copie de test.
 - Chaque appel est protégé par `pcall`, avec quelques nouvelles tentatives ; un **échec de chargement** ne doit jamais être traité comme un nouveau joueur.
 - On charge une fois, on garde en mémoire, et on sauvegarde au départ, à la fermeture (`BindToClose`, 30 secondes maximum, en attendant **toutes** les sauvegardes en cours) et régulièrement ; dans Studio, on suit l’exemple officiel qui saute la sauvegarde de fermeture.
 - `UpdateAsync` est préférable à `SetAsync` quand plusieurs serveurs peuvent écrire la même clé ; un champ `version` permet de faire évoluer la structure.

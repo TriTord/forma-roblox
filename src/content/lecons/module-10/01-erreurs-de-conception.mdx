@@ -22,7 +22,7 @@ quiz:
     reponse: true
     explication: "La page officielle sur la découverte indique que les jeux qui ressemblent fortement à des titres existants sont moins susceptibles d’être recommandés et peuvent être moins bien classés dans la recherche. S’inspirer est normal ; recopier sans rien apporter te pénalise."
   - type: qcm
-    question: "Dans l’Obby des Nuages, les joueurs gagnent beaucoup de pièces, mais la boutique ne contient que trois trails bon marché. Que va-t-il probablement se passer ? (plusieurs réponses possibles)"
+    question: "Dans l’Obby des Nuages, les joueurs gagnent beaucoup de pièces, mais la boutique ne contient que trois traînées bon marché. Que va-t-il probablement se passer ? (plusieurs réponses possibles)"
     options:
       - texte: Les pièces vont perdre leur intérêt, car il n’y a plus rien à acheter
         correct: true
@@ -34,7 +34,7 @@ quiz:
   - type: qcm
     question: "Lequel de ces choix est une monétisation agressive à éviter ?"
     options:
-      - texte: Un trail cosmétique exclusif vendu en Game Pass
+      - texte: Une traînée cosmétique exclusive vendue en Game Pass
       - texte: Un faux compte à rebours « Offre qui expire dans 30 secondes ! » qui recommence à chaque connexion
         correct: true
       - texte: Un Developer Product « Passer l’étape » proposé après plusieurs échecs, avec un prix clair
@@ -88,7 +88,7 @@ La **boucle de jeu** (*core loop*) est l’enchaînement d’actions que le joue
 - les testeurs demandent « Et là, je fais quoi ? » ;
 - ton jeu empile des fonctionnalités sans lien entre elles.
 
-**Correction :** écris ta boucle en une ligne. Pour l’Obby des Nuages : *sauter → atteindre un checkpoint → ramasser des pièces → débloquer un trail → affronter une étape plus dure*. Chaque fonctionnalité doit nourrir cette boucle. Si elle ne la nourrit pas, elle attend la version 2. Tout est détaillé dans [La boucle de jeu](/modules/05/core-loop/).
+**Correction :** écris ta boucle en une ligne. Pour l’Obby des Nuages : *sauter → atteindre un checkpoint → ramasser des pièces → débloquer une traînée → affronter une étape plus dure*. Chaque fonctionnalité doit nourrir cette boucle. Si elle ne la nourrit pas, elle attend la version 2. Tout est détaillé dans [La boucle de jeu](/modules/05/core-loop/).
 
 ## Erreur 3 : un début de partie trop lent
 
@@ -110,12 +110,12 @@ Expliquer les contrôles avec une série de fenêtres à fermer, c’est la meil
 
 S’inspirer des jeux populaires est normal et même conseillé : c’est comme ça qu’on apprend. Le problème, c’est de publier un clone sans rien de plus.
 
-Ce n’est pas qu’une question d’originalité. La documentation officielle sur la découverte indique que les jeux qui **ressemblent fortement à des titres existants** sont moins susceptibles d’être recommandés et peuvent être moins bien classés dans la recherche. La documentation d’Ads Manager précise aussi que les campagnes publicitaires pour ces jeux risquent d’être peu efficaces. Enfin, les règles communautaires de Roblox interdisent les contenus trompeurs ou dupliqués utilisés pour gagner en visibilité, ainsi que les violations de propriété intellectuelle.
+Ce n’est pas qu’une question d’originalité. La documentation officielle sur la découverte indique que les jeux qui **ressemblent fortement à des titres existants** sont moins susceptibles d’être recommandés et peuvent être moins bien classés dans la recherche. La documentation d’Ads Manager précise aussi que les campagnes publicitaires pour ces jeux risquent d’être peu efficaces. Enfin, les règles de la communauté de Roblox interdisent les contenus trompeurs ou dupliqués utilisés pour gagner en visibilité, ainsi que les violations de propriété intellectuelle.
 
-**Correction :** pose-toi la question « Pourquoi un joueur choisirait-il mon jeu plutôt que celui que j’imite ? ». La réponse peut être modeste : un thème, une mécanique, une ambiance. L’Obby des Nuages, par exemple, peut se distinguer par ses plateformes animées et sa progression de trails. Revois [Comment les joueurs découvrent les jeux](/modules/00/comment-les-jeux-sont-decouverts/).
+**Correction :** pose-toi la question « Pourquoi un joueur choisirait-il mon jeu plutôt que celui que j’imite ? ». La réponse peut être modeste : un thème, une mécanique, une ambiance. L’Obby des Nuages, par exemple, peut se distinguer par ses plateformes animées et sa progression de traînées. Revois [Comment les joueurs découvrent les jeux](/modules/00/comment-les-jeux-sont-decouverts/).
 
 <Attention>
-Ne reprends jamais des visuels, des noms, des musiques ou des personnages qui appartiennent à quelqu’un d’autre (autre jeu, film, marque). Les règles communautaires de Roblox interdisent les violations de propriété intellectuelle, et ton jeu peut être retiré.
+Ne reprends jamais des visuels, des noms, des musiques ou des personnages qui appartiennent à quelqu’un d’autre (autre jeu, film, marque). Les règles de la communauté de Roblox interdisent les violations de propriété intellectuelle, et ton jeu peut être retiré.
 </Attention>
 
 ## Erreur 5 : une difficulté mal dosée
@@ -136,7 +136,7 @@ Une économie de jeu repose sur des **sources** (ce qui crée de la monnaie : pi
 **Symptômes :**
 
 - les joueurs possèdent tout au bout d’une heure ;
-- ou, à l’inverse, le premier trail demande des heures de jeu répétitif ;
+- ou, à l’inverse, la première traînée demande des heures de jeu répétitif ;
 - une nouvelle source de pièces (un événement, un bonus) fait exploser les soldes.
 
 **Correction :** chaque fois que tu ajoutes une source, prévois le puits correspondant. Pour un événement, la documentation suggère une **monnaie d’événement** séparée, qui ne déstabilise pas l’économie principale. Note les gains et les prix dans ton module `Config` pour les ajuster facilement. Tout est détaillé dans [Progression, difficulté et récompenses](/modules/05/progression-et-recompenses/).
@@ -197,6 +197,6 @@ Prends une feuille et note, pour chacune des sept erreurs, une note de 0 (pas co
 - [Balance virtual economies — documentation Roblox](https://create.roblox.com/docs/production/game-design/balance-virtual-economies)
 - [Monetization foundations — documentation Roblox](https://create.roblox.com/docs/production/game-design/monetization-foundations)
 - [Paid random items — documentation Roblox](https://create.roblox.com/docs/production/monetization/paid-random-items)
-- [Règles communautaires de Roblox (Community Standards)](https://about.roblox.com/community-standards)
+- [Règles de la communauté de Roblox (Community Standards)](https://about.roblox.com/community-standards)
 - [Roblox Kids and Select — documentation Roblox](https://create.roblox.com/docs/production/publishing/kids-and-select)
 </Sources>

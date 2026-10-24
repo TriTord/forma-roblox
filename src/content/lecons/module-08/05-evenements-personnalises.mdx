@@ -344,7 +344,7 @@ end
 return AnalytiqueEconomie
 ```
 
-Dans ton script d’achat (celui de la leçon Inventaire du module 4), ajoute en haut `local AnalytiqueEconomie = require(game:GetService("ServerScriptService"):WaitForChild("AnalytiqueEconomie"))`, puis, **juste après** avoir retiré les pièces et ajouté la traînée à l’inventaire : `AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value)`. À ce moment-là, `pieces.Value` contient déjà le solde **après** l’achat.
+Dans ton Script « Boutique » (leçon Inventaire du module 4), ajoute en haut, sous les autres `require`, la ligne `local AnalytiqueEconomie = require(ServerScriptService:WaitForChild("AnalytiqueEconomie"))` (le script définit déjà `ServerScriptService`), puis, **juste après** avoir retiré les pièces et ajouté la traînée à l’inventaire : `AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value)`. À ce moment-là, `pieces.Value` contient déjà le solde **après** l’achat.
 
 Les types de transaction proposés par Roblox sont `IAP` (achat en Robux), `TimedReward`, `Onboarding`, `Shop`, `Gameplay` et `ContextualPurchase`. Commence par eux : ils alimentent les graphiques de la page Economy.
 
@@ -359,7 +359,7 @@ Au moment de la rédaction (octobre 2026), la documentation officielle donne ces
 | Limite | Valeur |
 |---|---|
 | Débit global (toutes les requêtes `AnalyticsService`) | **120 + 20 × CCU** par minute |
-| Entonnoirs par expérience | 10 |
+| Entonnoirs par jeu | 10 |
 | Étapes par entonnoir | 100 (de 1 à 100) |
 | Noms d’événements personnalisés | 100 |
 | Custom fields | 3, et 8 000 combinaisons de valeurs avant regroupement en « Other » |

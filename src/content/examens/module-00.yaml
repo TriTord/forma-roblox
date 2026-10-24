@@ -100,9 +100,9 @@ questions:
     explication: "Roblox demande une **miniature personnalisée** pour être éligible aux recommandations de la page d’accueil, et des visuels fidèles et originaux. Les promesses de Robux, les visuels trompeurs et les copies font partie des problèmes qui limitent l’exposition."
 
   - type: vrai-faux
-    question: "Dans l’Obby des Nuages, les trails vendus en boutique sont purement cosmétiques."
+    question: "Dans l’Obby des Nuages, les traînées vendues en boutique sont purement cosmétiques."
     reponse: true
-    explication: "Les trails changent l’apparence du personnage mais ne donnent aucun avantage de vitesse ou de saut. Personne ne peut acheter la victoire, ce qui rend le jeu équitable."
+    explication: "Les traînées changent l’apparence du personnage mais ne donnent aucun avantage de vitesse ou de saut. Personne ne peut acheter la victoire, ce qui rend le jeu équitable."
 
   - type: qcm
     question: "Quel critère ne fait PAS partie de la définition de « terminé » de la version 1 de l’Obby des Nuages ?"

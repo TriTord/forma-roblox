@@ -1,6 +1,6 @@
 ---
 titre: La boucle de jeu (core loop)
-description: Découvre la boucle de jeu, le cœur de toute expérience Roblox, apprends à la décrire en trois parties et applique-la à l’Obby des Nuages.
+description: Découvre la boucle de jeu, le cœur de tout jeu Roblox, apprends à la décrire en trois parties et applique-la à l’Obby des Nuages.
 duree: 25
 objectifs:
   - Définir la boucle principale (core loop) d’un jeu et ses trois composantes
@@ -154,7 +154,7 @@ Il manque souvent une chose dans les premiers obbys : le **retour visible** (fee
 Le script ci-dessous affiche un message bref au centre de l’écran quand le joueur gagne des pièces ou atteint une nouvelle étape. Il ne **modifie** rien : il se contente de **regarder** les valeurs que le serveur met à jour (module 4) et de les mettre en scène.
 
 ```luau
--- LocalScript à placer dans StarterPlayer > StarterPlayerScripts
+-- LocalScript « MessagesProgression » à placer dans StarterPlayer > StarterPlayerScripts
 -- Affiche un message quand le joueur gagne des pièces ou atteint une nouvelle étape.
 -- Le serveur reste le seul à modifier les valeurs : ici, on ne fait que les afficher.
 local Players = game:GetService("Players")
@@ -234,7 +234,7 @@ Un son court et joyeux au ramassage d’une pièce peut renforcer la sensation d
 </Astuce>
 
 <Defi>
-Joue à deux expériences Roblox populaires de genres différents. Pour chacune, note sur une feuille :
+Joue à deux jeux Roblox populaires de genres différents. Pour chacun, note sur une feuille :
 
 1. l’action minute par minute ;
 2. la récompense immédiate ;
@@ -259,7 +259,7 @@ Une boucle efficace n’est pas une boucle **interminable**. Le but n’est pas 
 <Sources>
 - [Core loops — documentation Roblox](https://create.roblox.com/docs/production/game-design/core-loops)
 - [Design games on Roblox — vue d’ensemble du game design (Roblox)](https://create.roblox.com/docs/production/game-design)
-- [Retention — conseils pour la core loop et la rétention J1 (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
+- [Retention — conseils pour la core loop et la rétention D1 (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
 - [Onboarding techniques — importance du feedback (Roblox)](https://create.roblox.com/docs/production/game-design/onboarding-techniques)
 - [LiveOps essentials — relier les nouveautés à la core loop (Roblox)](https://create.roblox.com/docs/production/game-design/liveops-essentials)
 - [Core curriculum — tutoriel officiel de jeu de plateforme (Roblox)](https://create.roblox.com/docs/tutorials/curriculums/core)

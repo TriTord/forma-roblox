@@ -116,7 +116,7 @@ export const MODULES: ModuleInfo[] = [
       'Game Passes, Developer Products, abonnements, Creator Rewards (qui ont remplacé les Premium Payouts), fixation des prix, éthique et règles de Roblox, puis conversion des Robux avec DevEx.',
     emoji: '💎',
     objectifs: [
-      'Connaître les sources de revenus d’une expérience Roblox',
+      'Connaître les sources de revenus d’un jeu Roblox',
       'Implémenter Game Passes et Developer Products de façon fiable',
       'Fixer des prix et monétiser sans nuire à l’expérience des joueurs',
       'Comprendre le fonctionnement et les conditions de DevEx',
@@ -128,10 +128,10 @@ export const MODULES: ModuleInfo[] = [
     titre: 'Publication et croissance',
     titreCourt: 'Publication',
     description:
-      'Préparer une page de jeu qui donne envie, lancer, faire de la publicité avec prudence, publier des mises à jour et animer une communauté.',
+      'Préparer une page de jeu qui donne envie, remplir le questionnaire de maturité et les conditions de publication, lancer, faire de la publicité avec prudence, publier des mises à jour et animer une communauté.',
     emoji: '🚀',
     objectifs: [
-      'Optimiser titre, description, icône et miniatures',
+      'Soigner titre, description, icône et miniatures, et remplir les conditions de publication',
       'Planifier un lancement et des tests sans brûler ton budget',
       'Rythmer mises à jour et événements',
       'Construire et modérer une communauté saine',

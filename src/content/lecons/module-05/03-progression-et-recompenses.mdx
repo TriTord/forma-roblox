@@ -104,7 +104,7 @@ La documentation Roblox propose de mesurer la répartition des joueurs à chaque
 - Une **récompense fixe** est toujours la même : 2 pièces par checkpoint, un bonus en fin de niveau. Le joueur sait ce qu’il va gagner, ce qui lui permet de **planifier** (« encore 3 étapes et je peux m’acheter la Traînée Nuage »).
 - Une **récompense variable** change d’une fois à l’autre : une pièce rare qui apparaît parfois, un coffre au contenu aléatoire. Elle crée de la surprise.
 
-Quand ce hasard est **payant**, Roblox l’encadre strictement : ses Community Standards fixent des règles pour les **objets aléatoires payants** : les probabilités doivent être affichées de façon exacte et chiffrée **avant l’achat**, et chaque résultat possible doit apporter un bénéfice au joueur. Le créateur doit en outre en réserver l’accès aux utilisateurs éligibles (attribut `ArePaidRandomItemsRestricted`). On étudiera ces règles au module 6.
+Quand ce hasard est **payant**, Roblox l’encadre strictement : ses Community Standards fixent des règles pour les **objets aléatoires payants** : les probabilités doivent être affichées de façon exacte et chiffrée **avant l’achat**, et chaque résultat possible doit apporter un bénéfice au joueur. Le créateur doit en outre en réserver l’accès aux utilisateurs éligibles (attribut `ArePaidRandomItemsRestricted`). On étudiera ces règles au module 6 ([Fixer ses prix et monétiser éthiquement](/modules/06/prix-et-ethique/)).
 
 Pour l’Obby des Nuages, on reste simple : des récompenses **fixes et lisibles**, et éventuellement un peu de surprise **gratuite** (une pièce dorée cachée qui vaut plus que les autres).
 
@@ -114,7 +114,7 @@ La documentation Roblox sur les quêtes donne un principe clair : en général, 
 
 ## Coder une récompense par palier
 
-Ces réglages ont leur place dans le ModuleScript `Config` que tu as créé au module 2 (leçon 6), dans **ReplicatedStorage ⟩ Modules**. Tu n’as rien à recréer : ouvre-le, fais deux ajouts (repérés par `-- NOUVEAU` ci-dessous) et vérifie l’ordre du fichier :
+Ces réglages ont leur place dans le ModuleScript `Config` que tu as créé au module 2 (leçon 6), dans **ReplicatedStorage › Modules**. Tu n’as rien à recréer : ouvre-le, fais deux ajouts (repérés par `-- NOUVEAU` ci-dessous) et vérifie l’ordre du fichier :
 
 1. Dans `Config.Niveaux`, ajoute à chaque niveau un champ `piecesParEtape`.
 2. Sous la fonction `Config.obtenirNiveau` (déjà présente), ajoute `Config.BONUS_FIN_DE_NIVEAU` et la fonction `Config.recompensePourEtape`. Elle réutilise `obtenirNiveau` pour trouver le niveau de l’étape.
@@ -207,7 +207,7 @@ end
 return RecompensesEtapes
 ```
 
-Il reste à le brancher dans ton Script serveur de checkpoints (« Progression » au module 3, ou « Checkpoints » au module 4) :
+Il reste à le brancher dans ton Script serveur de checkpoints, « Progression » (créé au module 3, adapté au module 4) :
 
 1. en haut du script, charge le module (ajoute aussi la ligne `ServerScriptService` si ton script ne l’a pas déjà) :
 

@@ -12,7 +12,7 @@ quiz:
   - type: vrai-faux
     question: Tu peux définir `MarketplaceService.ProcessReceipt` dans plusieurs scripts différents, un par produit.
     reponse: false
-    explication: "`ProcessReceipt` est **un seul** callback pour toute l’expérience : un seul Script serveur doit le définir, et il gère tous tes Developer Products. Si plusieurs scripts l’assignent, seul le dernier compte et les autres produits ne sont plus traités."
+    explication: "`ProcessReceipt` est **un seul** callback pour tout le jeu : un seul Script serveur doit le définir, et il gère tous tes Developer Products. Si plusieurs scripts l’assignent, seul le dernier compte et les autres produits ne sont plus traités."
   - type: qcm
     question: Le joueur qui a payé « Passer l’étape » n’est plus sur le serveur quand `ProcessReceipt` est appelé. Que doit renvoyer ton callback ?
     options:
@@ -73,7 +73,7 @@ quiz:
 Comme pour un pass, ton jeu doit être publié. D’après la documentation officielle :
 
 1. Va dans **Creations**, sélectionne ton jeu.
-2. Ouvre **Monetization ⟩ Developer Products**.
+2. Ouvre **Monetization › Developer Products**.
 3. Clique sur **Create developer product**.
 4. Ajoute une icône (512 × 512 pixels maximum, `.jpg`, `.png` ou `.bmp`, contenu important au centre du cercle).
 5. Donne un nom (« Passer l’étape ») et une description claire.
@@ -112,7 +112,7 @@ Un achat non résolu n’est ni supprimé ni remboursé : il attend ton `Purchas
 Conclusion : ton callback doit être **idempotent**. Un mot savant pour une idée simple : si le même reçu arrive deux fois, le joueur ne doit recevoir son produit **qu’une seule fois**. Pour ça, on note le `PurchaseId` (l’identifiant unique de l’achat) dans les données sauvegardées du joueur.
 
 <Info titre="Des achats aussi en dehors du jeu">
-D’après le guide officiel des Developer Products, un produit peut aussi être acheté **en dehors du jeu** : dans l’onglet **Store** de la page du jeu, ou ailleurs sur Roblox (page d’accueil, recherche…) si tu le marques **Listed** dans **Monetization ⟩ Shop**. Il est alors donné par `ProcessReceipt` quand le joueur entre dans le jeu. Roblox vérifie en continu le `ProcessReceipt` des produits Listed : s’il détecte un problème, le produit n’est plus proposé hors du jeu tant que tu ne l’as pas corrigé.
+D’après le guide officiel des Developer Products, un produit peut aussi être acheté **en dehors du jeu** : dans l’onglet **Store** de la page du jeu, ou ailleurs sur Roblox (page d’accueil, recherche…) si tu le marques **Listed** dans **Monetization › Shop**. Il est alors donné par `ProcessReceipt` quand le joueur entre dans le jeu. Roblox vérifie en continu le `ProcessReceipt` des produits Listed : s’il détecte un problème, le produit n’est plus proposé hors du jeu tant que tu ne l’as pas corrigé.
 </Info>
 
 <Attention titre="Un seul ProcessReceipt par jeu">
@@ -185,7 +185,7 @@ L’idée clé : l’étape gagnée et la « preuve » de l’achat (le `Purchas
 Bonne nouvelle : tu as déjà tout ce qu’il faut. Ton ModuleScript `DonneesJoueurs` du module 4 garde en mémoire la table de chaque joueur (`DonneesJoueurs.Obtenir`) et l’enregistre en entier dans `DonneesJoueurs_v1` (`DonneesJoueurs.Sauvegarder`, qui renvoie `true` si c’est réussi). On y ajoute simplement un champ `achats`, qui liste les `PurchaseId` déjà traités.
 
 <Astuce titre="Ajoute le champ achats à tes données par défaut">
-Comme au module 7, ajoute `achats = {},` dans `donneesParDefaut()` de ton ModuleScript `DonneesJoueurs`. Les anciennes sauvegardes le recevront grâce à `completer`. Le script ci-dessous crée quand même le champ s’il manque, par sécurité. Un `PurchaseId` ne pèse que quelques dizaines d’octets : même des milliers d’achats restent très loin de la limite de 4 Mo par clé vue au module 4.
+Comme expliqué au module 4 (leçon 2), ajoute `achats = {},` dans `donneesParDefaut()` de ton ModuleScript `DonneesJoueurs`, et augmente `VERSION_DONNEES` d’une unité (de 1 à 2, ou de 2 à 3 si tu as gardé le champ bonus `victoires` du module 4) : les anciennes sauvegardes recevront le champ grâce à `completer`, qui mettra aussi leur `version` à jour. Le script ci-dessous crée quand même le champ s’il manque, par sécurité. Un `PurchaseId` ne pèse que quelques dizaines d’octets : même des milliers d’achats restent très loin de la limite de 4 Mo par clé vue au module 4.
 </Astuce>
 
 ### Le script Achats

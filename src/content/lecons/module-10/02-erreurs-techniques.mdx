@@ -9,7 +9,7 @@ objectifs:
 miseAJour: 2026-10-24
 quiz:
   - type: trouve-le-bug
-    question: "Ce script serveur gère l’achat d’un trail. Un tricheur arrive pourtant à acheter tous les trails pour 0 pièce. Où est la faille ?"
+    question: "Ce script serveur gère l’achat d’une traînée. Un tricheur arrive pourtant à acheter toutes les traînées pour 0 pièce. Où est la faille ?"
     code: |
       local ReplicatedStorage = game:GetService("ReplicatedStorage")
       local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue") :: ModuleScript)
@@ -135,7 +135,9 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
 local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
+local VERSION_DONNEES = 1 -- comme au module 4 : à augmenter quand la structure change
 local NOMBRE_ESSAIS = 3
+local DELAI_MAX_FERMETURE = 25 -- secondes : Roblox n'attend que 30 s à la fermeture
 
 -- Ne contient QUE les joueurs dont le chargement a réussi.
 -- Le reste du jeu modifie ces tables pendant la partie (voir module 4).
@@ -147,6 +149,11 @@ local function cleDe(player: Player): string
 	return "Joueur_" .. player.UserId
 end
 
+-- Données d'un nouveau joueur (même structure de base qu'au module 4)
+local function donneesParDefaut()
+	return { version = VERSION_DONNEES, etape = 0, pieces = 0, inventaire = {}, equipe = "" }
+end
+
 -- Renvoie (true, données) si le chargement a réussi, (false, nil) sinon
 local function charger(player: Player)
 	for essai = 1, NOMBRE_ESSAIS do
@@ -155,7 +162,7 @@ local function charger(player: Player)
 		end)
 		if succes then
 			-- nil = nouveau joueur : ce n'est PAS une erreur
-			return true, resultat or { etape = 0, pieces = 0, inventaire = {}, equipe = "" }
+			return true, resultat or donneesParDefaut()
 		end
 		warn("Chargement échoué (essai " .. essai .. ") : " .. tostring(resultat))
 		if essai < NOMBRE_ESSAIS then
@@ -174,8 +181,12 @@ local function sauvegarder(player: Player)
 	sauvegardesEnCours += 1
 	local succes, erreur = pcall(function()
 		-- UpdateAsync lit la dernière valeur avant d'écrire (voir module 4)
-		magasin:UpdateAsync(cleDe(player), function()
-			return donnees
+		magasin:UpdateAsync(cleDe(player), function(ancienne)
+			-- Sauvegarde écrite par une version plus récente du jeu : on n'y touche pas
+			if ancienne ~= nil and (ancienne.version or 0) > VERSION_DONNEES then
+				return nil -- renvoyer nil annule l'écriture
+			end
+			return donnees, { player.UserId }
 		end)
 	end)
 	sauvegardesEnCours -= 1
@@ -210,10 +221,13 @@ end)
 -- puis on attend la fin de TOUTES les sauvegardes, y compris celles
 -- lancées par PlayerRemoving (Roblox attend 30 secondes au maximum)
 game:BindToClose(function()
-	for _, player in Players:GetPlayers() do
+	-- On parcourt les données en mémoire (pas GetPlayers) : à la fermeture,
+	-- des joueurs peuvent déjà avoir quitté la liste des joueurs
+	for player in donneesJoueurs do
 		task.spawn(sauvegarder, player)
 	end
-	while sauvegardesEnCours > 0 do
+	local debut = os.clock()
+	while sauvegardesEnCours > 0 and os.clock() - debut < DELAI_MAX_FERMETURE do
 		task.wait()
 	end
 end)
@@ -224,9 +238,10 @@ Les garde-fous ajoutés :
 - on distingue un **échec** (`succes == false`) d’un **nouveau joueur** (`succes == true` mais aucune donnée) ;
 - on réessaie avec une attente croissante et un peu de hasard, comme le recommande la documentation (*exponential backoff* avec *jitter*) ;
 - on ne sauvegarde **jamais** un joueur dont le chargement a échoué ;
-- on sauvegarde aussi à la **fermeture du serveur** avec `game:BindToClose`. D’après la référence de l’API, le serveur attend au maximum **30 secondes** que les fonctions liées à `BindToClose` se terminent, puis s’arrête quand même : c’est pour ça qu’on lance les sauvegardes en parallèle plutôt qu’une par une. Le compteur `sauvegardesEnCours` permet aussi d’attendre les sauvegardes déjà lancées par `PlayerRemoving` quand les joueurs sont déconnectés au moment de la fermeture.
+- on sauvegarde aussi à la **fermeture du serveur** avec `game:BindToClose`. D’après la référence de l’API, le serveur attend au maximum **30 secondes** que les fonctions liées à `BindToClose` se terminent, puis s’arrête quand même : c’est pour ça qu’on lance les sauvegardes en parallèle plutôt qu’une par une. Le compteur `sauvegardesEnCours` permet aussi d’attendre les sauvegardes déjà lancées par `PlayerRemoving` quand les joueurs sont déconnectés au moment de la fermeture, avec une limite de 25 secondes pour rester sous les 30 secondes ;
+- comme au module 4, chaque sauvegarde porte un champ `version`, et `UpdateAsync` refuse d’écraser une sauvegarde écrite par une version plus récente du jeu.
 
-Le module 4 va plus loin (sauvegarde périodique, structure versionnée, verrouillage de session) : relis [Sauvegarder sans perdre de données](/modules/04/datastores-fiables/).
+Le module 4 va plus loin (sauvegarde automatique, fonction `completer` pour faire évoluer la structure, module partagé avec la boutique et les achats, explications sur le verrouillage de session) : relis [Sauvegarder sans perdre de données](/modules/04/datastores-fiables/).
 
 <Attention>
 Studio partage **les mêmes DataStores** que ton jeu publié quand l’option « Enable Studio Access to API Services » est activée. La documentation recommande de ne l’activer que sur une copie de test du jeu, pour ne pas abîmer les données de vrais joueurs pendant tes essais.
@@ -257,9 +272,10 @@ end)
 ### Le code corrigé
 
 ```luau
--- VERSION CORRIGÉE — Script « Boutique » dans ServerScriptService
--- C'est la boutique du module 4 (vérifications de type, prix, possession,
--- solde), avec en plus le délai anti-spam par joueur vu au module 3.
+-- VERSION CORRIGÉE, simplifiée — Script « Boutique » dans ServerScriptService
+-- Mêmes vérifications que la boutique du module 4 (délai anti-spam par joueur,
+-- type, prix, possession, solde). Ta boutique du module 4 fait déjà tout ça :
+-- garde-la, ce script n'est qu'une illustration.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -369,7 +385,8 @@ end
 ```
 
 ```luau
--- VERSION CORRIGÉE — Script dans ServerScriptService
+-- VERSION CORRIGÉE — Script dans ServerScriptService (illustration : dans l'Obby
+-- des Nuages, ce travail est déjà fait par ton Script « Progression » des modules 3 et 4)
 local Players = game:GetService("Players")
 local checkpoints = workspace:WaitForChild("Checkpoints")
 
@@ -452,7 +469,7 @@ Les bugs graves se cachent dans les situations que tu ne testes jamais seul. Ava
 | Petit écran tactile | Device Simulator, puis vrai téléphone | Boutons visibles et cliquables |
 
 <Defi>
-Lance l’Obby des Nuages en mode **Server & Clients** avec deux clients. Fais toucher le même checkpoint aux deux personnages presque en même temps, puis spamme le bouton d’achat d’un trail. Note chaque comportement anormal et corrige-le avant de passer à la leçon suivante.
+Lance l’Obby des Nuages en mode **Server & Clients** avec deux clients. Fais toucher le même checkpoint aux deux personnages presque en même temps, puis spamme le bouton d’achat d’une traînée. Note chaque comportement anormal et corrige-le avant de passer à la leçon suivante.
 </Defi>
 
 <Resume>

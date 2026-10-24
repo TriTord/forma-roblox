@@ -59,7 +59,7 @@ quiz:
     explication: "`etape.Value > 0` est vrai pour ceux qui ont **déjà** atteint un checkpoint. Pour aider les joueurs bloqués, il faut tester `etape.Value == 0` (ou `< 1`). Un indice minuté ne doit apparaître qu’aux joueurs en difficulté."
 ---
 
-Sur Roblox, quitter un jeu prend une seconde, et des milliers d’autres expériences attendent à côté. Le début de partie est donc le moment où tu as le plus de chances… de perdre ton joueur. Dans cette leçon, tu vas repenser l’arrivée dans l’Obby des Nuages : ce que le joueur voit, ce qu’il fait, et comment l’aider sans l’ennuyer.
+Sur Roblox, quitter un jeu prend une seconde, et des milliers d’autres jeux attendent à côté. Le début de partie est donc le moment où tu as le plus de chances… de perdre ton joueur. Dans cette leçon, tu vas repenser l’arrivée dans l’Obby des Nuages : ce que le joueur voit, ce qu’il fait, et comment l’aider sans l’ennuyer.
 
 ## Pourquoi le début de partie est décisif
 
@@ -121,7 +121,7 @@ Mettons en pratique la technique des éléments visuels. On va relier le personn
 On suppose ici que `Etape` vaut `0` tant qu’aucun checkpoint n’est atteint, et que les checkpoints sont des Parts nommées `"1"`, `"2"`… dans `Workspace.Checkpoints`. Si ton jeu commence à `1`, adapte le calcul de `prochaine`.
 
 ```luau
--- LocalScript à placer dans StarterPlayer > StarterPlayerScripts
+-- LocalScript « GuideCheckpoint » à placer dans StarterPlayer > StarterPlayerScripts
 -- Affiche un faisceau entre le personnage et le prochain checkpoint,
 -- seulement pendant les premières étapes (onboarding).
 local Players = game:GetService("Players")
@@ -208,7 +208,7 @@ Pourquoi un **LocalScript** ? Parce que chaque joueur a son propre prochain chec
 Le faisceau aide tout le monde. L’indice minuté, lui, ne s’adresse qu’au joueur qui n’a toujours pas atteint le premier checkpoint après un certain temps. Ajoute ces lignes dans un second LocalScript, au même endroit :
 
 ```luau
--- LocalScript à placer dans StarterPlayer > StarterPlayerScripts
+-- LocalScript « IndiceDepart » à placer dans StarterPlayer > StarterPlayerScripts
 -- Indice minuté : n'apparaît que si le joueur n'a pas atteint le checkpoint 1 à temps.
 local Players = game:GetService("Players")
 
@@ -269,8 +269,8 @@ Si l’un de ces temps te surprend, change **une seule chose** (orientation du s
 
 Tes impressions ne suffisent pas : il faut des chiffres. Roblox propose deux outils que tu utiliseras plus tard.
 
-- **La rétention à J1** (D1) : selon la documentation, elle mesure combien de joueurs reviennent dans ton jeu un jour après leur première visite (J7 et J30 : 7 et 30 jours après). Roblox relie directement ce chiffre à la core loop, à la FTUE et aux performances.
-- **L’entonnoir d’onboarding** (*onboarding funnel*) : avec `AnalyticsService`, ton serveur enregistre chaque étape franchie (« Arrivé », « Premier saut », « Checkpoint 1 »…). La page **Funnel** du tableau de bord Analytics (Creator Hub) te montre ensuite à quelle étape les joueurs décrochent. Ces événements ne s’envoient que depuis le serveur et dans un jeu publié. On construira cet entonnoir étape par étape au module 8.
+- **La rétention D1** (le lendemain) : selon la documentation, elle mesure combien de joueurs reviennent dans ton jeu un jour après leur première visite (D7 et D30 : 7 et 30 jours après). Roblox relie directement ce chiffre à la core loop, à la FTUE et aux performances.
+- **L’entonnoir d’onboarding** (*onboarding funnel*) : avec `AnalyticsService`, ton serveur enregistre chaque étape franchie (« Arrivé », « Premier saut », « Checkpoint 1 »…). La page **Funnel** du tableau de bord Analytics (Creator Hub) te montre ensuite à quelle étape les joueurs décrochent. Ces événements ne s’envoient que depuis le serveur et dans un jeu publié. On construira cet entonnoir étape par étape au module 8 ([Instrumenter son jeu avec AnalyticsService](/modules/08/evenements-personnalises/)).
 
 La documentation conseille de lister les étapes de ta boucle, de suivre le taux de réussite de chacune et de corriger en priorité les plus grosses chutes. Elle mentionne aussi les **Experiments** (tests A/B), par exemple pour comparer un dialogue plus court et une flèche de guidage. Mais attention : au moment de la rédaction (octobre 2026), Roblox prévient que les jeux de moins de 1 000 utilisateurs actifs par jour risquent d’avoir du mal à obtenir des résultats utiles avec ces tests. Pour un premier jeu, les playtests de la leçon 5 seront bien plus parlants.
 
@@ -279,14 +279,14 @@ La documentation conseille de lister les étapes de ta boucle, de suivre le taux
 - L’onboarding enseigne l’essentiel, amène vite au plaisir et se termine par un moment de joie.
 - Trois techniques officielles : éléments visuels, tutoriels contextuels, indices minutés.
 - Guide sans bloquer : objectif visible, premier saut facile, première pièce immédiate, aucun menu à l’entrée.
-- La rétention J1 et l’entonnoir d’onboarding (module 8) diront si ton début de partie fonctionne.
+- La rétention D1 et l’entonnoir d’onboarding (module 8) diront si ton début de partie fonctionne.
 </Resume>
 
 <Sources>
 - [Onboarding — documentation Roblox](https://create.roblox.com/docs/production/game-design/onboarding)
 - [Onboarding techniques — éléments visuels, tutoriels contextuels, indices minutés (Roblox)](https://create.roblox.com/docs/production/game-design/onboarding-techniques)
 - [Design for Roblox — spécificités de la plateforme (Roblox)](https://create.roblox.com/docs/production/game-design/design-for-roblox)
-- [Retention — rétention J1 et FTUE (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
+- [Retention — rétention D1 et FTUE (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
 - [Funnel events — entonnoirs d’onboarding (Roblox)](https://create.roblox.com/docs/production/analytics/funnel-events)
 - [Experiments — tests A/B (Roblox)](https://create.roblox.com/docs/production/experiments)
 - [Beam — référence de l’API (Roblox)](https://create.roblox.com/docs/reference/engine/classes/Beam)

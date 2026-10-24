@@ -273,7 +273,7 @@ end)
 
 - `GetAttribute("Nom")` renvoie `nil` si l’attribut n’existe pas ; `SetAttribute("Nom", nil)` le **supprime** ;
 - les noms d’attributs n’utilisent que des lettres, des chiffres et `_ - . /`, sans espaces, 100 caractères maximum, et ne commencent pas par `RBX` ;
-- les changements faits par le **serveur** sont répliqués (transmis) aux clients : un LocalScript peut donc lire l’étape d’un joueur pour l’afficher (on s’en servira dans l’interface au module 4) ;
+- les changements faits par le **serveur** sont répliqués (transmis) aux clients : un LocalScript peut donc lire un attribut du joueur pour l’afficher (au module 4, l’interface de la boutique s’en servira pour savoir quelles traînées le joueur possède) ;
 - pendant un test, sélectionne l’objet dans l’Explorer : ses attributs s’affichent en direct dans Properties, idéal pour déboguer.
 
 ## Fil rouge : les checkpoints de l’Obby des Nuages

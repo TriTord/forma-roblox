@@ -215,7 +215,7 @@ Certains développeurs animent aussi les décors côté client pour un rendu plu
 
 ## Animer l’interface de la boutique
 
-Améliorons l’interface de la leçon 4. Crée un **LocalScript** `AnimationsInterface` dans **StarterGui ⟩ InterfaceObby**, puis **supprime** le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » de `ScriptInterface` : sinon, les deux scripts se disputeraient la fenêtre.
+Améliorons l’interface de la leçon 4. Crée un **LocalScript** `AnimationsInterface` dans **StarterGui › InterfaceObby**, puis **supprime** le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » de `ScriptInterface` : sinon, les deux scripts se disputeraient la fenêtre. Supprime aussi, en haut de `ScriptInterface`, la ligne `local boutonBoutique = …`, qui ne sert plus (Studio signalerait une variable inutilisée).
 
 ```luau
 -- LocalScript « AnimationsInterface » dans StarterGui > InterfaceObby (côté client)

@@ -116,7 +116,7 @@ Un **layout** place tout seul les éléments frères :
 Avec un layout, plus besoin de placer chaque bouton à la main : ajoute un objet au catalogue, et il trouve sa place.
 
 <Erreur titre="Construire toute l’interface en pixels (Offset)">
-Dans Studio, ton interface en pixels a l’air parfaite… sur **ton** écran. Sur un téléphone, les boutons se chevauchent ou sortent de l’écran. Utilise le **Scale** pour les tailles et positions principales, et vérifie avec l’outil de simulation d’appareils de Studio, qu’on approfondira au module 9.
+Dans Studio, ton interface en pixels a l’air parfaite… sur **ton** écran. Sur un téléphone, les boutons se chevauchent ou sortent de l’écran. Utilise le **Scale** pour les tailles et positions principales, et vérifie avec le **Device Simulator** de Studio (voir plus bas), qu’on approfondira au module 9.
 </Erreur>
 
 ## Le texte : lisible sans exagérer
@@ -140,7 +140,7 @@ Deux autres propriétés du `ScreenGui` existent : `ClipToDeviceSafeArea` (activ
 
 ## Construire l’interface de l’Obby des Nuages
 
-Dans **StarterGui**, crée cette hiérarchie (clic droit ⟩ **Insert Object**) :
+Dans **StarterGui**, crée cette hiérarchie (clic droit › **Insert Object**) :
 
 ```text
 StarterGui
@@ -268,7 +268,7 @@ On utilise l’événement `Activated` des boutons, que la documentation présen
 
 ## Tester sur plusieurs écrans
 
-Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portrait et en paysage, avec le **Device Simulator** : une barre d’outils placée au-dessus de la vue 3D. Au moment de la rédaction (octobre 2026), l’annonce officielle de l’équipe Studio sur le DevForum (mise à jour le 16 octobre 2026) indique qu’il est sorti de bêta : on l’ouvre via le menu **Test ⟩ Device Simulator**. Sa page de documentation affiche encore un avertissement « bêta » : si l’outil n’apparaît pas chez toi, active **New Device Simulator** dans **File ⟩ Beta Features**, puis redémarre Studio. On l’utilisera plus en détail au module 9. Vérifie au minimum :
+Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portrait et en paysage, avec le **Device Simulator** : une barre d’outils placée au-dessus de la vue 3D, que tu ouvres depuis le menu **Test** › **Device Simulator** (au moment de la rédaction, octobre 2026). Son fonctionnement, son statut (sorti de bêta selon l’annonce officielle du 16 octobre 2026) et ses limites sont détaillés au module 9, dans [Penser mobile d’abord](/modules/09/penser-mobile-d-abord/). Vérifie au minimum :
 
 - que le compteur et le bouton restent visibles et ne passent pas sous la barre de Roblox, ni sous le joystick ou le bouton de saut ;
 - que le texte reste lisible sur le plus petit appareil ;

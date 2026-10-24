@@ -129,10 +129,10 @@ questions:
     question: Tu colles dans ton jeu l’identifiant d’une animation publiée par un autre créateur, qui ne te l’a pas partagée. Que se passe-t-il ?
     options:
       - texte: Elle fonctionne, toutes les animations sont publiques
-      - texte: Elle ne se charge pas, car ton expérience n’a pas la permission d’utiliser cet asset
+      - texte: Elle ne se charge pas, car ton jeu n’a pas la permission d’utiliser cet asset
         correct: true
       - texte: Elle fonctionne, mais seulement en R6
-    explication: "Depuis l’annonce du 31 juillet 2025, les animations sont des assets « Restricted » : une expérience ne peut charger que les animations pour lesquelles elle a reçu la permission (par leur propriétaire, ou automatiquement quand quelqu’un qui a le droit de les partager les utilise dans Studio)."
+    explication: "Depuis l’annonce du 31 juillet 2025, les animations sont des assets « Restricted » : un jeu ne peut charger que les animations pour lesquelles il a reçu la permission (par leur propriétaire, ou automatiquement quand quelqu’un qui a le droit de les partager les utilise dans Studio)."
 
   - type: qcm
     question: "Un développeur appelle `animator:LoadAnimation(animation)` à chaque clic sur un bouton, puis `:Play()`. Pourquoi est-ce une mauvaise idée ?"
