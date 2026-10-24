@@ -1,0 +1,158 @@
+module: "04"
+titre: Examen du module 4 — Systèmes de jeu
+description: Leaderstats, sauvegarde fiable, inventaire, interfaces, animations et tweens. Réussis au moins 70 % pour débloquer le badge du module.
+seuil: 70
+questions:
+  - type: qcm
+    question: Tu veux afficher l’étape et les pièces de chaque joueur dans le tableau des scores. Quelle approche est correcte ?
+    options:
+      - texte: Un LocalScript dans StarterPlayerScripts qui crée un dossier `leaderstats` dans le joueur local
+      - texte: Un Script dans ServerScriptService qui crée, à `PlayerAdded`, un dossier `leaderstats` contenant des `IntValue`
+        correct: true
+      - texte: Un Folder `leaderstats` posé à la main dans Workspace
+    explication: "Les leaderstats se créent côté serveur, dans chaque joueur, à son arrivée. Créées par un LocalScript, elles n’existeraient que sur ce client : ni le serveur, ni les autres joueurs, ni la sauvegarde ne les verraient."
+
+  - type: trouve-le-bug
+    question: "Dans l’Obby des Nuages, `Etape` contient le numéro du dernier checkpoint validé, et un checkpoint N n’est accepté que si N vaut Etape + 1. Ce code laisse pourtant les joueurs sauter des étapes. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+      local checkpoint = script.Parent
+      local numero = tonumber(checkpoint.Name)
+
+      checkpoint.Touched:Connect(function(autrePartie)
+      	local player = Players:GetPlayerFromCharacter(autrePartie.Parent)
+      	local leaderstats = player and player:FindFirstChild("leaderstats")
+      	local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+      	if etape and etape:IsA("IntValue") and numero and numero > etape.Value then
+      		etape.Value = numero
+      	end
+      end)
+    options:
+      - texte: "Ligne 3 : `tonumber` ne fonctionne pas sur le nom d’une Part"
+      - texte: "Ligne 6 : `GetPlayerFromCharacter` attend la Part touchée, pas son parent"
+      - texte: "Ligne 9 : la condition accepte n’importe quel checkpoint plus loin, au lieu de `numero == etape.Value + 1`"
+        correct: true
+      - texte: "Ligne 10 : il faut écrire `etape = numero`"
+    explication: "Avec `numero > etape.Value`, un joueur qui touche le checkpoint 10 en étant à l’étape 2 est accepté. La règle du projet est `numero == etape.Value + 1`. Les autres lignes sont correctes : `tonumber(\"3\")` renvoie 3 et `GetPlayerFromCharacter` attend bien le modèle du personnage."
+
+  - type: qcm
+    question: À quels moments notre système de la leçon 2 sauvegarde-t-il les données d’un joueur ? (plusieurs réponses possibles)
+    options:
+      - texte: Quand le joueur quitte la partie (`PlayerRemoving`)
+        correct: true
+      - texte: Quand le serveur s’arrête (`game:BindToClose`)
+        correct: true
+      - texte: Régulièrement, grâce à une sauvegarde automatique
+        correct: true
+      - texte: À chaque pièce ramassée
+    explication: "On charge une fois, on garde en mémoire, et on sauvegarde au départ, à la fermeture et régulièrement (un filet de sécurité). Sauvegarder à chaque pièce gaspillerait le budget de requêtes par minute du serveur."
+
+  - type: vrai-faux
+    question: "La fonction passée à `UpdateAsync` peut contenir un `task.wait(1)` pour laisser le temps à d’autres serveurs de finir."
+    reponse: false
+    explication: "La documentation est formelle : la fonction de transformation d’`UpdateAsync` ne doit pas attendre (pas de `task.wait`, pas d’appel réseau). Elle peut aussi être rappelée plusieurs fois si la clé a changé entre-temps."
+
+  - type: qcm
+    question: "Dans la fonction passée à `UpdateAsync`, que se passe-t-il si tu renvoies `nil` ?"
+    options:
+      - texte: La clé est supprimée du DataStore
+      - texte: L’écriture est annulée et la valeur stockée ne change pas
+        correct: true
+      - texte: La valeur `nil` remplace les données du joueur
+    explication: "Renvoyer `nil` annule l’écriture. Notre code s’en sert pour ne pas écraser une sauvegarde créée par une version plus récente du jeu (champ `version` plus grand)."
+
+  - type: trouve-le-bug
+    question: "Ce code de sauvegarde semble marcher, mais des joueurs perdent toute leur progression après avoir changé de pseudo. Quelle ligne est en cause ?"
+    code: |
+      local function sauvegarder(player, donnees)
+      	local cle = "Joueur_" .. player.Name
+      	local succes, erreur = pcall(function()
+      		return magasin:UpdateAsync(cle, function(ancienne)
+      			return donnees, { player.UserId }
+      		end)
+      	end)
+      	if not succes then
+      		warn("Sauvegarde impossible :", erreur)
+      	end
+      end
+    options:
+      - texte: "Ligne 2 : la clé utilise le nom du joueur, qui peut changer ; il faut `player.UserId`"
+        correct: true
+      - texte: "Ligne 3 : `pcall` est inutile avec `UpdateAsync`"
+      - texte: "Ligne 5 : la fonction doit renvoyer `ancienne`"
+      - texte: "Ligne 9 : il faut utiliser `print` au lieu de `warn`"
+    explication: "Un joueur peut changer de nom d’utilisateur : sa nouvelle clé pointe alors vers une sauvegarde vide. La documentation recommande des clés construites à partir d’identifiants stables, comme le `UserId`. Le `pcall` est indispensable, et renvoyer `donnees` est voulu."
+
+  - type: qcm
+    question: Ton jeu est en ligne depuis un mois. Pour ajouter un champ `victoires`, un ami te conseille de renommer le DataStore `DonneesJoueurs_v1` en `DonneesJoueurs_v2`. Quelle est la conséquence ?
+    options:
+      - texte: Aucune, Roblox copie automatiquement les anciennes données
+      - texte: Le nouveau DataStore est vide, donc tous les joueurs repartent de zéro
+        correct: true
+      - texte: Les deux DataStores fusionnent
+    explication: "Un nouveau nom désigne un nouveau DataStore, vide. Pour faire évoluer la structure, on garde le même DataStore et on complète les anciennes sauvegardes (champ `version` et fonction `completer`)."
+
+  - type: qcm
+    question: Pour acheter une traînée, que doit envoyer le client au serveur via `AcheterObjet` ?
+    options:
+      - texte: L’identifiant de l’objet, le prix et son nouveau solde
+      - texte: Uniquement l’identifiant de l’objet
+        correct: true
+      - texte: Rien, le serveur devine l’objet voulu
+    explication: "Le client n’envoie que ce qu’il veut. Le serveur vérifie le type, l’existence de l’objet dans son catalogue, la possession et le solde, puis prend le prix dans son propre `Catalogue`. Un prix ou un solde envoyé par le client pourrait être truqué."
+
+  - type: vrai-faux
+    question: Comme le ModuleScript `Catalogue` est dans ReplicatedStorage, un exploiteur peut baisser les prix pour tout le monde en modifiant sa copie du module.
+    reponse: false
+    explication: "Chaque côté a sa propre copie du module en mémoire. Un client qui modifie la sienne ne change que l’affichage chez lui ; le serveur continue d’utiliser ses propres prix pour décider."
+
+  - type: qcm
+    question: Pourquoi régler `ResetOnSpawn = false` sur le ScreenGui de l’Obby des Nuages ?
+    options:
+      - texte: Pour que l’interface s’affiche aussi sur les autres joueurs
+      - texte: Pour que l’interface ne soit pas supprimée et recréée à chaque réapparition du personnage
+        correct: true
+      - texte: Pour que l’interface soit sauvegardée dans le DataStore
+    explication: "Avec `ResetOnSpawn = true` (valeur par défaut), le ScreenGui est recopié à chaque réapparition. Dans un obby où l’on tombe souvent, la boutique se refermerait et les scripts redémarreraient sans arrêt."
+
+  - type: qcm
+    question: "Avec `AnchorPoint = (1, 1)` et `Position = {1, 0}, {1, 0}`, où se place un bouton ?"
+    options:
+      - texte: Au centre de l’écran
+      - texte: Collé dans le coin inférieur droit de son conteneur
+        correct: true
+      - texte: Dans le coin supérieur gauche
+      - texte: En dehors de l’écran, en bas à droite
+    explication: "La Position `{1, 0}, {1, 0}` désigne le coin inférieur droit du conteneur, et l’AnchorPoint `(1, 1)` indique que c’est le coin inférieur droit du bouton qui s’y place. Avec un AnchorPoint `(0, 0)`, le bouton sortirait de l’écran."
+
+  - type: qcm
+    question: Tu colles dans ton jeu l’identifiant d’une animation publiée par un autre créateur, qui ne te l’a pas partagée. Que se passe-t-il ?
+    options:
+      - texte: Elle fonctionne, toutes les animations sont publiques
+      - texte: Elle ne se charge pas, car ton expérience n’a pas la permission d’utiliser cet asset
+        correct: true
+      - texte: Elle fonctionne, mais seulement en R6
+    explication: "Depuis l’annonce du 31 juillet 2025, les animations sont des assets « Restricted » : une expérience ne peut charger que les animations pour lesquelles elle a reçu la permission (par leur propriétaire, ou automatiquement quand quelqu’un qui a le droit de les partager les utilise dans Studio)."
+
+  - type: qcm
+    question: "Un développeur appelle `animator:LoadAnimation(animation)` à chaque clic sur un bouton, puis `:Play()`. Pourquoi est-ce une mauvaise idée ?"
+    options:
+      - texte: Parce que `LoadAnimation` crée une nouvelle piste à chaque appel ; mieux vaut charger une fois et réutiliser la piste
+        correct: true
+      - texte: Parce que `LoadAnimation` ne fonctionne qu’une seule fois par partie
+      - texte: Parce qu’il faut utiliser `Humanoid:LoadAnimation`
+    explication: "La référence API précise que `LoadAnimation` crée toujours une nouvelle `AnimationTrack`, ce qui peut peser sur les performances. On charge l’animation une fois et on rappelle `Play` sur la même piste. `Humanoid:LoadAnimation` est dépréciée."
+
+  - type: qcm
+    question: Quel `TweenInfo` décrit une plateforme qui met 4 secondes à monter, redescend, et recommence sans fin, avec des départs et arrivées en douceur ?
+    options:
+      - texte: "`TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)`"
+        correct: true
+      - texte: "`TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false)`"
+      - texte: "`TweenInfo.new(-1, true, 4, Enum.EasingStyle.Sine)`"
+    explication: "Ordre des paramètres : durée (4), style (Sine), direction (InOut), répétitions (-1 = à l’infini), aller-retour (true), puis délai (0 par défaut). La deuxième option ne joue qu’un seul aller ; la troisième mélange l’ordre."
+
+  - type: vrai-faux
+    question: "L’événement `Completed` d’un tween se déclenche aussi quand on appelle `tween:Pause()`."
+    reponse: false
+    explication: "D’après la référence API, `Completed` se déclenche quand le tween se termine ou est annulé avec `Cancel` (il reçoit alors l’état correspondant), mais pas lors d’une pause."

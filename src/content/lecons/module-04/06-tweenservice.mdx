@@ -1,0 +1,302 @@
+---
+titre: Animer objets et interfaces avec TweenService
+description: Fais bouger les plateformes de l’Obby des Nuages et anime ta boutique avec TweenService, TweenInfo et les styles d’easing, en choisissant bien entre serveur et client.
+duree: 35
+objectifs:
+  - Créer et lancer un tween avec TweenService:Create et TweenInfo.new
+  - Choisir la durée, le style et la direction d’easing, les répétitions et l’aller-retour
+  - Animer des plateformes mobiles en connaissant leur effet sur le personnage
+  - Animer une interface côté client et enchaîner des tweens avec Completed
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Que fait `TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)` ?"
+    options:
+      - texte: Un tween de 2 secondes joué une seule fois
+      - texte: Un tween de 2 secondes, en douceur, répété à l’infini en aller-retour
+        correct: true
+      - texte: Un tween qui attend 2 secondes avant de démarrer
+      - texte: Un tween répété 2 fois
+    explication: "L’ordre des paramètres est : durée, style, direction, nombre de répétitions, aller-retour, délai. `-1` répète à l’infini et `true` fait revenir l’objet à son point de départ. Le délai (6e paramètre) n’est pas fourni : il vaut 0."
+  - type: trouve-le-bug
+    question: "Ce Script doit faire monter et descendre une plateforme en boucle. Il provoque une erreur. Où est le bug ?"
+    code: |
+      local TweenService = game:GetService("TweenService")
+      local plateforme = script.Parent
+
+      local infos = TweenInfo.new(Enum.EasingStyle.Sine, 3, Enum.EasingDirection.InOut, -1, true)
+      local objectif = { CFrame = plateforme.CFrame + Vector3.new(0, 8, 0) }
+
+      local tween = TweenService:Create(plateforme, infos, objectif)
+      tween:Play()
+    options:
+      - texte: "Ligne 2 : un Script ne peut pas être rangé dans une Part"
+      - texte: "Ligne 4 : la durée doit être le premier paramètre de `TweenInfo.new`, avant le style"
+        correct: true
+      - texte: "Ligne 5 : on ne peut pas tweener la propriété `CFrame`"
+      - texte: "Ligne 8 : il faut écrire `tween:Start()`"
+    explication: "Les paramètres de `TweenInfo.new` sont positionnels : d’abord la durée (un nombre), puis le style, la direction, les répétitions, l’aller-retour et le délai. Ici, le style est passé à la place de la durée. `CFrame` est bien tweenable, et la méthode s’appelle `Play`."
+  - type: vrai-faux
+    question: Un joueur debout sur une plateforme ancrée qu’un tween déplace horizontalement est emporté avec elle, comme sur un tapis roulant.
+    reponse: false
+    explication: "Un tween change la position de la Part directement, sans passer par la physique. D’après de nombreux retours sur le DevForum, le personnage n’est pas entraîné : la plateforme glisse sous ses pieds. Pour transporter le joueur, on utilise plutôt une solution physique, comme une PrismaticConstraint."
+  - type: qcm
+    question: Où lancer le tween qui fait glisser la fenêtre de la boutique à l’écran ?
+    options:
+      - texte: Dans un Script de ServerScriptService
+      - texte: Dans un LocalScript, car l’interface existe sur le client
+        correct: true
+      - texte: Dans un ModuleScript de ServerStorage
+    explication: "Chaque joueur a sa propre copie de l’interface dans son PlayerGui, gérée côté client. Le tween se lance donc dans un LocalScript. Le serveur ne voit pas (et n’a pas besoin de voir) l’animation de ta fenêtre."
+  - type: qcm
+    question: "Tu lances un tween sur la `Position` d’un Frame, puis, avant la fin, un second tween sur la même `Position`. Que se passe-t-il ?"
+    options:
+      - texte: Les deux tweens s’additionnent
+      - texte: Le premier tween est annulé et remplacé par le second
+        correct: true
+      - texte: Le second tween attend la fin du premier
+    explication: "La documentation de TweenService précise que si deux tweens modifient la même propriété, le premier est annulé et remplacé par le plus récent. Son événement `Completed` se déclenche alors avec l’état `Cancelled`."
+---
+
+Un obby où tout est immobile, c’est un peu triste. Dans cette leçon, tu fais **bouger** l’Obby des Nuages : des plateformes qui montent et descendent, une boutique qui glisse à l’écran, un compteur de pièces qui « rebondit » à chaque gain. L’outil pour ça : **TweenService**, qui anime en douceur presque n’importe quelle propriété.
+
+## Qu’est-ce qu’un tween ?
+
+« Tween » vient de *in-between* (« entre-deux »). Tu donnes une valeur de **départ** (la valeur actuelle), une valeur d’**arrivée**, une **durée**, et Roblox calcule toutes les valeurs intermédiaires, image par image. Pas besoin de boucle avec `task.wait` : l’animation est fluide et bien plus simple à écrire.
+
+On peut tweener des propriétés de nombreux types : nombres, `Vector3`, `CFrame`, `Color3`, `UDim2`, `Vector2`… Exemples : la `Position` ou la `CFrame` d’une Part, sa `Transparency`, sa `Color`, ou la `Size` d’un Frame.
+
+## Les trois étapes d’un tween
+
+1. **Décrire le mouvement** avec `TweenInfo.new(...)` : durée, style, répétitions…
+2. **Créer le tween** avec `TweenService:Create(objet, infos, objectif)`, où `objectif` est une table « nom de propriété → valeur d’arrivée ».
+3. **Le lancer** avec `tween:Play()`.
+
+```luau
+-- Script placé dans une Part (côté serveur) : la Part devient rouge et transparente
+local TweenService = game:GetService("TweenService")
+
+local part = script.Parent
+
+local infos = TweenInfo.new(2) -- 2 secondes, les autres réglages par défaut
+local objectif = {
+	Color = Color3.fromRGB(255, 60, 60),
+	Transparency = 0.5,
+}
+
+local tween = TweenService:Create(part, infos, objectif)
+tween:Play()
+```
+
+Un même tween peut animer **plusieurs propriétés** à la fois, comme ici la couleur et la transparence.
+
+## TweenInfo en détail
+
+Voici la signature exacte, d’après la référence API (au moment de la rédaction) :
+
+```luau
+-- Les 6 paramètres, dans l'ordre, avec leur valeur par défaut
+local infos = TweenInfo.new(
+	1, -- 1. time : durée en secondes (défaut : 1)
+	Enum.EasingStyle.Quad, -- 2. easingStyle : la « forme » du mouvement (défaut : Quad)
+	Enum.EasingDirection.Out, -- 3. easingDirection : où s'applique l'easing (défaut : Out)
+	0, -- 4. repeatCount : répétitions supplémentaires, -1 = à l'infini (défaut : 0)
+	false, -- 5. reverses : revenir au départ après chaque aller (défaut : false)
+	0 -- 6. delayTime : délai avant de commencer, en secondes (défaut : 0)
+)
+```
+
+Les paramètres sont **positionnels** : c’est leur place qui compte, pas leur nom. Pour régler le 5e (aller-retour), tu dois donc aussi écrire les 4 premiers. Les propriétés d’un `TweenInfo` ne peuvent plus être modifiées après sa création : crée-en un nouveau si besoin.
+
+<Erreur titre="Mélanger l’ordre des paramètres">
+`TweenInfo.new(Enum.EasingStyle.Sine, 3)` place le style là où Roblox attend la durée : erreur. Retiens l’ordre : **durée, style, direction, répétitions, aller-retour, délai**. En cas de doute, écris un commentaire par paramètre, comme dans l’exemple ci-dessus.
+</Erreur>
+
+### Les styles d’easing
+
+L’**easing** décrit comment la vitesse évolue pendant le mouvement. Quelques styles de `Enum.EasingStyle` :
+
+| Style | Effet |
+|---|---|
+| `Linear` | vitesse constante, mécanique |
+| `Sine`, `Quad`, `Cubic` | accélération ou freinage doux, de plus en plus marqué |
+| `Back` | dépasse un peu la cible puis revient : effet « rebond » léger |
+| `Bounce` | rebondit comme une balle à l’arrivée |
+| `Elastic` | oscille comme un ressort |
+
+Et la **direction** (`Enum.EasingDirection`) :
+
+- `In` : l’effet s’applique au début (départ lent, arrivée rapide) ;
+- `Out` : l’effet s’applique à la fin (départ rapide, arrivée en douceur) ;
+- `InOut` : au début **et** à la fin.
+
+<Astuce>
+Pour une interface, `Out` donne une sensation de réactivité : l’élément part tout de suite et se pose en douceur. `Back` + `Out` est un grand classique pour l’ouverture d’une fenêtre. Pour une plateforme qui fait des allers-retours, `Sine` + `InOut` évite les à-coups aux extrémités.
+</Astuce>
+
+### Contrôler un tween
+
+- `tween:Play()` lance (ou relance) le tween ;
+- `tween:Pause()` le met en pause ;
+- `tween:Cancel()` l’arrête ;
+- l’événement `tween.Completed` se déclenche quand le tween se termine **ou** est annulé. Il reçoit un `Enum.PlaybackState` qui indique pourquoi (`Completed` ou `Cancelled`, par exemple). `Pause` ne le déclenche pas.
+
+Attention : si deux tweens modifient **la même propriété** du même objet, le premier est annulé et remplacé par le plus récent.
+
+## Les plateformes mobiles de l’Obby des Nuages
+
+Crée un Folder `PlateformesMobiles` dans **Workspace** et ranges-y les Parts qui doivent bouger. Pour régler chaque plateforme sans toucher au code, on utilise des **attributs** (section **Attributes** de la fenêtre Properties) :
+
+- `Deplacement` (Vector3) : de combien la plateforme se déplace, en studs. Par exemple `0, 8, 0` pour monter de 8 studs ;
+- `Duree` (number) : la durée d’un aller, en secondes.
+
+```luau
+-- Script « PlateformesMobiles » dans ServerScriptService (côté serveur)
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+local dossier = Workspace:WaitForChild("PlateformesMobiles")
+
+local function animerPlateforme(plateforme: Instance)
+	if not plateforme:IsA("BasePart") then
+		return
+	end
+	-- Un tween déplace la Part sans la physique : elle doit être ancrée
+	plateforme.Anchored = true
+
+	-- Réglages lus dans les attributs, avec des valeurs par défaut
+	local deplacement = plateforme:GetAttribute("Deplacement")
+	if typeof(deplacement) ~= "Vector3" then
+		deplacement = Vector3.new(0, 8, 0)
+	end
+	local duree = plateforme:GetAttribute("Duree")
+	if typeof(duree) ~= "number" then
+		duree = 3
+	end
+
+	local infos = TweenInfo.new(
+		duree, -- durée d'un aller
+		Enum.EasingStyle.Sine, -- départ et arrivée en douceur
+		Enum.EasingDirection.InOut,
+		-1, -- répétition à l'infini
+		true, -- aller-retour
+		0 -- pas de délai
+	)
+	-- On ajoute le déplacement à la CFrame actuelle (position + rotation)
+	local objectif = { CFrame = plateforme.CFrame + deplacement }
+
+	TweenService:Create(plateforme, infos, objectif):Play()
+end
+
+for _, plateforme in dossier:GetChildren() do
+	animerPlateforme(plateforme)
+end
+```
+
+On tweene la `CFrame` plutôt que la `Position` : la CFrame contient la position **et** la rotation, et l’ajout d’un `Vector3` la déplace sans changer son orientation.
+
+### Et le personnage, dans tout ça ?
+
+C’est le piège classique des obbys. Un tween **change directement** la position d’une Part ancrée, sans passer par le moteur physique. Résultat, d’après de nombreux retours de développeurs sur le DevForum :
+
+- une plateforme qui **monte** pousse en général le personnage vers le haut, car il reste posé dessus : c’est le cas le plus simple ;
+- une plateforme qui se déplace **horizontalement** glisse sous les pieds du personnage, qui ne suit pas et finit par tomber.
+
+Pour l’Obby des Nuages, utilise les tweens pour les plateformes **verticales** (ascenseurs), les obstacles à **éviter** (un mur qui coulisse, une barre qui tourne) et les effets visuels. Pour une plateforme horizontale qui doit **transporter** le joueur, il faut une solution physique : par exemple une Part non ancrée guidée par une `PrismaticConstraint` motorisée (mode `Servo`), que la documentation cite justement pour les plateformes d’ascenseur. C’est plus avancé : teste soigneusement avant de l’utiliser.
+
+### Serveur ou client ?
+
+- **Plateformes et obstacles** : dans un **Script serveur**. Les changements de position sont répliqués à tous les joueurs, et tout le monde voit la même chose au même endroit. C’est le plus simple et le plus juste pour un obby.
+- **Interfaces** : dans un **LocalScript**. L’interface n’existe que sur le client (dans le PlayerGui), le serveur n’a rien à voir.
+
+<Info>
+Certains développeurs animent aussi les décors côté client pour un rendu plus fluide, mais chaque joueur voit alors sa propre version, plus forcément synchronisée avec les autres. Pour un débutant, garde les objets du monde côté serveur.
+</Info>
+
+## Animer l’interface de la boutique
+
+Améliorons l’interface de la leçon 4. Crée un **LocalScript** `AnimationsInterface` dans **StarterGui ⟩ InterfaceObby**, puis **supprime** le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » de `ScriptInterface` : sinon, les deux scripts se disputeraient la fenêtre.
+
+```luau
+-- LocalScript « AnimationsInterface » dans StarterGui > InterfaceObby (côté client)
+-- Remplace le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » de ScriptInterface (leçon 4)
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local joueur = Players.LocalPlayer
+local interface = script.Parent
+local boutonBoutique = interface:WaitForChild("BoutonBoutique") :: TextButton
+local fenetreBoutique = interface:WaitForChild("Boutique") :: Frame
+local compteur = interface:WaitForChild("CompteurPieces") :: Frame
+
+-- 1. LA FENÊTRE QUI GLISSE
+local POSITION_OUVERTE = UDim2.fromScale(0.5, 0.5) -- centre de l'écran
+local POSITION_CACHEE = UDim2.fromScale(0.5, 1.5) -- sous le bas de l'écran
+
+local infosOuverture = TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local infosFermeture = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+
+local ouverte = false
+fenetreBoutique.Position = POSITION_CACHEE
+fenetreBoutique.Visible = false
+
+boutonBoutique.Activated:Connect(function()
+	ouverte = not ouverte
+	if ouverte then
+		fenetreBoutique.Visible = true
+		TweenService:Create(fenetreBoutique, infosOuverture, { Position = POSITION_OUVERTE }):Play()
+	else
+		local fermeture = TweenService:Create(fenetreBoutique, infosFermeture, { Position = POSITION_CACHEE })
+		-- On ne masque la fenêtre qu'une fois la fermeture terminée
+		fermeture.Completed:Connect(function(etat)
+			-- Si le joueur a rouvert entre-temps, la fermeture a été annulée
+			if etat == Enum.PlaybackState.Completed and not ouverte then
+				fenetreBoutique.Visible = false
+			end
+		end)
+		fermeture:Play()
+	end
+end)
+
+-- 2. LE COMPTEUR QUI REBONDIT à chaque changement de pièces
+local echelle = Instance.new("UIScale") -- agrandit le cadre ET tout son contenu
+echelle.Parent = compteur
+
+local pieces = joueur:WaitForChild("leaderstats"):WaitForChild("Pieces") :: IntValue
+local infosRebond = TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+pieces.Changed:Connect(function()
+	echelle.Scale = 1.25 -- grossit d'un coup…
+	TweenService:Create(echelle, infosRebond, { Scale = 1 }):Play() -- …et revient en rebondissant
+end)
+```
+
+Remarque l’usage de `Completed` : la fenêtre ne devient invisible qu’**après** sa sortie de l’écran. Et si le joueur clique à nouveau pendant la fermeture, le tween d’ouverture remplace celui de fermeture (même propriété `Position`) : la fermeture est annulée (`Cancelled`) et la fenêtre reste visible. Pratique !
+
+<Attention>
+Les animations d’interface doivent rester **courtes** (souvent moins d’une demi-seconde). Une fenêtre qui met deux secondes à s’ouvrir agace vite, surtout quand on l’ouvre souvent.
+</Attention>
+
+<Defi>
+1. Crée le dossier `PlateformesMobiles` avec deux plateformes : un ascenseur (`Deplacement = 0, 10, 0`, `Duree = 4`) et un mur qui coulisse (`Deplacement = 12, 0, 0`, `Duree = 2`) à éviter.
+2. Teste : monte sur l’ascenseur, puis observe ce qui se passe si tu montes sur le mur qui coulisse.
+3. Ajoute `AnimationsInterface` et vérifie l’ouverture, la fermeture et le rebond du compteur.
+4. Bonus : essaie `Bounce`, `Elastic` puis `Linear` sur l’ouverture de la fenêtre et garde celui que tu préfères.
+</Defi>
+
+<Resume>
+- Un tween anime une propriété d’une valeur à une autre : `TweenService:Create(objet, infos, objectif)` puis `:Play()`.
+- `TweenInfo.new(durée, style, direction, répétitions, allerRetour, délai)` : l’ordre compte ; `-1` répète à l’infini.
+- Le style (`Sine`, `Back`, `Bounce`…) et la direction (`In`, `Out`, `InOut`) donnent son caractère au mouvement.
+- Une plateforme ancrée tweenée n’emporte pas le personnage horizontalement : réserve les tweens aux ascenseurs, obstacles et effets.
+- Objets du monde : tween côté serveur ; interface : tween côté client, avec `Completed` pour enchaîner les actions.
+</Resume>
+
+<Sources>
+- [TweenService — référence API](https://create.roblox.com/docs/reference/engine/classes/TweenService)
+- [TweenInfo — référence API (signature de TweenInfo.new)](https://create.roblox.com/docs/reference/engine/datatypes/TweenInfo)
+- [TweenBase (Play, Cancel, Completed) — référence API](https://create.roblox.com/docs/reference/engine/classes/TweenBase)
+- [UI animation/tweens — documentation Roblox](https://create.roblox.com/docs/ui/animation)
+- [PrismaticConstraint — documentation Roblox](https://create.roblox.com/docs/physics/constraints/prismatic)
+- [Platform moves while character doesn’t — fil d’entraide du DevForum](https://devforum.roblox.com/t/platform-moves-while-character-doesnt/1051218)
+</Sources>

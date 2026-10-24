@@ -254,7 +254,7 @@ end
 Il suffit ensuite d’appeler `rendrePrincipale(etape)` dans `creerLeaderstats`, juste après la création de `etape`.
 
 <Astuce>
-La colonne principale sert aussi à classer les joueurs dans la liste. Pour un obby, mets `Etape` en principale : les joueurs les plus avancés apparaissent en haut, ce qui motive ceux qui suivent.
+Pour un obby, mets `Etape` en colonne principale : c’est l’information la plus parlante, celle que les joueurs comparent d’un coup d’œil. Garde `Pieces` en second.
 </Astuce>
 
 ### Masquer le tableau
@@ -274,7 +274,7 @@ C’est un réglage d’affichage local : il ne touche pas aux valeurs.
 <Defi>
 1. Crée le Script `Leaderstats` dans ServerScriptService et teste : tu dois voir `Etape` et `Pieces`.
 2. Ajoute le `BoolValue` `IsPrimary` sur `Etape`.
-3. Lance un test à 2 joueurs (onglet **Test**, section client/serveur) et vérifie que chaque joueur a ses propres valeurs.
+3. Lance un test à 2 joueurs (mode **Server & Clients**, vu au module 1) et vérifie que chaque joueur a ses propres valeurs.
 4. Bonus : dans la fenêtre **Explorer**, pendant le test côté client, change à la main `Pieces.Value`. Passe ensuite en vue serveur : la valeur n’a pas bougé. Tu viens de constater la règle du serveur autoritaire.
 </Defi>
 
