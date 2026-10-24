@@ -11,7 +11,7 @@ quiz:
   - type: vrai-faux
     question: "Selon la documentation de Roblox, l’engagement des joueurs arrivés grâce à une publicité est pris en compte pour classer ton jeu dans « Recommended for You »."
     reponse: false
-    explication: "La page officielle sur la découverte indique l’inverse : Roblox ne compte pas l’engagement, la monétisation ni la rétention des utilisateurs acquis d’abord par la publicité dans ce classement. La publicité amène des joueurs, mais elle ne « booste » pas directement les recommandations."
+    explication: "La page officielle sur la découverte indique l’inverse : à l’étape de classement de « Recommended for You », Roblox ne compte pas l’engagement, la monétisation ni la rétention des utilisateurs arrivés d’abord par la publicité (ni par la recherche, les amis, etc.). La publicité peut aider ton jeu à être pris en considération, mais ce sont les joueurs venus des recommandations qui décident jusqu’où il ira."
   - type: qcm
     question: "Ton jeu vient de sortir et sa rétention D1 est très faible. Quelle est la décision la plus raisonnable ?"
     options:
@@ -22,16 +22,16 @@ quiz:
       - texte: Abandonner le projet immédiatement
     explication: "Une rétention D1 faible signale en général un problème de première impression. Payer de la publicité reviendrait à acheter des joueurs qui repartiront aussitôt. On corrige d’abord le début de partie, on publie, puis on compare les chiffres sur la nouvelle version."
   - type: qcm
-    question: "Lesquels de ces éléments de page de jeu sont contraires aux règles de Roblox sur les miniatures ? (plusieurs réponses possibles)"
+    question: "Tu prépares une vidéo de présentation pour la page de ton jeu. Lesquels de ces choix sont contraires aux règles de Roblox sur les vidéos ? (plusieurs réponses possibles)"
     options:
-      - texte: Une miniature montrant une mécanique qui n’existe pas dans le jeu
+      - texte: Montrer une mécanique qui n’existe pas dans le jeu
         correct: true
-      - texte: Une miniature avec le texte « Free UGC! »
+      - texte: Ajouter le texte « Free UGC! » par-dessus les images
         correct: true
-      - texte: Une capture d’écran du vrai gameplay avec un angle de caméra travaillé
-      - texte: Une vidéo de gameplay avec une voix off qui commente
+      - texte: Filmer le vrai gameplay avec des angles de caméra travaillés
+      - texte: Ajouter une voix off qui commente la partie
         correct: true
-    explication: "La documentation sur les miniatures interdit de représenter un gameplay inexistant, d’ajouter des promesses ou publicités (« 50% off », « Free UGC! ») et, pour les vidéos, les voix off ou la narration. Les angles de caméra variés et de légères retouches sont autorisés."
+    explication: "La documentation sur les miniatures et vidéos interdit, pour les vidéos, de représenter un gameplay inexistant, d’ajouter des textes publicitaires ou promesses (« 50% off », « Free UGC! ») et les voix off ou la narration. Les angles de caméra variés et de légères retouches (luminosité, contraste) sont autorisés tant qu’ils montrent le vrai jeu."
   - type: vrai-faux
     question: "Les benchmarks du Creator Dashboard (comparaison avec des jeux similaires) sont utilisés directement par l’algorithme de découverte de Roblox."
     reponse: false
@@ -68,9 +68,10 @@ La page de ton jeu (titre, icône, miniatures, description) est souvent la seule
 Quelques points vérifiés dans la documentation officielle, au moment de la rédaction :
 
 - une **miniature personnalisée** est nécessaire pour que ton jeu reçoive des impressions dans les recommandations de la page d’accueil ;
-- les miniatures sont au format **16:9**, idéalement **1920 × 1080** pixels, et tu peux en afficher jusqu’à 10 ;
-- les miniatures ne doivent pas montrer de gameplay qui n’existe pas, ni contenir de promesses ou publicités du type « 50% off » ou « Free UGC! » ;
-- les métadonnées (titre, description) qui laissent entendre des **récompenses en argent ou en Robux** ne sont pas mises en avant dans les recommandations ;
+- les miniatures sont au format **16:9**, idéalement **1920 × 1080** pixels, et tu peux afficher jusqu’à 10 images ou vidéos ;
+- des métadonnées (titre, miniatures…) qui ne correspondent pas au contenu réel du jeu ne sont pas recommandées et sont moins visibles dans la recherche ;
+- les **vidéos** de présentation ne doivent pas montrer de gameplay qui n’existe pas, ni contenir de publicités ou promesses du type « 50% off » ou « Free UGC! », ni de voix off ;
+- les métadonnées qui laissent entendre une **récompense en argent ou en Robux** ne sont pas mises en avant dans les recommandations ;
 - un jeu **sans informations de maturité** (questionnaire non rempli) voit sa jouabilité restreinte pour tous les joueurs.
 
 **Correction :** soigne ta page comme une partie du jeu. Relis [Préparer la page du jeu](/modules/07/preparer-la-page-du-jeu/) et [Icône et miniatures qui donnent envie de cliquer](/modules/07/icone-et-miniatures/).
@@ -85,7 +86,7 @@ La publicité (via **Ads Manager**) est tentante quand les joueurs n’arrivent 
 
 Deux informations officielles à connaître :
 
-- la documentation sur la découverte précise que Roblox **ne compte pas** l’engagement, la monétisation ni la rétention des joueurs acquis par la publicité pour le classement « Recommended for You » ;
+- la documentation sur la découverte précise que la publicité peut aider ton jeu à être *pris en considération* pour « Recommended for You », mais que Roblox **ne compte pas** l’engagement, la monétisation ni la rétention des joueurs acquis par la publicité à l’étape de **classement** : seuls comptent les joueurs venus des recommandations ;
 - la documentation d’Ads Manager conseille, pour les campagnes de type « Engagement », d’**améliorer l’onboarding** si aucun progrès n’apparaît après quelques jours.
 
 **Correction :** fais d’abord tes playtests, corrige l’onboarding, vérifie que ta rétention D1 se tient, puis seulement teste un **petit budget** et mesure le résultat. Aucune campagne ne garantit un retour sur investissement. Au moment de la rédaction, il faut avoir au moins 13 ans pour accéder à Ads Manager, et 18 ans pour payer par carte. Voir [Lancer son jeu et faire de la publicité](/modules/07/lancer-et-publicite/).
@@ -155,17 +156,17 @@ Rédige le plan de suivi de l’Obby des Nuages : quel jour de la semaine tu con
 <Resume>
 - Fais **tester par de vraies personnes** avant d’ouvrir ton jeu à tous.
 - Soigne la page : **miniature personnalisée**, visuels honnêtes, questionnaire de maturité rempli.
-- La **publicité** vient après un onboarding qui fonctionne ; elle ne compte pas dans les signaux de recommandation.
+- La **publicité** vient après un onboarding qui fonctionne ; les joueurs qu’elle amène ne comptent pas dans le classement des recommandations.
 - Consulte tes statistiques **chaque semaine** et traite chaque mise à jour comme une hypothèse à vérifier.
 - Mets à jour à un **rythme tenable**, et décide de persévérer, pivoter ou passer à autre chose avec une méthode fixée à l’avance.
 </Resume>
 
 <Sources>
-- [Publish games and places (accès, playtests, publication) — documentation Roblox](https://create.roblox.com/docs/production/publishing/publish-experiences-and-places)
-- [Thumbnails — documentation Roblox](https://create.roblox.com/docs/production/publishing/thumbnails)
+- [Publish games and places (accès, playtests, publication) — documentation Roblox](https://create.roblox.com/docs/production/publishing/publish-games-and-places)
+- [Thumbnails (images et vidéos) — documentation Roblox](https://create.roblox.com/docs/production/publishing/thumbnails)
 - [Discovery — documentation Roblox](https://create.roblox.com/docs/discovery)
 - [Ads Manager — documentation Roblox](https://create.roblox.com/docs/production/promotion/ads-manager)
-- [Content maturity (questionnaire) — documentation Roblox](https://create.roblox.com/docs/production/promotion/experience-guidelines)
+- [Content maturity and compliance (questionnaire) — documentation Roblox](https://create.roblox.com/docs/production/promotion/content-maturity)
 - [Analytics (benchmarks) — documentation Roblox](https://create.roblox.com/docs/production/analytics)
 - [Retention — documentation Roblox](https://create.roblox.com/docs/production/analytics/retention)
 - [LiveOps essentials — documentation Roblox](https://create.roblox.com/docs/production/game-design/liveops-essentials)

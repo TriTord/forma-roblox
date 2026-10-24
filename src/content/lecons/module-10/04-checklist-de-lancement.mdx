@@ -48,7 +48,7 @@ quiz:
         correct: true
       - texte: Interdire les majuscules
       - texte: Filtrer le texte dans un LocalScript, lettre par lettre
-    explication: "Roblox filtre automatiquement le chat, mais tu es responsable du filtrage de tout autre texte saisi par les joueurs et montré aux autres. La documentation montre un filtrage côté serveur après validation du texte. Si Roblox détecte qu’un jeu ne filtre pas, il peut le retirer jusqu’à ce que le filtrage soit ajouté."
+    explication: "Roblox filtre automatiquement le chat, mais tu es responsable du filtrage de tout autre texte saisi par les joueurs et montré aux autres. La documentation montre un filtrage côté serveur : `FilterStringAsync`, puis `GetNonChatStringForBroadcastAsync` pour un texte visible par tous. Si Roblox détecte qu’un jeu ne filtre pas, il le retire jusqu’à ce que le filtrage soit ajouté."
   - type: qcm
     question: "Le jour du lancement, quelles actions sont les plus utiles ? (plusieurs réponses possibles)"
     options:
@@ -135,7 +135,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] Genre et appareils pris en charge renseignés.
 - [ ] Icône lisible en petit. ([Icône et miniatures](/modules/07/icone-et-miniatures/))
 - [ ] Au moins **une miniature personnalisée** (nécessaire pour être recommandé sur la page d’accueil), au format 16:9, idéalement 1920 × 1080.
-- [ ] Les miniatures montrent le **vrai** gameplay, sans texte promotionnel (« 50% off », « Free UGC! ») ni promesse de Robux.
+- [ ] Les miniatures et vidéos montrent le **vrai** gameplay (des visuels qui ne correspondent pas au jeu réduisent sa visibilité), sans promesse de Robux ; les vidéos ne contiennent ni texte publicitaire (« 50% off », « Free UGC! ») ni voix off.
 - [ ] Les éléments importants des miniatures ne sont pas en bas de l’image (le nombre de joueurs peut s’y afficher).
 
 ## 8. Analytics
@@ -151,7 +151,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] Une Communauté Roblox (le nouveau nom des « groupes ») existe si tu veux rassembler tes joueurs. ([Construire et animer une communauté](/modules/07/communaute/))
 - [ ] Des règles de conduite claires et, si besoin, des modérateurs de confiance.
 - [ ] Un moyen simple de signaler un bug ou de donner son avis.
-- [ ] Les liens vers des réseaux externes passent **uniquement** par la fonctionnalité officielle de liens sociaux (Social Links), réservée aux joueurs de 16 ans et plus dont l’âge a été vérifié, au moment de la rédaction.
+- [ ] Les liens vers des réseaux externes passent **uniquement** par la fonctionnalité officielle de liens sociaux (Social Links). Au moment de la rédaction, il faut avoir fait vérifier son âge (16 ans ou plus) pour en ajouter, et seuls les utilisateurs de 16 ans et plus à l’âge vérifié les voient.
 - [ ] Les notes de la première mise à jour sont prêtes à être publiées. ([Mises à jour et événements](/modules/07/mises-a-jour-et-evenements/))
 
 ## 10. Conformité aux règles de Roblox
@@ -165,14 +165,14 @@ Les conditions de publication ont été profondément revues en 2026 (comptes Ro
 - [ ] Le **Maturity & Compliance Questionnaire** est rempli : Creator Dashboard, page du jeu, **Publish settings > Content rating**. Sans informations de maturité, la jouabilité du jeu est restreinte pour tous les joueurs.
 - [ ] Les réponses décrivent le contenu **le plus mature** du jeu, honnêtement. Des informations inexactes exposent le jeu et le compte à la modération.
 - [ ] Tu sais que tu devras **soumettre à nouveau** le questionnaire si une mise à jour change tes réponses.
-- [ ] Tu connais le label obtenu (Minimal, Mild, Moderate…) et ce qu’il implique pour l’audience de ton jeu.
+- [ ] Tu connais le label obtenu (Minimal, Mild, Moderate…) et ce qu’il implique pour l’audience de ton jeu. Attention : si tu réponds seulement à la première question au moment de publier, ton jeu reçoit le label **Content May Vary** et n’est accessible qu’aux joueurs de 16 ans et plus ; pour viser les plus jeunes, il faut remplir le questionnaire **en entier**.
 
 ### Exigences de publication
 
 Au moment de la rédaction, la documentation distingue deux niveaux de publication publique :
 
-- **Joueurs de 16 ans et plus (et Trusted Friends)** : compte en règle, créé depuis au moins 2 jours, vérification de l’âge (estimation faciale ou pièce d’identité), et réponse à la question sur le contenu réservé aux adultes du questionnaire.
-- **Tous les âges** (y compris Roblox Kids et Roblox Select) : en plus, vérification du compte, validation en deux étapes (2FA), abonnement Roblox Plus ou Premium depuis deux mois consécutifs **ou** frais de publication remboursables (1 000 Robux par jeu au moment de la rédaction), questionnaire complet avec un label Minimal, Mild ou Moderate, et réussite d’un **processus d’évaluation** basé sur de vrais joueurs de 16 ans et plus.
+- **Joueurs de 16 ans et plus (et Trusted Friends)** : compte en règle, créé depuis au moins 2 jours, vérification de l’âge (estimation faciale ou pièce d’identité), et réponse à la première question du questionnaire, celle sur le contenu à accès restreint selon l’âge.
+- **Tous les âges** (y compris Roblox Kids et Roblox Select) : en plus, compte vérifié (estimation faciale de l’âge si tu as moins de 18 ans, pièce d’identité si tu as 18 ans ou plus), validation en deux étapes (2FA), abonnement Roblox Plus ou Premium actif depuis deux mois consécutifs **ou** frais de publication remboursables (1 000 Robux par jeu au moment de la rédaction), questionnaire complet avec un label Minimal, Mild ou Moderate, et réussite d’un **processus d’évaluation** basé sur de vrais joueurs de 16 ans et plus.
 
 Ce processus d’évaluation, décrit sur la page officielle « Roblox Kids and Select », se déroule ainsi au moment de la rédaction :
 
@@ -181,7 +181,7 @@ Ce processus d’évaluation, décrit sur la page officielle « Roblox Kids and 
 3. **Revue de sécurité** : les signalements et le gameplay sont examinés pour vérifier que le jeu convient aux plus jeunes.
 4. **Seuil** : le jeu doit atteindre **250 parties uniques** jouées par des joueurs très engagés dont l’âge a été vérifié, sur une période de **60 jours**. Il devient alors éligible aux audiences Roblox Kids et Roblox Select (dans la limite de son label de maturité).
 
-La progression se suit dans le tableau **Audience Reach** du Creator Hub. Ce seuil et la définition des joueurs « très engagés » ont déjà changé plusieurs fois en 2026 : vérifie la page officielle avant de t’organiser.
+La progression se suit dans le tableau **Audience Reach** du Creator Hub. Ce seuil et la définition des joueurs « très engagés » ont déjà changé plusieurs fois en 2026, et les annonces du DevForum ont cité d’autres chiffres que la documentation : fie-toi à la page officielle « Roblox Kids and Select » au moment où tu t’organises.
 
 - [ ] Ton compte remplit les conditions du niveau de publication que tu vises.
 - [ ] La validation en deux étapes est activée sur ton compte (indispensable pour tous les âges, et une bonne protection dans tous les cas).
@@ -192,7 +192,7 @@ La progression se suit dans le tableau **Audience Reach** du Creator Hub. Ce seu
 
 - [ ] Le jeu respecte les **règles communautaires** (Community Standards) : pas de contenu trompeur ou dupliqué, pas de violation de propriété intellectuelle, pas de lien externe en dehors des Social Links.
 - [ ] Tous les assets (images, sons, musiques, modèles) t’appartiennent ou tu as le droit de les utiliser.
-- [ ] Tout texte saisi par un joueur et affiché aux autres (nom de familier, panneau…) est filtré côté serveur avec `TextService:FilterStringAsync`. Roblox peut retirer un jeu qui ne filtre pas, jusqu’à ce que le filtrage soit ajouté.
+- [ ] Tout texte saisi par un joueur et affiché aux autres (nom de familier, panneau…) est filtré côté serveur avec `TextService:FilterStringAsync` (puis `GetNonChatStringForBroadcastAsync` pour un texte visible par tout le serveur). Roblox peut retirer un jeu qui ne filtre pas, jusqu’à ce que le filtrage soit ajouté.
 
 <Erreur titre="Remplir le questionnaire « au plus gentil »">
 Cocher les réponses les moins matures pour viser un public plus large, alors que ton jeu contient autre chose, est une très mauvaise idée : Roblox peut vérifier les réponses et modifier le label, et les inexactitudes répétées entraînent des sanctions. Réponds pour le contenu **réel** de ton jeu, puis adapte le jeu si tu veux viser un autre public.
@@ -325,9 +325,11 @@ Passe toute la checklist sur l’Obby des Nuages. Ajoute le script `AutoVerifica
 </Resume>
 
 <Sources>
-- [Publish games and places (exigences de publication) — documentation Roblox](https://create.roblox.com/docs/production/publishing/publish-experiences-and-places)
+- [Publish games and places (exigences de publication) — documentation Roblox](https://create.roblox.com/docs/production/publishing/publish-games-and-places)
 - [Roblox Kids and Select — documentation Roblox](https://create.roblox.com/docs/production/publishing/kids-and-select)
-- [Content maturity et questionnaire — documentation Roblox](https://create.roblox.com/docs/production/promotion/experience-guidelines)
+- [Content maturity and compliance (questionnaire) — documentation Roblox](https://create.roblox.com/docs/production/promotion/content-maturity)
+- [Social media links — documentation Roblox](https://create.roblox.com/docs/production/promotion/social-media-links)
+- [« Introducing Roblox Communities » — annonce officielle du DevForum (novembre 2024)](https://devforum.roblox.com/t/introducing-roblox-communities/3268307)
 - [« New Publishing Requirements & Evaluation Process for Games » — annonce officielle du DevForum (avril 2026)](https://devforum.roblox.com/t/new-publishing-requirements-evaluation-process-for-games/4573166)
 - [« Alternate Publishing Requirements for Roblox Kids and Select » — annonce officielle du DevForum (mai 2026)](https://devforum.roblox.com/t/alternate-publishing-requirements-for-roblox-kids-and-select/4630944)
 - [Règles communautaires de Roblox](https://about.roblox.com/community-standards)

@@ -26,7 +26,7 @@
 | 07 | FAIT | FAIT (11 corrections) | en cours |
 | 08 | FAIT | FAIT (11 corrections) | FAIT (9 corr.) ✅ |
 | 09 | FAIT | en cours | |
-| 10 | FAIT | en cours | |
+| 10 | FAIT | FAIT (24 corrections) | en cours |
 
 ## Outils
 - Briefs : `C:\tmp\BRIEF_REDACTEUR.md`, `C:\tmp\BRIEF_VERIFICATEUR.md`

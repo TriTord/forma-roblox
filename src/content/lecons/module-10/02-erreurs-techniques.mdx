@@ -22,6 +22,7 @@ quiz:
       	local pieces = player.leaderstats.Pieces
       	if pieces.Value >= prix then
       		pieces.Value -= prix
+      		-- (ici : ajout du trail à l'inventaire du joueur)
       	end
       end)
     options:
@@ -103,7 +104,7 @@ Players.PlayerAdded:Connect(function(player)
 		return magasin:GetAsync("Joueur_" .. player.UserId)
 	end)
 	print("Chargement réussi ?", succes)
-	-- Si GetAsync a échoué, donnees contient le message d'erreur (ou nil)...
+	-- Si GetAsync a échoué, donnees contient le message d'erreur...
 	-- et le joueur repart de zéro sans que personne ne s'en rende compte.
 	if typeof(donnees) ~= "table" then
 		donnees = { Etape = 1, Pieces = 0 }
@@ -119,7 +120,7 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 ```
 
-Le scénario catastrophe : le DataStore a un raté au moment où le joueur arrive. Le script lui donne des données de départ. Le joueur, surpris, quitte le jeu. Le script sauvegarde alors « Étape 1, 0 pièce » **par-dessus** sa vraie progression. Ce scénario revient très souvent sur le DevForum (voir les sources).
+Le scénario catastrophe : le DataStore a un raté au moment où le joueur arrive. Le script lui donne des données de départ. Le joueur, surpris, quitte le jeu. Le script sauvegarde alors « Étape 1, 0 pièce » **par-dessus** sa vraie progression. La documentation Roblox sur les données des joueurs met justement en garde : si tu utilises des données par défaut quand le DataStore est inaccessible, veille à ce qu’elles n’écrasent **jamais** les vraies données plus tard. Des fils d’entraide du DevForum décrivent exactement ce scénario (voir les sources).
 
 ### Le code corrigé
 
@@ -133,6 +134,8 @@ local NOMBRE_ESSAIS = 3
 
 -- Ne contient QUE les joueurs dont le chargement a réussi
 local donneesJoueurs = {}
+-- Nombre de sauvegardes en cours (utile à la fermeture du serveur)
+local sauvegardesEnCours = 0
 
 local function cleDe(player: Player): string
 	return "Joueur_" .. player.UserId
@@ -161,12 +164,14 @@ local function sauvegarder(player: Player)
 	if donnees == nil then
 		return -- jamais chargé correctement : surtout ne rien écraser
 	end
+	sauvegardesEnCours += 1
 	local succes, erreur = pcall(function()
 		-- UpdateAsync lit la dernière valeur avant d'écrire (voir module 4)
 		magasin:UpdateAsync(cleDe(player), function()
 			return donnees
 		end)
 	end)
+	sauvegardesEnCours -= 1
 	if not succes then
 		warn("Sauvegarde échouée pour " .. player.Name .. " : " .. tostring(erreur))
 	end
@@ -188,18 +193,14 @@ Players.PlayerRemoving:Connect(function(player)
 	donneesJoueurs[player] = nil
 end)
 
--- Fermeture du serveur : on sauvegarde tout le monde en parallèle
--- et on attend la fin des sauvegardes
+-- Fermeture du serveur : on sauvegarde tout le monde en parallèle,
+-- puis on attend la fin de TOUTES les sauvegardes, y compris celles
+-- lancées par PlayerRemoving (Roblox attend 30 secondes au maximum)
 game:BindToClose(function()
-	local enCours = 0
 	for _, player in Players:GetPlayers() do
-		enCours += 1
-		task.spawn(function()
-			sauvegarder(player)
-			enCours -= 1
-		end)
+		task.spawn(sauvegarder, player)
 	end
-	while enCours > 0 do
+	while sauvegardesEnCours > 0 do
 		task.wait()
 	end
 end)
@@ -210,7 +211,7 @@ Les garde-fous ajoutés :
 - on distingue un **échec** (`succes == false`) d’un **nouveau joueur** (`succes == true` mais aucune donnée) ;
 - on réessaie avec une attente croissante, comme le recommande la documentation (*exponential backoff*) ;
 - on ne sauvegarde **jamais** un joueur dont le chargement a échoué ;
-- on sauvegarde aussi à la **fermeture du serveur** avec `game:BindToClose`.
+- on sauvegarde aussi à la **fermeture du serveur** avec `game:BindToClose`. D’après la référence de l’API, le serveur attend au maximum **30 secondes** que les fonctions liées à `BindToClose` se terminent, puis s’arrête quand même : c’est pour ça qu’on lance les sauvegardes en parallèle plutôt qu’une par une. Le compteur `sauvegardesEnCours` permet aussi d’attendre les sauvegardes déjà lancées par `PlayerRemoving` quand les joueurs sont déconnectés au moment de la fermeture.
 
 Le module 4 va plus loin (sauvegarde périodique, structure versionnée, verrouillage de session) : relis [Sauvegarder sans perdre de données](/modules/04/datastores-fiables/).
 
@@ -244,8 +245,8 @@ end)
 
 ```luau
 -- VERSION CORRIGÉE — Script dans ServerScriptService
--- Hypothèse : le ModuleScript Catalogue renvoie une table du type
--- { TrailArcEnCiel = { prix = 150 }, ... } (adapte à ton propre catalogue)
+-- Le ModuleScript Catalogue (module 4) renvoie une table du type
+-- { TrailNuage = { nom = "Traînée Nuage", prix = 25, ... }, ... }
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -316,10 +317,10 @@ La Toolbox (la boîte à outils de Studio) donne accès à des milliers de modè
 3. Rappelle-toi que la **popularité ne garantit pas la sécurité**.
 4. Isole les modèles douteux avec le **sandboxing** : propriété `SandboxedInstance` de Workspace réglée sur `Experimental`, propriété `Sandboxed` du modèle à `true`, puis seulement les **Capabilities** (autorisations) dont il a besoin. Cette fonctionnalité était encore en bêta au moment de la rédaction.
 
-Des développeurs partagent aussi leurs réflexes sur le DevForum : rechercher dans tous les scripts (Ctrl+Maj+F dans Studio) des mots comme `require` suivi d’un numéro (qui charge du code publié hors de ton jeu), `getfenv` ou `loadstring`. Ce sont des retours d’expérience, pas une liste officielle : ces mots ont aussi des usages légitimes, mais leur présence dans une simple plateforme décorative doit t’alerter.
+Pour fouiller un projet entier, la fenêtre **Find All / Replace All** de Studio cherche dans tous les scripts à la fois (Ctrl+Maj+F sur Windows, ⌘+Maj+F sur Mac). Des développeurs partagent sur le DevForum les mots qu’ils y recherchent : par exemple `require` suivi d’un numéro (qui charge du code publié hors de ton jeu), `getfenv` ou `loadstring`. Ce sont des retours d’expérience, pas une liste officielle : ces mots ont aussi des usages légitimes, mais leur présence dans une simple plateforme décorative doit t’alerter.
 
 <Erreur titre="« Je vérifierai plus tard »">
-Un backdoor inséré au début du projet peut se recopier dans d’autres scripts ou rester caché pendant des mois. Vérifie un modèle **au moment où tu l’insères**, pas la veille du lancement. Et si tu as un doute sérieux, reviens à une version antérieure de ton jeu grâce à l’historique des versions. Le module 1 en parlait déjà dans [Construire avec des Parts](/modules/01/construire-avec-des-parts/).
+Un backdoor inséré au début du projet peut se recopier dans d’autres scripts ou rester caché pendant des mois. Vérifie un modèle **au moment où tu l’insères**, pas la veille du lancement. Et si tu as un doute sérieux, reviens à une version antérieure de ton jeu grâce à l’historique des versions (Version History). Le module 1 parlait déjà des risques de la Toolbox dans [Construire avec des Parts](/modules/01/construire-avec-des-parts/) et des versions dans [Construire le premier niveau et le publier](/modules/01/premier-niveau-et-publication/).
 </Erreur>
 
 ## Erreur 4 : ne jamais tester à plusieurs
@@ -447,6 +448,10 @@ Lance l’Obby des Nuages en mode **Server & Clients** avec deux clients. Fais t
 <Sources>
 - [Data stores — documentation Roblox (accès depuis Studio)](https://create.roblox.com/docs/cloud-services/data-stores)
 - [Data stores best practices — documentation Roblox](https://create.roblox.com/docs/cloud-services/data-stores/best-practices)
+- [Player data and purchasing systems (données par défaut, verrouillage de session) — documentation Roblox](https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing)
+- [DataModel:BindToClose (limite de 30 secondes) — référence de l’API Roblox](https://create.roblox.com/docs/reference/engine/classes/DataModel#BindToClose)
+- [Script Editor (Find All / Replace All) — documentation Roblox](https://create.roblox.com/docs/studio/script-editor)
+- [Version History — documentation Roblox](https://create.roblox.com/docs/projects/version-history)
 - [Security tactics — documentation Roblox](https://create.roblox.com/docs/scripting/security/security-tactics)
 - [Vulnerabilities from third-party assets — documentation Roblox](https://create.roblox.com/docs/scripting/security/third-party-vulnerabilities)
 - [Testing modes (Server & Clients, Device Simulator) — documentation Roblox](https://create.roblox.com/docs/studio/testing-modes)
