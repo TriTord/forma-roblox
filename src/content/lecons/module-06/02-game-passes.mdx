@@ -209,7 +209,7 @@ Si c’est un LocalScript qui ajoute la traînée ou qui décide que le joueur �
 
 ## Le bouton de la boutique : proposer l’achat
 
-Côté client, on affiche le **vrai prix** et on ouvre la fenêtre d’achat quand le joueur clique. Dans la boutique du module 4, crée un TextButton nommé `BoutonTrailDore` dans `InterfaceObby` › `Boutique` › `Liste` (le `UIGridLayout` le range avec les traînées), puis place ce LocalScript dedans.
+Côté client, on affiche le **vrai prix** et on ouvre la fenêtre d’achat quand le joueur clique. Dans la boutique du module 4, crée un TextButton nommé `BoutonTrailDore` dans `InterfaceObby` › `Boutique` › `Liste` (le `UIGridLayout` le range avec les traînées), puis crée dedans un LocalScript nommé `ScriptBouton` avec ce code. Dans le script serveur **et** dans celui-ci, remplace `0` par l’ID de ton pass.
 
 ```luau
 -- LocalScript placé dans le TextButton « BoutonTrailDore »
@@ -273,7 +273,7 @@ Tester l’achat d’un pass demande un peu de méthode, car **Studio ne simule 
 Procède donc en deux temps :
 
 1. **Dans Studio** (Play) : vérifie que le bouton affiche le prix et ouvre la fenêtre d’achat, et que rien ne se passe si tu cliques sur **Annuler**. Pour tester l’effet lui-même, ajoute **temporairement** `accorderPass(player)` au début de `onPlayerAdded` : la traînée doit apparaître, revenir après une mort (réapparition), et le bouton doit afficher « possédée ». Retire cette ligne avant de publier !
-2. **Dans le jeu publié** : rejoins le jeu avec un compte qui possède réellement le pass pour tester la vérification à l’arrivée (`UserOwnsGamePassAsync`), et, si tu veux tester `PromptGamePassPurchaseFinished` en conditions réelles, fais un véritable achat (il coûte de vrais Robux).
+2. **Dans le jeu publié** : rejoins le jeu avec un compte qui possède réellement le pass pour tester la vérification à l’arrivée (`UserOwnsGamePassAsync`), et, si tu veux tester `PromptGamePassPurchaseFinished` en conditions réelles, fais un véritable achat (il coûte de vrais Robux : si tu es mineur, demande d’abord l’accord d’un parent). Ce dernier test est facultatif : personne n’est obligé de dépenser des Robux pour suivre cette leçon.
 
 <Defi>
 Crée le Game Pass « Traînée dorée » dans le Creator Hub, colle son ID dans les deux scripts, puis teste dans Studio. Bonus : ajoute un second pass (par exemple « Traînée arc-en-ciel ») en transformant `ID_PASS_TRAIL_DORE` en une petite table qui associe chaque ID de pass à une couleur de traînée.

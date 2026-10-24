@@ -83,7 +83,7 @@ Pour un obby, une méthode simple (c’est le choix de cette formation) consiste
 | La tempête | 6 à 10 | sauts plus longs, plateformes mobiles (module 4) | moyenne |
 | Le sommet | 11 à 12 | combinaisons d’obstacles, kill bricks | difficile |
 
-Quand tu ajouteras des étapes, il suffira de modifier `etapeFin` (ou d’ajouter un niveau) dans `Config`. À l’intérieur de chaque niveau, beaucoup de concepteurs de niveaux alternent les passages difficiles et les moments plus calmes (souvent appelé courbe « en dents de scie ») plutôt que de monter la difficulté sans répit. Ce n’est pas une règle officielle de Roblox, mais une approche courante à **vérifier avec tes playtests** (leçon 5).
+Quand tu ajouteras des étapes, il suffira de modifier `etapeFin` (ou d’ajouter un niveau) dans `Config`. À l’intérieur de chaque niveau, beaucoup de concepteurs de niveaux alternent les passages difficiles et les moments plus calmes, plutôt que de monter la difficulté sans répit : on parle souvent de courbe « en dents de scie ». Ce n’est pas une règle officielle de Roblox, mais une approche courante à **vérifier avec tes playtests** (leçon 5).
 
 ### Introduire un obstacle à la fois
 
@@ -104,7 +104,7 @@ La documentation Roblox propose de mesurer la répartition des joueurs à chaque
 - Une **récompense fixe** est toujours la même : 2 pièces par checkpoint, un bonus en fin de niveau. Le joueur sait ce qu’il va gagner, ce qui lui permet de **planifier** (« encore 3 étapes et je peux m’acheter la Traînée Nuage »).
 - Une **récompense variable** change d’une fois à l’autre : une pièce rare qui apparaît parfois, un coffre au contenu aléatoire. Elle crée de la surprise.
 
-Quand ce hasard est **payant**, Roblox l’encadre strictement : ses Community Standards fixent des règles pour les **objets aléatoires payants** : les probabilités doivent être affichées de façon exacte et chiffrée **avant l’achat**, et chaque résultat possible doit apporter un bénéfice au joueur. Le créateur doit en outre en réserver l’accès aux utilisateurs éligibles (attribut `ArePaidRandomItemsRestricted`). On étudiera ces règles au module 6 ([Fixer ses prix et monétiser éthiquement](/modules/06/prix-et-ethique/)).
+Quand ce hasard est **payant**, Roblox l’encadre strictement. Ses Community Standards fixent des règles pour les **objets aléatoires payants** : les probabilités doivent être affichées de façon exacte et chiffrée **avant l’achat**, et chaque résultat possible doit apporter un bénéfice au joueur. Le créateur doit en outre en réserver l’accès aux utilisateurs éligibles (attribut `ArePaidRandomItemsRestricted`). On étudiera ces règles au module 6 ([Fixer ses prix et monétiser éthiquement](/modules/06/prix-et-ethique/)).
 
 Pour l’Obby des Nuages, on reste simple : des récompenses **fixes et lisibles**, et éventuellement un peu de surprise **gratuite** (une pièce dorée cachée qui vaut plus que les autres).
 
@@ -171,7 +171,7 @@ end
 return Config -- OBLIGATOIRE, toujours en dernier
 ```
 
-Côté serveur, la récompense doit être versée **là où le checkpoint est validé** (modules 3 et 4), et seulement pour une étape **jamais atteinte**. Sinon, un joueur pourrait toucher le même checkpoint en boucle pour accumuler des pièces. Le petit module ci-dessous fait les deux d’un coup. On l’appelle `RecompensesEtapes`, et pas `Recompenses`, pour ne pas le confondre avec le Script d’exemple « Recompenses » du module 3 (leçon 3) : deux objets du même nom dans ServerScriptService, et `WaitForChild` risque de renvoyer le mauvais.
+Côté serveur, la récompense doit être versée **là où le checkpoint est validé** (modules 3 et 4), et seulement pour une étape **jamais atteinte**. Sinon, un joueur pourrait toucher le même checkpoint en boucle pour accumuler des pièces. Le petit module ci-dessous fait les deux d’un coup. Crée-le comme un **ModuleScript** dans **ServerScriptService** (efface le code de départ avant de coller le tien, comme pour `DonneesJoueurs` au module 4). On l’appelle `RecompensesEtapes`, et pas `Recompenses`, pour ne pas le confondre avec le Script d’exemple « Recompenses » du module 3 (leçon 3) : deux objets du même nom dans ServerScriptService, et `WaitForChild` risque de renvoyer le mauvais.
 
 ```luau
 -- ModuleScript « RecompensesEtapes » dans ServerScriptService

@@ -80,7 +80,12 @@ Elle cite aussi ce qu’il faut examiner de près : la **core loop** (leçon 1),
 ### Comment les faire jouer ?
 
 1. **Sur ton ordinateur, dans Studio** : le plus simple. Ton testeur joue avec le bouton Play pendant que tu observes derrière lui.
-2. **En ligne, avant le lancement public** : au moment de la rédaction (octobre 2026), la documentation Roblox indique qu’un jeu nouvellement publié n’est accessible qu’à toi et aux personnes ayant les droits d’édition. Tu peux inviter jusqu’à **10 amis d’âge proche** comme testeurs (*early testers*) depuis Studio, via **File › Invite early testers**. Si tu ne l’as pas encore fait, Roblox te demande de passer une vérification d’âge ; les testeurs de moins de 16 ans ne peuvent pas voir un jeu dont la classification dépasse ce que leurs parents autorisent, et tous voient un filigrane indiquant qu’il s’agit d’un aperçu. Ces options évoluent souvent : vérifie la page officielle de publication, dont on reparle au module 7.
+2. **En ligne, avant le lancement public** : au moment de la rédaction (octobre 2026), la documentation Roblox indique qu’un jeu nouvellement publié n’est accessible qu’à toi et aux personnes ayant les droits d’édition. Tu peux inviter jusqu’à **10 amis d’âge proche** comme testeurs (*early testers*) depuis Studio, via **File › Invite early testers**.
+   - Si tu ne l’as pas encore fait, Roblox te demande de passer une vérification d’âge.
+   - Les testeurs de moins de 16 ans ne peuvent pas voir un jeu dont la classification dépasse ce que leurs parents autorisent.
+   - Tous les testeurs voient un filigrane qui indique qu’il s’agit d’un aperçu.
+
+   Ces options évoluent souvent : vérifie la page officielle de publication, dont on reparle au module 7.
 
 <Info>
 En ligne, fais quand même au moins une séance « en direct » : en appel vidéo avec partage d’écran, ou à côté de ton testeur. Les chiffres te disent **où** il y a un problème ; seul le regard sur le joueur te dit **pourquoi**.
@@ -118,7 +123,7 @@ Après la partie, pose des **questions ouvertes** qui n’orientent pas la répo
 
 ## Mesurer pendant le playtest
 
-Pendant que tu observes, un petit script peut chronométrer chaque étape à ta place. Il affiche dans l’Output (la fenêtre de sortie) le temps passé et le nombre de chutes entre deux checkpoints. Pratique pour repérer un pic de difficulté (leçon 3) ou régler le délai de l’indice minuté (leçon 2).
+Pendant que tu observes, un petit script peut chronométrer chaque étape à ta place. Crée un **Script** (côté serveur) nommé `SuiviPlaytest` dans **ServerScriptService**. Il affiche dans l’Output (la fenêtre de sortie) le temps passé et le nombre de chutes entre deux checkpoints. Pratique pour repérer un pic de difficulté (leçon 3) ou régler le délai de l’indice minuté (leçon 2).
 
 ```luau
 -- Script à placer dans ServerScriptService, à n'utiliser QUE pendant tes playtests.
@@ -235,7 +240,7 @@ Organise ton premier vrai playtest :
 
 <Sources>
 - [Prototyping — tester tôt et itérer (Roblox)](https://create.roblox.com/docs/production/game-design/prototyping)
-- [Publish experiences and places — accès et testeurs invités (Roblox)](https://create.roblox.com/docs/production/publishing/publish-experiences-and-places)
+- [Publish experiences and places — accès et testeurs invités (Roblox)](https://create.roblox.com/docs/production/publishing/publish-games-and-places)
 - [LiveOps essentials — écouter les joueurs et prioriser les bugs (Roblox)](https://create.roblox.com/docs/production/game-design/liveops-essentials)
 - [Onboarding techniques — régler les indices grâce aux playtests (Roblox)](https://create.roblox.com/docs/production/game-design/onboarding-techniques)
 - [Developer Console — lire la sortie du serveur en jeu (Roblox)](https://create.roblox.com/docs/studio/developer-console)

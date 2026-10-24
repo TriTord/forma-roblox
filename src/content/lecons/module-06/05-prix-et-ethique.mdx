@@ -68,7 +68,7 @@ Le guide officiel « Monetization foundations » le résume : quand un joueur ac
 
 ### Une gamme de prix plutôt qu’un seul prix
 
-La page officielle sur les statistiques de monétisation conseille de proposer des objets à **plusieurs niveaux de prix** : certains joueurs ne dépenseront qu’un petit montant, d’autres davantage. Elle suggère aussi des **offres de bienvenue** pour les premiers achats, afin de réduire la barrière de la première dépense.
+La page officielle sur les statistiques de monétisation conseille de proposer des objets à **plusieurs niveaux de prix** : certains joueurs ne dépenseront qu’un petit montant, d’autres davantage. Elle suggère aussi des **offres de bienvenue** pour les premiers achats, afin de réduire la barrière de la première dépense. Si tu en proposes une, garde-la honnête et sans pression (pas de faux compte à rebours, voir plus bas) : ton objectif n’est pas de faire dépenser le plus possible, mais que chaque achat laisse un bon souvenir au joueur.
 
 Pour l’Obby des Nuages, cela pourrait donner :
 
@@ -99,7 +99,7 @@ Avec les prix régionaux, un même objet peut coûter moins cher dans certains p
 
 ### Le prérequis : des prix lus dynamiquement
 
-Tous ces outils, ainsi que les réductions Roblox Plus, supposent que ton interface lit le prix **depuis Roblox**. La documentation fournit même un outil, **Dynamic Price Check**, qui affiche de faux prix à des comptes de test pour repérer les prix écrits « en dur ». Voici le bouton « Passer l’étape » de la leçon 3, avec un prix toujours exact :
+Tous ces outils, ainsi que les réductions Roblox Plus, supposent que ton interface lit le prix **depuis Roblox**. La documentation fournit même un outil, **Dynamic Price Check**, qui affiche de faux prix à des comptes de test pour repérer les prix écrits « en dur ». Voici enfin le bouton « Passer l’étape » annoncé à la leçon 3, avec un prix toujours exact. Comme pour la traînée dorée (leçon 2), crée un TextButton `BoutonPasserEtape` dans `InterfaceObby` › `Boutique` › `Liste`, puis un LocalScript `ScriptBouton` dedans, et remplace `0` par l’ID de ton Developer Product :
 
 ```luau
 -- LocalScript dans le TextButton « BoutonPasserEtape »

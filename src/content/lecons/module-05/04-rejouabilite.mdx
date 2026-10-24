@@ -22,7 +22,7 @@ quiz:
   - type: vrai-faux
     question: Un jeu peut exiger que le joueur active les notifications d’expérience pour débloquer la zone suivante.
     reponse: false
-    explication: La documentation Roblox est explicite, les jeux ne doivent pas obliger les utilisateurs à activer les notifications pour participer ou progresser dans le jeu.
+    explication: "La documentation Roblox est explicite : les jeux ne doivent pas obliger les utilisateurs à activer les notifications pour participer ou progresser dans le jeu."
   - type: qcm
     question: "Laquelle de ces notifications est un « dark pattern » interdit par Roblox ?"
     options:
@@ -38,7 +38,7 @@ quiz:
       - texte: Pour ne pas punir l’absence et respecter le temps du joueur
         correct: true
       - texte: Parce que `os.time` ne fonctionne qu’une fois par jour
-    explication: C’est un choix de conception de la formation, un objectif quotidien doit être une **invitation**, pas une menace. Il s’appuie sur les recommandations Roblox sur les season passes (éviter l’épuisement des joueurs, des missions qui ne prennent pas tout leur temps de jeu) et sur des quotidiennes courtes aux récompenses modestes.
+    explication: "C’est un choix de conception de la formation : un objectif quotidien doit être une **invitation**, pas une menace. Il s’appuie sur les recommandations Roblox sur les season passes (éviter l’épuisement des joueurs, des missions qui ne prennent pas tout leur temps de jeu) et sur des quotidiennes courtes aux récompenses modestes."
   - type: trouve-le-bug
     question: "Cette fonction doit renvoyer le numéro du jour (en temps universel) pour réinitialiser les objectifs quotidiens. Les objectifs se réinitialisent pourtant en permanence. Où est le bug ?"
     code: |
@@ -90,7 +90,7 @@ Ces idées sont des exemples de la formation. La documentation Roblox sur les qu
 
 La documentation Roblox décrit les **quotidiennes** (*dailies*) comme des tâches courtes, aux objectifs simples et peu exigeants, avec des récompenses modestes, à accomplir dans les 24 heures. Elle recommande de les réserver aux objectifs à **court terme**, réalisables en une session. Ce sont aussi, selon la même page, un bon moyen de distribuer régulièrement de petites quantités de monnaie.
 
-Voici un objectif quotidien pour l’Obby des Nuages : « Ramasse 20 pièces aujourd’hui » (bonus : 15 pièces). Le module ci-dessous ne fait **aucun appel au DataStore** : il lit et modifie la table de données du joueur que ton module `DonneesJoueurs` (module 4) garde déjà en mémoire et enregistre en entier à chaque sauvegarde.
+Voici un objectif quotidien pour l’Obby des Nuages : « Ramasse 20 pièces aujourd’hui » (bonus : 15 pièces). Crée un **ModuleScript** `ObjectifsQuotidiens` dans **ServerScriptService** avec le code ci-dessous. Ce module ne fait **aucun appel au DataStore** : il lit et modifie la table de données du joueur que ton module `DonneesJoueurs` (module 4) garde déjà en mémoire et enregistre en entier à chaque sauvegarde.
 
 ```luau
 -- ModuleScript « ObjectifsQuotidiens » dans ServerScriptService
@@ -293,7 +293,7 @@ Choisis **deux** leviers de cette leçon pour l’Obby des Nuages. Pour chacun, 
 2. à quelle partie de la core loop il se rattache ;
 3. comment tu vérifieras qu’il ne transforme pas le jeu en obligation.
 
-Puis code l’objectif quotidien et affiche sa progression (« Pièces du jour : 12 / 20 ») avec un TextLabel.
+Puis code l’objectif quotidien et affiche sa progression (« Pièces du jour : 12 / 20 ») avec un TextLabel. Indice : le client ne voit pas la table de données du serveur. Comme pour l’inventaire (module 4, leçon 3), fais publier la progression par le serveur dans un **attribut** du joueur (par exemple après chaque pièce, avec `ObjectifsQuotidiens.progression`), puis lis cet attribut dans un LocalScript.
 </Defi>
 
 <Resume>

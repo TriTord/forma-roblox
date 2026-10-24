@@ -1,5 +1,5 @@
 module: "05"
-titre: Examen du module 5
+titre: Examen du module 5 — Un game design qui retient les joueurs
 description: Vérifie que tu sais concevoir une boucle de jeu, un début de partie, une progression, des raisons de revenir et un playtest, sans manipuler tes joueurs.
 seuil: 70
 questions:
@@ -38,7 +38,7 @@ questions:
       - texte: Les indices minutés pour les joueurs en difficulté
         correct: true
       - texte: Les comptes à rebours pour presser le joueur
-    explication: Roblox décrit trois techniques, les éléments visuels, les tutoriels contextuels (« juste à temps ») et les indices minutés. Un compte à rebours artificiel est une pression, pas une aide.
+    explication: "Roblox décrit trois techniques : les éléments visuels, les tutoriels contextuels (« juste à temps ») et les indices minutés. Un compte à rebours artificiel est une pression, pas une aide."
 
   - type: trouve-le-bug
     question: "Cette fonction doit dire si le faisceau de guidage est encore utile : oui tant que la prochaine étape est 1 ou 2, non ensuite. Pour un nouveau joueur (étape 0), elle affiche pourtant « false ». Où est le bug ?"

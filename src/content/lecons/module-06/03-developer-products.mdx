@@ -66,7 +66,7 @@ quiz:
     explication: "Si le joueur n’est pas là ou si ses leaderstats n’existent pas encore, on ne lui a rien donné. Renvoyer `PurchaseGranted` confirme pourtant l’achat à Roblox : le joueur a payé pour rien. Avec `NotProcessedYet`, le reçu reviendra plus tard. `ProcessReceipt` est un callback qu’on **assigne** avec `=`, pas un événement."
 ---
 
-« Passer l’étape » : c’est le produit qu’on voit dans beaucoup d’obbies. Le joueur bloqué paie quelques Robux et saute au checkpoint suivant. Il peut l’acheter **autant de fois** qu’il veut, ce qui en fait un **Developer Product**. C’est aussi le code le plus délicat du module : si tu te trompes, un joueur peut payer sans rien recevoir, ou recevoir deux fois. Prends ton temps, chaque ligne compte.
+« Passer l’étape » : c’est le produit qu’on voit dans beaucoup d’obbys. Le joueur bloqué paie quelques Robux et saute au checkpoint suivant. Il peut l’acheter **autant de fois** qu’il veut, ce qui en fait un **Developer Product**. C’est aussi le code le plus délicat du module : si tu te trompes, un joueur peut payer sans rien recevoir, ou recevoir deux fois. Prends ton temps, chaque ligne compte.
 
 ## Créer le Developer Product
 
@@ -165,7 +165,9 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
 end)
 ```
 
-Le LocalScript du bouton se résume alors à une ligne utile : `remotes.DemanderPasserEtape:FireServer()` quand on clique. Note que le client ne choisit **ni** le produit **ni** le prix : il demande, le serveur décide.
+Crée le RemoteEvent `DemanderPasserEtape` dans `Remotes` (bouton ⊕, comme au module 4) avant de lancer le jeu. Le LocalScript du bouton se résume alors à une ligne utile : `remotes.DemanderPasserEtape:FireServer()` quand on clique. Note que le client ne choisit **ni** le produit **ni** le prix : il demande, le serveur décide.
+
+Le bouton lui-même, `BoutonPasserEtape`, sera ajouté à la boutique à la leçon 5, avec son prix lu depuis Roblox. En attendant, pour tester, exécute cette ligne dans la Command Bar, en vue client : `game.ReplicatedStorage.Remotes.DemanderPasserEtape:FireServer()`.
 
 ## Étape 2 : ProcessReceipt, idempotent et fiable
 
@@ -337,7 +339,7 @@ Selon une annonce du staff Roblox sur le DevForum, les achats faits dans Studio 
 1. achat normal : l’étape augmente et tu es téléporté ;
 2. achat annulé : rien ne se passe ;
 3. sauvegarde en échec : remplace **temporairement** `if DonneesJoueurs.Sauvegarder(player) then` par `if false then` ; tu dois recevoir l’étape et voir l’avertissement dans la fenêtre Output (remets la ligne d’origine ensuite) ;
-4. joueur à la dernière étape : le bouton ne propose rien.
+4. joueur à la dernière étape : la demande ne propose rien (aucune fenêtre d’achat).
 
 <Defi>
 Ajoute un second Developer Product « Sac de 100 pièces ». Il te suffit d’écrire une fonction `donnerSacDePieces` sur le modèle de `donnerPasserEtape` (sans attente, et en mettant à jour `pieces.Value` **et** `donnees.pieces`), puis de l’ajouter dans la table `produits`. Vérifie ensuite que tes deux produits fonctionnent avec le **même** `ProcessReceipt`.

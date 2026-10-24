@@ -118,7 +118,9 @@ Roblox conseille d’afficher les objectifs à moyen et long terme dans des endr
 
 Mettons en pratique la technique des éléments visuels. On va relier le personnage au prochain checkpoint par un **Beam** (un faisceau lumineux tendu entre deux points d’attache, les **Attachments**). Le guide n’apparaît que pendant les deux premières étapes : ensuite, le joueur a compris le principe et le faisceau disparaît.
 
-On suppose ici que `Etape` vaut `0` tant qu’aucun checkpoint n’est atteint, et que les checkpoints sont des Parts nommées `"1"`, `"2"`… dans `Workspace.Checkpoints`. Si ton jeu commence à `1`, adapte le calcul de `prochaine`.
+On suppose ici que `Etape` vaut `0` tant qu’aucun checkpoint n’est atteint, et que les checkpoints sont des Parts nommées `"1"`, `"2"`… dans `Workspace.Checkpoints`, comme dans tout le projet. Si ton jeu commence à `1`, adapte le calcul de `prochaine`.
+
+Crée un **LocalScript** nommé `GuideCheckpoint` dans **StarterPlayer › StarterPlayerScripts** et colle ce code :
 
 ```luau
 -- LocalScript « GuideCheckpoint » à placer dans StarterPlayer > StarterPlayerScripts
@@ -205,7 +207,7 @@ Pourquoi un **LocalScript** ? Parce que chaque joueur a son propre prochain chec
 
 ### Ajouter un indice minuté
 
-Le faisceau aide tout le monde. L’indice minuté, lui, ne s’adresse qu’au joueur qui n’a toujours pas atteint le premier checkpoint après un certain temps. Ajoute ces lignes dans un second LocalScript, au même endroit :
+Le faisceau aide tout le monde. L’indice minuté, lui, ne s’adresse qu’au joueur qui n’a toujours pas atteint le premier checkpoint après un certain temps. Crée pour lui un second LocalScript, nommé `IndiceDepart`, au même endroit (StarterPlayerScripts) :
 
 ```luau
 -- LocalScript « IndiceDepart » à placer dans StarterPlayer > StarterPlayerScripts
