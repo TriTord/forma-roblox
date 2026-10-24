@@ -51,13 +51,13 @@ questions:
     explication: "L’événement se déclenche à chaque fermeture de la fenêtre d’achat, même en cas d’annulation ou d’erreur. Il faut vérifier le troisième paramètre (`wasPurchased`), et écouter l’événement côté serveur."
 
   - type: qcm
-    question: "Dans ton `ProcessReceipt`, l’appel `UpdateAsync` qui enregistre le `PurchaseId` échoue (DataStore indisponible). Rien n’a encore été donné au joueur. Que faire ?"
+    question: "Dans ton `ProcessReceipt`, tu as donné l’étape et noté le `PurchaseId` dans les données du joueur, mais `DonneesJoueurs.Sauvegarder` échoue (DataStore indisponible). Que doit renvoyer le callback ?"
     options:
-      - texte: Donner le produit quand même et renvoyer `PurchaseGranted`
-      - texte: "Renvoyer `NotProcessedYet` : le reçu sera retraité plus tard"
+      - texte: "`PurchaseGranted`, puisque le joueur a déjà reçu son étape"
+      - texte: "`NotProcessedYet` : le reçu reviendra, et le `PurchaseId` noté dans les données évitera de donner l’étape deux fois"
         correct: true
       - texte: Ne rien renvoyer pour que Roblox rembourse automatiquement le joueur
-    explication: "Rien n’a été donné et rien n’a été enregistré : `NotProcessedYet` laisse l’achat non résolu, il reviendra (par exemple quand le joueur rejoindra un serveur). Roblox ne rembourse pas automatiquement les achats non résolus."
+    explication: "Le guide officiel de Roblox ne renvoie `PurchaseGranted` qu’après une sauvegarde réussie. Ici, rien n’est encore enregistré : `NotProcessedYet` laisse l’achat non résolu. Si une sauvegarde suivante réussit, le reçu sera reconnu grâce au `PurchaseId` et simplement confirmé ; sinon, l’étape sera redonnée à la prochaine connexion. Roblox ne rembourse pas les achats non résolus : ils restent en attente."
 
   - type: qcm
     question: "Pourquoi un `ProcessReceipt` doit-il être idempotent ? (plusieurs réponses possibles)"

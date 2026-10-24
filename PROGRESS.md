@@ -22,7 +22,7 @@
 | 03 | FAIT | FAIT (8 corrections) | FAIT (9 corr.) ✅ |
 | 04 | FAIT | FAIT (13 corr., 1 suppr.) | en cours |
 | 05 | FAIT | FAIT (21 corr., 2 suppr.) | FAIT (9 corr.) ✅ |
-| 06 | FAIT | FAIT (22 corrections) | en cours |
+| 06 | FAIT | FAIT (22 corrections) | FAIT (14 corr., 1 suppr.) ✅ |
 | 07 | FAIT | FAIT (11 corrections) | FAIT (14 corr.) ✅ |
 | 08 | FAIT | FAIT (11 corrections) | FAIT (9 corr.) ✅ |
 | 09 | FAIT | FAIT (15 corrections) | FAIT (11 corr.) ✅ |
@@ -40,3 +40,4 @@
 - Cohérence : noms d'UI du module 09 (InterfaceObby, CompteurPieces, BoutonBoutique) à aligner sur le module 04.
 - Désaccord passe1/passe2 module 08 (Daily Engagement Rewards) tranché par le chef d'orchestre sur create.roblox.com/docs/creator-rewards : la passe 2 a raison (ordre de lancement).
 - Cohérence : harmoniser la présentation des seuils Kids & Select entre modules 01, 07, 10 (07 : 500 en juin puis 250 depuis le 19/08/2026).
+- Creator Rewards (modules 06 et 08) : règle revérifiée par le chef d'orchestre sur la source officielle (exemples 1 et 2) : parmi les jeux où l'Active Spender passe ≥ 10 min, les 3 premiers dans l'ordre des visites. Les deux modules sont cohérents.
