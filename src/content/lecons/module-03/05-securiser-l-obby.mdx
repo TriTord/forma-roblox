@@ -153,11 +153,20 @@ local function initialiserJoueur(player: Player)
 			return -- premier départ : la SpawnLocation suffit
 		end
 		local checkpoint = dossierCheckpoints:FindFirstChild(tostring(etape.Value))
-		if checkpoint and checkpoint:IsA("BasePart") then
-			character:WaitForChild("HumanoidRootPart")
-			task.wait() -- laisse Roblox finir de placer le personnage avant de le déplacer
-			character:PivotTo(checkpoint.CFrame + Vector3.new(0, 4, 0))
+		if not (checkpoint and checkpoint:IsA("BasePart")) then
+			return
 		end
+		-- CharacterAdded se déclenche AVANT que le personnage soit dans le Workspace,
+		-- et Roblox le place sur la SpawnLocation juste APRÈS l'y avoir mis.
+		-- On attend qu'il y soit, puis une image de plus, sinon notre placement serait écrasé.
+		if not character:IsDescendantOf(Workspace) then
+			character.AncestryChanged:Wait()
+		end
+		task.wait()
+		if not character:IsDescendantOf(Workspace) then
+			return -- le personnage a déjà disparu (joueur parti, nouvelle réapparition…)
+		end
+		character:PivotTo(checkpoint.CFrame + Vector3.new(0, 4, 0))
 	end)
 end
 
@@ -216,6 +225,10 @@ Players.PlayerRemoving:Connect(function(player: Player)
 	dernierPassage[player] = nil
 end)
 ```
+
+<Info titre="Pourquoi attendre avant de replacer le personnage ?">
+D’après la référence de `Player`, quand un personnage (ré)apparaît, Roblox déclenche d’abord `CharacterAdded`, charge l’apparence, place le personnage dans le jeu, construit son squelette (rig), puis seulement le déplace sur le point d’apparition. Un `PivotTo` fait trop tôt serait donc écrasé par ce dernier déplacement. Attendre l’entrée dans le `Workspace` puis une image de plus est le motif que tu as vu au module 2 ; il est courant chez les développeurs, mais la documentation ne le décrit pas tel quel. Teste-le : meurs après avoir validé une étape, tu dois réapparaître sur ton dernier checkpoint.
+</Info>
 
 <Astuce titre="Un seul script pour tous les checkpoints">
 Au lieu d’un script dans chaque checkpoint, un seul Script parcourt le dossier `Checkpoints`. Pour ajouter l’étape 12, tu dupliques une Part et tu la renommes `"12"` : rien d’autre à faire. Et si tu dois corriger une règle de sécurité, tu la corriges à un seul endroit.
@@ -467,7 +480,9 @@ acheterObjet:FireServer(0 / 0)
 acheterObjet:FireServer({ prix = 0 })
 acheterObjet:FireServer(string.rep("A", 10000))
 acheterObjet:FireServer("ObjetInexistant")
-acheterObjet:FireServer("TraineeDoree", 0) -- le « prix » est ignoré par le serveur
+task.wait(1.5) -- on attend la fin du cooldown d'achat (1 s) pour isoler le test suivant
+acheterObjet:FireServer("TraineeDoree", 0) -- le « prix » est ignoré : le serveur lit 400 dans son catalogue
+task.wait(1.5)
 
 -- Spam : au plus un achat par seconde passe le cooldown
 for _ = 1, 20 do
@@ -484,8 +499,9 @@ end
 
 Résultats attendus dans l’Output :
 
-- chaque argument piégé reçoit un refus (« Requête invalide », « Cet objet n’existe pas »…) ;
-- sur les 20 demandes de spam, au plus une passe le cooldown (et seulement si tu as assez de pièces) ;
+- chaque argument piégé reçoit un refus : « Requête invalide » pour `nil`, NaN, la table et le texte géant, « Cet objet n’existe pas » pour l’identifiant inconnu ;
+- l’achat de `"TraineeDoree"` avec un prix de 0 est refusé (« Il te manque… ») si tu as moins de 400 pièces : le prix envoyé n’a servi à rien ;
+- sur les 20 demandes de spam, une seule passe le cooldown (et l’achat ne réussit que si tu as assez de pièces et ne possèdes pas déjà la traînée), les 19 autres reçoivent « Doucement ! » ;
 - le personnage apparaît bien sur le checkpoint 3 (le client contrôle sa position), mais ton `Etape` **ne passe pas à 3** si tu n’as pas validé les étapes 1 et 2. La téléportation ne rapporte rien ;
 - si le détecteur de déplacements de la leçon 4 est actif, il signale cette téléportation dans l’Output, sans exclure personne.
 
@@ -512,4 +528,5 @@ Ajoute une Part `LigneArrivee` à la fin du parcours. Écris un Script serveur q
 - [Server-side detection and consequencing — documentation Roblox](https://create.roblox.com/docs/scripting/security/server-side-detection)
 - [Studio testing modes — Server & Clients, documentation Roblox](https://create.roblox.com/docs/studio/testing-modes)
 - [Remote events and callbacks — documentation Roblox](https://create.roblox.com/docs/scripting/events/remote)
+- [Player — référence de l’API (CharacterAdded, ordre de chargement du personnage)](https://create.roblox.com/docs/reference/engine/classes/Player)
 </Sources>

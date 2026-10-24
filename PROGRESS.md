@@ -19,7 +19,7 @@
 | 00 | FAIT | FAIT (16 corrections) | en cours |
 | 01 | FAIT | FAIT (12 corrections) | en cours |
 | 02 | FAIT | en cours | |
-| 03 | FAIT | en cours | |
+| 03 | FAIT | FAIT (8 corrections) | en cours |
 | 04 | FAIT | en cours | |
 | 05 | FAIT | FAIT (21 corr., 2 suppr.) | en cours |
 | 06 | FAIT | en cours | |

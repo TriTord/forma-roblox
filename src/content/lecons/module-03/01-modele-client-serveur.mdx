@@ -177,7 +177,7 @@ Pourquoi ? Pour la réactivité : ton personnage réagit instantanément à tes 
 
 ### Le revers de la médaille
 
-La documentation est très claire : Roblox **ne peut pas vérifier** les calculs de physique faits par un client. Un tricheur peut donc envoyer de fausses données : se téléporter, traverser les murs, voler, aller trop vite. Il peut même déclencher des événements `Touched` (contact) sur les Parts qu’il possède, y compris sans vrai contact.
+La documentation est très claire : Roblox **ne peut pas vérifier** les calculs de physique faits par un client. Un tricheur peut donc envoyer de fausses données : se téléporter, traverser les murs, voler, aller trop vite. Il peut même manipuler les événements `Touched` (contact) et les déclencher à n’importe quelle distance.
 
 Retiens bien ceci, on s’en servira dans tout le module : **la position d’un personnage et les contacts qu’il provoque ne sont pas des preuves fiables**. Le serveur doit les vérifier.
 
@@ -221,8 +221,8 @@ Mais comment un client « demande » quelque chose au serveur, par exemple « je
 D’après la documentation Roblox, la plupart des joueurs ont entre 100 et 300 millisecondes de latence (le délai d’un message entre leur appareil et le serveur). Dans Studio, il n’y en a aucune par défaut. Les paramètres de simulation réseau de Studio permettent d’en ajouter : la documentation conseille au moins 50 à 150 ms dans chaque sens pour tester dans des conditions réalistes.
 </Info>
 
-<Info titre="Une nouveauté à surveiller">
-Au moment de la rédaction (octobre 2026), Roblox propose en **bêta** un modèle d’« autorité serveur » (server authority) où le serveur simule lui-même les mouvements. Il est conçu surtout pour les jeux compétitifs. Pour un obby, le modèle classique décrit ici reste la base.
+<Info titre="Une nouveauté à connaître">
+Depuis juillet 2026, Roblox propose à tous les jeux un modèle d’« autorité serveur » (server authority). Il ne s’active pas tout seul : il faut régler la propriété `AuthorityMode` du `Workspace` sur `Server`. Le serveur devient alors la seule source de vérité, y compris pour les mouvements des personnages, et le client se contente de **prédire** le résultat de ses actions. Roblox le présente surtout pour les jeux compétitifs (combat, course, sport), et il peut demander d’adapter ses scripts. Dans cette formation, on garde le modèle classique décrit ici, qui reste le comportement par défaut (situation au moment de la rédaction, octobre 2026).
 </Info>
 
 <Resume>
@@ -244,4 +244,6 @@ Au moment de la rédaction (octobre 2026), Roblox propose en **bêta** un modèl
 - [Animator — référence de l’API (réplication des animations)](https://create.roblox.com/docs/reference/engine/classes/Animator)
 - [Studio testing modes — documentation Roblox](https://create.roblox.com/docs/studio/testing-modes)
 - [Server authority model — documentation Roblox](https://create.roblox.com/docs/projects/server-authority)
+- [Ship Fair And Competitive Games with Server Authority — annonce officielle de Roblox sur le DevForum (9 juillet 2026)](https://devforum.roblox.com/t/full-release-ship-fair-and-competitive-games-with-server-authority/4727993)
+- [Security and cheat mitigation tactics — documentation Roblox (capacités d’un tricheur)](https://create.roblox.com/docs/scripting/security/security-tactics)
 </Sources>

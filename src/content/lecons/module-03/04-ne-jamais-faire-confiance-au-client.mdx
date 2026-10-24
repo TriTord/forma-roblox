@@ -56,6 +56,7 @@ quiz:
       	end
       	if pieces.Value >= prix then
       		pieces.Value -= prix
+      		-- (ici, on ajoute l'objet à l'inventaire du joueur)
       	end
       end)
     options:
@@ -375,7 +376,7 @@ Limites à connaître :
 - un tricheur prudent peut rester juste sous la limite. Ce détecteur complète tes **validations de conception** (étapes obligatoires dans l’ordre, distances), il ne les remplace pas.
 
 <Info>
-Au moment de la rédaction (octobre 2026), Roblox teste en **bêta** un modèle d’« autorité serveur » qui déplace la simulation des mouvements sur le serveur. La documentation le présente comme la solution la plus fiable contre les triches de mouvement, une fois disponible.
+Depuis juillet 2026, Roblox propose à tous les jeux un modèle d’« autorité serveur » (server authority), à activer volontairement avec la propriété `AuthorityMode` du `Workspace`. Le serveur y fait autorité sur les mouvements, ce qui empêche des familles entières de triches comme le vol ou la super-vitesse. La documentation de sécurité le présente comme la solution la plus fiable contre les triches de physique et de mouvement. Il demande toutefois d’adapter son jeu : pour l’Obby des Nuages, on reste sur le modèle classique et ses validations côté serveur (situation au moment de la rédaction, octobre 2026).
 </Info>
 
 ## Réagir sans punir les innocents
@@ -412,4 +413,7 @@ Ajoute le ModuleScript `Validation` dans ServerScriptService. Dans un Script de 
 - [Server-side detection and consequencing — documentation Roblox](https://create.roblox.com/docs/scripting/security/server-side-detection)
 - [Defensive design tactics — documentation Roblox](https://create.roblox.com/docs/scripting/security/defensive-design)
 - [Humanoid.WalkSpeed — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/Humanoid#WalkSpeed)
+- [math.isfinite — référence de la bibliothèque math](https://create.roblox.com/docs/reference/engine/libraries/math)
+- [Server authority model — documentation Roblox](https://create.roblox.com/docs/projects/server-authority)
+- [Ship Fair And Competitive Games with Server Authority — annonce officielle de Roblox sur le DevForum (9 juillet 2026)](https://devforum.roblox.com/t/full-release-ship-fair-and-competitive-games-with-server-authority/4727993)
 </Sources>

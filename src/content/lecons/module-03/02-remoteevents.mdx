@@ -137,7 +137,7 @@ demanderReapparition.OnServerEvent:Connect(function(player: Player)
 		return -- trop rapproché : on ignore (on détaillera ces protections en leçon 4)
 	end
 	derniereDemande[player] = maintenant
-	player:LoadCharacter() -- recrée le personnage du joueur
+	player:LoadCharacterAsync() -- recrée le personnage du joueur (remplace l'ancienne méthode LoadCharacter, dépréciée)
 end)
 
 -- On oublie le joueur quand il part, pour ne pas garder de données inutiles
@@ -146,7 +146,11 @@ Players.PlayerRemoving:Connect(function(player: Player)
 end)
 ```
 
-Tu remarques le petit délai minimum ? Sans lui, un joueur (ou un programme de triche) pourrait spammer la demande des centaines de fois par seconde. On approfondira ces protections dans la leçon 4.
+Tu remarques le petit délai minimum ? Sans lui, un joueur (ou un programme de triche) pourrait spammer la demande des centaines de fois par seconde. La référence de `Player` déconseille d’ailleurs de rappeler `LoadCharacterAsync` pour un même joueur avant que son apparence ait fini de se charger. On approfondira ces protections dans la leçon 4.
+
+<Attention>
+Dans de vieux tutoriels, tu verras `player:LoadCharacter()`. Cette méthode est **dépréciée** : la documentation indique qu’elle est remplacée par `LoadCharacterAsync()`, qui a le même comportement.
+</Attention>
 
 <Erreur titre="Envoyer soi-même le joueur">
 N’écris pas `demanderReapparition:FireServer(Players.LocalPlayer)`. Le serveur recevrait le joueur **deux fois** : une fois ajouté par Roblox, une fois par toi. Pire : un tricheur peut mettre n’importe quel joueur à cet endroit. Le seul `player` fiable est le **premier paramètre** ajouté par Roblox.
@@ -274,7 +278,7 @@ Selon la documentation, un `RemoteEvent` est **fiable et ordonné** : un message
 - **personne n’écoute** : Roblox garde les messages en file d’attente jusqu’à ce qu’une fonction se connecte, mais cette file est limitée. Une fois pleine, les messages suivants sont jetés et une erreur apparaît dans l’Output ;
 - **le destinataire se déconnecte** avant de recevoir le message.
 
-Les messages envoyés par un client au serveur sont aussi **limités en débit**. Au moment de la rédaction (octobre 2026), la référence de `RemoteEvent` indique environ **500 requêtes par seconde et par client**, une limite partagée entre tous les RemoteEvents. Pour un RemoteEvent classique, les messages en excès sont traités plus tard, pas jetés. Ce chiffre peut évoluer : vérifie la page officielle. Retiens surtout qu’il ne faut pas envoyer de messages en boucle sans raison.
+Les messages envoyés par un client au serveur sont aussi **limités en débit**. Au moment de la rédaction (octobre 2026), la référence de `RemoteEvent` indique environ **500 requêtes par seconde et par client**, une limite partagée entre tous les RemoteEvents du jeu (et, séparément, entre tous les UnreliableRemoteEvents). Pour un RemoteEvent classique, les messages en excès sont traités plus tard, pas jetés. Ce chiffre peut évoluer : vérifie la page officielle. Retiens surtout qu’il ne faut pas envoyer de messages en boucle sans raison.
 
 ## Aperçu : l’UnreliableRemoteEvent
 
@@ -326,4 +330,6 @@ Crée le dossier `ReplicatedStorage.Remotes` et le RemoteEvent `DemanderReappari
 - [UnreliableRemoteEvent — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/UnreliableRemoteEvent)
 - [ReplicatedStorage — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/ReplicatedStorage)
 - [Securing the client-server boundary — documentation Roblox](https://create.roblox.com/docs/scripting/security/client-server-boundary)
+- [Player — référence de l’API (LoadCharacterAsync, LoadCharacter dépréciée)](https://create.roblox.com/docs/reference/engine/classes/Player)
+- [Security and cheat mitigation tactics — documentation Roblox (le premier argument `Player` est le seul garanti)](https://create.roblox.com/docs/scripting/security/security-tactics)
 </Sources>

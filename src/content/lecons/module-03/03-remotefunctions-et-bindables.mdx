@@ -17,7 +17,7 @@ quiz:
         correct: true
       - texte: Il s’arrête avec une erreur si le serveur met plus d’une seconde à répondre
       - texte: Il envoie le message à tous les autres clients
-    explication: "Une RemoteFunction est **synchrone** : l’appelant « cède » (yield) et attend le retour du callback `OnServerInvoke`. Il n’y a pas de délai maximum intégré, d’où l’importance d’un callback serveur rapide."
+    explication: "Une RemoteFunction est **synchrone** : l’appelant « cède » (yield) et attend le retour du callback `OnServerInvoke`. La documentation ne prévoit aucun délai maximum (`InvokeServer` n’a pas de paramètre de timeout) : l’attente dure tant que le serveur n’a pas répondu, d’où l’importance d’un callback serveur rapide."
   - type: qcm
     question: "Pourquoi la documentation déconseille-t-elle `InvokeClient` ? (plusieurs réponses possibles)"
     options:
@@ -119,7 +119,11 @@ else
 end
 ```
 
-Remarque le `typeof(resultat) == "table"` côté client : on vérifie ce qu’on reçoit avant de l’utiliser. Bonne habitude, même si c’est le serveur qui répond.
+Remarque le `typeof(resultat) == "table"` côté client : on vérifie ce qu’on reçoit avant de l’utiliser. Bonne habitude, même si c’est le serveur qui répond. Le `pcall` protège contre une erreur levée pendant l’appel. Il ne fixe pas de limite de temps : si le serveur ne répond jamais, le script attend.
+
+<Info>
+Si aucun script serveur n’a encore affecté `OnServerInvoke`, la documentation précise que Roblox **met les appels en file d’attente** jusqu’à ce qu’un callback soit défini (file limitée, comme pour les RemoteEvents). Le client attend donc, il ne reçoit pas d’erreur.
+</Info>
 
 ### Trois règles pour des RemoteFunctions saines
 
