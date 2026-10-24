@@ -79,19 +79,40 @@ afterEach(() => {
 describe('lecture / écriture de l’état', () => {
   it('renvoie un état vide sans données', async () => {
     const p = await charger();
-    expect(p.lireEtat()).toEqual({ version: 1, lecons: {}, quiz: {}, examens: {} });
+    expect(p.lireEtat()).toEqual({ version: 2, lecons: {}, quiz: {}, examens: {} });
   });
 
   it('ignore des données corrompues ou d’une autre version', async () => {
     const p = await charger();
     stockage.setItem(p.CLE_STOCKAGE, '{pas du json');
     expect(p.lireEtat().lecons).toEqual({});
-    stockage.setItem(p.CLE_STOCKAGE, JSON.stringify({ version: 2, lecons: { x: 'y' } }));
+    stockage.setItem(p.CLE_STOCKAGE, JSON.stringify({ version: 3, lecons: { x: 'y' } }));
     expect(p.lireEtat().lecons).toEqual({});
     stockage.setItem(p.CLE_STOCKAGE, JSON.stringify([1, 2]));
     expect(p.lireEtat().lecons).toEqual({});
     stockage.setItem(p.CLE_STOCKAGE, JSON.stringify({ version: 1, lecons: [1], quiz: null, examens: 'x' }));
-    expect(p.lireEtat()).toEqual({ version: 1, lecons: {}, quiz: {}, examens: {} });
+    expect(p.lireEtat()).toEqual({ version: 2, lecons: {}, quiz: {}, examens: {} });
+  });
+
+  it('migre une progression de la version 1 (modules 02 à 10 décalés d’un cran)', async () => {
+    const p = await charger();
+    const r = { score: 4, total: 5, meilleurScore: 4, tentatives: 1, date: 'd' };
+    const ex = { pct: 80, meilleurPct: 80, reussi: true, sansFaute: false, tentatives: 1, date: 'd' };
+    stockage.setItem(
+      p.CLE_STOCKAGE,
+      JSON.stringify({
+        version: 1,
+        lecons: { 'module-01/01-a': 'd1', 'module-02/04-tables': 'd2', 'module-10/04-checklist': 'd3' },
+        quiz: { 'module-09/02-b': r },
+        examens: { '00': ex, '02': ex, '10': ex },
+      }),
+    );
+    expect(p.lireEtat()).toEqual({
+      version: 2,
+      lecons: { 'module-01/01-a': 'd1', 'module-03/04-tables': 'd2', 'module-11/04-checklist': 'd3' },
+      quiz: { 'module-10/02-b': r },
+      examens: { '00': ex, '03': ex, '11': ex },
+    });
   });
 
   it('marque et démarque une leçon en conservant la date initiale', async () => {
@@ -135,7 +156,7 @@ describe('lecture / écriture de l’état', () => {
     p.enregistrerQuiz('a', 1, 1);
     p.reinitialiser();
     expect(stockage.getItem(p.CLE_STOCKAGE)).toBeNull();
-    expect(p.lireEtat()).toEqual({ version: 1, lecons: {}, quiz: {}, examens: {} });
+    expect(p.lireEtat()).toEqual({ version: 2, lecons: {}, quiz: {}, examens: {} });
   });
 });
 
@@ -198,7 +219,7 @@ describe('stockage indisponible', () => {
 describe('statistiques', () => {
   it('calcule les pourcentages global et par module, et la prochaine leçon', async () => {
     const p = await charger();
-    const etat = { version: 1 as const, lecons: { 'module-00/01-a': 'd', 'module-01/01-c': 'd' }, quiz: {}, examens: {} };
+    const etat = { version: 2 as const, lecons: { 'module-00/01-a': 'd', 'module-01/01-c': 'd' }, quiz: {}, examens: {} };
     const s = p.calculerStats(etat, catalogue);
     expect(s).toMatchObject({ total: 4, terminees: 2, pct: 50 });
     expect(s.modules.map((m) => [m.numero, m.terminees, m.total, m.pct])).toEqual([
@@ -211,18 +232,18 @@ describe('statistiques', () => {
 
   it('ignore les leçons inconnues du catalogue (anciennes leçons supprimées)', async () => {
     const p = await charger();
-    const etat = { version: 1 as const, lecons: { 'module-09/99-supprimee': 'd' }, quiz: {}, examens: {} };
+    const etat = { version: 2 as const, lecons: { 'module-10/99-supprimee': 'd' }, quiz: {}, examens: {} };
     expect(p.calculerStats(etat, catalogue)).toMatchObject({ terminees: 0, pct: 0 });
   });
 
   it('n’a pas de prochaine leçon quand tout est terminé, et gère un catalogue vide', async () => {
     const p = await charger();
     const toutes = Object.fromEntries(catalogue.modules.flatMap((m) => m.lecons.map((l) => [l.id, 'd'])));
-    expect(p.calculerStats({ version: 1, lecons: toutes, quiz: {}, examens: {} }, catalogue)).toMatchObject({
+    expect(p.calculerStats({ version: 2, lecons: toutes, quiz: {}, examens: {} }, catalogue)).toMatchObject({
       pct: 100,
       prochaine: undefined,
     });
-    expect(p.calculerStats({ version: 1, lecons: {}, quiz: {}, examens: {} }, { modules: [] })).toMatchObject({ total: 0, pct: 0 });
+    expect(p.calculerStats({ version: 2, lecons: {}, quiz: {}, examens: {} }, { modules: [] })).toMatchObject({ total: 0, pct: 0 });
   });
 });
 

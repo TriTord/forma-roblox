@@ -1,0 +1,212 @@
+---
+titre: Icône et miniatures qui donnent envie de cliquer
+description: Conçois une icône lisible en petit et des miniatures fidèles au vrai gameplay, aux bons formats, puis teste-les avec la personnalisation des miniatures.
+duree: 30
+objectifs:
+  - Concevoir une icône lisible même en très petit
+  - Créer des miniatures représentatives du vrai gameplay, aux bons formats
+  - Tester plusieurs miniatures avec les outils officiels du Creator Hub
+  - Comprendre le lien entre visuels, taux de clic et rétention
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Quelles dimensions la documentation recommande-t-elle pour l’icône d’un jeu ?
+    options:
+      - texte: 1920×1080 pixels, format 16:9
+      - texte: 512×512 pixels, format carré
+        correct: true
+      - texte: 150×150 pixels, format carré
+      - texte: N’importe quelle taille, Roblox recadre automatiquement
+    explication: "L’icône doit être **carrée** et faire au moins **512×512** pixels. Elle est parfois affichée beaucoup plus petite (150×150 par exemple) : c’est pour ça qu’il faut la vérifier en petit. Le format 1920×1080 en 16:9 est celui des **miniatures**."
+  - type: vrai-faux
+    question: Une miniature envoyée dans un format qui n’est pas 16:9 est affichée avec des bandes noires pour garder ses proportions.
+    reponse: false
+    explication: "D’après la documentation, les miniatures affichées sont **étirées** au format 16:9, quel que soit le format envoyé. Une image mal proportionnée sera donc déformée."
+  - type: qcm
+    question: "Lesquels de ces éléments sont **interdits** dans une vidéo de présentation du jeu ? (plusieurs réponses possibles)"
+    options:
+      - texte: Une voix off qui commente le jeu
+        correct: true
+      - texte: "Un texte « -50 % sur la boutique ! »"
+        correct: true
+      - texte: Des angles de caméra variés filmés dans le vrai jeu
+      - texte: Le logo du jeu ajouté par-dessus la vidéo
+    explication: "Les voix off, la narration et la musique avec paroles sont interdites, tout comme les textes publicitaires ou promotionnels. En revanche, les angles de caméra variés montrant le vrai gameplay et l’ajout du logo du jeu sont explicitement autorisés."
+  - type: qcm
+    question: Comment fonctionne la personnalisation des miniatures (*thumbnail personalization*) ?
+    options:
+      - texte: Roblox choisit une seule miniature gagnante au bout de 24 heures et supprime les autres
+      - texte: Roblox montre chaque miniature active à différents joueurs, puis donne plus d’affichages à celle qui fonctionne le mieux pour chaque groupe, tout en continuant à tester les autres
+        correct: true
+      - texte: Chaque joueur choisit lui-même la miniature qu’il préfère
+      - texte: Elle fonctionne avec une seule miniature active
+    explication: "Il faut au moins **2 miniatures actives**. L’algorithme mesure le *qualified play through rate* de chaque miniature par groupe de joueurs, favorise la meilleure, mais garde un peu de trafic pour les autres. Roblox conseille donc de garder plusieurs miniatures actives."
+  - type: vrai-faux
+    question: Au moment de la rédaction, le Creator Hub propose un outil officiel pour tester automatiquement plusieurs icônes l’une contre l’autre.
+    reponse: false
+    explication: "Le test automatique existe pour les **miniatures** de la page d’accueil (personnalisation des miniatures). Pour les icônes, un tel outil est demandé par des développeurs sur le DevForum, mais il n’existe pas officiellement au moment de la rédaction. L’outil **Experiments** teste des valeurs dans le jeu, pas les visuels de la page."
+---
+
+Sur la page d’accueil de Roblox, ton jeu n’est qu’une petite image parmi des dizaines d’autres. Avant même de lire ton nom, le joueur voit ton **icône** ou ta **miniature**. Dans cette leçon, tu vas créer les visuels de l’Obby des Nuages : une icône lisible en petit, des miniatures fidèles au vrai jeu, et une méthode pour les tester au lieu de deviner.
+
+## Icône et miniatures : deux rôles différents
+
+- **L’icône** (*icon*) est une image **carrée**. Elle représente ton jeu à de nombreux endroits de la page d’accueil et sert à le reconnaître d’un coup d’œil. Tu ne peux afficher qu’une icône par langue.
+- **Les miniatures** (*thumbnails*) sont des images ou vidéos **rectangulaires**. Elles apparaissent sur la page d’accueil et en haut de la page de détails du jeu, pour montrer ce qu’on y fait.
+
+Quand tu publies un jeu pour la première fois, Roblox génère une icône par défaut : remplace-la par la tienne. Pour les miniatures, c’est encore plus important : la documentation sur la découverte précise qu’un jeu doit avoir une **miniature personnalisée** pour recevoir des affichages dans les recommandations de la page d’accueil. Avec seulement la miniature par défaut, il n’y est pas éligible.
+
+## L’icône
+
+### Le format
+
+Au moment de la rédaction, la documentation recommande :
+
+- une image **carrée** ;
+- au moins **512×512 pixels**, pour un affichage net partout.
+
+Roblox réduit parfois l’icône à de petites tailles, comme **150×150 pixels**. Elle doit donc rester compréhensible en tout petit. Comme toutes les images envoyées, l’icône passe par la **modération** avant d’être visible par les autres joueurs.
+
+Pour l’envoyer, au moment de la rédaction : sur le Creator Dashboard, ouvre ton jeu, puis **Configurations › Places**, clique sur le lieu de départ (la *place* où arrivent les joueurs, marquée d’une étoile), puis **Icon**.
+
+### Les bonnes pratiques officielles
+
+La documentation donne trois conseils pour l’icône :
+
+1. **Qualité et format** : une image nette et carrée. Une image floue ou rectangulaire fait amateur.
+2. **Contenu pertinent** : l’icône doit montrer ce que le joueur trouvera en jouant. Un symbole ambigu dans un coin crée de la confusion.
+3. **Couleur et contraste** : les couleurs expriment le ton du jeu. Des couleurs vives et saturées pour un univers joyeux ou rêveur, des couleurs sombres et contrastées pour un jeu d’horreur.
+
+### Appliqué à l’Obby des Nuages
+
+En partant de ces conseils, voici une idée d’icône :
+
+- **un seul sujet** : un avatar en plein saut entre deux nuages ;
+- un **ciel bleu vif** et des nuages blancs bien contrastés ;
+- **pas de texte** ou presque : à 150 pixels, un texte devient illisible ;
+- un cadrage serré : le personnage occupe une bonne partie de l’image.
+
+<Astuce titre="Le test du petit format">
+Quand ton icône est prête, réduis-la à 150×150 pixels (ou regarde-la de loin sur ton téléphone). Pose-toi une question : « Est-ce que je comprends le jeu en une seconde ? » Si tu dois plisser les yeux, simplifie : moins d’éléments, plus de contraste, un sujet plus gros.
+</Astuce>
+
+## Les miniatures
+
+### Le format
+
+Au moment de la rédaction (octobre 2026), la documentation indique :
+
+| Élément | Règle |
+|---|---|
+| Format d’image | **16:9**, idéalement **1920×1080 pixels** |
+| Fichiers acceptés | `.jpg`, `.gif`, `.png`, `.tga`, `.bmp` |
+| Nombre maximum | **10** images ou vidéos par page de jeu |
+| Vidéos | quota gratuit de **3 envois par mois** |
+| Modération | toutes les images et vidéos sont vérifiées |
+
+Une image qui n’est pas en 16:9 est **étirée** à l’affichage. Évite aussi de placer du texte ou un élément important **en bas** de la miniature : des informations comme le nombre de joueurs peuvent s’afficher par-dessus.
+
+Les miniatures se gèrent dans **Configurations › Places**, puis **Thumbnails**. Deux onglets séparent la page d’accueil (**Home Page**) et la page de détails (**Experience Detail Page**). Les vidéos se trouvent dans **Videos**.
+
+### Ce qui fait une bonne miniature
+
+La documentation reprend les mêmes idées que pour l’icône : une image **nette**, un contenu **pertinent** et **unique**, des couleurs qui annoncent le ton du jeu. Pour l’Obby des Nuages, tu pourrais préparer :
+
+1. une vue large du parcours dans le ciel, avec un joueur en plein saut ;
+2. la boutique avec les traînées colorées en action ;
+3. une étape difficile (plateformes qui bougent) vue de près.
+
+Chaque image montre **une** chose que le joueur fera vraiment.
+
+### Les vidéos : authentiques ou refusées
+
+Une vidéo approuvée apparaît **en premier** sur la page de détails. Roblox vérifie chaque vidéo et refuse celles qui trompent les joueurs. Une vidéo refusée compte quand même dans ton quota de 3 envois par mois.
+
+**Autorisé**, d’après la documentation :
+
+- des angles de caméra variés, s’ils montrent le vrai gameplay ;
+- de petites retouches (luminosité, contraste) et le logo du jeu ;
+- un montage des meilleurs moments, tant qu’il montre de vraies mécaniques ;
+- les textes de l’interface du jeu ;
+- les musiques du catalogue audio de Roblox.
+
+**Interdit** :
+
+- montrer des mécaniques ou une interface qui n’existent pas dans le jeu ;
+- des graphismes « améliorés » au-delà de ce que voit le joueur ;
+- des images réelles (personnes, lieux) ou du contenu extérieur au jeu ;
+- la voix off, la narration, les conversations vocales et la musique avec paroles ;
+- les textes publicitaires ou les affirmations subjectives (« -50 % », « UGC gratuit ! »).
+
+<Erreur titre="La miniature qui ment">
+Montrer une scène spectaculaire qui n’existe pas dans ton jeu peut faire grimper les clics. Mais les joueurs déçus repartent au bout de quelques secondes, et la documentation sur la découverte cite le taux de rebond sur la première session comme un **signal négatif** majeur. Une miniature trompeuse peut donc te coûter de la visibilité, en plus d’enfreindre les règles sur les métadonnées trompeuses vues à la leçon précédente.
+</Erreur>
+
+### Capturer de belles images dans Studio
+
+Pour des captures et des vidéos réussies, Studio propose une **caméra libre** (*free camera mode*) : pendant un test en solo, appuie sur **Maj gauche (Shift) + P** pour l’activer ou la désactiver. Tu peux alors placer la caméra où tu veux, par exemple sous un nuage pour filmer un saut en contre-plongée. C’est autorisé, puisque tu filmes le vrai jeu.
+
+## Tester ses visuels au lieu de deviner
+
+### La personnalisation des miniatures
+
+Le Creator Hub propose un outil officiel pour les miniatures de la **page d’accueil** : la **personnalisation des miniatures** (*thumbnail personalization*). Son but est d’améliorer ton *qualified play through rate*, c’est-à-dire la part des joueurs qui, après avoir vu ton jeu, y jouent vraiment pendant un temps significatif.
+
+Comment ça marche, selon la documentation :
+
+1. Dans l’onglet **Home Page**, clique sur **Edit active thumbnails**.
+2. Active **2 à 5 miniatures** (fichiers de moins de 3 Mo, au maximum 1920×1080 pixels).
+3. Enregistre, puis confirme le lancement de la personnalisation.
+4. L’algorithme montre chaque miniature à des groupes de joueurs choisis au hasard, mesure les résultats, puis donne **plus d’affichages** à la miniature gagnante de chaque groupe, tout en continuant à montrer un peu les autres.
+
+Après quelques heures, un tableau **Thumbnail Performance** affiche notamment, pour chaque miniature : les affichages (*Impressions*), les parties qualifiées (*Qualified Plays*), le temps de jeu moyen et le *Qualified Play Through Rate*.
+
+Roblox indique que, pendant ses tests, les jeux qui utilisaient cette fonction ont vu leur *qualified play through rate* augmenter de **8,5 % en moyenne**. C’est une moyenne observée par Roblox, **pas une garantie** pour ton jeu.
+
+<Astuce titre="Garde plusieurs gagnantes">
+La documentation recommande de **garder plusieurs miniatures actives** plutôt que de ne conserver que la meilleure : les goûts des joueurs changent, et une miniature moyenne aujourd’hui peut devenir la deuxième meilleure demain. Elle conseille aussi de tester de nouvelles miniatures à chaque grosse mise à jour, puis de ne plus y toucher jusqu’à la suivante.
+</Astuce>
+
+### Et pour l’icône ?
+
+Au moment de la rédaction, il n’existe **pas** d’outil officiel de test A/B pour les icônes (un test A/B compare deux versions en les montrant à des groupes de joueurs différents) : c’est une demande de développeurs sur le DevForum. Si tu changes d’icône, note la date et compare l’évolution de tes statistiques avant et après, en gardant en tête que d’autres facteurs jouent (vacances, mises à jour…). On verra comment lire ces chiffres au module 9.
+
+<Info>
+Ne confonds pas avec l’outil **Experiments** du Creator Hub. Il sert à tester des **valeurs dans le jeu** (un tutoriel, un prix, la vie d’un boss…) sur des groupes de joueurs pendant 14 à 60 jours, pas les images de ta page. La documentation prévient d’ailleurs que les jeux de moins de 1 000 joueurs actifs par jour auront du mal à obtenir des résultats exploitables.
+</Info>
+
+## Visuels, taux de clic et rétention
+
+Le *play through rate*, proche de ce qu’on appelle le **taux de clic**, c’est la part des joueurs qui lancent ton jeu après l’avoir vu dans les recommandations de la page d’accueil. La documentation sur la découverte le classe parmi les signaux **les plus importants** pour les recommandations de la page d’accueil.
+
+Mais elle place au même niveau le **taux de rebond** de la première partie, le nombre de jours de jeu et le temps de jeu par joueur. Autrement dit, ton visuel doit :
+
+1. donner envie de cliquer ;
+2. **annoncer exactement** ce que le joueur va trouver, pour qu’il reste.
+
+Une belle icône ne sauvera pas un jeu dont les 60 premières secondes sont ratées (module 6). Mais une icône ratée peut empêcher les joueurs de découvrir un bon jeu.
+
+<Defi>
+Prépare les visuels de l’Obby des Nuages :
+
+1. Une **icône** 512×512 avec un seul sujet. Vérifie-la en 150×150.
+2. **Trois miniatures** 1920×1080 capturées avec la caméra libre (Maj gauche + P), chacune montrant une vraie fonctionnalité.
+3. Vérifie qu’aucun élément important n’est en bas des miniatures.
+4. Une fois le jeu public, active la personnalisation avec tes trois miniatures et note la date. Reviens voir le tableau **Thumbnail Performance** une semaine plus tard.
+</Defi>
+
+<Resume>
+- **Icône** : carrée, au moins 512×512, compréhensible même en 150×150, un seul message.
+- **Miniatures** : 16:9, idéalement 1920×1080, jusqu’à 10 images ou vidéos, rien d’important en bas.
+- Les **vidéos** doivent montrer le vrai jeu : pas de voix off, pas de publicité, pas de graphismes truqués.
+- La **personnalisation des miniatures** (2 à 5 actives) teste tes visuels sur la page d’accueil ; il n’y a pas d’équivalent officiel pour les icônes au moment de la rédaction.
+- Un bon visuel attire **et** annonce honnêtement le jeu : le taux de rebond compte autant que le taux de clic.
+</Resume>
+
+<Sources>
+- [Icons — documentation Roblox](https://create.roblox.com/docs/production/publishing/experience-icons)
+- [Thumbnails — documentation Roblox](https://create.roblox.com/docs/production/publishing/thumbnails)
+- [Discovery — documentation Roblox](https://create.roblox.com/docs/discovery)
+- [Experiments — documentation Roblox](https://create.roblox.com/docs/production/experiments)
+- [Icon A/B Testing — demande de fonctionnalité sur le DevForum](https://devforum.roblox.com/t/icon-ab-testing/3274267)
+</Sources>

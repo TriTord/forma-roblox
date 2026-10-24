@@ -1,11 +1,11 @@
 -- Script « AnalytiqueObby » placé dans ServerScriptService (serveur uniquement).
--- Il écoute leaderstats.Etape (modifiée seulement par le serveur, modules 3 et 4)
+-- Il écoute leaderstats.Etape (modifiée seulement par le serveur, modules 4 et 5)
 -- et envoie les événements d'analytics de l'Obby des Nuages.
 local AnalyticsService = game:GetService("AnalyticsService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
--- Entonnoir d'onboarding : les 60 premières secondes (module 5)
+-- Entonnoir d'onboarding : les 60 premières secondes (module 6)
 local ETAPES_ONBOARDING = {
 	[1] = "Arrivée",
 	[2] = "Personnage apparu",
@@ -125,7 +125,7 @@ local function onPlayerAdded(player: Player)
 		task.spawn(onCharacterAdded, player.Character)
 	end
 
-	-- Attend les leaderstats créées par le script du module 4 (60 s, comme au module 4 :
+	-- Attend les leaderstats créées par le script du module 5 (60 s, comme au module 5 :
 	-- le chargement de la sauvegarde peut faire plusieurs tentatives)
 	local leaderstats = player:WaitForChild("leaderstats", 60)
 	local etape = if leaderstats then leaderstats:WaitForChild("Etape", 10) else nil

@@ -1,6 +1,6 @@
 # Obby des Nuages — corrigé final
 
-Ce dossier contient **tout le code final de l’Obby des Nuages**, tel que tu l’obtiens en suivant les leçons de la formation dans l’ordre (modules 2 à 10, en appliquant chaque consigne « ajoute / remplace / modifie »). Les extraits purement pédagogiques (démonstrations, versions « avant », scripts de test temporaires, exemples « imaginons… ») n’en font pas partie.
+Ce dossier contient **tout le code final de l’Obby des Nuages**, tel que tu l’obtiens en suivant les leçons de la formation dans l’ordre (modules 3 à 11, en appliquant chaque consigne « ajoute / remplace / modifie »). Les extraits purement pédagogiques (démonstrations, versions « avant », scripts de test temporaires, exemples « imaginons… ») n’en font pas partie.
 
 Il est au format [Rojo](https://rojo.space/) : chaque fichier correspond à un script de Studio.
 
@@ -14,12 +14,12 @@ Il est au format [Rojo](https://rojo.space/) : chaque fichier correspond à un s
 
 | Emplacement dans Studio | Contenu (leçon d’origine) |
 |---|---|
-| `ServerScriptService` | Scripts : `KillBricks` (2.4), `Progression` (3.5, modifié en 4.1 et 5.3), `Pieces` (3.5, modifié en 5.4), `GestionJoueurs` (4.2), `Boutique` (4.3, modifié en 8.5), `Victoire` (4.5), `PlateformesMobiles` (4.6), `GamePassTrail` (6.2), `DemandesAchat` et `Achats` (6.3), `Redemarrage` (7.4), `AnalytiqueObby` (8.5), `AutoVerification` (10.4). ModuleScripts : `Validation` (3.4), `DonneesJoueurs` (4.2, champs ajoutés en 6.3 et 7.4), `RecompensesEtapes` (5.3), `ObjectifsQuotidiens` (5.4), `AnalytiqueEconomie` (8.5) |
-| `ReplicatedStorage › Modules` (Folder) | ModuleScripts `Config` (2.6, complété en 5.3) et `Catalogue` (3.5, complété en 4.3) |
+| `ServerScriptService` | Scripts : `KillBricks` (3.4), `Progression` (4.5, modifié en 5.1 et 6.3), `Pieces` (4.5, modifié en 6.4), `GestionJoueurs` (5.2), `Boutique` (5.3, modifié en 9.5), `Victoire` (5.5), `PlateformesMobiles` (5.6), `GamePassTrail` (7.2), `DemandesAchat` et `Achats` (7.3), `Redemarrage` (8.4), `AnalytiqueObby` (9.5), `AutoVerification` (11.4). ModuleScripts : `Validation` (4.4), `DonneesJoueurs` (5.2, champs ajoutés en 7.3 et 8.4), `RecompensesEtapes` (6.3), `ObjectifsQuotidiens` (6.4), `AnalytiqueEconomie` (9.5) |
+| `ReplicatedStorage › Modules` (Folder) | ModuleScripts `Config` (3.6, complété en 6.3) et `Catalogue` (4.5, complété en 5.3) |
 | `ReplicatedStorage › Remotes` (Folder) | RemoteEvents `AcheterObjet`, `EquiperObjet`, `Notification` (envoyé par Progression, affiché par MessagesProgression), `Victoire`, `DemanderPasserEtape`, `AnnonceRedemarrage` (déclarés dans `default.project.json`) |
-| `StarterPlayer › StarterPlayerScripts` | LocalScripts `MessagesProgression` (5.1), `GuideCheckpoint` et `IndiceDepart` (5.2), `ProposerNotifications` (5.4), `AffichageRedemarrage` (7.4), `PiecesTournantesClient` (9.4, remplace le Script serveur `PiecesTournantes`) |
-| `StarterPlayer › StarterCharacterScripts` | LocalScript `AnimationVictoire` (4.5) |
-| `StarterGui › InterfaceObby` (ScreenGui) | L’interface du module 4 (voir plus bas) et ses LocalScripts `ScriptInterface` (4.4), `AnimationsInterface` (4.6), `AdaptationMobile` (9.1), plus les boutons `BoutonTrailDore` (6.2) et `BoutonPasserEtape` (6.5), chacun avec un LocalScript `ScriptBouton` |
+| `StarterPlayer › StarterPlayerScripts` | LocalScripts `MessagesProgression` (6.1), `GuideCheckpoint` et `IndiceDepart` (6.2), `ProposerNotifications` (6.4), `AffichageRedemarrage` (8.4), `PiecesTournantesClient` (10.4, remplace le Script serveur `PiecesTournantes`) |
+| `StarterPlayer › StarterCharacterScripts` | LocalScript `AnimationVictoire` (5.5) |
+| `StarterGui › InterfaceObby` (ScreenGui) | L’interface du module 5 (voir plus bas) et ses LocalScripts `ScriptInterface` (5.4), `AnimationsInterface` (5.6), `AdaptationMobile` (10.1), plus les boutons `BoutonTrailDore` (7.2) et `BoutonPasserEtape` (7.5), chacun avec un LocalScript `ScriptBouton` |
 
 ## L’importer dans Studio
 
@@ -35,13 +35,13 @@ Pour chaque fichier `.luau`, crée dans Studio un objet du bon type (tableau du 
 
 ## Ce que tu dois construire toi-même dans Studio
 
-Rojo ne s’occupe que du code et de l’interface. Le niveau se construit à la main (modules 1 à 4) :
+Rojo ne s’occupe que du code et de l’interface. Le niveau se construit à la main (modules 1 à 5) :
 
 - **Workspace** : une `SpawnLocation` ; un Folder `Plateformes` (plateformes ancrées) ; un Folder `Checkpoints` avec des Parts ancrées nommées `1`, `2`, `3`… dans l’ordre du parcours, sans trou ; un Folder `KillBricks` ; un Folder `Pieces` avec des Parts ancrées nommées `Piece` ; un Folder `PlateformesMobiles` (attributs facultatifs `Deplacement` en Vector3 et `Duree` en number sur chaque plateforme).
 - **Config** : garde `Config.Niveaux` cohérent avec ton nombre de checkpoints (l’exemple va jusqu’à l’étape 12) ; `Victoire` utilise le nombre de checkpoints, `ProposerNotifications` la dernière étape de `Config.Niveaux`.
-- **Interface** (déjà décrite dans `src/StarterGui` si tu utilises Rojo) : `InterfaceObby` (ScreenGui, `ResetOnSpawn = false`) contient `CompteurPieces` (Frame + `UICorner` + `UIAspectRatioConstraint` 3 + TextLabel `Texte` avec `UITextSizeConstraint`), `BoutonBoutique` (TextButton au bord gauche, à mi-hauteur : `AnchorPoint = (0, 0.5)`, `Position = {0.02, 0}, {0.5, 0}`) et `Boutique` (Frame invisible au départ, avec `UICorner`, `UIPadding` et une Frame `Liste` qui contient un `UIGridLayout` et les deux boutons de la boutique en Robux). Réglages détaillés : module 4, leçon 4.
+- **Interface** (déjà décrite dans `src/StarterGui` si tu utilises Rojo) : `InterfaceObby` (ScreenGui, `ResetOnSpawn = false`) contient `CompteurPieces` (Frame + `UICorner` + `UIAspectRatioConstraint` 3 + TextLabel `Texte` avec `UITextSizeConstraint`), `BoutonBoutique` (TextButton au bord gauche, à mi-hauteur : `AnchorPoint = (0, 0.5)`, `Position = {0.02, 0}, {0.5, 0}`) et `Boutique` (Frame invisible au départ, avec `UICorner`, `UIPadding` et une Frame `Liste` qui contient un `UIGridLayout` et les deux boutons de la boutique en Robux). Réglages détaillés : module 5, leçon 4.
 - **Valeurs à remplacer** : l’ID du Game Pass `ID_PASS_TRAIL_DORE` (`GamePassTrail` et `BoutonTrailDore`), l’ID du Developer Product `ID_PASSER_ETAPE` (`DemandesAchat`, `Achats`, `BoutonPasserEtape`), l’`AnimationId` de `AnimationVictoire`.
-- **Paramètres du jeu** : pour tester la sauvegarde dans Studio, active **Enable Studio Access to API Services** sur une copie de test publiée (module 4, leçon 2).
+- **Paramètres du jeu** : pour tester la sauvegarde dans Studio, active **Enable Studio Access to API Services** sur une copie de test publiée (module 5, leçon 2).
 
 ## Vérifier le code
 

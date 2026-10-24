@@ -1,57 +1,78 @@
-# Module 06 — Notes du rédacteur pour les vérificateurs
+# Module 05 — Notes du rédacteur pour les vérificateurs
 
-Rédaction : 2026-10-24. Sources principales : dépôt officiel `Roblox/creator-docs` (branche main, commit 4e795e6 du 2026-10-24, = source de create.roblox.com/docs), pages create.roblox.com/docs, help center (en.help.roblox.com, récupéré par curl), DevForum.
+Toutes les pages ci-dessous ont été consultées le 2026-10-24.
 
-## Chiffres et faits (avec source)
+## Affirmations factuelles et sources
 
-| Affirmation | Où | Source |
-|---|---|---|
-| Part créateur 70 % pour achats en Robux (passes, dev products) | L1, L2, examen | Tableau « Non-subscriber 100 → 70 Robux, 70 % » de https://create.roblox.com/docs/production/monetization/roblox-plus (liste des achats éligibles : dev products, game passes, subscriptions…). Pas de phrase explicite « passes = 70 % » trouvée ailleurs dans la doc : à confirmer si une page plus directe existe. |
-| Serveurs privés payants : 70 % | L1 | Même page Roblox Plus (exemple « 70% revenue share on a 100 Robux server price ») |
-| Attente ~5 jours (passes, dev products, abonnements Robux) | L1, L4 | https://create.roblox.com/docs/production/monetization/subscriptions (« same hold period as passes and developer products, which is approximately 5 days ») |
-| Accès payant Robux : jusqu’à 7 jours | L1 | https://create.roblox.com/docs/production/monetization/paid-access-robux |
-| Abonnements monnaie locale : 30 jours ; 70 % 1er mois puis 100 % ; 1 Robux = 0,01 $ ; ex. 5 $ → 350 puis 500 | L1, L4, examen | page Subscriptions |
-| Abonnements : ≥ 49 Robux ; paliers 2,99/4,99/7,99/9,99/14,99 $ ; 50 max par jeu ; prix modifiable 1×/60 jours, préavis 30 jours ; nom court définitif ; régional par défaut non désactivable ; monnaie locale = compte vérifié ID ou téléphone | L4 | page Subscriptions |
-| Creator Rewards & bonus Roblox Plus : attente 60 jours | L1, L4 | https://create.roblox.com/docs/creator-rewards ; page Roblox Plus |
-| Engagement-Based Payouts (Premium Payouts) dépréciés le 24 juillet 2025, remplacés par Creator Rewards | L1, L4, quiz, examen | https://create.roblox.com/docs/production/monetization/engagement-based-payouts (bandeau) + FAQ de creator-rewards |
-| Creator Rewards : 5 Robux/jour par Active Spender ≥10 min, parmi les 3 premiers jeux du jour ; Active Spender = actif ≥60 j et ≥9,99 $ sur 60 j ; Audience Expansion 35 % des premiers 100 $ sur 60 j, compte ID-vérifié, ≥100 DAU moyens | L4 | page Creator Rewards |
-| Roblox Plus lancé le 30 avril 2026, 4,99 $/mois ; arrêt de la vente de Premium aux nouveaux abonnés (date non précisée pour cette phrase) ; changements Premium effectifs au 30 mai 2026 | L1, L4 | https://devforum.roblox.com/t/introducing-roblox-plus/4567894 (annonce, catégorie Announcements). J’ai volontairement évité de dater l’arrêt de vente de Premium (ambigu dans le post). |
-| Plus : réduction 10 % puis 20 % dès le 3e mois, payée par Roblox ; bonus 250 Robux/mois × 3 = 750 via PromptRobloxSubscriptionPurchase ; ≤100 Robux par abonné ≥60 min en serveur privé payant ; 10 % des transferts | L1, L4 | page Roblox Plus |
-| `Player.MembershipType` déprécié → `Player.HasRobloxSubscription` | L4, examen | Player.yaml du dépôt creator-docs (deprecation_message) |
-| `PromptPremiumPurchase` déprécié → `PromptRobloxSubscriptionPurchase` | (non utilisé) | MarketplaceService.yaml |
-| DevEx : 13 ans, 30 000 Earned Robux, e-mail vérifié, compte portail DevEx, W-9/W-8, conformité ; 1 demande/mois ; inactivité 2,5 ans ; >100 pays | L6, examen | https://en.help.roblox.com/hc/en-us/articles/115005718246-Developer-Exchange-Terms-of-Use + https://create.roblox.com/docs/production/monetization/developer-exchange |
-| Taux standard 0,0038 $/Earned Robux (114 $ / 30 000) depuis 5 sept. 2025 10h PT ; ancien 0,0035 (105 $), anciens soldes convertis en premier | L6, examen | page Developer Exchange |
-| Taux U.S. 18+ 0,0054 depuis 8 juin 2026 (dev products, passes, abonnements, serveurs privés ; joueurs US 18+ vérifiés ; R15 uniquement, pas de R6) | L6 | https://create.roblox.com/docs/production/monetization/18-plus-devex-rate |
-| Délais DevEx estimés : ~10 jours ouvrés (1re fois), ~5 ensuite ; 1 semaine pour s’inscrire au portail ; demande non annulable ; DevEx Dashboard avec jusqu’à 24 h de décalage | L6 | page Developer Exchange |
-| Fiscalité : Roblox ne donne pas de conseil fiscal ; au 1er nov. 2026 paiements DevEx = royalties ; non-US avec infos valides : 0–30 % de retenue US sur la part liée aux joueurs US ; sinon 24 % backup withholding ; page Finances > Taxes | L6, examen | https://create.roblox.com/docs/production/monetization/tax-information |
-| « Seuls les créateurs qui réussissent atteignent les conditions… aucune garantie » | L6 | help center DevEx FAQ (article 203314100) |
-| Passes : création (512×512, jpg/png/bmp, cercle), Copy Asset ID ; promoted pass > 49 et < 801 Robux, pas d’objets aléatoires payants | L2, L5 | https://create.roblox.com/docs/production/monetization/passes |
-| Dev products : prix 1 à 1 milliard de Robux | L3 | https://create.roblox.com/docs/production/monetization/developer-products |
-| Ventes cross-game de passes/produits désactivées au 30 mai 2026 | (non mentionné dans les leçons) | pages passes / developer-products |
-| Managed Pricing : prix régionaux bornés 30–100 % ; activé par défaut pour passes ; price optimization ~60 000 transactions/30 j, test ~3 semaines, appliqué si revenu incrémental positif ; seulement passes & dev products ; Dynamic Price Check | L2, L5, quiz | pages managed-pricing, price-optimization, regional-pricing |
-| Règles : réductions authentiques et équitables, pas de fausse rareté, pas de compte à rebours inexact/qui redémarre ; formulations à éviter (GET IT NOW → View Item…) ; PolicyService obligatoire | L5, examen | https://create.roblox.com/docs/production/monetization |
-| Objets aléatoires payants : issues + probabilités en % avant achat, somme 100 %, bouton avec mot « Info/Détails » (icône seule insuffisante), modificateurs de chances expliqués et mise à jour dynamique, gratuits exemptés ; traitements pour `ArePaidRandomItemsRestricted` | L5, examen | https://create.roblox.com/docs/production/monetization/paid-random-items |
-| Achats simulés dans Studio, déclenchent ProcessReceipt | L2, L3 | https://devforum.roblox.com/t/mock-purchases-in-studio/26974 (2016, auteur Seranok — ancien ; formulé prudemment) |
+### Leçon 01 — core-loop
+| Affirmation | Source |
+|---|---|
+| Core loop = gameplay central ; 3 sections : interaction minute par minute, ensemble d’actions le plus répété, moteur de progression ; sans progression le jeu devient « repetitive, boring, and shallow » ; exemple RPG d’action Explore → Fight → Upgrade | https://create.roblox.com/docs/production/game-design/core-loops |
+| Conseils J1 : rendre les étapes de la boucle claires et amusantes, équilibrer le défi (frustration/ennui), récompenser (feedback, monnaie, objets, succès) | https://create.roblox.com/docs/production/analytics/retention |
+| « Anytime a player takes an action… imperative to provide clear feedback » ; exemple Winds of Fortune (pièces qui jaillissent en récompense) | https://create.roblox.com/docs/production/game-design/onboarding-techniques |
+| « Any features added during LiveOps should be connected to the core loop » | https://create.roblox.com/docs/production/game-design/liveops-essentials |
+| Core curriculum : « players collect coins to trade for jump power », plateformes de plus en plus hautes | https://create.roblox.com/docs/tutorials/curriculums/core |
+| Le prototypage doit examiner la core loop | https://create.roblox.com/docs/production/game-design/prototyping |
+| Boucles courtes/longues/méta et boucles par genre (obby, simulateur, tycoon, RP) | **Présenté comme description générale de game design, pas comme donnée Roblox** (la page Core loops ne parle pas de méta-boucles ; c’est dit dans le texte). |
 
-## API (noms et signatures vérifiés dans MarketplaceService.yaml / Players.yaml / Player.yaml / PolicyService.yaml du dépôt officiel, 2026-10-24)
+### Leçon 02 — les-60-premieres-secondes
+| Affirmation | Source |
+|---|---|
+| « New players typically decide their interest in a game within minutes » ; 3 objectifs de l’onboarding (essentiels, vite au fun, envie de plus) ; objectifs court/moyen/long terme visibles ; finir par un moment de joie ; Experiments pour comparer « a shorter dialogue sequence versus a guided arrow » ; garder les premiers paliers XP bas | https://create.roblox.com/docs/production/game-design/onboarding |
+| 3 techniques (visuels, tutoriels contextuels, indices minutés) ; exemple hypothétique 10 s / 11 s ; « Timed hints should be sufficient… after only being shown once » ; Color or Die « impossible to miss, but doesn't prevent the player from starting » ; traînées « strongly suggest an action, but don't require it » | https://create.roblox.com/docs/production/game-design/onboarding-techniques |
+| « FTUEs that get users into the fun quickly tend to do better on Roblox » ; majorité des utilisateurs sur mobile ; jeunes joueurs et interfaces chargées de texte | https://create.roblox.com/docs/production/game-design/design-for-roblox |
+| « Avoid a complex or time consuming FTUE… ideally in 5 minutes or less after entering your game » ; définition D1 | https://create.roblox.com/docs/production/analytics/retention |
+| Entonnoir d’onboarding, `LogOnboardingFunnelStepEvent`, événements uniquement côté serveur et dans un jeu publié | https://create.roblox.com/docs/production/analytics/funnel-events |
+| Experiments : « Games with fewer than 1,000 daily active users might struggle to get useful data » (avertissement, pas une exigence) | https://create.roblox.com/docs/production/experiments |
+| Propriétés Beam (Attachment0/1, FaceCamera, Width0/1, Color) non dépréciées | https://create.roblox.com/docs/reference/engine/classes/Beam |
+| « 60 secondes » | **Explicitement présenté comme un objectif de conception de la formation, PAS un chiffre Roblox** (encadré Info + question de quiz). |
 
-- `MarketplaceService:UserOwnsGamePassAsync(userId: User | number, gamePassId)` — non déprécié, cache documenté, « transparent batching ». NB : nouveau datatype `User` (identité « domain-scoped », `Player.User`) ; la doc des passes utilise toujours `player.UserId`, ce que fait la leçon.
-- `PromptGamePassPurchase(player, gamePassId)` ; `PromptGamePassPurchaseFinished(player, gamePassId, wasPurchased)` — à écouter côté serveur selon la doc.
-- `PromptProductPurchase(player, productId, equipIfPurchased?, currencyType?)` — **non déprécié** dans le YAML (les 2 derniers paramètres « Ignored »). Attention : un résumé WebFetch de la page de référence l’avait annoncé à tort comme déprécié ; le YAML source (tags: []) fait foi.
-- `MarketplaceService.ProcessReceipt(receiptInfo) -> Enum.ProductPurchaseDecision` (PurchaseGranted / NotProcessedYet) ; champs PurchaseId, PlayerId, ProductId, PlaceIdWherePurchased, CurrencySpent, CurrencyType, ProductPurchaseChannel. Garanties/limites citées en L3 recopiées de la section « Guarantees / Retries and Timeouts / Limitations ».
-- `BindReceiptHandler(receiptType, handler, filter?)` → `Enum.ReceiptDecision.Processed / NotProcessedYet` : alternative récente, mentionnée seulement.
-- `GetProductInfo` est **déprécié** → `GetProductInfoAsync` (utilisé dans les leçons ; la doc guide « passes »/« developer products » utilise encore l’ancien nom).
-- Abonnements : `GetUserSubscriptionStatusAsync(user: Player, subscriptionId: string)` → `IsSubscribed`, `IsRenewing` ; `Players.UserSubscriptionStatusChanged(user, subscriptionId)` (serveur uniquement) ; `PromptSubscriptionPurchase(user, subscriptionId)` ; `PromptSubscriptionPurchaseFinished(user, subscriptionId, didTryPurchasing)`.
-- `PolicyService:GetPolicyInfoForPlayerAsync(player)` → `ArePaidRandomItemsRestricted`, `IsPaidItemTradingAllowed`, `AreAdsAllowed`, `IsEligibleToPurchaseSubscription`…
-- `Player.HasRobloxSubscription` (booléen, lecture seule).
+### Leçon 03 — progression-et-recompenses
+| Affirmation | Source |
+|---|---|
+| Trop vite → manque de contenu ; trop lent → ennui/frustration ; mesurer la répartition des joueurs par niveau de progression | https://create.roblox.com/docs/production/analytics/retention |
+| Sinks (définition, cosmétiques à durée limitée), planifier les puits avant les sources, monnaie d’événement « safest solution », calcul d’espérance (EV), exemple de surplus (« players with abundant Gold spend freely, leaving little incentive to purchase more ») | https://create.roblox.com/docs/production/game-design/balance-virtual-economies |
+| « Generally, the more challenging the quest, the more valuable the rewards » | https://create.roblox.com/docs/production/game-design/introduction-to-quest-design |
+| Missions régulièrement ratées → intérêt qui baisse | https://create.roblox.com/docs/production/game-design/season-pass-design |
+| Objets aléatoires payants : probabilités affichées exactement et numériquement avant l’achat, chaque issue apporte un bénéfice, accès réservé aux utilisateurs éligibles | https://about.roblox.com/community-standards (section Roblox Economy > Paid Random Items) |
+| Courbe « en dents de scie » | **Présentée comme approche courante de level design, non officielle, à vérifier en playtest** (pas de source Roblox ; je n’ai pas trouvé de source académique solide, donc formulation prudente). |
+| Le terme « inflation » | La page Roblox ne l’emploie pas (elle parle de « surplus ») ; utilisé comme terme général d’économie. |
 
-## Choix de conception du code
-- ProcessReceipt (L3) : vérifications préalables (joueur présent, leaderstats, Checkpoints) → enregistrement atomique du PurchaseId via `UpdateAsync` dans `AchatsTraites_v1` (clé `"Achat_" .. PurchaseId`) → application de l’effet si première fois → `PurchaseGranted`. `NotProcessedYet` si joueur absent, données non prêtes, produit inconnu ou erreur DataStore. Les limites (crash avant sauvegarde du module 4, joueur qui part pendant l’UpdateAsync) sont expliquées honnêtement, avec renvoi à l’approche « PurchaseId dans les mêmes données » / ProfileStore.
-- `node scripts/verifier-luau.mjs 06` : 16 extraits, 0 diagnostic.
+### Leçon 04 — rejouabilite
+| Affirmation | Source |
+|---|---|
+| Touristes / habitués (« Locals… form almost all a game's engaged user base » — paraphrasé) ; jeux solo « often find it harder to build and retain an audience » ; invitations ; serveurs privés à ne pas rendre trop chers | https://create.roblox.com/docs/production/game-design/design-for-roblox |
+| J1/J7/J30 et leviers associés (progression, variété, contenu régulier, social) | https://create.roblox.com/docs/production/analytics/retention |
+| Quotidiennes : objectifs simples, récompenses modestes, 24 h, court terme uniquement, « resource drip » | https://create.roblox.com/docs/production/game-design/introduction-to-quest-design |
+| Notifications d’expérience : 13+ et opt-in ; moins de 13 ans = seulement notifications de mises à jour ; ≥ 100 visites, pas sous modération ; 1 notification/jour/expérience/utilisateur ; prompt standard non personnalisable, ne s’affiche pas si déjà activé ou vu dans les 30 jours ; dark patterns interdits (publicités déguisées, fausse pression temporelle, faux cadeaux, achats piégés) ; « Games should not require users to turn on notifications in order to participate or advance in gameplay » ; notifications personnalisées et actionnables ; envoi via package Open Cloud ou API Open Cloud | https://create.roblox.com/docs/production/promotion/experience-notifications |
+| `CanPromptOptInAsync`, `PromptOptIn`, `OptInPromptClosed` (aucun déprécié) | https://create.roblox.com/docs/reference/engine/classes/ExperienceNotificationService |
+| `SocialService:PromptGameInvite`, `CanSendGameInviteAsync` (dans pcall) | https://create.roblox.com/docs/production/promotion/invite-prompts |
+| Badges : 5 gratuits / 24 h (GMT) / jeu, puis 100 Robux ; `AwardBadgeAsync` en pcall ; `AwardBadge` dépréciée | https://create.roblox.com/docs/production/publishing/badges et https://create.roblox.com/docs/reference/engine/classes/BadgeService |
+| LiveOps : sans mises à jour même les joueurs fidèles perdent intérêt ; construire sur les systèmes existants ; protéger l’équipe | https://create.roblox.com/docs/production/game-design/liveops-essentials |
+| « Many games release cadence updates every two weeks to one month » | https://create.roblox.com/docs/production/game-design/content-updates |
+| Season pass : repos d’au moins une semaine (burnout), missions qui ne consomment pas tout le temps de jeu | https://create.roblox.com/docs/production/game-design/season-pass-design |
+| Community Standards : contenu/métadonnées trompeurs pour la découverte, la monétisation ou l’engagement interdits | https://about.roblox.com/community-standards |
+| Définitions fake urgency / fake scarcity / confirmshaming | https://deceptive.design/types (site de référence, anciennement darkpatterns.org) |
+| Conseil « pas de séries qui punissent » | **Conseil de conception éthique de la formation**, appuyé sur l’esprit des docs Roblox (season pass/burnout, interdiction de la fausse urgence) ; pas une règle Roblox explicite (formulé comme tel). |
 
-## Points incertains
-1. Part 70 % des passes/dev products : déduite du tableau Roblox Plus (« effective revenue share 70 % » pour non-abonné), pas d’une phrase dédiée.
-2. Étape « fixer le prix / mettre en vente » d’un pass : la doc de création ne la décrit plus ; j’ai écrit « depuis la page du pass (onglet Sales) » d’après la mention de la page « Sales » dans regional-pricing ; libellés à vérifier dans le Creator Hub.
-3. Achats simulés dans Studio : source DevForum de 2016 seulement.
-4. Date exacte de l’arrêt de la vente de Premium aux nouveaux abonnés : non datée dans l’annonce ; la leçon dit seulement « annoncé en 2026 ».
-5. Le help center (en.help.roblox.com) renvoie 403 à WebFetch ; contenu récupéré via curl (User-Agent navigateur).
+### Leçon 05 — tester-avec-de-vrais-joueurs
+| Affirmation | Source |
+|---|---|
+| Prototyper détecte tôt défauts/oublis/besoins techniques ; partager hors équipe ; itérer ; examiner core loop, UI/UX, règles, cas limites | https://create.roblox.com/docs/production/game-design/prototyping |
+| Nouveau jeu accessible par défaut au créateur et aux éditeurs ; jusqu’à 10 amis d’âge proche comme early testers via File > Invite early testers ; vérification d’âge possible ; filigrane d’aperçu | https://create.roblox.com/docs/production/publishing/publish-experiences-and-places |
+| « Even more important than players' specific suggestions is the reasoning behind them » ; bugs priorisés par gravité, effort, nombre de joueurs touchés | https://create.roblox.com/docs/production/game-design/liveops-essentials |
+| Sortie serveur visible dans la Developer Console (F9) seulement par le propriétaire / membres de groupe avec droits d’édition | https://create.roblox.com/docs/studio/developer-console |
+| Think aloud (3 étapes, « shut up »), interventions qui changent le comportement | https://www.nngroup.com/articles/thinking-aloud-the-1-usability-tool/ (J. Nielsen, 2012) |
+| 5 utilisateurs, plusieurs petites séries | https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/ (J. Nielsen, 2000) — présenté comme règle empirique d’utilisabilité, pas une loi ; le chiffre 85 % n’est volontairement PAS cité. |
+
+## Points incertains / à surveiller
+- **Early testers / audience** : la page de publication a beaucoup changé récemment (onglets Playtest/Public, early testers, vérification d’âge). Des fils DevForum récents (lus en résumé seulement) signalent des testeurs qui n’arrivent pas à rejoindre. J’ai daté l’info et renvoyé au module 7 et à la page officielle.
+- **Badges** : coût (5 gratuits/24 h puis 100 Robux) lu sur la page officielle le 2026-10-24 ; formulé « au moment de la rédaction ».
+- **Notifications d’expérience** : le seuil d’éligibilité (100 visites) et la limite « 1 par jour » peuvent évoluer ; datés.
+- **Valeur initiale de `Etape`** : le module 4 n’était pas encore écrit ; j’ai supposé `Etape = 0` tant qu’aucun checkpoint n’est atteint et je le dis explicitement dans la leçon 2 (à harmoniser avec le module 4 si différent). Même remarque pour la « table de données du joueur » (leçon 4) supposée accessible côté serveur depuis le script de sauvegarde du module 4.
+- **Config.Zones** (leçon 3) est réutilisé dans la leçon 4 (`Config.Zones[#Config.Zones].derniereEtape`). Si le module 2 définit déjà un nombre d’étapes dans `Config`, il faudra harmoniser.
+
+## Analyse statique (`node scripts/verifier-luau.mjs 05`)
+16 extraits, 3 avec diagnostics, tous attendus :
+- `Unknown require` (×3) : les `require` de `ReplicatedStorage.Modules.Config` et `ServerScriptService.ObjectifsQuotidiens` ne peuvent pas être résolus sur un extrait isolé.
+- `FunctionUnused` sur `verifierObjectifDuJour` (leçon 4, bloc 2) : extrait d’intégration volontairement fourni comme fonction à appeler depuis le script du module 3.

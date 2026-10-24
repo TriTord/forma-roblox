@@ -44,7 +44,7 @@ describe('getLecons', () => {
   it('refuse un nom de fichier invalide, un module inconnu, le slug réservé « examen »', async () => {
     await expect((await charger([{ id: 'module-00/1-court' }])).getLecons()).rejects.toThrow(/Nom de fichier invalide/);
     await expect((await charger([{ id: 'module-00/01-Majuscule' }])).getLecons()).rejects.toThrow(/Nom de fichier invalide/);
-    await expect((await charger([{ id: 'module-42/01-x' }])).getLecons()).rejects.toThrow(/n'existe pas/);
+    await expect((await charger([{ id: 'module-43/01-x' }])).getLecons()).rejects.toThrow(/n'existe pas/);
     await expect((await charger([{ id: 'module-00/01-examen' }])).getLecons()).rejects.toThrow(/réservé/);
   });
 
@@ -55,11 +55,11 @@ describe('getLecons', () => {
 });
 
 describe('getModules / getVoisins / catalogue', () => {
-  it('rattache leçons et examens aux 11 modules', async () => {
-    const c = await charger([{ id: 'module-00/01-a' }, { id: 'module-02/01-b' }], ['00']);
+  it('rattache leçons et examens aux 12 modules', async () => {
+    const c = await charger([{ id: 'module-00/01-a' }, { id: 'module-03/01-b' }], ['00']);
     const modules = await c.getModules();
-    expect(modules).toHaveLength(11);
-    expect(modules.map((m) => m.numero)).toEqual(['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10']);
+    expect(modules).toHaveLength(12);
+    expect(modules.map((m) => m.numero)).toEqual(['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11']);
     expect(modules[0]).toMatchObject({ url: '/modules/00/', urlExamen: '/modules/00/examen/', duree: 10 });
     expect(modules[0].examen).toBeDefined();
     expect(modules[1].lecons).toHaveLength(0);
@@ -74,12 +74,12 @@ describe('getModules / getVoisins / catalogue', () => {
   });
 
   it('enchaîne précédente/suivante en traversant les modules (même s’il y a un module vide)', async () => {
-    const c = await charger([{ id: 'module-00/01-a' }, { id: 'module-00/02-b' }, { id: 'module-02/01-c' }]);
+    const c = await charger([{ id: 'module-00/01-a' }, { id: 'module-00/02-b' }, { id: 'module-03/01-c' }]);
     const v = await c.getVoisins('module-00/02-b');
     expect(v.precedente?.id).toBe('module-00/01-a');
-    expect(v.suivante?.id).toBe('module-02/01-c');
+    expect(v.suivante?.id).toBe('module-03/01-c');
     expect((await c.getVoisins('module-00/01-a')).precedente).toBeUndefined();
-    expect((await c.getVoisins('module-02/01-c')).suivante).toBeUndefined();
+    expect((await c.getVoisins('module-03/01-c')).suivante).toBeUndefined();
     expect(await c.getVoisins('inconnue')).toEqual({ precedente: undefined, suivante: undefined });
   });
 

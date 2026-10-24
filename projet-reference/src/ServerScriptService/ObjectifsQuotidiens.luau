@@ -1,7 +1,7 @@
 -- ModuleScript « ObjectifsQuotidiens » dans ServerScriptService
 -- Objectif quotidien : ramasser un certain nombre de pièces dans la journée (UTC).
 -- Ne fait aucun appel DataStore : on travaille sur la table de données du joueur
--- que DonneesJoueurs (module 4) charge et sauvegarde déjà.
+-- que DonneesJoueurs (module 5) charge et sauvegarde déjà.
 local ObjectifsQuotidiens = {}
 
 ObjectifsQuotidiens.PIECES_A_RAMASSER = 20
@@ -24,7 +24,7 @@ local function mettreAJour(donnees)
 	end
 end
 
--- À appeler côté serveur chaque fois qu'une pièce ramassée est validée (module 3).
+-- À appeler côté serveur chaque fois qu'une pièce ramassée est validée (module 4).
 -- Renvoie le bonus à verser (0 la plupart du temps).
 function ObjectifsQuotidiens.enregistrerPiece(donnees): number
 	mettreAJour(donnees)

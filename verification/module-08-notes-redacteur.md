@@ -1,86 +1,82 @@
-# Module 08 — Notes du rédacteur pour les vérificateurs
+# Module 07 — Notes du rédacteur pour les vérificateurs
 
-Vérifications faites le 2026-10-24 sur la documentation officielle (pages create.roblox.com consultées via WebFetch, et sources Markdown/YAML identiques du dépôt officiel `github.com/Roblox/creator-docs`, branche `main`, derniers commits sur `production/analytics` du 2026-10-14).
+Vérifications faites le 2026-10-24. Sources : pages create.roblox.com/docs (contenu vérifié aussi dans le dépôt officiel github.com/Roblox/creator-docs, branche main, qui génère la doc), DevForum (annonces officielles), about.roblox.com, centre d’aide Discord.
 
-## Affirmations factuelles et sources
+## Leçon 01 — preparer-la-page-du-jeu
 
-### Leçon 01 — pourquoi-mesurer
 | Affirmation | Source |
 |---|---|
-| Éligibilité à tous les KPI : « more than 10 daily active users (DAU) and 10 play hours for 7 consecutive days » | https://create.roblox.com/docs/production/analytics/analytics-dashboard |
-| Activation : e-mail vérifié + vérification en 2 étapes + acceptation des Terms of Use ; bouton « Activate Analytics » ; jeux de groupe : propriétaire et membres ayant la permission | idem |
-| Catégories : Overview, Retention, Engagement, Acquisition, Demographics, Feedback, Monetization (+ sales data), Explore | idem |
-| Pages Economy / Funnel / Custom (Explore) débloquées après envoi d’événements | https://create.roblox.com/docs/production/analytics/event-types , /funnel-events , /custom-events , /economy-events |
-| Menu « Monitoring » > Performance ; graphiques détaillés à partir de 100 DAU | https://create.roblox.com/docs/production/analytics/performance |
-| Analytics Home : watchlist jusqu’à 9 jeux | https://create.roblox.com/docs/production/analytics |
-| Insights : jeux 100+ DAU ; rapports IA : 1000+ DAU ; panneau des réussites = plus haut sur 6 mois | https://create.roblox.com/docs/production/analytics/insights |
-| Benchmark scorecards à partir de 100 DAU ; benchmarks non utilisés comme signal direct de découverte | https://create.roblox.com/docs/production/analytics |
-| Benchmarks : jeux similaires → genre → toutes expériences ; fourchette 50e–90e percentile ; jeux d’au moins 100 DAU ; KPI concernés (rétention, durée moyenne de session, ARPPU, ARPDAU, conversion, play through rate) | analytics-dashboard#benchmarking |
-| Play through rate = % de joueurs ayant joué après avoir vu le jeu en recommandation | https://create.roblox.com/docs/production/analytics |
-| Plan en 3 étapes (D1 + durée de session d’abord, puis acquisition, puis suivi après mise à jour) | https://create.roblox.com/docs/production/analytics |
-| Baisse de rétention après gros afflux = « typical and temporary » | https://create.roblox.com/docs/production/analytics/retention |
-| Experiments = tests A/B mesurant l’impact causal ; jeux < 1 000 DAU peuvent avoir du mal à obtenir des données utiles | https://create.roblox.com/docs/production/experiments |
-| Ligne en pointillés quand le taux de crash est bruité | /performance |
-| Groupes d’âge/genre < 3 utilisateurs masqués | https://create.roblox.com/docs/production/analytics/demographics |
-| Explore : overlay période précédente, moyenne mobile 7 jours | analytics-dashboard#overlays-and-smoothing |
+| Première publication : File > Publish, fenêtre « Game details » (icône, miniature, Name, Genre, Subgenre, Description) | https://create.roblox.com/docs/production/publishing/publish-games-and-places |
+| Bonnes pratiques nom : nom stable, pas de répétition (risque de « demotion »), emojis avec modération | idem (accordéon « Metadata best practices ») |
+| Description : résumer dès la 1re phrase, mots-clés pertinents, pas de spam (rétrogradation) ; exemple officiel de liste de mots-clés à éviter | idem |
+| Guide description EXPÉRIMENTAL (« only meant for select creators ») : accroche ~160 caractères, sections, hashtags inutiles pour le classement, ne pas lister les contrôles, contenu adapté à tous âges ; visible sur mobile avant dépliage | https://create.roblox.com/docs/production/publishing/descriptions (page noindex, présentée comme expérimentale dans la leçon) |
+| Genre : changement une fois tous les 3 mois ; Roblox peut corriger le genre ; sous-genre Classic Obby ; utilisé dans les sorts de Charts | https://create.roblox.com/docs/production/publishing/experience-genres |
+| Questionnaire « Maturity & Compliance », chemin Publish settings > Content rating, labels Minimal / Mild / Moderate / Restricted / Content May Vary, publics associés, répondre selon le contenu le plus extrême, refaire après mise à jour, modération en cas de fausse déclaration, ne concerne pas l’UGC des avatars | https://create.roblox.com/docs/production/promotion/content-maturity |
+| Types de comptes Roblox Kids (5-8), Select (9-15), Roblox (16+ âge vérifié) ; conditions tous âges ; évaluation : 250 parties uniques de joueurs très engagés à l’âge vérifié sur 60 jours ; tableau Audience Reach | https://create.roblox.com/docs/production/publishing/kids-and-select |
+| Conditions 16+ (compte de 2 jours, vérif d’âge, 1re question → Content May Vary) ; tous âges (vérif, 2FA, Plus/Premium 2 mois ou frais remboursables 1 000 Robux, questionnaire complet Minimal/Mild/Moderate, évaluation) | publish-games-and-places + kids-and-select |
+| Lancement global Kids & Select (16 juin 2026), seuils ajustés ensuite | https://devforum.roblox.com/t/roblox-kids-and-select-global-launch-upcoming-updates-to-eligibility-ads-manager-and-expedited-review/4685717 |
+| Community Standards « Repetitive and Misleading Content » ; liens externes seulement via Social Links | https://about.roblox.com/community-standards (l’ancien article en.help 203313410 redirige vers cette page) |
+| Problèmes qui limitent l’exposition : cadeaux/Robux dans les métadonnées, métadonnées incohérentes (exemple dinosaures), jeux non uniques ; first play bounce rate = signal négatif « most important » | https://create.roblox.com/docs/discovery |
+| Pas de langage grossier dans les métadonnées, même en Restricted | https://create.roblox.com/docs/projects/configure-games (section Allow strong language) |
 
-### Leçon 02 — retention
+## Leçon 02 — icone-et-miniatures
+
 | Affirmation | Source |
 |---|---|
-| Axe X = date de première partie (cohorte) ; exemple 06/20 ; données D7 visibles après 7 jours, D30 après 30 | /retention |
-| D1 = nouveaux joueurs qui reviennent le lendemain ; D7 = « on the 8th day (Day 7) » ; D30 = « on the 31st day (Day 30) » | /retention |
-| Cohortes quotidiennes (10 premiers jours) et hebdomadaires (10 semaines, lundi–dimanche) ; métriques 7D playtime, 7D conversion, 7D/30D revenue per user | /retention |
-| D1 ↔ core loop, FTUE, performance ; plaisir en 5 minutes ou moins ; D7 ↔ progression ; D30 ↔ ending system, mises à jour 2–4 semaines / 2–3 mois, social | /retention |
+| Icône carrée, au moins 512×512, réduite parfois à 150×150 ; une icône par langue ; modération ; chemin Configurations > Places > lieu de départ > Icon ; bonnes pratiques (qualité, contenu pertinent, couleur/contraste) | https://create.roblox.com/docs/production/publishing/experience-icons |
+| Miniatures 16:9, idéalement 1920×1080, formats jpg/gif/png/tga/bmp, jusqu’à 10 images ou vidéos, vidéos : quota 3 envois/mois, étirement si pas 16:9, éviter le bas de l’image, règles d’authenticité des vidéos (autorisé / interdit), vidéo affichée en premier | https://create.roblox.com/docs/production/publishing/thumbnails |
+| Caméra libre : Maj gauche + P pendant un test solo | idem (section Free camera mode) |
+| Thumbnail personalization : 2 à 5 miniatures actives, < 3 Mo et 1920×1080, algorithme explore/exploite, tableau Thumbnail Performance, +8,5 % en moyenne pendant les tests (présenté comme chiffre Roblox, pas garantie), garder plusieurs actives | idem |
+| Miniature personnalisée obligatoire pour les recommandations Home | https://create.roblox.com/docs/discovery (Best practices) |
+| Pas d’outil officiel d’A/B test d’icônes : seulement une demande de fonctionnalité (pas de réponse du staff trouvée) | https://devforum.roblox.com/t/icon-ab-testing/3274267 |
+| Experiments = A/B tests de valeurs de config, 14 à 60 jours, difficile sous 1 000 DAU | https://create.roblox.com/docs/production/experiments |
 
-### Leçon 03 — engagement-et-sessions
+## Leçon 03 — lancer-et-publicite
+
 | Affirmation | Source |
 |---|---|
-| DAU = « Number of unique players who joined the game at least once in the given day » ; New Users = DAU first-time users ; Session Time = total play time / sessions ; CCU parmi les stats publiques | /production/analytics (Analytics Home) |
-| MAU (nombre de joueurs du mois, exemple Halloween), durée moyenne de session « from the start of their session to the time they log out » | /get-started |
-| Average session time = temps total / nombre de sessions, « closely tied to retention » | /engagement |
-| « Average Playtime », WAU, MAU cités dans la page Engagement | /get-started (encadré Active payer status) |
-| Graphique New User First Session Retention + conseils (friction onboarding, rapports erreurs/perf) | /engagement |
-| Breakdown Platform (Computer, phone, tablet, console, VR) / OS ; multi-appareils comptés plusieurs fois ; User engagement (inactif/faible/moyen/élevé, jours joués sur 7) | /analytics-dashboard |
-| Graphique Concurrent users dans Performance | /performance |
-| Demographics calculées sur les MAU | /demographics |
+| Early testers : jusqu’à 10 amis d’âge proche / amis de confiance, File > Invite early testers, filigrane, outils de signalement actifs | publish-games-and-places |
+| Manage Audience (Friends) ; Exclude from recommendations dans Audience > Advanced Settings | idem |
+| Ads Manager : 13+ et e-mail vérifié ; carte 18+ ; Robux → crédits dès 13 ans, irréversible, minimum 1 crédit ; objectifs Plays / Earnings (Limited) / Engagement ; audiences ; auto-bidding ; budget quotidien ou total ; 10 miniatures ; affichage Home + recherche automatique ; moderation visée < 24 h ; annulation jusqu’à 6 h avant ; attribution jusqu’à 30 jours ; données jusqu’à 48 h ; remboursement fraude ; « Running ads does not affect how your game ranks in Recommended For You » ; jeux non uniques → pas de dépense ; conseil 3-5 jours puis améliorer l’onboarding | https://create.roblox.com/docs/production/promotion/ads-manager (vérifié aussi sur la page en ligne via WebFetch) |
+| Recommandations : les autres sources accélèrent la prise en compte, mais le classement dépend seulement des joueurs organiques RFY | https://create.roblox.com/docs/discovery |
+| Share links + LaunchData ; Advanced join options + LaunchData visible dans l’URL et partageable ; récompenses cosmétiques pour joueurs venus d’une pub | share-links, ads-manager |
+| `Player:GetJoinData().LaunchData` (string) | https://create.roblox.com/docs/reference/engine/classes/Player#GetJoinData |
+| Exemple coût par partie (20 $ / 400 = 0,05 $) : calcul pédagogique, pas un chiffre Roblox | — |
 
-### Leçon 04 — monetisation-et-conversion
+## Leçon 04 — mises-a-jour-et-evenements
+
 | Affirmation | Source |
 |---|---|
-| Tableau Revenue / Conversion rate (% des DAU qui sont payeurs) / Paying users / ARPPU / ARPDAU ; menu Monetization > Overview | https://create.roblox.com/docs/production/analytics/monetization |
-| « ARPDAU is a combination of your payer conversion rate and your ARPPU » ; « high ARPPU and low ARPDAU suggest revenue comes from a limited user subset » ; conseils conversion/ARPPU/ARPDAU | /monetization |
-| Pages par produit : Developer Products, Passes, Avatar items, Subscriptions, Immersive ads, Creator rewards | /monetization |
-| Active payer status : Top 15 %, Intermediate 35 %, Casual 50 %, Lapsed (30 jours), Never ; recalcul quotidien | /analytics-dashboard |
-| « On average, the top 15% of active payers account for roughly 50% of revenue » | /get-started |
-| Engagement-based payouts (Premium Payouts) dépréciés le 24 juillet 2025, remplacés par Creator Rewards | https://create.roblox.com/docs/production/monetization/engagement-based-payouts |
-| Daily Engagement Rewards : 5 Robux/jour, Active Spender (≥ 9,99 $ en 60 jours), ≥ 10 min, parmi les 3 premières expériences du jour | https://create.roblox.com/docs/creator-rewards ; filtre Platform spender status : /analytics-dashboard |
-| Formules (conversion, ARPPU, ARPDAU, ARPDAU = conversion × ARPPU) : calcul vérifié à la main ; exemples chiffrés marqués « fictifs » | — |
+| LiveOps : cadence de contenu, grosses mises à jour, QoL, bugs | https://create.roblox.com/docs/production/game-design/liveops-essentials |
+| Beaucoup de jeux : contenu toutes les 2 semaines à 1 mois ; moins de 3 semaines d’effort par mise à jour de cadence | https://create.roblox.com/docs/production/game-design/content-updates |
+| Publier ne migre pas les joueurs ; redémarrer si le format de données change ; Configurations > Server management > Restart Servers ; options « Restart only servers with outdated versions » (recommandée) et « Delay server restart » 1-60 min ; arrêt du matchmaking, téléportation groupée ; configs pour sortir du contenu sans redémarrer | https://create.roblox.com/docs/projects/update-games |
+| `DataModel.ServerRestartScheduled(restartTime: DateTime, source: Enum.CloseReason, attributes: Dictionary)`, DeveloperUpdate / RobloxMaintenance, côté serveur, non déprécié | https://create.roblox.com/docs/reference/engine/classes/DataModel (+ DataModel.yaml du dépôt) |
+| Configs / ConfigService : modifier des valeurs sans redémarrer | https://create.roblox.com/docs/production/configs |
+| Événements : Engagement > Events & Updates ; champs ; privé/public ; max 10 en cours ou à venir ; Join Event / Notify Me ; page partageable ; onglet Events de la communauté ; Trending Events (7 jours, 1 000 RSVP, public) ; Off-Platform Featuring (13+, 7 jours avant) ; annonces de mise à jour 60 caractères, une tous les 3 jours | https://create.roblox.com/docs/production/promotion/experience-events |
+| Règles des notifications : pas de pub déguisée ni de fausse urgence | https://create.roblox.com/docs/production/promotion/experience-notifications (include guidelines) |
+| Découverte : « What you do » influence les signaux | https://create.roblox.com/docs/discovery |
 
-### Leçon 05 — evenements-personnalises
+## Leçon 05 — communaute
+
 | Affirmation | Source |
 |---|---|
-| Signatures : `LogOnboardingFunnelStepEvent(player, step, stepName, customFields)`, `LogFunnelStepEvent(player, funnelName, funnelSessionId, step=1, stepName, customFields)`, `LogEconomyEvent(player, flowType, currencyType, amount, endingBalance, transactionType, itemSku, customFields)`, `LogCustomEvent(player, eventName, value=1, customFields)`, `LogProgressionEvent(player, progressionPathName, status, level, levelName, customFields)` + Start/Complete/Fail | https://create.roblox.com/docs/reference/engine/classes/AnalyticsService (YAML source : `content/en-us/reference/engine/classes/AnalyticsService.yaml`) ; concordance avec `C:/tmp/luau-tools/globalTypes.d.luau` |
-| `LogProgression…` : « This event does not currently display in any Roblox-provided charts » | référence API |
-| FireEvent, FireCustomEvent, FireInGameEconomyEvent, FirePlayerProgressionEvent, FireLogEvent dépréciés | référence API |
-| Serveur uniquement + jeux publiés uniquement (ni client, ni Studio) | /funnel-events, /custom-events, /economy-events |
-| Fonctionnalités gratuites | /event-types |
-| Étape répétée ignorée (mais compte dans le rate limit) ; étape sautée → précédentes complétées ; 1er pas dans PlayerAdded ; expiration 180 jours ; filtres sur 1re étape ; affichage par cohorte ; plage de dates après modification | /funnel-events |
-| funnelSessionId : inutile pour entonnoir unique, GUID pour boutique, 10 derniers IDs par joueur et entonnoir ; funnelSessionId `nil` → étapes répétées ignorées | /funnel-events + référence API (paramètre step) |
-| Validation serveur des étapes envoyées par le client via RemoteEvent | /funnel-events (« Protect your funnels from exploiters ») |
-| Custom fields : 3 max, clés `Enum.AnalyticsCustomFieldKeys.CustomField01..03.Name`, autres clés ignorées, valeurs en chaînes, 8 000 combinaisons | /custom-fields, /event-types |
-| Préférer custom fields aux noms d’événements (exemple PlantSeed) ; batching « 10 zombies » | /custom-events |
-| Limites : 120 + 20 × CCU req/min ; 10 entonnoirs ; 100 étapes ; 100 eventNames ; 20 transactionTypes et 100 itemSkus avant « Other » ; rétention 90 jours après dernière donnée ; reset quotidien | /event-types#event-tracking-limitations |
-| Montant toujours positif ; endingBalance ≥ 0 ; transactionType = `.Name` de l’Enum ; types IAP, TimedReward, Onboarding, Shop, Gameplay, ContextualPurchase | /economy-events + référence API |
-| View Events (liste quasi temps réel) ; graphiques ≈ 24 h ; enregistrer après une opération réussie | /event-types |
+| Groups renommés Communities ; « Groups » conservé dans le Creator Hub (21 nov. 2024) | https://devforum.roblox.com/t/introducing-roblox-communities/3268307 |
+| Créer un groupe coûte 100 Robux ; jusqu’à 3 liens sociaux ; Roblox n’arbitre pas les conflits ; permissions forum/annonces/modération/analytics ; 2FA requise pour attribuer certaines permissions | https://create.roblox.com/docs/projects/groups |
+| Forums ouverts à tous les propriétaires de communautés (21 août 2025), 13+ connectés ; Walls en lecture seule le 1er déc. 2025, suppression annoncée début 2026 ; Blocked Words, Verified Joins, bans | https://devforum.roblox.com/t/forums-are-now-live-for-all-community-owners/3892463 |
+| Recommandations pour la page communauté (nom du studio, liens sociaux…) | https://create.roblox.com/docs/production/promotion (section Communities) |
+| Social links : ajout et visibilité réservés aux 16+ à l’âge vérifié ; jusqu’à 3 ; pas de lien dans le jeu ; exemples de textes autorisés/interdits ; Engagement > Social Links | https://create.roblox.com/docs/production/promotion/social-media-links + Community Standards |
+| Discord : au moins 13 ans, jusqu’à 16 ans dans certains pays | https://support.discord.com/hc/articles/360040724612 |
+| Tableau Feedback (Audience > Feedback) | https://create.roblox.com/docs/production/analytics/feedback |
+| Conseil LiveOps : la raison derrière la suggestion compte plus | liveops-essentials |
+| `GroupService:GetRolesInGroupAsync(userId, groupId)` → `{IsMember, Roles = {Id, Name, Rank}}`, cache, utiliser Id stable ; `Player:GetRankInGroupAsync` / `GetRoleInGroupAsync` dépréciés ; `IsInGroup` déprécié au profit de `IsInGroupAsync` | https://create.roblox.com/docs/reference/engine/classes/GroupService (+ Player.yaml / GroupService.yaml du dépôt, et globalTypes.d.luau) |
 
 ## Points incertains / à surveiller
-1. **Nombre de monnaies (économie)** : incohérence dans la doc officielle. Tableau des limites (/event-types) : « Resource types : 10 » ; référence API (`currencyType`) : « Limited to 5 unique currency types per experience » ; /economy-events : « up to five currencies ». J’ai écrit « très peu : 5 types par expérience selon la référence de l’API ».
-2. **Définition exacte de D1** : /retention dit « returned the next day » ; Analytics Home dit « played again after their first session ended » ; /acquisition parle de D7 « played again on the 8th day (D8) after their first session ended ». J’ai présenté la définition de la page Retention (jour N exact) et signalé que les formulations varient (encadré Info leçon 02).
-3. **Taux de conversion** : /monetization = % des DAU payeurs (retenu) ; /get-started = « percentage of all users who have spent any amount ». Signalé dans la leçon 04.
-4. **Revenue** : je n’affirme pas s’il s’agit de Robux nets ou bruts (la doc dit « Robux earned by the game »).
-5. **DAU/MAU** : présenté explicitement comme un indicateur de l’industrie à calculer soi-même ; je n’ai trouvé aucune page Roblox qui l’affiche comme KPI.
-6. **Comportement des méthodes `Log…` dans Studio** (erreur ou ignoré silencieusement) non documenté : le script de la leçon 05 court-circuite l’envoi dans Studio avec `RunService:IsStudio()` et protège chaque appel avec `pcall` (choix de robustesse, pas une exigence officielle).
-7. La méthode `LogJourneyEvent` existe dans les définitions de types mais pas dans la référence publiée : non mentionnée.
-8. Le script de la leçon 05 suppose que `leaderstats.Etape` vaut le numéro du dernier checkpoint validé (0 au départ) et n’augmente que de 1 par checkpoint (module 3). Si le module 4 fait démarrer un nouveau joueur à `Etape = 1`, le script reste correct (l’étape 3 de l’onboarding sera validée automatiquement par saut d’étape), mais l’événement `SecondesAvantCheckpoint1` ne sera jamais envoyé. Le Developer Product « passer l’étape » (module 6) sera compté comme une progression (+1).
-9. **Cohérence inter-modules** : le PLAN mentionne les « Premium Payouts » (modules 6 et 8). Ce programme est déprécié depuis le 24/07/2025 (remplacé par Creator Rewards) : le rédacteur du module 6 devrait en tenir compte.
-10. Les URL `create.roblox.com/docs/reference/engine/classes/...` ont renvoyé un code 502 à `curl` (probablement une protection anti-robots) mais s’affichent via WebFetch : liens corrects.
+
+1. **Seuils Kids & Select** : la page doc actuelle indique 250 parties uniques de joueurs très engagés sur 60 jours et des frais d’examen accéléré de 50 000 Robux ; l’annonce DevForum de juin 2026 parlait de 500 HEP et 100 000 Robux (avant ajustements de juillet-août). Les conditions de remboursement des frais de 1 000 Robux diffèrent entre publish-games-and-places (25 joueurs très engagés pendant 60 jours) et la FAQ kids-and-select (remboursement automatique 90 jours après l’éligibilité). La leçon ne donne donc que le seuil de la page doc avec mention datée, et renvoie aux pages officielles pour les frais.
+2. **Chemins de menus du Creator Dashboard** : les pages doc ne sont pas toujours cohérentes entre elles (ex. « Publish settings » vs « Audience »). Les chemins sont présentés « au moment de la rédaction ».
+3. **Annonces de communauté** : elles existent dans les permissions documentées (view/create community announcements) ; je n’ai pas trouvé d’annonce de lancement dédiée.
+4. **Walls** : suppression annoncée pour « début 2026 » ; je n’ai pas vérifié si elle est effective, d’où la formulation « Roblox a annoncé leur suppression ».
+5. La page social-media-links liste encore Guilded parmi les types de liens alors que Guilded a été arrêté fin 2025 (annonce DevForum « Update on Guilded and Communities ») : Guilded n’est pas cité dans la leçon.
+6. Pas de limite officielle trouvée pour la longueur du nom ; seul le guide expérimental mentionne une limite de 1 000 caractères pour la description (non reprise dans la leçon).
+7. Réglage des appareils pris en charge : pas de page doc trouvée décrivant ce réglage ; la leçon se limite à conseiller de mentionner les appareils dans la description (guide descriptions).
+8. Premium Payouts / Creator Rewards : non mentionnés dans ce module.

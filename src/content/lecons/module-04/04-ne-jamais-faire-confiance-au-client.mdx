@@ -1,0 +1,419 @@
+---
+titre: Ne jamais faire confiance au client
+description: Découvre ce qu’un tricheur peut faire depuis son appareil, puis apprends à valider chaque requête côté serveur (types, valeurs, distance, cooldown) sans punir les joueurs honnêtes.
+duree: 35
+objectifs:
+  - Reconnaître les exploits les plus courants sur Roblox
+  - Valider chaque requête côté serveur (type, valeur, contexte, débit)
+  - Limiter le spam des remotes avec un cooldown par joueur
+  - Détecter les comportements suspects et y répondre de façon proportionnée
+miseAJour: 2026-10-24
+quiz:
+  - type: vrai-faux
+    question: "Le test `typeof(montant) == \"number\"` suffit à garantir que `montant` est un nombre utilisable sans danger."
+    reponse: false
+    explication: "NaN (« pas un nombre ») et l’infini sont aussi de type `\"number\"`. NaN fait échouer toutes les comparaisons, donc il traverse les tests de bornes. Il faut ajouter `math.isfinite(montant)`."
+  - type: qcm
+    question: "D’après la documentation de Roblox, que peut faire un tricheur depuis son appareil ? (plusieurs réponses possibles)"
+    options:
+      - texte: Appeler n’importe quel RemoteEvent, aussi souvent qu’il veut, avec n’importe quels arguments
+        correct: true
+      - texte: Déplacer son personnage n’importe où, y compris en se téléportant
+        correct: true
+      - texte: Lire le code des LocalScripts et des ModuleScripts répliqués
+        correct: true
+      - texte: "Changer le `player` reçu en premier paramètre par `OnServerEvent`"
+    explication: "Le tricheur contrôle tout ce qui tourne sur son appareil : son code, son personnage, ses messages. Le seul élément garanti par Roblox est le premier paramètre `player` côté serveur."
+  - type: qcm
+    question: "Ton détecteur de vitesse signale un joueur une seule fois. Quelle réaction est la plus raisonnable ?"
+    options:
+      - texte: Le bannir définitivement tout de suite
+      - texte: Journaliser l’alerte, neutraliser l’effet si besoin et n’agir qu’après plusieurs signaux concordants
+        correct: true
+      - texte: Ignorer complètement toutes les alertes, elles sont toujours fausses
+      - texte: Lui envoyer un message public pour l’accuser devant tout le serveur
+    explication: "Un signal isolé peut être un faux positif (latence, raccourci légitime, plateforme qui projette le joueur). La documentation recommande une réponse proportionnée et réversible, après plusieurs détections."
+  - type: qcm
+    question: Pour une boutique, que doit envoyer le client au serveur ?
+    options:
+      - texte: L’identifiant de l’objet qu’il veut acheter
+        correct: true
+      - texte: L’identifiant de l’objet et son prix
+      - texte: Son nouveau solde de pièces après l’achat
+      - texte: La liste complète de son inventaire mise à jour
+    explication: "Le client exprime une **intention** (« je veux cet objet »). Le prix, le solde et l’inventaire sont connus et calculés par le serveur. Tout ce que le client envoie de plus peut être falsifié."
+  - type: trouve-le-bug
+    question: "Ce Script serveur gère les achats. Un tricheur arrive pourtant à acheter des objets pour 0 pièce. Où est la faille ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local Catalogue = require(ReplicatedStorage.Modules.Catalogue)
+      local acheterObjet = ReplicatedStorage.Remotes.AcheterObjet
+
+      acheterObjet.OnServerEvent:Connect(function(player, idObjet, prix)
+      	local pieces = player.leaderstats.Pieces
+      	if typeof(idObjet) ~= "string" or Catalogue[idObjet] == nil then
+      		return
+      	end
+      	if pieces.Value >= prix then
+      		pieces.Value -= prix
+      		-- (ici, on ajoute l'objet à l'inventaire du joueur)
+      	end
+      end)
+    options:
+      - texte: "Ligne 2 : on ne peut pas faire `require` d’un ModuleScript de ReplicatedStorage côté serveur"
+      - texte: "Ligne 7 : il faut tester `typeof(idObjet) ~= \"number\"`"
+      - texte: "Ligne 10 : le prix vient du client ; le serveur doit utiliser le prix de son propre catalogue"
+        correct: true
+      - texte: "Ligne 6 : `leaderstats` n’est pas accessible depuis le serveur"
+    explication: "Le tricheur envoie `prix = 0` (ou un nombre négatif pour gagner des pièces !). Le serveur doit lire le prix dans `Catalogue[idObjet]`, jamais dans les arguments du client. Un ModuleScript de ReplicatedStorage peut tout à fait être requis par le serveur."
+---
+
+Tu sais maintenant faire dialoguer le client et le serveur. Il est temps d’apprendre la règle d’or de la programmation multijoueur, celle que la documentation de Roblox place au sommet de ses principes de sécurité : **ne jamais faire confiance au client**. Dans cette leçon, tu vas voir comment pensent les tricheurs, puis construire une boîte à outils de validation que tu réutiliseras dans tout l’Obby des Nuages.
+
+## Ce qu’un tricheur peut faire
+
+Un **exploiteur** (exploiter, en anglais) est un joueur qui utilise un logiciel de triche pour manipuler son client Roblox. La documentation officielle part d’un principe simple : il a le contrôle **total** de son appareil et de ce qu’il envoie. Il peut notamment :
+
+- **lire le code** de tous les LocalScripts et ModuleScripts répliqués (même ceux qui ne s’exécutent jamais sur le client) ;
+- **prendre la propriété réseau** de son personnage et des Parts non ancrées, donc se téléporter, voler, aller plus vite ;
+- **déclencher des contacts** (`Touched`) et des ProximityPrompts (les invites du type « appuie sur E » qui apparaissent près d’un objet) à n’importe quelle distance et à n’importe quelle fréquence ;
+- **appeler n’importe quel RemoteEvent ou RemoteFunction**, aussi souvent qu’il veut, avec **n’importe quels arguments** ;
+- **modifier tout ce qui existe sur son client**, sans déclencher les événements que tu attendrais.
+
+Une seule chose lui échappe : le paramètre `player` que Roblox ajoute en premier côté serveur. Il est fiable.
+
+<Attention>
+Une protection placée **uniquement** dans un LocalScript (un cooldown, un test « as-tu assez de pièces ? », un anti-vitesse) sera contournée tôt ou tard : le tricheur peut modifier ou désactiver ce code. Ces vérifications côté client améliorent le confort du joueur honnête, mais la vraie protection est **toujours côté serveur**.
+</Attention>
+
+### Les exploits classiques
+
+| Exploit | Exemple | Défense côté serveur |
+|---|---|---|
+| Remote trop « généreux » | `DonnerPieces:FireServer(999999)` | Ne jamais laisser le client choisir une récompense |
+| Prix falsifié | Envoyer `prix = 0` ou un prix négatif | Lire le prix dans le catalogue du serveur |
+| Arguments piégés | Envoyer NaN, une table à la place d’une instance, un texte énorme | Valider type, valeur, taille |
+| Spam | Appeler un remote 500 fois par seconde | Cooldown ou limite de débit par joueur |
+| Téléportation, vol, vitesse | Sauter directement à la fin de l’obby | Étapes obligatoires dans l’ordre, contrôles de distance |
+| Contacts truqués | Toucher toutes les pièces de la carte depuis le départ | Vérifier la distance réelle côté serveur |
+
+## Le client demande, le serveur décide
+
+Regarde ce RemoteEvent, malheureusement très courant chez les débutants :
+
+```luau
+-- Script dans ServerScriptService — EXEMPLE À NE PAS SUIVRE
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local donnerPieces = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DonnerPieces") :: RemoteEvent
+
+-- Le client décide lui-même combien de pièces il gagne : n'importe qui peut devenir riche
+donnerPieces.OnServerEvent:Connect(function(player: Player, montant: number)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+	if pieces and pieces:IsA("IntValue") then
+		pieces.Value += montant
+	end
+end)
+```
+
+Le problème n’est pas un test manquant : c’est la **conception**. Ce remote ne devrait pas exister. Le client ne doit jamais envoyer un **résultat** (« donne-moi 50 pièces »), seulement une **intention** (« je touche cette pièce », « je veux acheter cet objet »). Le serveur vérifie ensuite si l’intention est possible et calcule lui-même le résultat.
+
+La documentation résume le rôle du serveur en quatre étapes : **recevoir** la demande, **vérifier** qu’elle est possible et autorisée, **exécuter** l’action en mettant à jour son propre état, puis **répliquer** le résultat aux clients.
+
+<Astuce titre="Penser comme un tricheur">
+Avant d’écrire un remote, pose-toi les questions que recommande la documentation. Que se passe-t-il si le client envoie **n’importe quelle valeur** ? S’il appelle ce remote **1 000 fois par seconde** ? Peut-il gêner **les autres joueurs** ? Quelle est la **quantité minimale d’informations** dont j’ai besoin ? Si une réponse te fait peur, change la conception avant d’écrire le code.
+</Astuce>
+
+## Les quatre couches de validation
+
+Pour chaque message reçu d’un client, vérifie ces quatre points :
+
+1. **Le type** : est-ce bien un nombre, un texte, une instance ? Avec `typeof(valeur)`.
+2. **La valeur** : est-elle dans les bornes attendues ? Un nombre fini, un entier positif, un texte de longueur raisonnable, un identifiant qui existe vraiment dans ton catalogue.
+3. **Le contexte** : le joueur a-t-il le droit de faire ça **maintenant** ? Est-il vivant ? Assez près ? A-t-il atteint cette étape ? Possède-t-il déjà cet objet ?
+4. **Le débit** : ne fait-il pas cette demande trop souvent ?
+
+Si un seul test échoue, on **ignore la demande** (un simple `return`), sans faire planter le script. L’ordre exact peut varier : dans les exemples de ce module, le débit est vérifié juste après le type, pour refuser le spam avant de faire le moindre travail.
+
+### Le piège de NaN
+
+Un tricheur peut envoyer **NaN** (« Not a Number », « pas un nombre »). Le danger : `typeof(NaN)` vaut bien `"number"`, mais toute comparaison avec NaN est fausse. Il traverse donc tes tests de bornes sans être arrêté :
+
+```luau
+-- À tester dans un Script pour comprendre NaN
+local nan = 0 / 0
+
+print(typeof(nan)) --> number : le test de type passe !
+print(nan < 0, nan > 1000) --> false false : le test de bornes ne l'arrête pas !
+print(nan == nan) --> false : NaN n'est même pas égal à lui-même
+print(math.isfinite(nan)) --> false : voilà la bonne vérification
+print(math.isfinite(math.huge)) --> false : l'infini est rejeté aussi
+```
+
+La documentation recommande `math.isfinite()` pour rejeter NaN et l’infini.
+
+### Une boîte à outils de validation
+
+Plutôt que de réécrire les mêmes tests partout, rassemble-les dans un ModuleScript. Il vit dans **ServerScriptService** : les clients ne peuvent ni le voir ni le lire.
+
+```luau
+-- ModuleScript « Validation » placé dans ServerScriptService (côté serveur uniquement)
+local Players = game:GetService("Players")
+
+local Validation = {}
+
+-- Vrai si la valeur est un nombre fini (ni NaN ni infini) compris entre min et max
+function Validation.estNombre(valeur: unknown, min: number, max: number): boolean
+	if typeof(valeur) ~= "number" then
+		return false
+	end
+	if not math.isfinite(valeur) then
+		return false
+	end
+	return valeur >= min and valeur <= max
+end
+
+-- Vrai si la valeur est un nombre entier (1, 2, 3…) compris entre min et max
+function Validation.estEntier(valeur: unknown, min: number, max: number): boolean
+	if not Validation.estNombre(valeur, min, max) then
+		return false
+	end
+	local nombre = valeur :: number
+	return math.floor(nombre) == nombre
+end
+
+-- Vrai si la valeur est un texte non vide, pas trop long et en UTF-8 valide (le codage standard des textes)
+function Validation.estTexte(valeur: unknown, longueurMax: number): boolean
+	if typeof(valeur) ~= "string" then
+		return false
+	end
+	if #valeur == 0 or #valeur > longueurMax then
+		return false
+	end
+	return utf8.len(valeur) ~= nil -- utf8.len renvoie nil si le texte est invalide
+end
+
+-- Renvoie la HumanoidRootPart du joueur s'il a un personnage vivant, sinon nil
+function Validation.racineVivante(player: Player): BasePart?
+	local character = player.Character
+	if character == nil then
+		return nil
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local racine = character:FindFirstChild("HumanoidRootPart")
+	if humanoid and humanoid.Health > 0 and racine and racine:IsA("BasePart") then
+		return racine
+	end
+	return nil
+end
+
+-- Vrai si le personnage du joueur est à moins de distanceMax studs de la position
+function Validation.estAPortee(player: Player, position: Vector3, distanceMax: number): boolean
+	local racine = Validation.racineVivante(player)
+	if racine == nil then
+		return false
+	end
+	return (racine.Position - position).Magnitude <= distanceMax
+end
+
+-- Crée un cooldown par joueur : la fonction renvoyée répond true au plus
+-- une fois toutes les `delai` secondes pour un même joueur
+function Validation.creerCooldown(delai: number): (Player) -> boolean
+	local dernieresActions: { [Player]: number } = {}
+
+	-- On oublie le joueur quand il part (sinon la table grossit sans fin)
+	Players.PlayerRemoving:Connect(function(player: Player)
+		dernieresActions[player] = nil
+	end)
+
+	return function(player: Player): boolean
+		local maintenant = os.clock()
+		local derniere = dernieresActions[player]
+		if derniere and maintenant - derniere < delai then
+			return false -- trop tôt : demande refusée
+		end
+		dernieresActions[player] = maintenant
+		return true
+	end
+end
+
+return Validation
+```
+
+### Exemple complet : se téléporter à un checkpoint déjà atteint
+
+Imaginons un menu qui permet de revenir à une étape déjà franchie. Le client envoie le **numéro** de l’étape voulue au RemoteEvent `AllerAuCheckpoint` (à créer dans `ReplicatedStorage.Remotes`). Voici comment le serveur applique les quatre couches. On suppose que le serveur range l’étape atteinte dans `leaderstats.Etape` : tu la créeras dans la leçon 5.
+
+```luau
+-- Script placé dans ServerScriptService (côté serveur)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
+
+local Validation = require(ServerScriptService:WaitForChild("Validation"))
+
+local allerAuCheckpoint = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AllerAuCheckpoint") :: RemoteEvent
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+
+local peutSeTeleporter = Validation.creerCooldown(3) -- une téléportation toutes les 3 secondes maximum
+
+allerAuCheckpoint.OnServerEvent:Connect(function(player: Player, numero: unknown)
+	-- 1. Type et valeur : un entier raisonnable (ni NaN, ni infini, ni 2,5)
+	if not Validation.estEntier(numero, 1, 1000) then
+		return
+	end
+
+	-- 2. Débit : pas de spam
+	if not peutSeTeleporter(player) then
+		return
+	end
+
+	-- 3. Contexte : le personnage existe et il est vivant
+	local character = player.Character
+	if character == nil or Validation.racineVivante(player) == nil then
+		return
+	end
+
+	-- 3 bis. Contexte : l'étape a déjà été atteinte, d'après le SERVEUR
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+	if not (etape and etape:IsA("IntValue")) then
+		return
+	end
+	if (numero :: number) > etape.Value then
+		return -- il demande une étape qu'il n'a pas encore atteinte
+	end
+
+	-- 3 ter. Le checkpoint existe vraiment
+	local checkpoint = dossierCheckpoints:FindFirstChild(tostring(numero))
+	if not (checkpoint and checkpoint:IsA("BasePart")) then
+		return
+	end
+
+	-- Tout est valide : c'est le SERVEUR qui déplace le personnage
+	character:PivotTo(checkpoint.CFrame + Vector3.new(0, 4, 0))
+end)
+```
+
+Remarque que le client ne choisit **jamais** une position : il choisit seulement un numéro, et le serveur décide où placer le personnage.
+
+<Erreur titre="Faire confiance aux objets envoyés par le client">
+Si un remote reçoit une instance (« achète **cet** objet »), vérifie non seulement `typeof(objet) == "Instance"`, mais aussi sa classe (`objet:IsA(...)`) et son emplacement (`objet:IsDescendantOf(dossierAttendu)`). La documentation décrit un tricheur qui envoie une **table** imitant un objet de boutique avec un prix à 0. Plus simple encore : fais envoyer un **identifiant texte** et cherche l’objet toi-même côté serveur.
+</Erreur>
+
+## Limiter le débit
+
+Le cooldown de notre module est la forme la plus simple de **limitation de débit** (rate limiting) : une action par joueur toutes les N secondes. C’est parfait pour un achat ou une téléportation.
+
+Pour des actions qu’on peut faire plusieurs fois de suite (envoyer des messages, lancer un sort), la documentation présente l’algorithme du **seau à jetons** (token bucket). Chaque joueur a un seau de jetons, chaque action en coûte un, et le seau se remplit lentement. Cela autorise de petites rafales tout en empêchant le spam continu. Le code complet est sur la page « Securing the client-server boundary » citée en sources.
+
+Pense aussi aux objets qui déclenchent du code serveur **sans** remote. D’après la documentation, un tricheur peut activer un `ClickDetector` à n’importe quelle distance (aucune vérification côté serveur) et, pour un `ProximityPrompt`, seul l’événement `Triggered` est vérifié en distance. Ajoute tes propres vérifications de distance et de cooldown dans leurs fonctions.
+
+## Téléportation et vitesse : détecter sans se tromper
+
+Le client contrôle la physique de son personnage : c’est le point le plus délicat. La documentation précise qu’un tricheur peut régler la `WalkSpeed` (vitesse de marche) de son `Humanoid` comme il veut, et que cette propriété ne doit **pas** servir de mécanisme de sécurité. Le serveur peut en revanche observer **où se trouve** le personnage au fil du temps.
+
+La documentation est honnête : il n’existe pas de solution universelle. Les heuristiques simples (des règles approximatives) peuvent signaler des joueurs innocents avec une connexion instable, et il faut prévoir des exceptions pour les téléportations légitimes. Voici un détecteur volontairement prudent : il **journalise** seulement (il note l’alerte dans l’Output), il ne punit pas.
+
+```luau
+-- Script placé dans ServerScriptService (côté serveur)
+-- Détecteur simple de déplacements horizontaux impossibles : il journalise, il ne punit pas.
+local Players = game:GetService("Players")
+
+local INTERVALLE = 1 -- secondes entre deux mesures
+local VITESSE_MAX = 16 * 1.5 -- vitesse de marche par défaut (16 studs/s) + 50 % de marge
+local TOLERANCE = 10 -- studs de marge supplémentaire pour la latence
+
+local dernieresPositions: { [Player]: Vector3 } = {}
+local suspicions: { [Player]: number } = {}
+
+-- On ne garde que X et Z : tomber ou sauter ne compte pas
+local function positionAuSol(position: Vector3): Vector3
+	return Vector3.new(position.X, 0, position.Z)
+end
+
+Players.PlayerAdded:Connect(function(player: Player)
+	-- Réapparition = téléportation légitime : on repart de zéro
+	player.CharacterAdded:Connect(function()
+		dernieresPositions[player] = nil
+	end)
+end)
+
+Players.PlayerRemoving:Connect(function(player: Player)
+	dernieresPositions[player] = nil
+	suspicions[player] = nil
+end)
+
+while true do
+	task.wait(INTERVALLE)
+	for _, player in Players:GetPlayers() do
+		local character = player.Character
+		local racine = character and character:FindFirstChild("HumanoidRootPart")
+		if racine and racine:IsA("BasePart") then
+			local actuelle = positionAuSol(racine.Position)
+			local precedente = dernieresPositions[player]
+			if precedente then
+				local distance = (actuelle - precedente).Magnitude
+				if distance > VITESSE_MAX * INTERVALLE + TOLERANCE then
+					suspicions[player] = (suspicions[player] or 0) + 1
+					warn(string.format("[Anti-triche] %s : %.0f studs en %d s (alerte n°%d)",
+						player.Name, distance, INTERVALLE, suspicions[player]))
+				end
+			end
+			dernieresPositions[player] = actuelle
+		else
+			dernieresPositions[player] = nil
+		end
+	end
+end
+```
+
+Limites à connaître :
+
+- si ton jeu **téléporte** un joueur (bouton « retour au checkpoint », trampoline, tapis roulant rapide), le détecteur risque de le signaler : augmente les marges, ou préviens le détecteur (par exemple avec un BindableEvent, leçon 3) pour qu’il remette `dernieresPositions[player]` à `nil` juste après ;
+- la latence crée des « sauts » de position : d’où la tolérance et le fait de ne compter qu’un **score de suspicion** ;
+- un tricheur prudent peut rester juste sous la limite. Ce détecteur complète tes **validations de conception** (étapes obligatoires dans l’ordre, distances), il ne les remplace pas.
+
+<Info>
+Depuis juillet 2026, Roblox propose à tous les jeux un modèle d’« autorité serveur » (server authority, présenté à la [leçon 1](/modules/04/modele-client-serveur/)), à activer volontairement avec la propriété `AuthorityMode` du `Workspace`. Le serveur y fait autorité sur les mouvements, ce qui empêche des familles entières de triches comme le vol ou la super-vitesse. La documentation de sécurité le présente comme la solution la plus fiable contre les triches de physique et de mouvement. Il demande toutefois d’adapter son jeu : pour l’Obby des Nuages, on reste sur le modèle classique et ses validations côté serveur (situation au moment de la rédaction, octobre 2026).
+</Info>
+
+## Réagir sans punir les innocents
+
+Un faux positif (un joueur honnête signalé à tort) fait fuir tes meilleurs joueurs. La documentation de Roblox recommande une philosophie claire :
+
+- **Le serveur décide.** Ne sanctionne jamais sur la base d’une détection faite côté client.
+- **Neutraliser d’abord.** Ignorer une demande invalide, refuser un achat, ramener un joueur à sa dernière position valide : c’est souvent suffisant.
+- **Être proportionné et réversible.** Préfère des actions qu’on peut annuler à un bannissement définitif.
+- **Croiser les signaux.** Un seul signal n’est pas une preuve. Augmente un score de suspicion et n’agis qu’après plusieurs détections **différentes** (vitesse, temps de parcours impossible, gains anormaux…).
+
+La documentation propose une **échelle de réponses** : journaliser en silence, neutraliser l’effet, restreindre temporairement certaines fonctions, puis seulement en dernier recours exclure le joueur (`player:Kick()`) ou le bannir. Pour les récidivistes, elle mentionne l’API de bannissement (`Players:BanAsync`), plus fiable qu’un simple `Kick`.
+
+<Astuce titre="Le pot de miel">
+La documentation décrit une technique astucieuse : un **honeypot** (pot de miel). Tu crées un RemoteEvent au nom alléchant (par exemple `DonnerPiecesAdmin`) qu’**aucun** de tes scripts n’utilise. Un joueur honnête ne peut jamais l’appeler : si le serveur reçoit un message dessus, c’est un signal très fiable de triche.
+</Astuce>
+
+<Defi>
+Ajoute le ModuleScript `Validation` dans ServerScriptService. Dans un Script de test, appelle `Validation.estEntier` avec `3`, `2.5`, `0 / 0`, `math.huge`, `"3"` et `nil`, et affiche chaque résultat. Seul `3` doit renvoyer `true` (avec min = 1 et max = 10).
+</Defi>
+
+<Resume>
+- Le tricheur contrôle tout sur son appareil : code, personnage, physique possédée, arguments et fréquence des remotes. Seul le `player` reçu par le serveur est fiable.
+- Le client envoie une **intention**, jamais un résultat ni un prix : le serveur calcule tout.
+- Valide chaque requête en quatre couches : **type** (`typeof`), **valeur** (`math.isfinite`, bornes, existence), **contexte** (vivant, distance, progression), **débit** (cooldown par joueur).
+- NaN est de type `"number"` mais échappe à toutes les comparaisons : rejette-le avec `math.isfinite`.
+- Détecte prudemment (score de suspicion, journalisation) et réagis de façon **proportionnée et réversible**.
+</Resume>
+
+<Sources>
+- [Security and cheat mitigation tactics — documentation Roblox](https://create.roblox.com/docs/scripting/security/security-tactics)
+- [Securing the client-server boundary — documentation Roblox](https://create.roblox.com/docs/scripting/security/client-server-boundary)
+- [Network ownership, movement validation, and physics — documentation Roblox](https://create.roblox.com/docs/scripting/security/network-ownership)
+- [Server-side detection and consequencing — documentation Roblox](https://create.roblox.com/docs/scripting/security/server-side-detection)
+- [Defensive design tactics — documentation Roblox](https://create.roblox.com/docs/scripting/security/defensive-design)
+- [Humanoid.WalkSpeed — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/Humanoid#WalkSpeed)
+- [math.isfinite — référence de la bibliothèque math](https://create.roblox.com/docs/reference/engine/libraries/math)
+- [Server authority model — documentation Roblox](https://create.roblox.com/docs/projects/server-authority)
+- [Ship Fair And Competitive Games with Server Authority — annonce officielle de Roblox sur le DevForum (9 juillet 2026)](https://devforum.roblox.com/t/full-release-ship-fair-and-competitive-games-with-server-authority/4727993)
+</Sources>

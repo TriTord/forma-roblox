@@ -34,9 +34,19 @@ const questionTrouveLeBug = z.strictObject({
   explication: texte,
 });
 
+const questionAmelioreLePrompt = z.strictObject({
+  type: z.literal('ameliore-le-prompt'),
+  question: texte,
+  /** Prompt vague à améliorer, affiché tel quel (texte brut, retours à la ligne conservés). */
+  prompt: z.string().trim().min(1, 'Le champ « prompt » est obligatoire pour une question ameliore-le-prompt.'),
+  /** Versions proposées (une seule est la meilleure) ; les retours à la ligne sont conservés. */
+  options: z.array(option).min(2, 'Au moins 2 options.').max(5, 'Au plus 5 options.'),
+  explication: texte,
+});
+
 export const questionSchema = z
-  .discriminatedUnion('type', [questionQcm, questionVraiFaux, questionTrouveLeBug], {
-    error: 'Type de question inconnu : utilise « qcm », « vrai-faux » ou « trouve-le-bug ».',
+  .discriminatedUnion('type', [questionQcm, questionVraiFaux, questionTrouveLeBug, questionAmelioreLePrompt], {
+    error: 'Type de question inconnu : utilise « qcm », « vrai-faux », « trouve-le-bug » ou « ameliore-le-prompt ».',
   })
   .superRefine((q, ctx) => {
     if (q.type === 'vrai-faux') return;
@@ -47,10 +57,10 @@ export const questionSchema = z
         message: `Question « ${q.question.slice(0, 50)} » : aucune option n'a « correct: true ».`,
       });
     }
-    if (q.type === 'trouve-le-bug' && bonnes !== 1) {
+    if ((q.type === 'trouve-le-bug' || q.type === 'ameliore-le-prompt') && bonnes !== 1) {
       ctx.addIssue({
         code: 'custom',
-        message: `Question trouve-le-bug « ${q.question.slice(0, 50)} » : il faut exactement UNE option correcte.`,
+        message: `Question ${q.type} « ${q.question.slice(0, 50)} » : il faut exactement UNE option correcte.`,
       });
     }
   });

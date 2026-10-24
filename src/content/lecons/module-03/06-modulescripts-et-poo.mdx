@@ -1,0 +1,398 @@
+---
+titre: ModuleScripts et programmation orientée objet
+description: Range tes réglages et ton code réutilisable dans des ModuleScripts, crée tes propres « classes » avec les métatables, et découvre le typage optionnel de Luau.
+duree: 45
+objectifs:
+  - Structurer son code en ModuleScripts réutilisables avec require
+  - Centraliser les réglages de l’Obby des Nuages dans un module Config
+  - Créer des « classes » avec les métatables, __index, new et self
+  - Découvrir les annotations de type et le mode --!strict
+miseAJour: 2026-10-24
+quiz:
+  - type: vrai-faux
+    question: "Si trois Scripts serveur font `require` du même ModuleScript, le code du module s’exécute trois fois."
+    reponse: false
+    explication: "Un ModuleScript s’exécute **une seule fois** par environnement (serveur, ou chaque client). Les `require` suivants renvoient la **même** valeur, mise en cache. Les trois scripts partagent donc la même table."
+  - type: qcm
+    question: "Tu écris `function Piece:arreter() self.active = false end`. Quelle écriture est équivalente ?"
+    options:
+      - texte: "`function Piece.arreter() Piece.active = false end`"
+      - texte: "`function Piece.arreter(self) self.active = false end`"
+        correct: true
+      - texte: "`function Piece.arreter(Piece) self.active = false end`"
+    explication: "Les deux-points ajoutent automatiquement un premier paramètre caché nommé `self`. De même, à l’appel, `objet:arreter()` équivaut à `objet.arreter(objet)`."
+  - type: qcm
+    question: "Dans le motif de classe, à quoi sert la ligne `Classe.__index = Classe` ?"
+    options:
+      - texte: À numéroter les objets créés
+      - texte: "Quand on lit une clé absente d’un objet (ex. une méthode), Luau va la chercher dans `Classe`"
+        correct: true
+      - texte: À empêcher la modification des objets
+      - texte: À rendre la classe accessible depuis les autres scripts
+    explication: "Un objet créé par `setmetatable({}, Classe)` ne contient que ses propres données. Quand on appelle `objet:methode()`, la clé `methode` est absente de l’objet : grâce à `__index`, Luau la cherche alors dans `Classe`, où les méthodes sont définies."
+  - type: qcm
+    question: Où ranger le ModuleScript `Config` de l’Obby des Nuages pour que serveur ET clients puissent le lire ?
+    options:
+      - texte: Dans ServerScriptService
+      - texte: Dans ServerStorage
+      - texte: "Dans `ReplicatedStorage.Modules`"
+        correct: true
+      - texte: Dans StarterPlayerScripts
+    explication: "ReplicatedStorage est visible du serveur et des clients : c’est l’endroit classique pour le code et les réglages partagés. ServerScriptService et ServerStorage ne sont pas accessibles aux clients ; StarterPlayerScripts sert à ranger les LocalScripts copiés chez chaque joueur, pas des modules partagés."
+  - type: trouve-le-bug
+    question: "Cette classe compte des pièces. L’appel `compteur:ajouter(5)` provoque l’erreur « attempt to index nil with 'valeur' ». Où est le bug ?"
+    code: |
+      local Compteur = {}
+      Compteur.__index = Compteur
+
+      function Compteur.new()
+      	local self = setmetatable({}, Compteur)
+      	self.valeur = 0
+      	return self
+      end
+
+      function Compteur.ajouter(montant)
+      	self.valeur += montant
+      end
+
+      return Compteur
+    options:
+      - texte: "Ligne 2 : il faut `Compteur.__index = {}`"
+      - texte: "Ligne 5 : `setmetatable` ne renvoie rien, il faut une seconde ligne"
+      - texte: "Ligne 10 : la méthode doit être déclarée avec `:` (`function Compteur:ajouter(montant)`) pour recevoir `self`"
+        correct: true
+      - texte: "Ligne 14 : un ModuleScript ne peut pas renvoyer une table"
+    explication: "Déclarée avec un point, `ajouter` ne reçoit pas de `self` : à l’appel `compteur:ajouter(5)`, l’objet arrive dans `montant` et `self` est une variable inconnue (donc `nil`). Avec `function Compteur:ajouter(montant)`, Luau ajoute le paramètre `self` automatiquement. `setmetatable` renvoie bien la table, et un module peut renvoyer une table."
+  - type: vrai-faux
+    question: "Écrire `--!strict` en première ligne d’un script active une vérification des types plus poussée par l’analyseur de Studio, sans changer ce que fait le code."
+    reponse: true
+    explication: "Le mode strict sert à l’**analyse** : Studio signale davantage d’incohérences de types pendant que tu écris. Les annotations de type n’influencent pas l’exécution du programme ; elles aident à repérer les bugs plus tôt."
+---
+
+Ton Obby des Nuages a maintenant plusieurs scripts : `KillBricks`, `PiecesTournantes`, `Checkpoints`… Chacun contient ses propres réglages (vitesse de rotation, hauteur de réapparition…) éparpillés un peu partout. Le jour où tu voudras les modifier, il faudra fouiller chaque script. Dans cette dernière leçon du module, tu vas apprendre à **ranger** ton code : des **ModuleScripts** pour partager réglages et fonctions, et la **programmation orientée objet** pour créer tes propres types d’objets. Tu termineras par un aperçu du **typage** de Luau.
+
+## Le ModuleScript : du code à partager
+
+Un **ModuleScript** est un script qui ne s’exécute pas tout seul. Il **renvoie une valeur** (presque toujours une table) que d’autres scripts récupèrent avec **`require`**.
+
+Les règles essentielles, d’après la documentation Roblox :
+
+- un ModuleScript doit renvoyer **exactement une valeur**, avec `return` à la fin, au niveau principal du fichier (pas à l’intérieur d’une fonction), et cette valeur ne peut pas être `nil` ;
+- son code s’exécute **une seule fois par environnement** : le premier `require` exécute le module, les suivants renvoient **la même valeur** (mise en cache) ;
+- le serveur et chaque client sont des environnements séparés : si un Script et un LocalScript font `require` du même module, chacun reçoit **sa propre copie**.
+
+## Fil rouge : le module `Config`
+
+On va centraliser tous les réglages de l’Obby des Nuages dans un seul module.
+
+1. Dans **ReplicatedStorage**, crée un **Folder** nommé `Modules`.
+2. Dans ce dossier, insère un **ModuleScript** nommé `Config`.
+3. Remplace son contenu par :
+
+```luau
+-- ModuleScript « Config » dans ReplicatedStorage.Modules
+-- Tous les réglages de l'Obby des Nuages, au même endroit.
+local Config = {}
+
+-- Pièces
+Config.VITESSE_ROTATION_PIECES = 90 -- degrés par seconde
+Config.VALEUR_PIECE = 1             -- pièces gagnées par ramassage
+
+-- Checkpoints
+Config.HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0)
+
+-- Niveaux : un tableau de dictionnaires (leçon 4)
+Config.Niveaux = {
+	{nom = "Les premiers nuages", etapeDebut = 1, etapeFin = 5},
+	{nom = "La tempête", etapeDebut = 6, etapeFin = 10},
+	{nom = "Le sommet", etapeDebut = 11, etapeFin = 12},
+}
+
+-- Un module peut aussi contenir des fonctions
+-- Renvoie le niveau qui contient l'étape donnée (ou nil)
+function Config.obtenirNiveau(etape)
+	for _, niveau in Config.Niveaux do
+		if etape >= niveau.etapeDebut and etape <= niveau.etapeFin then
+			return niveau
+		end
+	end
+	return nil
+end
+
+return Config -- OBLIGATOIRE : c'est la valeur que recevra require
+```
+
+### Utiliser `Config` depuis un autre script
+
+Modifions le Script `PiecesTournantes` de la leçon 4 pour qu’il lise sa vitesse dans `Config` :
+
+```luau
+-- Script « PiecesTournantes » dans ServerScriptService
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+-- require renvoie la table "Config" retournée par le module
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+
+local dossierPieces = Workspace:WaitForChild("Pieces")
+
+while true do
+	local ecoule = task.wait()
+	local rotation = CFrame.Angles(0, math.rad(Config.VITESSE_ROTATION_PIECES * ecoule), 0)
+	for _, piece in dossierPieces:GetChildren() do
+		if piece:IsA("BasePart") then
+			piece.CFrame = piece.CFrame * rotation
+		end
+	end
+end
+```
+
+Et dans n’importe quel autre script :
+
+```luau
+-- Script dans ServerScriptService : utiliser une fonction du module
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+
+local niveau = Config.obtenirNiveau(7)
+if niveau then
+	print(`L'étape 7 fait partie du niveau « {niveau.nom} »`) --> La tempête
+end
+```
+
+Désormais, pour accélérer les pièces, tu modifies **une seule ligne** dans `Config`. Fais de même dans ton script `Checkpoints` : ajoute en haut les deux lignes qui récupèrent `ReplicatedStorage` et font le `require` de `Config` (comme ci-dessus), supprime sa constante `HAUTEUR_REAPPARITION` et écris `Config.HAUTEUR_REAPPARITION` à la place, dans l’appel à `PivotTo`.
+
+<Erreur titre="Oublier le return du module">
+Sans `return Config` à la fin du module, `require` échoue avec l’erreur « Module code did not return exactly one value », un grand classique du DevForum. Même erreur si le seul `return` est caché à l’intérieur d’une fonction. Autre piège : deux modules qui se `require` mutuellement provoquent l’erreur « Requested module was required recursively » ; organise tes modules pour éviter ces boucles.
+</Erreur>
+
+<Astuce titre="Verrouiller la configuration avec table.freeze">
+Ajoute `table.freeze(Config)` juste avant `return Config` : la table devient en lecture seule, et toute tentative de modification (par exemple `Config.VALEUR_PIECE = 1000` dans un autre script) provoque une erreur au lieu de changer silencieusement les règles du jeu. Attention, le gel est superficiel : les sous-tables comme `Config.Niveaux` ne sont pas gelées.
+</Astuce>
+
+### Où ranger ses modules ?
+
+| Emplacement | Qui peut faire `require` | Exemples |
+|---|---|---|
+| `ReplicatedStorage.Modules` | Serveur **et** clients | `Config`, `Catalogue` de la boutique, fonctions utilitaires |
+| `ServerScriptService` (ou ServerStorage) | **Serveur uniquement** | Logique de sauvegarde, validation des achats |
+
+<Attention>
+Tout ce qui est dans ReplicatedStorage est **copié chez chaque joueur** : un tricheur peut le lire. N’y mets jamais d’information secrète ni de logique dont dépend la sécurité du jeu. On approfondit ce point au module 4 ([Le modèle client/serveur](/modules/04/modele-client-serveur/)).
+</Attention>
+
+## La programmation orientée objet (POO)
+
+Imagine que tu veuilles des pièces qui tournent chacune à leur vitesse, et qu’on puisse arrêter une par une. Tu pourrais gérer des tables de vitesses et d’états… ou créer un nouveau **type d’objet**, `PieceTournante`, qui regroupe ses **données** (la Part, la vitesse, l’état) et ses **actions** (tourner, s’arrêter). C’est l’idée de la **programmation orientée objet** : une **classe** est un modèle, et chaque **objet** (ou **instance**) créé à partir d’elle a ses propres données.
+
+Luau n’a pas de mot-clé « classe » : on les fabrique avec les **métatables**.
+
+### Les métatables et `__index`
+
+Une **métatable** est une table qui modifie le comportement d’une autre table. Le champ le plus utile s’appelle **`__index`** : quand on lit une clé **absente** d’une table, Luau va la chercher dans la table indiquée par `__index`.
+
+```luau
+local valeursParDefaut = {vitesse = 90, couleur = "Or"}
+local maPiece = {vitesse = 180}
+
+-- setmetatable(table, metatable) attache la métatable et renvoie la table
+setmetatable(maPiece, {__index = valeursParDefaut})
+
+print(maPiece.vitesse) --> 180 (la clé existe dans maPiece)
+print(maPiece.couleur) --> Or  (absente de maPiece : trouvée via __index)
+```
+
+### Le motif de classe
+
+Voici le motif classique utilisé partout sur Roblox. Crée un **ModuleScript** nommé `PieceTournante` dans ServerScriptService :
+
+```luau
+-- ModuleScript « PieceTournante » dans ServerScriptService
+local PieceTournante = {}
+-- Les objets chercheront leurs méthodes absentes dans PieceTournante
+PieceTournante.__index = PieceTournante
+
+-- Le constructeur : crée et renvoie un nouvel objet
+function PieceTournante.new(part, vitesse)
+	local self = setmetatable({}, PieceTournante)
+	self.part = part         -- données propres à CET objet
+	self.vitesse = vitesse   -- degrés par seconde
+	self.active = true
+	return self
+end
+
+-- Une méthode (déclarée avec ":") : reçoit automatiquement l'objet dans "self"
+function PieceTournante:mettreAJour(ecoule)
+	if not self.active then
+		return
+	end
+	self.part.CFrame = self.part.CFrame * CFrame.Angles(0, math.rad(self.vitesse * ecoule), 0)
+end
+
+function PieceTournante:arreter()
+	self.active = false
+end
+
+return PieceTournante
+```
+
+Décortiquons :
+
+- `PieceTournante.__index = PieceTournante` : la classe sert de métatable à ses objets, et ses méthodes sont trouvées grâce à `__index` ;
+- `PieceTournante.new(...)` est le **constructeur** : il crée une table vide, lui attache la classe comme métatable (`setmetatable` renvoie la table), remplit ses données et la renvoie ;
+- les méthodes sont déclarées avec **`:`** et utilisent **`self`**, qui désigne l’objet sur lequel on appelle la méthode.
+
+### `.` ou `:` ? La clé de `self`
+
+Les deux-points sont un raccourci qui ajoute un paramètre `self` :
+
+| Écriture avec `:` | Équivaut à |
+|---|---|
+| `function PieceTournante:arreter()` | `function PieceTournante.arreter(self)` |
+| `maPiece:arreter()` | `maPiece.arreter(maPiece)` |
+
+Tu utilises ce mécanisme depuis la leçon 1 : `game:GetService("Players")` est un appel de méthode sur l’objet `game`.
+
+### Utiliser la classe
+
+```luau
+-- Script dans ServerScriptService : crée un objet PieceTournante par pièce
+local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
+
+local PieceTournante = require(ServerScriptService:WaitForChild("PieceTournante"))
+local dossierPieces = Workspace:WaitForChild("Pieces")
+
+local pieces = {} -- tableau d'objets PieceTournante
+for _, part in dossierPieces:GetChildren() do
+	if part:IsA("BasePart") then
+		-- Vitesse au hasard entre 60 et 180 degrés par seconde
+		local objet = PieceTournante.new(part, math.random(60, 180))
+		table.insert(pieces, objet)
+	end
+end
+
+-- Au bout de 10 secondes, on arrête la première pièce (pour la démonstration)
+task.delay(10, function()
+	if pieces[1] then
+		pieces[1]:arreter()
+	end
+end)
+
+while true do
+	local ecoule = task.wait()
+	for _, objet in pieces do
+		objet:mettreAJour(ecoule)
+	end
+end
+```
+
+Chaque objet a sa propre vitesse et son propre état, mais toutes les pièces partagent les mêmes méthodes, écrites une seule fois.
+
+Pour tester cette version, **désactive** ton Script `PiecesTournantes` (propriété **Enabled** décochée) : sinon, les deux scripts feraient tourner les mêmes pièces en même temps. Une fois tes essais terminés, fais l’inverse : désactive ce script de démonstration et réactive `PiecesTournantes` (la version branchée sur `Config`). C’est elle que les modules suivants reprennent, notamment au module 10 pour mesurer et alléger son coût.
+
+<Erreur titre="Appeler une méthode avec un point">
+`maPiece.arreter()` (avec un point) n’envoie pas l’objet : dans la méthode, `self` vaut `nil` et tu obtiens « attempt to index nil with 'active' ». Règle simple : **méthode déclarée avec `:`, méthode appelée avec `:`**. Le constructeur `new`, lui, se déclare et s’appelle avec un point, car il n’y a pas encore d’objet.
+</Erreur>
+
+<Info>
+Utilise la POO quand tu as **plusieurs objets du même genre avec chacun leur état** : plateformes mobiles, ennemis, chronos par joueur… Pour un simple ensemble de réglages comme `Config`, une table toute simple suffit. Ne complique pas ton code sans raison.
+</Info>
+
+## Aperçu : le typage optionnel de Luau
+
+Luau est un langage à **typage graduel** : tu peux, si tu le souhaites, **annoter** le type de tes variables et de tes fonctions. Ces annotations n’ont **aucun effet sur l’exécution** ; elles permettent à l’analyseur de Studio de repérer des erreurs pendant que tu écris (passer un texte à une fonction qui attend un nombre, oublier un cas `nil`…).
+
+### Les annotations
+
+```luau
+-- Variable annotée : deux-points puis le type
+local nombreEtapes: number = 12
+local nomDuJeu: string = "Obby des Nuages"
+
+-- Paramètres et type de retour annotés ; "number?" veut dire "number ou nil"
+local function calculerRecompense(etape: number, bonus: number?): number
+	return etape * 10 + (bonus or 0)
+end
+
+print(calculerRecompense(3))    --> 30
+print(calculerRecompense(3, 5)) --> 35
+
+-- Les types Roblox existent aussi : Part, Player, Vector3, Enum.Material...
+local function colorer(part: BasePart, couleur: Color3)
+	part.Color = couleur
+end
+```
+
+### Les modes d’analyse et `--!strict`
+
+Un commentaire spécial en **première ligne** du script choisit le niveau de vérification :
+
+- `--!nocheck` : pas de vérification des types ;
+- `--!nonstrict` : vérifie surtout ce que tu as annoté ; ce qui n’est pas clair est traité comme `any` (« n’importe quoi »). C’est le mode par défaut indiqué par la documentation de Luau ;
+- `--!strict` : vérifie **tout**, en devinant (inférant) les types que tu n’as pas écrits.
+
+Pour choisir le mode par défaut de tous les scripts de ton jeu, la documentation Roblox renvoie à la propriété **`LuauTypeCheckMode`** du Workspace ; le commentaire en première ligne d’un script reste prioritaire.
+
+Voici une version typée et stricte d’un module de niveaux. Le mot-clé `type` crée un **alias de type**, et `export` le rend utilisable dans les scripts qui font `require` du module :
+
+```luau
+--!strict
+-- ModuleScript « Niveaux » dans ReplicatedStorage.Modules (version typée)
+export type Niveau = {
+	nom: string,
+	etapeDebut: number,
+	etapeFin: number,
+}
+
+local Niveaux = {}
+
+Niveaux.liste = {
+	{nom = "Les premiers nuages", etapeDebut = 1, etapeFin = 5},
+	{nom = "La tempête", etapeDebut = 6, etapeFin = 10},
+} :: {Niveau} -- "::" précise le type d'une expression : un tableau de Niveau
+
+-- Renvoie un Niveau, ou nil (d'où le "?")
+function Niveaux.obtenir(etape: number): Niveau?
+	for _, niveau in Niveaux.liste do
+		if etape >= niveau.etapeDebut and etape <= niveau.etapeFin then
+			return niveau
+		end
+	end
+	return nil
+end
+
+return Niveaux
+```
+
+Avec `--!strict`, si tu écris par erreur `niveau.etapeDebu` ou `Niveaux.obtenir("7")`, Studio le souligne immédiatement, avant même de lancer le jeu.
+
+<Astuce titre="Adopter le typage progressivement">
+Inutile de tout typer d’un coup. Commence par ajouter `--!strict` à tes **nouveaux** ModuleScripts et annote les paramètres de leurs fonctions : c’est là que les erreurs de type coûtent le plus cher, car ces fonctions sont appelées depuis plusieurs scripts. Le typage des classes à métatables est plus avancé ; garde-le pour plus tard.
+</Astuce>
+
+<Defi>
+1. Crée `ReplicatedStorage.Modules.Config` et branche-le sur tes scripts `PiecesTournantes` et `Checkpoints`. Change la vitesse dans `Config` et vérifie que toutes les pièces accélèrent.
+2. Ajoute `table.freeze(Config)` et essaie de modifier une valeur depuis un autre script : lis l’erreur dans l’Output.
+3. Crée la classe `PieceTournante` et donne à chaque pièce une vitesse différente.
+4. Bonus : crée une classe `Chrono` avec un constructeur `Chrono.new()`, une méthode `:demarrer()` qui mémorise `os.clock()` (un compteur de temps précis, en secondes : seule la différence entre deux appels compte), et une méthode `:tempsEcoule()` qui renvoie le nombre de secondes depuis le départ. Teste-la avec `task.wait(2)`.
+</Defi>
+
+<Resume>
+- Un **ModuleScript** renvoie **une seule valeur** (souvent une table) récupérée avec `require` ; il s’exécute une fois par environnement et sa valeur est mise en cache.
+- Le module **`Config`** dans `ReplicatedStorage.Modules` centralise les réglages de l’Obby des Nuages.
+- Une **classe** = une table utilisée comme métatable, avec `Classe.__index = Classe`, un constructeur `Classe.new` qui appelle `setmetatable`, et des méthodes déclarées avec `:`.
+- `objet:methode()` équivaut à `objet.methode(objet)` : c’est ce qui remplit `self`.
+- Les annotations de type (`: number`, `?`, `type`, `export type`) et `--!strict` aident Studio à détecter les erreurs, sans changer l’exécution.
+</Resume>
+
+<Sources>
+- [Module scripts — documentation Roblox](https://create.roblox.com/docs/scripting/module)
+- [ModuleScript — référence API](https://create.roblox.com/docs/reference/engine/classes/ModuleScript)
+- [Metatables (__index, classes) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/metatables)
+- [Type checking — documentation Luau de Roblox](https://create.roblox.com/docs/luau/type-checking)
+- [Types et modes d’analyse — luau.org](https://luau.org/types/)
+- [Workspace.LuauTypeCheckMode — référence API](https://create.roblox.com/docs/reference/engine/classes/Workspace)
+- [Tables (table.freeze, table.clone) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/tables)
+- [Fil DevForum « How do I fix “Module code did not return exactly one value” »](https://devforum.roblox.com/t/how-do-i-fix-module-code-did-not-return-exactly-one-value/2667034)
+</Sources>

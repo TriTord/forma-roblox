@@ -1,103 +1,75 @@
-# Module 05 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
+# Module 04 — passe 1 (vérificateur faits + sources + quiz + code) — 2026-10-24
 
 ## Résumé
-72 affirmations ou éléments vérifiés sur les sources (27 pages ouvertes le 2026-10-24), dont 49 OK, 21 corrigés ou reformulés et 2 supprimés (remplacés). Quiz : 25 questions de leçon et 13 d'examen relues. 3 explications corrigées, 1 option corrigée, 1 extrait `trouve-le-bug` harmonisé (noms de champs) ; tous les numéros de ligne des 8 `trouve-le-bug` sont justes, avec un seul bug par extrait. Code : `verifier-luau 05` donne 16 extraits et 3 avec diagnostics, tous attendus (`Unknown require` sur des extraits isolés, `FunctionUnused` sur une fonction d'intégration). 3 corrections d'intégration avec les modules 3 et 4. Build `scripts/build-verrou.sh` : code 0.
-
-Toutes les affirmations de « recette » restantes sont soit sourcées par la doc Roblox ou NN/g, soit présentées explicitement comme des choix de la formation : les 60 secondes, la formule action → récompense → progression, les zones, les prix, l'absence de perte à la mort, les séries sans punition, le rythme mensuel conseillé à un créateur seul et la checklist du spawn. Aucune statistique non sourcée ne reste.
+Environ 110 affirmations vérifiées, dont 13 corrigées ou reformulées et 1 supprimée. Les sources sont les pages create.roblox.com, lues via WebFetch et via leur source officielle `github.com/Roblox/creator-docs` (branche main, octobre 2026), plus les annonces du staff sur le DevForum.
+Quiz : 32 questions de quiz et 15 questions d'examen vérifiées. Toutes sont correctes ; 1 explication a été reformulée (tween / plateforme). Les 6 `trouve-le-bug` ont un bug unique, et les numéros de ligne sont exacts.
+Code : `node scripts/verifier-luau.mjs 04` analyse 26 extraits. Il reste 9 extraits avec des diagnostics, tous attendus : `require` de modules définis dans d'autres blocs, extraits de quiz volontairement partiels (`UnknownGlobal`), bug volontaire de `TweenInfo.new` dans le quiz 06, et `script.Parent` typé `Instance?`. Une correction de logique a été faite dans le code DataStore (voir plus bas).
+Build : `bash scripts/build-verrou.sh` → code de sortie 0.
 
 ## Détail
 | Leçon | Affirmation / élément | Verdict | Source | Commentaire |
 |---|---|---|---|---|
-| 01 | Définition de la core loop, ses 3 parties, « repetitive, boring, and shallow » | OK | https://create.roblox.com/docs/production/game-design/core-loops | Citations conformes |
-| 01 | Exemple RPG d'action : explorer → combattre → améliorer | OK | idem | |
-| 01 | La page Core loops ne parle pas des boucles méta (dit dans le texte) | OK | idem | Vérifié : aucune mention des boucles courtes, longues ou méta |
-| 01 | Formule « action → récompense → progression » | REFORMULÉ | — | Présentée comme une simplification de la formation |
-| 01 | « Très souvent, la réponse tient dans la boucle » | REFORMULÉ | — | Affirmation généralisante adoucie |
-| 01 | Conseils J1 : boucle claire et fun, défi équilibré, récompenses | OK | https://create.roblox.com/docs/production/analytics/retention | |
-| 01 | « Imperative to provide clear feedback », exemple Winds of Fortune | OK | https://create.roblox.com/docs/production/game-design/onboarding-techniques | |
-| 01 | LiveOps : toute fonctionnalité reliée à la core loop | OK | https://create.roblox.com/docs/production/game-design/liveops-essentials | |
-| 01 | Core curriculum : pièces échangées contre de la puissance de saut | OK | https://create.roblox.com/docs/tutorials/curriculums/core | |
-| 01 | Vérifier la boucle dès le prototype | OK | https://create.roblox.com/docs/production/game-design/prototyping | Lien ajouté aux Sources |
-| 01 | Un son « renforce énormément » la récompense | REFORMULÉ | — | Non sourcé, remplacé par « peut renforcer… à vérifier en playtest » |
-| 01 | Commentaire du code : les valeurs « sautent » au chargement de la sauvegarde | CORRIGÉ | module 4 leçon 2 (`creerLeaderstats`) | Le module 4 crée les leaderstats avec les valeurs chargées, donc pas de saut. Le délai est gardé comme sécurité, avec un commentaire juste |
-| 01 | Quiz Q3 : l'explication disait qu'atteindre un checkpoint se répète « toutes les quelques secondes » | CORRIGÉ | — | Contredisait le tableau de la leçon (boucle principale, en minutes) |
-| 01 | Quiz Q5 (`trouve-le-bug`) : ligne 11, `Connect(afficher(...))` | OK | — | Lignes vérifiées ; un seul bug |
-| 01 | Lien « Design games on Roblox » dans les Sources | OK | https://create.roblox.com/docs/production/game-design | Page d'ensemble valide |
-| 02 | « New players typically decide their interest… within minutes » | OK | https://create.roblox.com/docs/production/game-design/onboarding | |
-| 02 | Les 3 objectifs de l'onboarding | OK | idem | |
-| 02 | Détail de « Amener vite au plaisir » (« premiers objets, jeu avec les autres ») | CORRIGÉ | idem | Remplacé par les 3 moyens officiels : progression, motivations sociales, objets ou monnaie de départ |
-| 02 | Moment de joie : récompenses, animations, effets de célébration ; objectifs visibles | OK | idem | |
-| 02 | Experiments : « a shorter dialogue sequence versus a guided arrow » | OK | idem | |
-| 02 | FTUE rapides sur Roblox, majorité sur mobile, jeunes joueurs et interfaces chargées de texte | OK | https://create.roblox.com/docs/production/game-design/design-for-roblox | Citations vérifiées |
-| 02 | « Ideally in 5 minutes or less », définition de J1 | OK | https://create.roblox.com/docs/production/analytics/retention | |
-| 02 | « 60 secondes » présenté comme un objectif de la formation | OK | — | Encadré et quiz déjà honnêtes |
-| 02 | Les 3 techniques, l'exemple 10 s / 11 s, l'indice « montré une seule fois » | OK | https://create.roblox.com/docs/production/game-design/onboarding-techniques | |
-| 02 | Éléments visuels temporaires ; tutoriels « juste à temps » | OK | idem | |
-| 02 | Pas de traduction nécessaire, ce qui « aide les plus jeunes, les étrangers, le téléphone » | REFORMULÉ | idem | La doc parle d'un public mondial et de la localisation ; l'extrapolation est maintenant séparée de la citation |
-| 02 | Color or Die « impossible to miss… » ; traînée « strongly suggest… » | OK | idem | |
-| 02 | Checklist du spawn « découle des conseils » | REFORMULÉ | — | Présentée comme choix de conception de la formation, appuyé sur les conseils officiels |
-| 02 | Entonnoir d'onboarding, événements envoyés seulement depuis le serveur et dans un jeu publié | OK | https://create.roblox.com/docs/production/analytics/funnel-events | |
-| 02 | « Le Creator Dashboard te montre… » | CORRIGÉ | idem | Remplacé par « page Funnel du tableau de bord Analytics (Creator Hub) », comme dans la doc |
-| 02 | Avertissement Experiments : moins de 1 000 DAU | OK | https://create.roblox.com/docs/production/experiments | C'est un avertissement, pas une exigence ; formulation déjà prudente |
-| 02 | API Beam (Attachment0/1, FaceCamera, Width0/1, Color) | OK | https://create.roblox.com/docs/reference/engine/classes/Beam | Rien de déprécié |
-| 02 | Code : faisceau et indice minuté (LocalScripts, `WaitForChild`, streaming) | OK | — | `Etape = 0` au départ, conforme à la convention (module 3 l.5, module 4 l.1) |
-| 02 | Quiz (5 questions) | OK | — | `trouve-le-bug` : ligne 8, numérotation juste |
-| 03 | Trop vite → manque de contenu ; trop lent → ennui ; mesurer les joueurs par niveau | OK | https://create.roblox.com/docs/production/analytics/retention | |
-| 03 | Zones et paliers | REFORMULÉ | — | Indiqué comme choix de la formation |
-| 03 | Courbe « en dents de scie » | OK | — | Déjà présentée comme non officielle |
-| 03 | « Introduire un obstacle à la fois » | REFORMULÉ | — | Présenté comme pratique courante de level design, pas comme règle Roblox |
-| 03 | « Le pic de difficulté au début fait fuir les nouveaux joueurs » | REFORMULÉ | https://create.roblox.com/docs/production/game-design/onboarding | Affirmation causale non sourcée, rattachée aux recommandations officielles (amener vite au plaisir, premiers paliers bas) |
-| 03 | « La surprise est un levier puissant, c'est pour cela que Roblox encadre… » | SUPPRIMÉ | — | Motivation prêtée à Roblox sans source. Remplacé par « quand ce hasard est payant, Roblox l'encadre » |
-| 03 | Objets aléatoires payants : cotes exactes et chiffrées, bénéfice garanti, utilisateurs éligibles | OK + précisé | https://about.roblox.com/community-standards | Ajout de l'attribut `ArePaidRandomItemsRestricted` cité par les Standards |
-| 03 | « Plus la quête est difficile, plus la récompense a de valeur » | OK | https://create.roblox.com/docs/production/game-design/introduction-to-quest-design | |
-| 03 | Premiers paliers bas | OK | https://create.roblox.com/docs/production/game-design/onboarding | |
-| 03 | Intégration de `Recompenses.valider` (« à appeler depuis ta validation ») | CORRIGÉ | module 3 l.5, module 4 l.1 | Ces scripts font déjà `etape.Value = numero`. Le texte précise de remplacer cette ligne et donne le `require` |
-| 03 | Sinks : définition et cosmétiques à durée limitée | OK | https://create.roblox.com/docs/production/game-design/balance-virtual-economies | |
-| 03 | « Planifier les puits avant d'ajouter de nouvelles sources » | REFORMULÉ | idem | Formulation alignée sur la doc (« imperative to have plans for how to sink… ») |
-| 03 | Le mot « inflation » | REFORMULÉ | idem | La page parle de « surplus » ; c'est maintenant dit dans la leçon et dans l'examen |
-| 03 | Exemple de surplus, monnaie d'événement « safest solution », espérance (EV) | OK | idem | |
-| 03 | Calcul 20 + 31 + 50 = 101 ; prix 30, 120 et 400 | OK | — | Arithmétique vérifiée ; prix présentés comme points de départ |
-| 03 | Garde-fou « aucune perte de pièces à la mort » attribué aux recommandations Roblox | REFORMULÉ | — | Présenté comme choix de la formation |
-| 03 | Missions régulièrement ratées → intérêt qui baisse | OK | https://create.roblox.com/docs/production/game-design/season-pass-design | |
-| 03 | Quiz (5 questions) | OK | — | Q4 : 3 + 10 = 13 juste ; `trouve-le-bug` ligne 7 juste |
-| 04 | Touristes et habitués (« almost all a game's engaged user base »), jeux solo, invitations, serveurs privés | OK | https://create.roblox.com/docs/production/game-design/design-for-roblox | |
-| 04 | Leviers J1, J7, J30 | OK | https://create.roblox.com/docs/production/analytics/retention | |
-| 04 | Exemples sociaux pour J30 (« classements ») | CORRIGÉ | idem | La page cite « trading, parties, guilds, and competitive systems ». Texte et option de quiz Q1 alignés |
-| 04 | Quêtes : « objectifs variés encouragent d'autres façons de jouer » | REFORMULÉ | https://create.roblox.com/docs/production/game-design/introduction-to-quest-design | Paraphrase plus fidèle ; les idées de variété sont présentées comme des exemples de la formation |
-| 04 | Quotidiennes : courtes, modestes, 24 h, court terme, « resource drip » | OK | idem | |
-| 04 | Intégration du module `ObjectifsQuotidiens` (table de données « supposée accessible ») | CORRIGÉ | module 4 l.2 (`DonneesJoueurs.Obtenir`) | L'extrait utilise maintenant `DonneesJoueurs.Obtenir(player)` et explique où l'appeler (après `pieces.Value += VALEUR_PIECE`) |
-| 04 | Noms des champs `JourObjectif`, `PiecesDuJour`, `BonusReclame` | CORRIGÉ | module 4 l.2 | Passés en minuscules (`jourObjectif`…), comme les clés `etape`, `pieces` et `inventaire` du module 4 ; quiz `trouve-le-bug` mis à jour (mêmes lignes) |
-| 04 | « La série qui punit » (corvée, culpabilisation) | REFORMULÉ | https://create.roblox.com/docs/production/game-design/season-pass-design | Présentée comme choix éthique de la formation |
-| 04 | Quiz Q4 : l'explication prêtait à Roblox « ne pas pénaliser l'attente » | CORRIGÉ | idem | Absent de la doc ; reformulé avec ce que dit vraiment la page (éviter l'épuisement, missions qui ne prennent pas tout le temps de jeu) |
-| 04 | `SocialService:PromptGameInvite` et `CanSendGameInviteAsync` dans un `pcall` | OK | https://create.roblox.com/docs/production/promotion/invite-prompts | |
-| 04 | Badges : 5 gratuits par 24 h (GMT) et par jeu, puis 100 Robux | OK | https://create.roblox.com/docs/production/publishing/badges | Vérifié le 2026-10-24 ; formulé « au moment de la rédaction » |
-| 04 | `AwardBadgeAsync` dans un `pcall` ; `AwardBadge` dépréciée | OK | https://create.roblox.com/docs/reference/engine/classes/BadgeService | |
-| 04 | LiveOps : sans mises à jour, même les joueurs fidèles décrochent ; construire sur l'existant | OK | https://create.roblox.com/docs/production/game-design/liveops-essentials | |
-| 04 | Rythme : toutes les deux semaines à un mois | OK + précisé | https://create.roblox.com/docs/production/game-design/content-updates | Ajout du rythme de la page Retention (petites mises à jour toutes les 2 à 4 semaines, grosses tous les 2 à 3 mois) |
-| 04 | « Un rythme mensuel tenable vaut mieux… » présenté comme « conseil officiel » | REFORMULÉ | — | Présenté comme conseil de la formation |
-| 04 | Notifications : 13 ans et plus, opt-in, moins de 13 ans = mises à jour seulement, 100 visites, pas de modération, 1 par jour, prompt standard, 30 jours | OK + précisé | https://create.roblox.com/docs/production/promotion/experience-notifications | Ajouts : permission de gérer le jeu, limite globale quotidienne, textes de 99 caractères maximum, package sur le Creator Store |
-| 04 | Description des « achats piégés » (« achat pré-rempli ») | CORRIGÉ | idem | Doc : « trick users into making unintended purchases » |
-| 04 | Autres dark patterns interdits, notifications non obligatoires, notifications personnalisées et actionnables | OK | idem | |
-| 04 | « Le joueur qui a fini verra la proposition au chargement (Etape passe de 0 à max) » | SUPPRIMÉ | module 4 l.2 | Faux avec le code du module 4 (`Changed` ne se déclenche pas au chargement). Remplacé par l'explication correcte |
-| 04 | API `ExperienceNotificationService` (`CanPromptOptInAsync`, `PromptOptIn`) | OK | https://create.roblox.com/docs/reference/engine/classes/ExperienceNotificationService | Rien de déprécié ; appel depuis un LocalScript comme dans l'exemple officiel |
-| 04 | Community Standards : contenu ou métadonnées trompeurs | OK | https://about.roblox.com/community-standards | |
-| 04 | Fake urgency, fake scarcity, confirmshaming ; deceptive.design est l'ancien darkpatterns.org | OK | https://deceptive.design/types | |
-| 04 | Season pass : au moins une semaine de pause, missions qui ne prennent pas tout le temps de jeu | OK | https://create.roblox.com/docs/production/game-design/season-pass-design | |
-| 04 | Quiz (5 questions) | OK après corrections | — | `trouve-le-bug` : ligne 4, numérotation juste |
-| 05 | Prototypage : défauts, oublis, besoins techniques ; partager hors équipe ; itérer ; 4 points à examiner | OK | https://create.roblox.com/docs/production/game-design/prototyping | |
-| 05 | Accès par défaut ; 10 amis d'âge proche ; File > Invite early testers ; filigrane | OK | https://create.roblox.com/docs/production/publishing/publish-experiences-and-places | Daté (octobre 2026) |
-| 05 | « Roblox peut te demander une vérification d'âge » | CORRIGÉ | idem | Précisé : vérification demandée si elle n'est pas encore faite. Ajout de la limite pour les testeurs de moins de 16 ans (contrôle parental de la maturité du contenu) |
-| 05 | Le think aloud, « la méthode la plus utilisée en ergonomie » | CORRIGÉ | https://www.nngroup.com/articles/thinking-aloud-the-1-usability-tool/ | NN/g dit « #1 », « most valuable », pas « la plus utilisée ». Auteur et date (Nielsen, 2012) ajoutés |
-| 05 | Les 3 étapes (« shut up… ») ; les interventions changent le comportement | OK | idem | |
-| 05 | « Environ 5 personnes, plusieurs petites séries » | CORRIGÉ | https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/ | « No more than 5 users ». Ajout de la date (2000) et de la réserve de Nielsen sur les publics hétérogènes. Le chiffre de 85 % n'est toujours pas cité |
-| 05 | Raison derrière les suggestions ; bugs priorisés par gravité, effort et joueurs touchés | OK | https://create.roblox.com/docs/production/game-design/liveops-essentials | |
-| 05 | Sortie serveur dans la Developer Console (F9) réservée au propriétaire et aux membres avec droits d'édition | OK | https://create.roblox.com/docs/studio/developer-console | |
-| 05 | Script de playtest | CORRIGÉ (robustesse) | — | Boucle ajoutée pour les joueurs déjà présents si le script démarre après eux |
-| 05 | Quiz (5 questions) | OK | — | `trouve-le-bug` : ligne 8, numérotation juste |
-| Examen | 13 questions | OK après corrections | — | 2 explications reformulées (Q2 « complique le jeu », Q7 puits et surplus). `trouve-le-bug` ligne 9 (`prochaine <= …`) et ligne 5 (`>` au lieu de `>=`) : numérotation juste, un seul bug par extrait |
+| 01 | Le dossier `leaderstats` doit être tout en minuscules, sinon le joueur n'apparaît pas | OK | https://create.roblox.com/docs/players/leaderboards | |
+| 01 | Vues Here / Friends / Global ; Friends et Global en bêta, avec un OrderedDataStore enregistré dans le Creator Hub | OK | idem | |
+| 01 | Ordre des colonnes : ordre de création, `IsPrimary`, `Priority` | OK | idem | |
+| 01 | Masquer la liste avec `SetCoreGuiEnabled(PlayerList, false)` depuis un client | OK | idem | |
+| 01 | Code Leaderstats / Checkpoints (N == Etape + 1, `FindFirstChild`, `GetPlayerFromCharacter`) | OK | — | Conforme aux conventions du fil rouge |
+| 02 | **`completer()` ne mettait jamais à jour `version`** : quand `VERSION_DONNEES` augmente, une ancienne sauvegarde complétée était réécrite avec son ancien numéro. Un serveur encore sur l'ancienne version du jeu pouvait donc l'écraser (la protection `ancienne.version > VERSION_DONNEES` ne jouait plus) | CORRIGÉ | Raisonnement sur le code (signalement module 07 via le chef d'orchestre) | `completer` passe maintenant `donnees.version` à `VERSION_DONNEES` si elle est inférieure, sans jamais la baisser. Champs en minuscules et `donneesParDefaut()` inchangés. Explication et Défi bonus (passer `VERSION_DONNEES` à 2) mis à jour |
+| 02 | Accès dans Studio : File ⟩ Experience Settings ⟩ Security ⟩ Enable Studio Access to API Services ⟩ Save ; jeu publié ; utiliser une version de test | OK | https://create.roblox.com/docs/cloud-services/data-stores | |
+| 02 | Erreur `StudioAccessToApisNotAllowed` (403) | OK | https://create.roblox.com/docs/cloud-services/data-stores/error-codes-and-limits | |
+| 02 | DataStores accessibles seulement depuis des Scripts ; erreur dans un LocalScript | OK | data-stores | |
+| 02 | Valeur stockée sous forme de texte / JSON ; types non sérialisables refusés | OK | error-codes-and-limits (« stored as a string », erreur 104 `CantStoreValue`) | |
+| 02 | `SetAsync` : écrit sans lire, compte seulement dans la limite d'écriture. `UpdateAsync` : lit puis écrit, plus lent, compte en lecture ET en écriture | OK | https://create.roblox.com/docs/reference/engine/classes/GlobalDataStore + best-practices | |
+| 02 | Callback d'`UpdateAsync` : ne doit pas céder la main (yield) ; `nil` annule l'écriture ; peut être rappelé plusieurs fois | OK | GlobalDataStore:UpdateAsync | |
+| 02 | Retries : backoff exponentiel + aléa, délai et nombre d'essais plafonnés, ne pas réessayer les requêtes invalides | REFORMULÉ | https://create.roblox.com/docs/cloud-services/data-stores/best-practices | Ajout des plafonds et de « ne pas réessayer une requête invalide ». Le code reste à 3 essais (≈ 2-3 s puis 4-5 s), ce qui est raisonnable |
+| 02 | Échec de chargement → on expulse le joueur | REFORMULÉ | https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing | Le code de référence Roblox recommande plutôt de laisser jouer avec des données par défaut marquées « ne jamais sauvegarder », avec un message clair. La leçon présente maintenant les deux choix et la règle commune : ne jamais écraser des données non chargées. Le code ne crée jamais de session en cas d'échec (vérifié) |
+| 02 | Clé stable basée sur le UserId (`User_123456`) ; une clé par joueur | OK | best-practices | |
+| 02 | `userIds` « fortement recommandé » (RGPD) | REFORMULÉ | GlobalDataStore (paramètre `userIds` de SetAsync ; UpdateAsync : IDs effacés s'ils ne sont pas renvoyés) | Formulation précisée |
+| 02 | **BindToClose : le code n'attendait que ses propres sauvegardes** (sur `Players:GetPlayers()`), pas celles déjà lancées par `PlayerRemoving` | CORRIGÉ | https://create.roblox.com/docs/reference/engine/classes/DataModel#BindToClose (attente de 30 s) + signalement du chef d'orchestre / module 10 | Ajout d'un compteur commun `sauvegardesEnCours` dans `DonneesJoueurs.Sauvegarder` et d'une fonction `DonneesJoueurs.SauvegarderTout()`. Elle sauvegarde en parallèle les **sessions en mémoire** (pas `GetPlayers()`, que les joueurs ont pu quitter) puis attend que le compteur revienne à 0, avec une limite de 25 s. Même principe que `module-10/02-erreurs-techniques.mdx` (compteur commun, attente jusqu'à 0) |
+| 02 | Faut-il sauter la sauvegarde de BindToClose dans Studio ? | CORRIGÉ (tranché) | DataModel:BindToClose (« To verify that the current session is not in Roblox Studio, use RunService:IsStudio() » ; l'exemple officiel fait `if RunService:IsStudio() then return end` avec le commentaire « Avoid writing studio data to production and stalling test session closing ») | La recommandation officielle existe, on la suit : `if RunService:IsStudio() and not SAUVEGARDER_EN_STUDIO then return end`, avec `SAUVEGARDER_EN_STUDIO = false` par défaut. La nouvelle section « Et dans Studio ? » explique pourquoi, ce que ça implique (la sauvegarde de PlayerRemoving n'est pas garantie au Stop) et comment tester (passer la constante à `true` sur une copie de test). Le Défi est mis à jour. L'ancienne Info, fondée sur un fil DevForum, est remplacée |
+| 02 | Le serveur attend 30 s ; fonctions exécutées en parallèle ; BindToClose recommandé avec DataStoreService | OK | DataModel:BindToClose | |
+| 02 | Sauvegarde automatique à 180 s (exemple officiel), décalage aléatoire entre serveurs | OK | best-practices (« uses 180 seconds », « Stagger recurring requests ») | |
+| 02 | Data Stores Manager : Creator Hub ⟩ expérience ⟩ Configurations ⟩ Data stores manager | OK | https://create.roblox.com/docs/cloud-services/data-stores/data-stores-manager | |
+| 02 | Limites par serveur : lecture / écriture / suppression 60 + joueurs × 40, liste 5 + joueurs × 2 | OK | error-codes-and-limits (consulté le 2026-10-24) | Formulation datée « octobre 2026 » présente ; `miseAJour: 2026-10-24` |
+| 02 | Limite de l'expérience, débit par clé (25 Mo/min en lecture, 4 Mo/min en écriture), noms de 50 caractères, valeur de 4 194 304, stockage 500 Mo + 1 Mo × utilisateurs | OK | idem | |
+| 02 | « Une écriture toutes les trois minutes » | CORRIGÉ | error-codes-and-limits / GlobalDataStore | Chaque `UpdateAsync` compte en lecture ET en écriture : précisé |
+| 02 | Versions conservées 30 jours, la dernière n'expire jamais ; ListVersionsAsync / GetVersionAsync | OK | https://create.roblox.com/docs/cloud-services/data-stores/versioning-listing-and-caching | |
+| 02 | Métadonnées : DataStoreKeyInfo, UserIds, SetMetadata (300 caractères), à renvoyer à chaque écriture | OK | data-stores (Metadata) + error-codes-and-limits | |
+| 02 | Renommer le DataStore = DataStore vide | OK | data-stores (GetDataStore crée un store s'il n'existe pas) | |
+| 02 | Verrouillage de session : scénario, verrou posé dans le même UpdateAsync | REFORMULÉ | player-data-purchasing | « Les autres serveurs attendent » devient « refusent de lire ou d'écrire » ; verrou dans les métadonnées ; expiration s'il n'est plus rafraîchi |
+| 02 | Code de référence Roblox : « à ne pas utiliser tel quel sans tests » | OK | player-data-purchasing | |
+| 02 | Modules tiers « always an option » ; DataStore2 legacy | OK | best-practices | |
+| 02 | ProfileStore (loleris, successeur de ProfileService, verrouillage + autosave à 300 s, pas pour les classements) | CORRIGÉ | https://devforum.roblox.com/t/profilestore-save-your-player-data-easy-datastore-module/3190543 (11/10/2024) + https://madstudioroblox.github.io/ProfileStore/ | Présenté explicitement comme module **communautaire** (le « fil officiel » laissait croire à une source Roblox). Ajout du lien vers la documentation de l'auteur, dans le texte et dans les Sources |
+| 03 | Les attributs n'acceptent pas les tables ; liste des types | OK | https://create.roblox.com/docs/studio/properties | |
+| 03 | Noms d'attributs (alphanumériques + `. - / _`, ≤ 100 caractères, pas de RBX) : `Possede_TrailNuage` valide | OK | référence Instance:SetAttribute | |
+| 03 | Ordre de réplication non garanti entre une propriété et un RemoteEvent | OK | https://create.roblox.com/docs/scripting/attributes | |
+| 03 | Trail entre Attachment0 et Attachment1 ; Lifetime | OK | https://create.roblox.com/docs/reference/engine/classes/Trail | |
+| 03 | Serveur source de vérité ; cohérence des noms `Catalogue`, `AcheterObjet`, `EquiperObjet`, `Possede_<id>`, `TrailEquipe`, `donnees.inventaire` / `donnees.equipe` | OK | — | Noms identiques dans 03, 04 et le quiz. Le serveur vérifie type, existence, possession et solde, et prend le prix dans son propre catalogue |
+| 04 | Scale / Offset additifs ; saisie raccourcie 0.5 / 20 ; AnchorPoint | OK | https://create.roblox.com/docs/ui/position-and-size | |
+| 04 | ScreenGui cloné dans PlayerGui au premier spawn ; ResetOnSpawn vaut true par défaut | OK | https://create.roblox.com/docs/ui/on-screen-containers | |
+| 04 | `ScreenInsets` : CoreUISafeInsets (défaut, recommandé pour l'UI interactive), DeviceSafeInsets, TopbarSafeInsets, None | OK | on-screen-containers + Enum.ScreenInsets | Noms actuels vérifiés |
+| 04 | `ClipToDeviceSafeArea` à true par défaut ; `SafeAreaCompatibility` à éviter pour les nouveaux projets | OK | https://create.roblox.com/docs/reference/engine/classes/ScreenGui | |
+| 04 | MinTextSize pas en dessous de 9 | OK | https://create.roblox.com/docs/ui/size-modifiers | |
+| 04 | `Activated` : clic, toucher, console | OK | https://create.roblox.com/docs/ui/buttons + GuiButton.Activated | |
+| 04 | UIGridLayout / CellSize | OK (source ajoutée) | https://create.roblox.com/docs/ui/grid-table-layouts | |
+| 04 | Device Simulator : « emplacement change selon la version » | CORRIGÉ | https://create.roblox.com/docs/studio/device-simulator | Précisé : barre d'outils en bêta, à activer via File ⟩ Beta Features ⟩ New Device Simulator |
+| 05 | R6 legacy à 6 parties, R15 à 15 ; vêtements superposables seulement en R15 | OK | https://create.roblox.com/docs/studio/rig-builder | |
+| 05 | Avatar Settings ⋯ : R6 / R15 / R15 & R6 « (le joueur garde son choix) » | SUPPRIMÉ (parenthèse) | https://create.roblox.com/docs/studio/avatar-settings | La doc dit seulement « default avatar type » |
+| 05 | Save = KeyframeSequence dans ServerStorage ; Publish to Roblox via ⋯ ; champ Creator pour un jeu de groupe | OK | https://create.roblox.com/docs/animation/editor | |
+| 05 | Animations « Restricted » (31/07/2025), permission automatique, pas d'Open Use, permission d'expérience non révocable | OK | https://devforum.roblox.com/t/improving-animation-asset-permissions/3852101 (annonce BobaMuncher, catégorie Announcements) | Aucune annonce plus récente qui change ces règles (recherche du 2026-10-24) |
+| 05 | Partage avec connexions et groupes (21/08/2025), onglet Permissions (Collaborators / Experiences) | OK | https://devforum.roblox.com/t/sharing-animation-assets-with-connections-and-groups/3892540 | |
+| 05 | `Animator:LoadAnimation` : réplication si l'animation est lancée par le client sur son propre personnage, sinon par le serveur ; crée toujours une nouvelle piste ; `GetTrackByAnimationId` | OK | https://create.roblox.com/docs/reference/engine/classes/Animator | |
+| 05 | `Humanoid:LoadAnimation` dépréciée | OK | référence Humanoid (tag Deprecated) | |
+| 05 | Play(0.1, 1, 1) ; Ended ; priorités Action4 > … > Core ; animations par défaut en Core | OK | AnimationTrack + Enum.AnimationPriority | |
+| 05 | « L'ancien script est détruit avec ses connexions, pas de connexions en double » | REFORMULÉ | — | Comportement qui dépend du mode de destruction du personnage ; affirmation non sourcée remplacée par une formulation sûre |
+| 06 | Signature `TweenInfo.new(time=1, easingStyle=Quad, easingDirection=Out, repeatCount=0, reverses=false, delayTime=0)`, -1 = infini, non modifiable | OK | https://create.roblox.com/docs/reference/engine/datatypes/TweenInfo | Ordre des paramètres exact (leçon, quiz, examen) |
+| 06 | Types qu'on peut tweener ; 2 tweens sur la même propriété → le premier est annulé (Completed avec `Cancelled`) | OK | TweenService + exemple « Tween-Conflict » de TweenBase | |
+| 06 | Completed à la fin ou après Cancel, pas après Pause | OK | https://create.roblox.com/docs/reference/engine/classes/TweenBase | |
+| 06 | Une plateforme ancrée tweenée n'emporte pas le personnage (« de nombreux retours ») | REFORMULÉ | https://devforum.roblox.com/t/platform-moves-while-character-doesnt/1051218 (2021) | Aucune source officielle trouvée. La leçon, la question vrai-faux et le résumé le présentent comme un retour de développeurs, à vérifier en test |
+| 06 | PrismaticConstraint en Servo, citée pour les plateformes d'ascenseur | OK | https://create.roblox.com/docs/physics/constraints/prismatic | |
+| Examen | 15 questions (2 trouve-le-bug, lignes 9 et 2 exactes) | OK | — | Toutes les leçons sont couvertes |
 
 ## Erreurs restantes non corrigées
-Aucune. À surveiller, sans que ce soit une erreur :
-- Les chiffres datés (testeurs invités, badges, conditions des notifications) changent souvent ; ils sont formulés « au moment de la rédaction (octobre 2026) ».
-- Le module 2, leçon 6 (création de `Config`), n'est pas encore écrit. La leçon 3 suppose un `Config` en table avec `return Config`, à harmoniser si le module 2 diffère.
-- Les diagnostics `verifier-luau` restants sont attendus : `Unknown require` ×4 sur des extraits isolés, et `FunctionUnused` sur `verifierObjectifDuJour`, fonction d'intégration à appeler depuis le script « Pieces ».
+- Aucune erreur factuelle connue.
+- Remarque : `curl` renvoie 502 sur certaines grosses pages de référence (DataModel, Players, AnimationTrack). Elles s'ouvrent bien via WebFetch (vérifié), donc les liens sont conservés.
+- Non testé dans Roblox Studio (pas d'instance connectée). Le comportement exact de la sauvegarde `PlayerRemoving` au Stop d'un test Studio n'est pas documenté par Roblox : la leçon le présente comme non garanti.

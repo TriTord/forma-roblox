@@ -27,7 +27,7 @@ export interface ResultatExamen {
 }
 
 export interface EtatProgression {
-  version: 1;
+  version: 2;
   /** id de leçon → date (ISO) à laquelle elle a été terminée. */
   lecons: Record<string, string>;
   /** id de leçon → meilleur résultat au quiz. */
@@ -36,7 +36,20 @@ export interface EtatProgression {
   examens: Record<string, ResultatExamen>;
 }
 
-const etatVide = (): EtatProgression => ({ version: 1, lecons: {}, quiz: {}, examens: {} });
+const etatVide = (): EtatProgression => ({ version: 2, lecons: {}, quiz: {}, examens: {} });
+
+/**
+ * Version 1 → 2 : insertion du module 02 « Scripter avec l'IA ». Les anciens modules 02 à 10
+ * sont devenus 03 à 11 ; on décale leurs clés pour que l'élève ne perde pas sa progression.
+ */
+const decalerNumero = (numero: string) => {
+  const n = Number(numero);
+  return n >= 2 ? String(n + 1).padStart(2, '0') : numero;
+};
+const decalerId = (id: string) => id.replace(/^module-(\d{2})\//, (_, n: string) => `module-${decalerNumero(n)}/`);
+function migrerCles<T>(table: Record<string, T>, decaler: (cle: string) => string): Record<string, T> {
+  return Object.fromEntries(Object.entries(table).map(([cle, valeur]) => [decaler(cle), valeur]));
+}
 
 let memoire: string | null = null;
 let disponible: boolean | undefined;
@@ -81,13 +94,19 @@ export function lireEtat(): EtatProgression {
   if (!brut) return etatVide();
   try {
     const donnees: unknown = JSON.parse(brut);
-    if (!estObjet(donnees) || donnees.version !== 1) return etatVide();
-    return {
-      version: 1,
+    if (!estObjet(donnees) || (donnees.version !== 1 && donnees.version !== 2)) return etatVide();
+    const etat: EtatProgression = {
+      version: 2,
       lecons: estObjet(donnees.lecons) ? (donnees.lecons as EtatProgression['lecons']) : {},
       quiz: estObjet(donnees.quiz) ? (donnees.quiz as EtatProgression['quiz']) : {},
       examens: estObjet(donnees.examens) ? (donnees.examens as EtatProgression['examens']) : {},
     };
+    if (donnees.version === 1) {
+      etat.lecons = migrerCles(etat.lecons, decalerId);
+      etat.quiz = migrerCles(etat.quiz, decalerId);
+      etat.examens = migrerCles(etat.examens, decalerNumero);
+    }
+    return etat;
   } catch {
     return etatVide();
   }

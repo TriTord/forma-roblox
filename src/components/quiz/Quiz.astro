@@ -23,7 +23,12 @@ interface Props {
 
 const { questions, mode, idQuiz, titre, seuil, leconId, module } = Astro.props;
 const base = idQuiz.replace(/[^a-z0-9]+/gi, '-');
-const LIBELLES_TYPE = { qcm: 'QCM', 'vrai-faux': 'Vrai ou faux', 'trouve-le-bug': 'Trouve le bug' } as const;
+const LIBELLES_TYPE = {
+  qcm: 'QCM',
+  'vrai-faux': 'Vrai ou faux',
+  'trouve-le-bug': 'Trouve le bug',
+  'ameliore-le-prompt': 'Améliore ce prompt',
+} as const;
 
 const preparees = questions.map((q, i) => {
   const options =
@@ -83,11 +88,20 @@ const preparees = questions.map((q, i) => {
               </div>
             )}
 
+            {q.type === 'ameliore-le-prompt' && (
+              <figure class="quiz-prompt" data-testid="quiz-prompt">
+                <figcaption class="quiz-prompt-legende">Le prompt de départ</figcaption>
+                <pre tabindex="0"><code>{q.prompt}</code></pre>
+              </figure>
+            )}
+
+            {q.type === 'ameliore-le-prompt' && <p class="question-aide">Choisis la meilleure version de ce prompt.</p>}
+
             {multiple && <p class="question-aide">Plusieurs réponses possibles : coche toutes les bonnes.</p>}
 
             <div class="options">
               {options.map((o, j) => (
-                <label class="option" data-option data-testid="quiz-option">
+                <label class:list={['option', { 'option-longue': q.type === 'ameliore-le-prompt' }]} data-option data-testid="quiz-option">
                   <input
                     type={multiple ? 'checkbox' : 'radio'}
                     name={`${base}-q${i}`}

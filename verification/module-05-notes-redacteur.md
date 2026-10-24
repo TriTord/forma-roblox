@@ -1,78 +1,96 @@
-# Module 05 — Notes du rédacteur pour les vérificateurs
+# Module 04 — Notes du rédacteur pour les vérificateurs
 
-Toutes les pages ci-dessous ont été consultées le 2026-10-24.
+Date de vérification des faits : 2026-10-24. Sources principales : pages create.roblox.com/docs, vérifiées via WebFetch et via le dépôt officiel `github.com/Roblox/creator-docs` (source des pages create.roblox.com ; dernier commit sur error-codes-and-limits.md : 2026-10-06, sur leaderboards.md : 2026-09-23).
 
-## Affirmations factuelles et sources
+Convention fil rouge appliquée (consigne du chef d'orchestre) : `leaderstats.Etape` = numéro du dernier checkpoint validé, 0 au départ ; checkpoint N accepté seulement si N == Etape + 1.
 
-### Leçon 01 — core-loop
+## 01 — leaderstats
 | Affirmation | Source |
 |---|---|
-| Core loop = gameplay central ; 3 sections : interaction minute par minute, ensemble d’actions le plus répété, moteur de progression ; sans progression le jeu devient « repetitive, boring, and shallow » ; exemple RPG d’action Explore → Fight → Upgrade | https://create.roblox.com/docs/production/game-design/core-loops |
-| Conseils J1 : rendre les étapes de la boucle claires et amusantes, équilibrer le défi (frustration/ennui), récompenser (feedback, monnaie, objets, succès) | https://create.roblox.com/docs/production/analytics/retention |
-| « Anytime a player takes an action… imperative to provide clear feedback » ; exemple Winds of Fortune (pièces qui jaillissent en récompense) | https://create.roblox.com/docs/production/game-design/onboarding-techniques |
-| « Any features added during LiveOps should be connected to the core loop » | https://create.roblox.com/docs/production/game-design/liveops-essentials |
-| Core curriculum : « players collect coins to trade for jump power », plateformes de plus en plus hautes | https://create.roblox.com/docs/tutorials/curriculums/core |
-| Le prototypage doit examiner la core loop | https://create.roblox.com/docs/production/game-design/prototyping |
-| Boucles courtes/longues/méta et boucles par genre (obby, simulateur, tycoon, RP) | **Présenté comme description générale de game design, pas comme donnée Roblox** (la page Core loops ne parle pas de méta-boucles ; c’est dit dans le texte). |
+| Dossier `leaderstats` obligatoirement en minuscules, sinon le joueur n'apparaît pas | https://create.roblox.com/docs/players/leaderboards |
+| Vues Here / Friends / Global ; Friends et Global en **bêta**, adossées à un OrderedDataStore enregistré dans le Creator Hub | idem |
+| Ordre des colonnes : ordre de création, `BoolValue` `IsPrimary`, `NumberValue` `Priority` (plus haut = plus tôt) | idem |
+| Masquer : `StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)` depuis un client | idem |
+| Changements client non répliqués au serveur | notion du module 3 (non re-sourcée ici) |
 
-### Leçon 02 — les-60-premieres-secondes
+## 02 — DataStores (leçon critique)
 | Affirmation | Source |
 |---|---|
-| « New players typically decide their interest in a game within minutes » ; 3 objectifs de l’onboarding (essentiels, vite au fun, envie de plus) ; objectifs court/moyen/long terme visibles ; finir par un moment de joie ; Experiments pour comparer « a shorter dialogue sequence versus a guided arrow » ; garder les premiers paliers XP bas | https://create.roblox.com/docs/production/game-design/onboarding |
-| 3 techniques (visuels, tutoriels contextuels, indices minutés) ; exemple hypothétique 10 s / 11 s ; « Timed hints should be sufficient… after only being shown once » ; Color or Die « impossible to miss, but doesn't prevent the player from starting » ; traînées « strongly suggest an action, but don't require it » | https://create.roblox.com/docs/production/game-design/onboarding-techniques |
-| « FTUEs that get users into the fun quickly tend to do better on Roblox » ; majorité des utilisateurs sur mobile ; jeunes joueurs et interfaces chargées de texte | https://create.roblox.com/docs/production/game-design/design-for-roblox |
-| « Avoid a complex or time consuming FTUE… ideally in 5 minutes or less after entering your game » ; définition D1 | https://create.roblox.com/docs/production/analytics/retention |
-| Entonnoir d’onboarding, `LogOnboardingFunnelStepEvent`, événements uniquement côté serveur et dans un jeu publié | https://create.roblox.com/docs/production/analytics/funnel-events |
-| Experiments : « Games with fewer than 1,000 daily active users might struggle to get useful data » (avertissement, pas une exigence) | https://create.roblox.com/docs/production/experiments |
-| Propriétés Beam (Attachment0/1, FaceCamera, Width0/1, Color) non dépréciées | https://create.roblox.com/docs/reference/engine/classes/Beam |
-| « 60 secondes » | **Explicitement présenté comme un objectif de conception de la formation, PAS un chiffre Roblox** (encadré Info + question de quiz). |
+| Activation Studio : File ⟩ Experience Settings ⟩ Security ⟩ « Enable Studio Access to API Services » ⟩ Save ; expérience publiée ; ne pas activer sur un jeu en ligne, utiliser une version de test | https://create.roblox.com/docs/cloud-services/data-stores |
+| Erreur `StudioAccessToApisNotAllowed` si accès non activé | https://create.roblox.com/docs/cloud-services/data-stores/error-codes-and-limits |
+| DataStores accessibles uniquement via Scripts serveur ; erreur en LocalScript | data-stores (index) |
+| SetAsync : écrase sans lire, incohérence possible si 2 serveurs, compte en écriture seulement ; UpdateAsync : lit la valeur la plus récente, plus lent, compte en lecture ET écriture | data-stores (index) + référence GlobalDataStore:UpdateAsync |
+| Callback UpdateAsync : ne doit pas yield ; renvoyer nil annule l'écriture ; peut être rappelé plusieurs fois ; renvoie (valeur, userIds, metadata) | https://create.roblox.com/docs/reference/engine/classes/GlobalDataStore#UpdateAsync |
+| Limites serveur par défaut / minute : lecture 60 + numPlayers × 40 ; écriture 60 + numPlayers × 40 ; liste 5 + numPlayers × 2 ; suppression 60 + numPlayers × 40 ; configurables via SetRateLimitForRequestType | error-codes-and-limits (« Server limits ») |
+| Limites expérience : lecture 300 + CCU × 40 ; écriture 300 + CCU × 20 (non chiffrées dans la leçon, seulement mentionnées) | idem |
+| Débit par clé : 25 Mo/min lecture, 4 Mo/min écriture | idem |
+| Nom de DataStore / clé / scope : 50 caractères ; valeur : 4 194 304 caractères (sérialisée) | idem |
+| Métadonnées perso : clé 50, valeur 250, total 300 caractères | idem |
+| Stockage : 500 Mo + 1 Mo × utilisateurs « lifetime » ; seule la dernière version compte | idem |
+| BindToClose : le serveur attend 30 s puis s'arrête ; plusieurs fonctions possibles, exécutées en parallèle ; recommandé avec DataStoreService | https://create.roblox.com/docs/reference/engine/classes/DataModel#BindToClose |
+| Versions conservées 30 jours après remplacement ; dernière version n'expire jamais ; ListVersionsAsync / GetVersionAsync | https://create.roblox.com/docs/cloud-services/data-stores/versioning-listing-and-caching |
+| Métadonnées : userIds (3e arg. SetAsync, recommandé RGPD), DataStoreSetOptions:SetMetadata, DataStoreKeyInfo (Version, CreatedTime, UpdatedTime) ; métadonnées à renvoyer à chaque écriture sinon perdues | data-stores (index) + référence SetAsync |
+| Bonnes pratiques : peu de DataStores, une clé par joueur, clés stables (UserId, pas le nom), buffer en mémoire, sauvegarde périodique/au départ/à la fermeture/aux achats, intervalle d'exemple 180 s, retry avec backoff exponentiel + jitter, étaler les requêtes, préférer UpdateAsync | https://create.roblox.com/docs/cloud-services/data-stores/best-practices |
+| DataStore2 = bibliothèque legacy à ne pas utiliser pour un nouveau projet ; modules tiers « always an option » | best-practices |
+| Verrouillage de session : scénarios (sauvegarde lente/retry/throttling, joueur qui rejoint un autre serveur), lock dans les métadonnées via UpdateAsync, expiration du lock ; code de référence Roblox « pour référence, à ne pas utiliser tel quel sans tests » | https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing |
+| ProfileStore : de loleris (MadStudioRoblox), successeur de ProfileService, gère session locking + autosave, autosave par défaut 300 s, pas conçu pour leaderboards/état global | https://devforum.roblox.com/t/profilestore-save-your-player-data-easy-datastore-module/3190543 |
+| Data Stores Manager : Creator Dashboard ⟩ expérience ⟩ Configurations ⟩ Data stores manager | https://create.roblox.com/docs/cloud-services/data-stores/data-stores-manager |
 
-### Leçon 03 — progression-et-recompenses
+Points incertains / à surveiller :
+- « Les valeurs sont stockées en JSON ; une Part ou un Color3 ne se stocke pas tel quel » : la doc dit que la valeur est sérialisée (JSON) et l'erreur 104 `CantStoreValue` couvre les types non sérialisables ; la liste exacte des types refusés n'est pas donnée explicitement par la doc.
+- Info « en test Studio, PlayerRemoving et BindToClose peuvent tous deux sauvegarder ; Studio peut sembler figé quelques secondes » : comportement observé/rapporté sur le DevForum (ex. https://devforum.roblox.com/t/bindtoclose-causes-studio-to-freeze-until-it-finishes/3978463), pas une doc officielle. La référence BindToClose suggère `RunService:IsStudio()` pour éviter les sauvegardes en test ; j'ai choisi de NE PAS sauter la sauvegarde en Studio (pour que l'élève puisse tester sa sauvegarde), et d'utiliser une copie de test de l'expérience. À valider.
+- Le code n'implémente pas le session locking (choix pédagogique, explicité dans la leçon).
+
+## 03 — Inventaire
 | Affirmation | Source |
 |---|---|
-| Trop vite → manque de contenu ; trop lent → ennui/frustration ; mesurer la répartition des joueurs par niveau de progression | https://create.roblox.com/docs/production/analytics/retention |
-| Sinks (définition, cosmétiques à durée limitée), planifier les puits avant les sources, monnaie d’événement « safest solution », calcul d’espérance (EV), exemple de surplus (« players with abundant Gold spend freely, leaving little incentive to purchase more ») | https://create.roblox.com/docs/production/game-design/balance-virtual-economies |
-| « Generally, the more challenging the quest, the more valuable the rewards » | https://create.roblox.com/docs/production/game-design/introduction-to-quest-design |
-| Missions régulièrement ratées → intérêt qui baisse | https://create.roblox.com/docs/production/game-design/season-pass-design |
-| Objets aléatoires payants : probabilités affichées exactement et numériquement avant l’achat, chaque issue apporte un bénéfice, accès réservé aux utilisateurs éligibles | https://about.roblox.com/community-standards (section Roblox Economy > Paid Random Items) |
-| Courbe « en dents de scie » | **Présentée comme approche courante de level design, non officielle, à vérifier en playtest** (pas de source Roblox ; je n’ai pas trouvé de source académique solide, donc formulation prudente). |
-| Le terme « inflation » | La page Roblox ne l’emploie pas (elle parle de « surplus ») ; utilisé comme terme général d’économie. |
+| Attributs : types acceptés (string, boolean, number, UDim, UDim2, BrickColor, Color3, Vector2, Vector3, CFrame, NumberSequence, ColorSequence, NumberRange, Rect, Font) — pas de tables | https://create.roblox.com/docs/studio/properties |
+| Noms d'attributs : alphanumériques + `. - / _`, ≤ 100 caractères, pas de préfixe RBX | référence Instance:SetAttribute |
+| Réplication des changements serveur vers clients ; ordre non garanti entre propriété et RemoteEvent | https://create.roblox.com/docs/scripting/attributes |
+| Trail entre Attachment0/Attachment1, Lifetime défaut 2 s (0,01–20) | https://create.roblox.com/docs/reference/engine/classes/Trail |
+- Non vérifié par source dédiée : « les attributs d'un Player sont visibles par tous les clients » (déduit du fait que les objets Player sont répliqués à tous les clients).
+- Le code combiné (module DonneesJoueurs + Catalogue + Boutique, client) a été vérifié avec luau-lsp en recollant les modules (aucun diagnostic hors variables inutilisées dues au recollage). Non testé dans Studio (aucune instance Studio connectée).
 
-### Leçon 04 — rejouabilite
+## 04 — Interfaces
 | Affirmation | Source |
 |---|---|
-| Touristes / habitués (« Locals… form almost all a game's engaged user base » — paraphrasé) ; jeux solo « often find it harder to build and retain an audience » ; invitations ; serveurs privés à ne pas rendre trop chers | https://create.roblox.com/docs/production/game-design/design-for-roblox |
-| J1/J7/J30 et leviers associés (progression, variété, contenu régulier, social) | https://create.roblox.com/docs/production/analytics/retention |
-| Quotidiennes : objectifs simples, récompenses modestes, 24 h, court terme uniquement, « resource drip » | https://create.roblox.com/docs/production/game-design/introduction-to-quest-design |
-| Notifications d’expérience : 13+ et opt-in ; moins de 13 ans = seulement notifications de mises à jour ; ≥ 100 visites, pas sous modération ; 1 notification/jour/expérience/utilisateur ; prompt standard non personnalisable, ne s’affiche pas si déjà activé ou vu dans les 30 jours ; dark patterns interdits (publicités déguisées, fausse pression temporelle, faux cadeaux, achats piégés) ; « Games should not require users to turn on notifications in order to participate or advance in gameplay » ; notifications personnalisées et actionnables ; envoi via package Open Cloud ou API Open Cloud | https://create.roblox.com/docs/production/promotion/experience-notifications |
-| `CanPromptOptInAsync`, `PromptOptIn`, `OptInPromptClosed` (aucun déprécié) | https://create.roblox.com/docs/reference/engine/classes/ExperienceNotificationService |
-| `SocialService:PromptGameInvite`, `CanSendGameInviteAsync` (dans pcall) | https://create.roblox.com/docs/production/promotion/invite-prompts |
-| Badges : 5 gratuits / 24 h (GMT) / jeu, puis 100 Robux ; `AwardBadgeAsync` en pcall ; `AwardBadge` dépréciée | https://create.roblox.com/docs/production/publishing/badges et https://create.roblox.com/docs/reference/engine/classes/BadgeService |
-| LiveOps : sans mises à jour même les joueurs fidèles perdent intérêt ; construire sur les systèmes existants ; protéger l’équipe | https://create.roblox.com/docs/production/game-design/liveops-essentials |
-| « Many games release cadence updates every two weeks to one month » | https://create.roblox.com/docs/production/game-design/content-updates |
-| Season pass : repos d’au moins une semaine (burnout), missions qui ne consomment pas tout le temps de jeu | https://create.roblox.com/docs/production/game-design/season-pass-design |
-| Community Standards : contenu/métadonnées trompeurs pour la découverte, la monétisation ou l’engagement interdits | https://about.roblox.com/community-standards |
-| Définitions fake urgency / fake scarcity / confirmshaming | https://deceptive.design/types (site de référence, anciennement darkpatterns.org) |
-| Conseil « pas de séries qui punissent » | **Conseil de conception éthique de la formation**, appuyé sur l’esprit des docs Roblox (season pass/burnout, interdiction de la fausse urgence) ; pas une règle Roblox explicite (formulé comme tel). |
+| Scale = fraction du parent, Offset = pixels, additifs ; saisie raccourcie dans Properties (0.5 → Scale, 20 → Offset) ; AnchorPoint | https://create.roblox.com/docs/ui/position-and-size |
+| ScreenGui de StarterGui cloné dans PlayerGui au premier spawn ; ResetOnSpawn (défaut true) | https://create.roblox.com/docs/ui/on-screen-containers |
+| `ScreenInsets` : CoreUISafeInsets (défaut, recommandé pour l'UI interactive), DeviceSafeInsets, TopbarSafeInsets, None (contenu non interactif) | on-screen-containers + référence ScreenGui / Enum.ScreenInsets |
+| `ClipToDeviceSafeArea` défaut true ; `SafeAreaCompatibility` défaut FullscreenExtension, à éviter pour les nouveaux projets au profit de ScreenInsets ; `IgnoreGuiInset` | https://create.roblox.com/docs/reference/engine/classes/ScreenGui |
+| UITextSizeConstraint, ne pas descendre MinTextSize sous 9 ; UIAspectRatioConstraint | https://create.roblox.com/docs/ui/size-modifiers |
+| Boutons : événement `Activated` | https://create.roblox.com/docs/ui/buttons |
+| Device Simulator (nouvelle barre en bêta, à activer via File ⟩ Beta Features) | https://create.roblox.com/docs/studio/device-simulator |
+- Incertain : l'emplacement exact de l'outil de simulation d'appareils dans l'interface Studio change selon la version (ancien « Device emulator » vs nouveau « Device Simulator » en bêta). La leçon reste volontairement générale.
 
-### Leçon 05 — tester-avec-de-vrais-joueurs
+## 05 — Animations
 | Affirmation | Source |
 |---|---|
-| Prototyper détecte tôt défauts/oublis/besoins techniques ; partager hors équipe ; itérer ; examiner core loop, UI/UX, règles, cas limites | https://create.roblox.com/docs/production/game-design/prototyping |
-| Nouveau jeu accessible par défaut au créateur et aux éditeurs ; jusqu’à 10 amis d’âge proche comme early testers via File > Invite early testers ; vérification d’âge possible ; filigrane d’aperçu | https://create.roblox.com/docs/production/publishing/publish-experiences-and-places |
-| « Even more important than players' specific suggestions is the reasoning behind them » ; bugs priorisés par gravité, effort, nombre de joueurs touchés | https://create.roblox.com/docs/production/game-design/liveops-essentials |
-| Sortie serveur visible dans la Developer Console (F9) seulement par le propriétaire / membres de groupe avec droits d’édition | https://create.roblox.com/docs/studio/developer-console |
-| Think aloud (3 étapes, « shut up »), interventions qui changent le comportement | https://www.nngroup.com/articles/thinking-aloud-the-1-usability-tool/ (J. Nielsen, 2012) |
-| 5 utilisateurs, plusieurs petites séries | https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/ (J. Nielsen, 2000) — présenté comme règle empirique d’utilisabilité, pas une loi ; le chiffre 85 % n’est volontairement PAS cité. |
+| R6 = 6 parties (legacy), R15 = 15 parties ; vêtements superposables seulement en R15 | https://create.roblox.com/docs/studio/rig-builder |
+| Avatar Settings (menu File ou onglet Avatar), bouton ⋯ : R6 / R15 / R15 & R6 ; avertissement sur les réglages invisibles | https://create.roblox.com/docs/studio/avatar-settings |
+| Animation Editor (onglet Avatar) ; Save = KeyframeSequence dans ServerStorage ; Publish to Roblox via ⋯ ; choisir le groupe dans Creator si jeu de groupe | https://create.roblox.com/docs/animation/editor |
+| Animations « Restricted » depuis le 31/07/2025 ; permission auto si la personne peut partager l'animation (insertion, playtest, copier-coller) ; pas d'Open Use ; permission d'expérience non révocable | https://devforum.roblox.com/t/improving-animation-asset-permissions/3852101 (annonce staff, BobaMuncher) |
+| Partage avec connexions et groupes depuis le 21/08/2025 (Permissions ⟩ Collaborators / Experiences) | https://devforum.roblox.com/t/sharing-animation-assets-with-connections-and-groups/3892540 |
+| Animator:LoadAnimation : réplication si lancé par le client sur son personnage ; sinon, serveur ; Animator doit être dans Workspace ; LoadAnimation crée toujours une nouvelle piste ; GetTrackByAnimationId | https://create.roblox.com/docs/reference/engine/classes/Animator |
+| Humanoid:LoadAnimation dépréciée | référence Humanoid (tag Deprecated) |
+| Play(fadeTime=0.1, weight=1, speed=1) ; Looped ; Priority ; Ended | https://create.roblox.com/docs/reference/engine/classes/AnimationTrack |
+| Priorités Action4 > Action3 > Action2 > Action > Movement > Idle > Core ; animations par défaut et bundles en Core | https://create.roblox.com/docs/reference/engine/enums/AnimationPriority |
+- Incertain : « une animation faite pour un R15 est prévue pour des personnages R15 » (logique, non citée mot pour mot dans la doc).
+- Incertain : affirmation que les connexions d'un LocalScript détruit avec le personnage sont déconnectées (comportement standard du moteur, non re-sourcé).
+- Le placeholder `rbxassetid://0000000000` est volontaire (l'élève remplace par son ID).
 
-## Points incertains / à surveiller
-- **Early testers / audience** : la page de publication a beaucoup changé récemment (onglets Playtest/Public, early testers, vérification d’âge). Des fils DevForum récents (lus en résumé seulement) signalent des testeurs qui n’arrivent pas à rejoindre. J’ai daté l’info et renvoyé au module 7 et à la page officielle.
-- **Badges** : coût (5 gratuits/24 h puis 100 Robux) lu sur la page officielle le 2026-10-24 ; formulé « au moment de la rédaction ».
-- **Notifications d’expérience** : le seuil d’éligibilité (100 visites) et la limite « 1 par jour » peuvent évoluer ; datés.
-- **Valeur initiale de `Etape`** : le module 4 n’était pas encore écrit ; j’ai supposé `Etape = 0` tant qu’aucun checkpoint n’est atteint et je le dis explicitement dans la leçon 2 (à harmoniser avec le module 4 si différent). Même remarque pour la « table de données du joueur » (leçon 4) supposée accessible côté serveur depuis le script de sauvegarde du module 4.
-- **Config.Zones** (leçon 3) est réutilisé dans la leçon 4 (`Config.Zones[#Config.Zones].derniereEtape`). Si le module 2 définit déjà un nombre d’étapes dans `Config`, il faudra harmoniser.
+## 06 — TweenService
+| Affirmation | Source |
+|---|---|
+| `TweenInfo.new(time=1, easingStyle=Quad, easingDirection=Out, repeatCount=0, reverses=false, delayTime=0)`, -1 = infini, propriétés non modifiables après création | https://create.roblox.com/docs/reference/engine/datatypes/TweenInfo |
+| Types tweenables (number, boolean, CFrame, Rect, Color3, UDim, UDim2, Vector2, Vector2int16, Vector3, EnumItem) ; 2 tweens sur même propriété → le premier est annulé | https://create.roblox.com/docs/reference/engine/classes/TweenService |
+| Completed : fin ou Cancel, reçoit PlaybackState ; Pause ne le déclenche pas ; Play sans effet si déjà en cours | https://create.roblox.com/docs/reference/engine/classes/TweenBase |
+| EasingDirection : In, Out, InOut | référence Enum.EasingDirection |
+| PrismaticConstraint motorisée (Servo, TargetPosition) citée pour plateformes d'ascenseur | https://create.roblox.com/docs/physics/constraints/prismatic |
+- Présenté comme retour de développeurs (DevForum), pas comme doc officielle : une Part ancrée tweenée horizontalement n'entraîne pas le personnage. Fil consulté : https://devforum.roblox.com/t/platform-moves-while-character-doesnt/1051218 (2021 ; les solutions BodyPosition/BodyGyro qui y sont proposées sont anciennes, je ne les ai pas reprises).
+- Incertain : « une plateforme qui monte pousse en général le personnage vers le haut » (formulé avec prudence).
+- Note : la doc TweenInfo mentionne une erreur si easingStyle vaut `Bezier` ou `Spring` ; ces valeurs n'apparaissent pas dans le YAML de l'enum EasingStyle consulté. Non évoqué dans la leçon.
 
-## Analyse statique (`node scripts/verifier-luau.mjs 05`)
-16 extraits, 3 avec diagnostics, tous attendus :
-- `Unknown require` (×3) : les `require` de `ReplicatedStorage.Modules.Config` et `ServerScriptService.ObjectifsQuotidiens` ne peuvent pas être résolus sur un extrait isolé.
-- `FunctionUnused` sur `verifierObjectifDuJour` (leçon 4, bloc 2) : extrait d’intégration volontairement fourni comme fonction à appeler depuis le script du module 3.
+## Besoins / remarques
+- Nouveaux objets introduits par ce module (à connaître des modules suivants) : ModuleScript `ServerScriptService.DonneesJoueurs` (API `Charger`, `Obtenir`, `Sauvegarder`, `Liberer`), Script `GestionJoueurs` (remplace `Leaderstats`), Script `Boutique`, RemoteEvents `ReplicatedStorage.Remotes.EquiperObjet` et `Victoire`, ModuleScript `ReplicatedStorage.Modules.Catalogue` (objets `TrailNuage`, `TrailSoleil`, `TrailAurore` avec `nom`, `prix`, `couleurDebut`, `couleurFin`), attributs joueur `Possede_<id>` et `TrailEquipe`, Folder `Workspace.PlateformesMobiles`, ScreenGui `StarterGui.InterfaceObby`.
+- Structure de sauvegarde : `{ version = 1, etape = 0, pieces = 0, inventaire = {}, equipe = "" }` (module 6 pourra y ajouter un historique des PurchaseId).

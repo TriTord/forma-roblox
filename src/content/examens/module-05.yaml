@@ -1,147 +1,158 @@
 module: "05"
-titre: Examen du module 5 — Un game design qui retient les joueurs
-description: Vérifie que tu sais concevoir une boucle de jeu, un début de partie, une progression, des raisons de revenir et un playtest, sans manipuler tes joueurs.
+titre: Examen du module 5 — Systèmes de jeu
+description: Leaderstats, sauvegarde fiable, inventaire, interfaces, animations et tweens. Réussis au moins 70 % pour débloquer le badge du module.
 seuil: 70
 questions:
   - type: qcm
-    question: Un ami te décrit son jeu « On coupe des arbres, on vend le bois, on achète une hache plus rapide qui coupe plus vite ». Quelle partie de la core loop est « acheter une hache plus rapide » ?
+    question: Tu veux afficher l’étape et les pièces de chaque joueur dans le tableau des scores. Quelle approche est correcte ?
     options:
-      - texte: L’interaction minute par minute
-      - texte: Le moteur de progression
+      - texte: Un LocalScript dans StarterPlayerScripts qui crée un dossier `leaderstats` dans le joueur local
+      - texte: Un Script dans ServerScriptService qui crée, à `PlayerAdded`, un dossier `leaderstats` contenant des `IntValue`
         correct: true
-      - texte: L’onboarding
-      - texte: Un puits de monnaie sans lien avec la boucle
-    explication: La hache améliorée change durablement la façon de jouer et ramène à l’action (couper plus vite). C’est le moteur de progression, la partie qui, selon Roblox, évite que le jeu devienne répétitif et superficiel.
-
-  - type: vrai-faux
-    question: Avant d’ajouter une fonctionnalité, il est conseillé de vérifier à quelle partie de la core loop elle se rattache.
-    reponse: true
-    explication: La documentation LiveOps de Roblox demande que toute fonctionnalité ajoutée soit reliée à la core loop. Une fonctionnalité sans lien avec la boucle risque de compliquer le jeu sans le rendre plus amusant.
-
-  - type: qcm
-    question: Un nouveau joueur rejoint l’Obby des Nuages. Quelle arrivée suit le mieux les recommandations Roblox sur l’onboarding ?
-    options:
-      - texte: Un écran de règles de trois pages, puis le spawn
-      - texte: Le spawn face au premier saut facile, le premier checkpoint visible et une pièce sur le chemin
-        correct: true
-      - texte: La boutique qui s’ouvre automatiquement pour présenter les traînées
-      - texte: Un premier saut très difficile pour montrer le niveau du jeu
-    explication: Roblox recommande d’amener au plaisir de jeu le plus vite possible, avec des tutoriels brefs et visuels et des premiers succès rapides. Les écrans d’entrée et les pics de difficulté au départ retardent ou découragent le joueur.
-
-  - type: qcm
-    question: Quelles techniques d’onboarding sont décrites par la documentation Roblox ? (plusieurs réponses possibles)
-    options:
-      - texte: Les éléments visuels (flèches, traînées, mises en évidence)
-        correct: true
-      - texte: Les tutoriels contextuels, déclenchés par le jeu normal
-        correct: true
-      - texte: Les indices minutés pour les joueurs en difficulté
-        correct: true
-      - texte: Les comptes à rebours pour presser le joueur
-    explication: "Roblox décrit trois techniques : les éléments visuels, les tutoriels contextuels (« juste à temps ») et les indices minutés. Un compte à rebours artificiel est une pression, pas une aide."
+      - texte: Un Folder `leaderstats` posé à la main dans Workspace
+    explication: "Les leaderstats se créent côté serveur, dans chaque joueur, à son arrivée. Créées par un LocalScript, elles n’existeraient que sur ce client : ni le serveur, ni les autres joueurs, ni la sauvegarde ne les verraient."
 
   - type: trouve-le-bug
-    question: "Cette fonction doit dire si le faisceau de guidage est encore utile : oui tant que la prochaine étape est 1 ou 2, non ensuite. Pour un nouveau joueur (étape 0), elle affiche pourtant « false ». Où est le bug ?"
+    question: "Dans l’Obby des Nuages, `Etape` contient le numéro du dernier checkpoint validé, et un checkpoint N n’est accepté que si N vaut Etape + 1. Ce code (raccourci : la vérification de distance du module 4 a été retirée) laisse pourtant les joueurs sauter des étapes. Où est le bug ?"
     code: |
       local Players = game:GetService("Players")
+      local checkpoint = script.Parent
+      local numero = tonumber(checkpoint.Name)
 
-      local ETAPES_GUIDEES = 2
-      local joueur = Players.LocalPlayer
-      local etape = joueur:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
-
-      local function guideNecessaire(): boolean
-      	local prochaine = etape.Value + 1
-      	return prochaine >= ETAPES_GUIDEES
-      end
-
-      print("Guide nécessaire :", guideNecessaire())
+      checkpoint.Touched:Connect(function(autrePartie)
+      	local player = Players:GetPlayerFromCharacter(autrePartie.Parent)
+      	local leaderstats = player and player:FindFirstChild("leaderstats")
+      	local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+      	if etape and etape:IsA("IntValue") and numero and numero > etape.Value then
+      		etape.Value = numero
+      	end
+      end)
     options:
-      - texte: "Ligne 5 : `Etape` doit être cherché dans `PlayerGui`"
-      - texte: "Ligne 9 : la comparaison est inversée, il faut `prochaine <= ETAPES_GUIDEES`"
+      - texte: "Ligne 3 : `tonumber` ne fonctionne pas sur le nom d’une Part"
+      - texte: "Ligne 6 : `GetPlayerFromCharacter` attend la Part touchée, pas son parent"
+      - texte: "Ligne 9 : la condition accepte n’importe quel checkpoint plus loin, au lieu de `numero == etape.Value + 1`"
         correct: true
-      - texte: "Ligne 8 : on ne peut pas additionner un nombre à `etape.Value`"
-      - texte: "Ligne 7 : une fonction locale ne peut pas renvoyer de booléen"
-    explication: "Au départ, `etape.Value` vaut 0, donc `prochaine` vaut 1 et `1 >= 2` est faux : le guide est jugé inutile dès le début. On veut guider tant que la prochaine étape est 1 ou 2, soit `prochaine <= ETAPES_GUIDEES`."
+      - texte: "Ligne 10 : il faut écrire `etape = numero`"
+    explication: "Avec `numero > etape.Value`, un joueur qui touche le checkpoint 10 en étant à l’étape 2 est accepté. La règle du projet est `numero == etape.Value + 1`. Les autres lignes sont correctes : `tonumber(\"3\")` renvoie 3 et `GetPlayerFromCharacter` attend bien le modèle du personnage."
+
+  - type: qcm
+    question: À quels moments notre système de la leçon 2 sauvegarde-t-il les données d’un joueur ? (plusieurs réponses possibles)
+    options:
+      - texte: Quand le joueur quitte la partie (`PlayerRemoving`)
+        correct: true
+      - texte: Quand le serveur s’arrête (`game:BindToClose`)
+        correct: true
+      - texte: Régulièrement, grâce à une sauvegarde automatique
+        correct: true
+      - texte: À chaque pièce ramassée
+    explication: "On charge une fois, on garde en mémoire, et on sauvegarde au départ, à la fermeture et régulièrement (un filet de sécurité). Sauvegarder à chaque pièce gaspillerait le budget de requêtes par minute du serveur."
 
   - type: vrai-faux
-    question: Pour un petit jeu qui débute, les Experiments (tests A/B) de Roblox sont l’outil le plus fiable pour régler le début de partie.
+    question: "La fonction passée à `UpdateAsync` peut contenir un `task.wait(1)` pour laisser le temps à d’autres serveurs de finir."
     reponse: false
-    explication: Au moment de la rédaction, Roblox prévient que les jeux de moins de 1 000 utilisateurs actifs par jour risquent d’avoir du mal à obtenir des résultats utiles. Pour un petit jeu, les playtests observés sont bien plus parlants.
+    explication: "La documentation est formelle : la fonction de transformation d’`UpdateAsync` ne doit pas attendre (pas de `task.wait`, pas d’appel réseau). Elle peut aussi être rappelée plusieurs fois si la clé a changé entre-temps."
 
   - type: qcm
-    question: Dans ton obby, les joueurs ont en moyenne 5 000 pièces et la boutique ne propose que des traînées à 100 pièces. Quel est le problème, et quelle solution suit les conseils de Roblox ?
+    question: "Dans la fonction passée à `UpdateAsync`, que se passe-t-il si tu renvoies `nil` ?"
     options:
-      - texte: Une inflation, car les sources dépassent largement les puits ; ajouter des objets désirables plus chers ou d’autres puits avant toute nouvelle source
+      - texte: La clé est supprimée du DataStore
+      - texte: L’écriture est annulée et la valeur stockée ne change pas
         correct: true
-      - texte: Un manque de sources ; doubler les pièces gagnées par étape
-      - texte: Aucun problème, des joueurs riches sont des joueurs heureux
-    explication: Quand la monnaie s’accumule sans rien de désirable à acheter, elle perd sa valeur et la boucle méta s’arrête. Roblox demande de prévoir les puits qui absorberont l’excédent avant de lancer de nouvelles sources (la page parle de « surplus » ; « inflation » est le terme général).
-
-  - type: qcm
-    question: Quelle règle s’applique sur Roblox aux objets aléatoires payants ?
-    options:
-      - texte: Aucune règle particulière, c’est au créateur de décider
-      - texte: Les probabilités doivent être affichées de façon exacte et chiffrée avant l’achat, et chaque résultat doit apporter un bénéfice
-        correct: true
-      - texte: Ils sont autorisés seulement le week-end
-    explication: Les Community Standards de Roblox imposent l’affichage exact et chiffré des probabilités avant l’achat, un bénéfice pour chaque résultat et un accès réservé aux utilisateurs éligibles. Le détail est vu au module 6.
+      - texte: La valeur `nil` remplace les données du joueur
+    explication: "Renvoyer `nil` annule l’écriture. Notre code s’en sert pour ne pas écraser une sauvegarde créée par une version plus récente du jeu (champ `version` plus grand)."
 
   - type: trouve-le-bug
-    question: "Cette fonction de Config doit donner 2 pièces par étape dans le niveau 1 (étapes 1 à 5), plus un bonus de 10 à la dernière étape du niveau. Le bonus n’est jamais versé. Où est le bug ?"
+    question: "Ce code de sauvegarde semble marcher, mais des joueurs perdent toute leur progression après avoir changé de pseudo. Quelle ligne est en cause ?"
     code: |
-      local Niveau1 = {etapeDebut = 1, etapeFin = 5, piecesParEtape = 2}
-      local BONUS_FIN_DE_NIVEAU = 10
-
-      local function recompensePourEtape(etape: number): number
-      	if etape < Niveau1.etapeDebut or etape >= Niveau1.etapeFin then
-      		return 0
+      local function sauvegarder(player, donnees)
+      	local cle = "Joueur_" .. player.Name
+      	local succes, erreur = pcall(function()
+      		return magasin:UpdateAsync(cle, function(ancienne)
+      			return donnees, { player.UserId }
+      		end)
+      	end)
+      	if not succes then
+      		warn("Sauvegarde impossible :", erreur)
       	end
-      	local gain = Niveau1.piecesParEtape
-      	if etape == Niveau1.etapeFin then
-      		gain += BONUS_FIN_DE_NIVEAU
-      	end
-      	return gain
       end
-
-      print(recompensePourEtape(5))
     options:
-      - texte: "Ligne 5 : `>=` exclut la dernière étape du niveau, il faut `>`"
+      - texte: "Ligne 2 : la clé utilise le nom du joueur, qui peut changer ; il faut `player.UserId`"
         correct: true
-      - texte: "Ligne 9 : il faut `=` au lieu de `==`"
-      - texte: "Ligne 10 : `+=` n’existe pas en Luau"
-      - texte: "Ligne 1 : une table ne peut pas contenir de nombres"
-    explication: "Pour l’étape 5, `5 >= 5` est vrai : la fonction renvoie 0 avant même d’arriver au bonus. Avec `etape > Niveau1.etapeFin`, l’étape 5 reçoit ses 2 pièces plus le bonus de 10. À la ligne 9, `==` est bien la comparaison attendue."
+      - texte: "Ligne 3 : `pcall` est inutile avec `UpdateAsync`"
+      - texte: "Ligne 5 : la fonction doit renvoyer `ancienne`"
+      - texte: "Ligne 9 : il faut utiliser `print` au lieu de `warn`"
+    explication: "Un joueur peut changer de nom d’utilisateur : sa nouvelle clé pointe alors vers une sauvegarde vide. La documentation recommande des clés construites à partir d’identifiants stables, comme le `UserId`. Le `pcall` est indispensable, et renvoyer `donnees` est voulu."
 
   - type: qcm
-    question: Quelles affirmations sur les notifications d’expérience sont exactes selon la documentation Roblox ? (plusieurs réponses possibles)
+    question: Ton jeu est en ligne depuis un mois. Pour ajouter un champ `victoires`, un ami te conseille de renommer le DataStore `DonneesJoueurs_v1` en `DonneesJoueurs_v2`. Quelle est la conséquence ?
     options:
-      - texte: Les notifications personnalisées ne sont reçues que par des utilisateurs de 13 ans et plus qui ont donné leur accord
+      - texte: Aucune, Roblox copie automatiquement les anciennes données
+      - texte: Le nouveau DataStore est vide, donc tous les joueurs repartent de zéro
         correct: true
-      - texte: Un utilisateur peut recevoir au maximum une notification par jour d’une même expérience
-        correct: true
-      - texte: On peut personnaliser librement le texte de la demande d’autorisation
-      - texte: On peut bloquer la progression tant que le joueur n’a pas activé les notifications
-    explication: Le texte de la demande d’autorisation est standard et non modifiable, et Roblox interdit d’exiger l’activation des notifications pour participer ou progresser. Les deux premières affirmations sont tirées de la page officielle.
+      - texte: Les deux DataStores fusionnent
+    explication: "Un nouveau nom désigne un nouveau DataStore, vide. Pour faire évoluer la structure, on garde le même DataStore et on complète les anciennes sauvegardes (champ `version` et fonction `completer`)."
 
   - type: qcm
-    question: Tu veux récompenser les joueurs qui reviennent souvent. Quelle option respecte le mieux leur temps ?
+    question: Pour acheter une traînée, que doit envoyer le client au serveur via `AcheterObjet` ?
     options:
-      - texte: Une série quotidienne qui retombe à zéro et fait perdre les objets gagnés au premier jour manqué
-      - texte: Un objectif quotidien court et modeste, remis à zéro chaque jour sans rien retirer au joueur
+      - texte: L’identifiant de l’objet, le prix et son nouveau solde
+      - texte: Uniquement l’identifiant de l’objet
         correct: true
-      - texte: Un message « Reviens dans 10 minutes ou tu perds tout ! » sans réelle limite
-    explication: Roblox recommande des quotidiennes courtes, réalisables en une session, avec des récompenses modestes. Punir l’absence transforme le jeu en obligation, et une fausse urgence est un dark pattern explicitement interdit dans les notifications.
+      - texte: Rien, le serveur devine l’objet voulu
+    explication: "Le client n’envoie que ce qu’il veut. Le serveur vérifie le type, l’existence de l’objet dans son catalogue, la possession et le solde, puis prend le prix dans son propre `Catalogue`. Un prix ou un solde envoyé par le client pourrait être truqué."
 
   - type: vrai-faux
-    question: Pendant un playtest, il vaut mieux expliquer au testeur ce qu’il doit faire dès qu’il hésite, pour gagner du temps.
+    question: Comme le ModuleScript `Catalogue` est dans ReplicatedStorage, un exploiteur peut baisser les prix pour tout le monde en modifiant sa copie du module.
     reponse: false
-    explication: L’hésitation est justement l’information recherchée. En aidant, tu caches le problème que les vrais joueurs rencontreront seuls. On observe, on note et on n’intervient qu’en cas de blocage total.
+    explication: "Chaque côté a sa propre copie du module en mémoire. Un client qui modifie la sienne ne change que l’affichage chez lui ; le serveur continue d’utiliser ses propres prix pour décider."
 
   - type: qcm
-    question: Après un playtest, un testeur te demande « Mets des dragons ! ». Que conseille la documentation Roblox sur les LiveOps ?
+    question: Pourquoi régler `ResetOnSpawn = false` sur le ScreenGui de l’Obby des Nuages ?
     options:
-      - texte: Ajouter des dragons immédiatement pour lui faire plaisir
-      - texte: Ignorer la remarque, les joueurs ne savent pas ce qu’ils veulent
-      - texte: Chercher la raison derrière la suggestion (par exemple une zone jugée monotone)
+      - texte: Pour que l’interface s’affiche aussi sur les autres joueurs
+      - texte: Pour que l’interface ne soit pas supprimée et recréée à chaque réapparition du personnage
         correct: true
-    explication: Roblox souligne que la raison derrière une suggestion compte encore plus que la suggestion elle-même. Comprendre le besoin permet de choisir la meilleure solution, qui n’est pas forcément celle proposée.
+      - texte: Pour que l’interface soit sauvegardée dans le DataStore
+    explication: "Avec `ResetOnSpawn = true` (valeur par défaut), le ScreenGui est recopié à chaque réapparition. Dans un obby où l’on tombe souvent, la boutique se refermerait et les scripts redémarreraient sans arrêt."
+
+  - type: qcm
+    question: "Avec `AnchorPoint = (1, 1)` et `Position = {1, 0}, {1, 0}`, où se place un bouton ?"
+    options:
+      - texte: Au centre de l’écran
+      - texte: Collé dans le coin inférieur droit de son conteneur
+        correct: true
+      - texte: Dans le coin supérieur gauche
+      - texte: En dehors de l’écran, en bas à droite
+    explication: "La Position `{1, 0}, {1, 0}` désigne le coin inférieur droit du conteneur, et l’AnchorPoint `(1, 1)` indique que c’est le coin inférieur droit du bouton qui s’y place. Avec un AnchorPoint `(0, 0)`, le bouton sortirait de l’écran."
+
+  - type: qcm
+    question: Tu colles dans ton jeu l’identifiant d’une animation publiée par un autre créateur, qui ne te l’a pas partagée. Que se passe-t-il ?
+    options:
+      - texte: Elle fonctionne, toutes les animations sont publiques
+      - texte: Elle ne se charge pas, car ton jeu n’a pas la permission d’utiliser cet asset
+        correct: true
+      - texte: Elle fonctionne, mais seulement en R6
+    explication: "Depuis l’annonce du 31 juillet 2025, les animations sont des assets « Restricted » : un jeu ne peut charger que les animations pour lesquelles il a reçu la permission (par leur propriétaire, ou automatiquement quand quelqu’un qui a le droit de les partager les utilise dans Studio)."
+
+  - type: qcm
+    question: "Un développeur appelle `animator:LoadAnimation(animation)` à chaque clic sur un bouton, puis `:Play()`. Pourquoi est-ce une mauvaise idée ?"
+    options:
+      - texte: Parce que `LoadAnimation` crée une nouvelle piste à chaque appel ; mieux vaut charger une fois et réutiliser la piste
+        correct: true
+      - texte: Parce que `LoadAnimation` ne fonctionne qu’une seule fois par partie
+      - texte: Parce qu’il faut utiliser `Humanoid:LoadAnimation`
+    explication: "La référence API précise que `LoadAnimation` crée toujours une nouvelle `AnimationTrack`, ce qui peut peser sur les performances. On charge l’animation une fois et on rappelle `Play` sur la même piste. `Humanoid:LoadAnimation` est dépréciée."
+
+  - type: qcm
+    question: Quel `TweenInfo` décrit une plateforme qui met 4 secondes à monter, redescend, et recommence sans fin, avec des départs et arrivées en douceur ?
+    options:
+      - texte: "`TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)`"
+        correct: true
+      - texte: "`TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false)`"
+      - texte: "`TweenInfo.new(-1, true, 4, Enum.EasingStyle.Sine)`"
+    explication: "Ordre des paramètres : durée (4), style (Sine), direction (InOut), répétitions (-1 = à l’infini), aller-retour (true), puis délai (0 par défaut). La deuxième option ne joue qu’un seul aller ; la troisième mélange l’ordre."
+
+  - type: vrai-faux
+    question: "L’événement `Completed` d’un tween se déclenche aussi quand on appelle `tween:Pause()`."
+    reponse: false
+    explication: "D’après la référence API, `Completed` se déclenche quand le tween se termine ou est annulé avec `Cancel` (il reçoit alors l’état correspondant), mais pas lors d’une pause."

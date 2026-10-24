@@ -1,4 +1,4 @@
--- ModuleScript « Config » dans ReplicatedStorage > Modules (créé au module 2, leçon 6)
+-- ModuleScript « Config » dans ReplicatedStorage > Modules (créé au module 3, leçon 6)
 -- Tous les réglages de l'Obby des Nuages, au même endroit.
 local Config = {}
 

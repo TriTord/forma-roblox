@@ -16,10 +16,10 @@ local DELAI_REAPPARITION = 10 -- secondes avant que la pièce revienne
 -- Un même joueur ne peut ramasser qu'une pièce toutes les 0,2 seconde
 local peutRamasser = Validation.creerCooldown(0.2)
 
--- Ajoute le bonus du jour si l'objectif vient d'être atteint (module 5, leçon 4).
+-- Ajoute le bonus du jour si l'objectif vient d'être atteint (module 6, leçon 4).
 -- « pieces » est l'IntValue leaderstats.Pieces du joueur.
 local function verifierObjectifDuJour(player: Player, pieces: IntValue)
-	local donnees = DonneesJoueurs.Obtenir(player) -- table en mémoire (module 4)
+	local donnees = DonneesJoueurs.Obtenir(player) -- table en mémoire (module 5)
 	if donnees == nil then
 		return -- données pas encore chargées : on ne compte rien
 	end

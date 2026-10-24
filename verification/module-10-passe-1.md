@@ -1,92 +1,98 @@
-# Module 10 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
+# Module 09 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
 ## Résumé
-94 affirmations ou éléments vérifiés (faits, liens, questions de quiz et d’examen, extraits de code), 24 corrigés ou reformulés, 0 supprimé.
-Quiz : 25 questions de leçon et 14 questions d’examen relues. 1 question réécrite (L03 Q3 : les règles « gameplay inexistant / Free UGC! / voix off » ne s’appliquent explicitement qu’aux **vidéos** de la page du jeu). 3 explications précisées (L03 Q1, L04 Q4, L05 Q2). Les 5 `trouve-le-bug` ont un seul bug et les bons numéros de ligne.
-Code : `verifier-luau 10` = 12 extraits, 0 diagnostic (avant et après corrections). Le `BindToClose` de la leçon 02 a été rendu robuste et le format du `Catalogue` aligné sur le module 4.
-Liens internes : 42 liens `/modules/XX/slug/`, tous présents dans PLAN.md et existants. Liens externes : tous testés (HTTP 200 ou redirection vers une page valide). Les URL redirigées ont été remplacées par l’URL finale.
+Environ 110 affirmations vérifiées. 15 modifiées (8 corrigées, 7 reformulées), 0 supprimée, 1 source ajoutée.
+Quiz : 29 questions de leçon et 14 questions d’examen relues. 2 corrigées : une question ambiguë (L3, `ModelStreamingMode`) et un `trouve-le-bug` qui contenait un second bug (L2).
+Code : `node scripts/verifier-luau.mjs 09` → 20 extraits, 0 diagnostic (avant et après corrections). Exécution réelle relue : emplacements, streaming, `nil`, fuites et réplication sont corrects. Les trois avant/après de la leçon 4 sont de vraies optimisations, sans micro-optimisation mythique :
+- passage du `Heartbeat` à `Changed` ;
+- suppression d’un `SetAttribute` répliqué à chaque image et d’une fuite de connexion ;
+- rotation décorative déplacée côté client, donc sans réplication.
+
 Build : `bash scripts/build-verrou.sh` → code de sortie 0.
 
-Méthode : pages officielles consultées en direct (curl ou WebFetch) et dans le dépôt source officiel de la documentation `github.com/Roblox/creator-docs`, cloné le 2026-10-24 (dernier commit le 2026-10-24). Les fils DevForum ont été vérifiés via l’API JSON du forum (auteur, statut staff, date, contenu).
+Méthode : comparaison avec le dépôt officiel `github.com/Roblox/creator-docs` (commit du 2026-10-24) et l’historique de ses commits (API GitHub), puis contrôle des pages en ligne sur create.roblox.com et de l’annonce DevForum. Tous les liens `<Sources>` répondent 200. Les grandes pages de référence (BasePart, Player, Workspace…) renvoient 502 à curl mais s’ouvrent normalement avec un navigateur ou WebFetch.
 
 ## Détail
+
 | Leçon | Affirmation / élément | Verdict | Source | Commentaire |
 |---|---|---|---|---|
-| 01 | Prototype : détecter tôt les défauts ; « la différence… c’est le périmètre » ; prototyper coûte moins cher que corriger tard | OK | create.roblox.com/docs/production/game-design/prototyping | Citations exactes |
-| 01 | Core loop = gameplay central ; sans progression, le jeu devient répétitif | OK | …/game-design/core-loops | |
-| 01 | Les nouveaux joueurs décident en quelques minutes | OK | …/game-design/onboarding | « within minutes » |
-| 01 | Signal « first play bounce rate » (signal négatif) | OK | create.roblox.com/docs/discovery | |
-| 01 | Jeux ressemblant à des titres existants : moins recommandés, moins bien classés en recherche | OK | discovery (« Non-unique games ») | Quiz Q2 OK |
-| 01 | Ads Manager : campagnes pour ces jeux peut-être peu efficaces | OK | …/promotion/ads-manager | |
-| 01 | Community Standards : contenu trompeur ou dupliqué, propriété intellectuelle | OK | about.roblox.com/community-standards | |
-| 01 | Surplus de monnaie ; monnaie d’événement séparée | OK | …/balance-virtual-economies | |
-| 01 | « Monétisation prévue dès le départ » | REFORMULÉ | …/monetization-foundations | La doc dit « integral part of initial and ongoing development » : formulation alignée |
-| 01 | Valeur des objets ; descriptions exactes | OK | monetization-foundations | |
-| 01 | Objets aléatoires payants : toutes les issues et probabilités en % | OK | …/monetization/paid-random-items | |
-| 01 | Kids (5-8) et Select (9-15) créés en 2026 | OK | …/publishing/kids-and-select ; annonce DevForum 13/04/2026 | |
-| 01 | « Règle des deux semaines » | OK | — | Déjà présentée comme garde-fou non officiel |
-| 01 | Quiz Q1 à Q5 | OK | — | Bonnes réponses justes, distracteurs faux |
-| 02 | Quiz Q1 (trouve-le-bug, prix du client) | CORRIGÉ | — | Ajout d’une ligne de commentaire après la ligne 11 (« ajout du trail à l’inventaire ») : sans elle, l’absence d’attribution de l’objet pouvait passer pour un 2e bug. Lignes 1 à 11 inchangées |
-| 02 | Quiz Q2 (verrou partagé), Q3, Q4, Q5 | OK | security-tactics, third-party-vulnerabilities, error-report | Numéros de ligne vérifiés |
-| 02 | Code fautif DataStore : commentaire « donnees contient le message d’erreur (ou nil) » | CORRIGÉ | — | En cas d’échec, `pcall` renvoie toujours le message d’erreur |
-| 02 | « Ce scénario revient très souvent sur le DevForum » | REFORMULÉ | …/data-stores/player-data-purchasing ; devforum t/2064718 | Ajout de la mise en garde officielle (« fallback data doesn’t later overwrite real data ») ; le DevForum est présenté comme un retour d’expérience |
-| 02 | Retry + exponential backoff ; UpdateAsync lit avant d’écrire | OK | …/data-stores/best-practices | |
-| 02 | `BindToClose` : 30 secondes au maximum | AJOUTÉ (confirmé) | Référence API DataModel:BindToClose (source creator-docs `DataModel.yaml` : « The experience server waits 30 seconds… ») | Ajouté dans le texte et en commentaire de code |
-| 02 | Code corrigé `BindToClose` | CORRIGÉ | DataModel:BindToClose ; player-data-purchasing | Le compteur ne suivait que les sauvegardes lancées par BindToClose. Si `PlayerRemoving` a déjà lancé les sauvegardes, `GetPlayers()` peut être vide et le serveur pouvait s’arrêter avant leur fin. Compteur global `sauvegardesEnCours` maintenant géré dans `sauvegarder` |
-| 02 | Code corrigé DataStore : pcall, réessais, pas de sauvegarde si le chargement a échoué, joueur parti pendant le chargement | OK | best-practices | Logique relue ligne par ligne |
-| 02 | Studio partage les mêmes DataStores ; option « Enable Studio Access to API Services » ; activer seulement sur une copie de test | OK | …/cloud-services/data-stores | |
-| 02 | « Toute donnée du client a pu être manipulée… » ; questions « n’importe quelle valeur » et « 1 000+ fois par seconde » | OK | …/security/security-tactics | |
-| 02 | Code remote corrigé (cooldown par joueur, type, prix serveur, solde, possession) | OK | security-tactics | Cooldown par joueur avec `os.clock`, nettoyage à `PlayerRemoving` |
-| 02 | Hypothèse sur le format du `Catalogue` | CORRIGÉ | module-04/03-inventaire.mdx | Aligné sur le vrai catalogue du module 4 (`TrailNuage = { nom, prix = 25, … }`) |
-| 02 | Backdoors, modèles d’apparence légitime, Toolbox qui signale les scripts, modération non garantie, code obfusqué, espaces, popularité ≠ sécurité | OK | …/security/third-party-vulnerabilities | |
-| 02 | Sandboxing : `SandboxedInstance` = Experimental, `Sandboxed` = true, Capabilities ; en bêta | OK | third-party-vulnerabilities | |
-| 02 | Ctrl+Maj+F présenté comme une astuce du DevForum | REFORMULÉ | …/studio/script-editor | Le raccourci est officiel (Find All / Replace All, ⌘+Maj+F sur Mac). La liste de mots (`require` + numéro, `getfenv`, `loadstring`) reste présentée comme retour d’expérience |
-| 02 | Renvoi « Le module 1 en parlait déjà » (historique des versions) | CORRIGÉ | …/projects/version-history | L’historique des versions est vu en 01/05 (premier-niveau-et-publication), pas en 01/02 : renvois précisés |
-| 02 | Server & Clients, jusqu’à 8 clients, 1-2 suffisent ; Device Simulator | OK | …/studio/testing-modes | |
-| 02 | Tableau Performance : crashs, FPS, mémoire par plateforme ; graphiques à partir de 100 DAU ; avant/après mise à jour | OK | …/analytics/performance | |
-| 02 | Developer Console : F9, `/console` ; messages serveur réservés au propriétaire et aux membres du groupe autorisés à modifier | OK | …/studio/developer-console | |
-| 02 | Error Report (Monitoring) : erreurs serveur et client, filtre « New errors since » | OK | …/analytics/error-report | |
-| 03 | Publish settings > Manage Audience > onglet Playtest (Early testers, Playtesters) | OK | …/publishing/publish-games-and-places | |
-| 03 | Miniature personnalisée requise pour les impressions des recommandations de la page d’accueil | OK | discovery | |
-| 03 | 16:9, 1920×1080, jusqu’à 10 | REFORMULÉ | …/publishing/thumbnails | « jusqu’à 10 images ou vidéos » |
-| 03 | « Les miniatures ne doivent pas montrer de gameplay inexistant ni “50% off” / “Free UGC!” » | REFORMULÉ | thumbnails (section Videos) ; discovery (« Mismatched metadata ») | Ces interdictions explicites concernent les **vidéos**. Pour les images, la doc dit seulement que des métadonnées qui ne correspondent pas au jeu ne sont pas recommandées |
-| 03 | Quiz Q3 (miniatures) | CORRIGÉ | thumbnails | Question réécrite sur la vidéo de présentation, pour que les 3 bonnes réponses soient explicitement interdites par la doc |
-| 03 | Métadonnées promettant de l’argent ou des Robux : non priorisées | OK | discovery (« Leading with giveaways ») | |
-| 03 | Sans informations de maturité : jouabilité restreinte pour tous | OK | …/promotion/content-maturity | Lien `experience-guidelines` (redirection 301, ancienne page) remplacé par `content-maturity` |
-| 03 | Publicité : non comptée dans « Recommended for You » (texte, résumé, quiz Q1) | REFORMULÉ | discovery | La doc distingue deux étapes : la publicité peut aider à être pris en considération, mais l’engagement des joueurs qu’elle amène n’est pas compté à l’étape de classement |
-| 03 | Ads Manager : 13+ et e-mail vérifié ; carte bancaire 18+ ; objectif Engagement, sans progrès après 3-5 jours, améliorer l’onboarding | OK | ads-manager | |
-| 03 | Benchmarks à partir de 100 DAU, pas un signal direct de l’algorithme | OK | create.roblox.com/docs/production/analytics ; discovery | |
-| 03 | D1/D7/D30 | OK | …/analytics/retention | |
-| 03 | LiveOps : perte d’intérêt sans mises à jour, rythme hebdo à mensuel, rythme fiable, QoL à fort impact, comprendre la raison des suggestions | OK | …/liveops-essentials | |
-| 03 | Tableau persévérer / pivoter / arrêter | OK | — | Présenté comme une méthode, pas comme une règle Roblox ; aucun seuil inventé |
-| 03 | Quiz Q2, Q4, Q5 | OK | — | |
-| 04 | Questionnaire : Creator Dashboard > Publish settings > Content rating ; contenu le plus mature ; resoumettre après changement ; inexactitudes → modération | OK | content-maturity | |
-| 04 | Label « Content May Vary » si l’on répond seulement à la 1re question (16+ uniquement) | AJOUTÉ | content-maturity ; publish-games-and-places | Point de conformité important qui manquait |
-| 04 | Exigences 16+ : compte en règle d’au moins 2 jours, vérification de l’âge, question sur le contenu à accès restreint | OK / REFORMULÉ | publish-games-and-places ; kids-and-select | « contenu réservé aux adultes » remplacé par « contenu à accès restreint selon l’âge », la formulation de la doc |
-| 04 | Exigences tous âges : compte vérifié, 2FA, Plus/Premium depuis 2 mois **ou** frais remboursables de 1 000 Robux, questionnaire complet (Minimal/Mild/Moderate), évaluation | OK / PRÉCISÉ | kids-and-select ; publish-games-and-places ; DevForum 4573166 et 4630944 (staff) | Précision ajoutée : estimation faciale si moins de 18 ans, pièce d’identité si 18 ans ou plus |
-| 04 | Évaluation : phase d’essai 16+, joueurs très engagés, revue de sécurité, 250 parties uniques en 60 jours, tableau Audience Reach | OK | kids-and-select (doc actuelle) | Les annonces DevForum (06/2026, mise à jour du 16/07/2026) parlent de 500 « Highly Engaged Players » pour entrer et 25 pour rester. Doc retenue, avec mention prudente des chiffres divergents |
-| 04 | Kids = Minimal/Mild ; Select = jusqu’à Moderate | OK | kids-and-select ; content-maturity | |
-| 04 | Filtrage `TextService:FilterStringAsync` ; Roblox retire le jeu jusqu’à l’ajout du filtrage | OK / PRÉCISÉ | …/ui/text-filtering | Ajout de `GetNonChatStringForBroadcastAsync` (checklist et explication du quiz Q4) |
-| 04 | `PolicyService:GetPolicyInfoForPlayerAsync` → `ArePaidRandomItemsRestricted` | OK | paid-random-items ; référence PolicyService | API non dépréciée |
-| 04 | Liens externes seulement via Social Links, 16+ à l’âge vérifié | OK / PRÉCISÉ | community-standards ; …/promotion/social-media-links | Précisé : 16+ vérifié pour ajouter des liens **et** pour les voir. Source ajoutée |
-| 04 | Événements AnalyticsService : seulement depuis le serveur et dans un jeu publié | OK | …/analytics/funnel-events | |
-| 04 | Miniatures et vidéos (checklist section 7) | REFORMULÉ | thumbnails ; discovery | Même correction qu’en L03 |
-| 04 | « Communauté = nouveau nom des groupes » | OK | DevForum t/3268307 (Roblox Staff, 21/11/2024) | Source ajoutée |
-| 04 | `UserOwnsGamePassAsync`, `ProcessReceipt`, `LogOnboardingFunnelStepEvent` non dépréciés | OK | Référence API (creator-docs) | |
-| 04 | Script d’auto-vérification (Studio uniquement, conventions du fil rouge) | OK | — | Noms `Checkpoints`, `KillBricks`, `Pieces`, `Remotes`, `Modules`, `Config`, `Catalogue` conformes ; pièces ancrées comme au module 2 |
-| 04 | Quiz Q1 (trouve-le-bug), Q2, Q3, Q5 | OK | content-maturity | |
-| 04 | Sources : `publish-experiences-and-places` et `experience-guidelines` | CORRIGÉ | — | URL redirigées (301) remplacées par `publish-games-and-places` et `content-maturity` |
-| 05 | « Jeu détenu par une Communauté (anciennement groupe) » | CORRIGÉ | DevForum t/3268307 ; …/projects/collaboration ; …/projects/groups | L’annonce précise que, pour la collaboration entre créateurs, le produit garde le nom de **Groups** dans le Creator Hub, et la doc parle de « group-owned games ». Formulation corrigée, quiz Q2 aussi (« pas à un groupe ») |
-| 05 | Collaborate ; Edit seulement pour des amis (jeu personnel) ; vérification de l’âge ; tranches d’âge compatibles | OK | projects/collaboration | |
-| 05 | Mode Drafts | PRÉCISÉ | projects/collaboration | Désactivé par défaut (File > Experience Settings) |
-| 05 | Catégories DevForum (Announcements, Scripting Support, Building/Game Design Support, Code Review, Community Tutorials, Find and Hire Talent, Showcase Your Portfolio) ; tag roadmap | OK | devforum.roblox.com/categories.json | Toutes les URL renvoient la bonne catégorie |
-| 05 | Liens docs, tutorials, reference/engine, game-design, luau.org, status.roblox.com, create.roblox.com/talent | OK | HTTP 200 ou redirection valide | |
-| 05 | Lien Roblox Education | CORRIGÉ | …/education/support/education-getting-started | Redirection remplacée par l’URL finale ; précisé « surtout destinées aux enseignants » |
-| 05 | Quiz Q1 à Q5 | OK | — | |
-| Examen | 14 questions (dont 2 trouve-le-bug) | OK | paid-random-items, balance-virtual-economies, performance, data-stores, discovery, liveops, kids-and-select, content-maturity, community-standards | Numéros de ligne des trouve-le-bug vérifiés (ligne 12 et ligne 5) ; aucune modification nécessaire |
-| Toutes | 42 liens internes `/modules/XX/slug/` | OK | PLAN.md + fichiers existants | |
+| 01 | « La majorité des sessions Roblox se jouent sur des appareils mobiles » | REFORMULÉ | create.roblox.com/docs/input/mobile | Citation exacte : « The majority of Roblox sessions are played on mobile devices ». Page et citation anglaise ajoutées dans le texte. |
+| 01 | « Une grande partie des joueurs ont des téléphones d’entrée de gamme » | REFORMULÉ | performance-optimization/test-on-hardware | La doc dit « The majority of Roblox players are on lower-spec mobile devices ». Texte et résumé alignés. |
+| 01 | Encadré Info sur les pourcentages (« Roblox ne publie pas… ») | CORRIGÉ | test-on-hardware | La page donne des chiffres non datés (Android ≈ 65 %, ~60 % de ces joueurs avec 2–4 Go). Ajoutés avec « au moment de la rédaction (octobre 2026) » et une mise en garde (variables selon pays, âge, genre). |
+| 01 | Tester sur son PC, c’est tester pour la minorité | OK | test-on-hardware | |
+| 01 | Roblox n’a pas accès à toute la mémoire ; OOM | OK | performance-optimization/design | |
+| 01 | Jeux visant 60 FPS par défaut | OK | performance-optimization (index) | |
+| 01 | Thermal throttling, session de 10–15 min | OK | test-on-hardware | |
+| 01 | Coins inférieurs réservés, zones du pouce, exemple des 40 % téléphone/tablette | OK | ui/position-and-size | |
+| 01 | `ScreenInsets` : `CoreUISafeInsets` par défaut et recommandé, `DeviceSafeInsets`, `None` réservé aux fonds | OK | include ui/screen-insets, ScreenGui | |
+| 01 | `ViewportDisplaySize` Small/Medium/Large | OK | projects/cross-platform | |
+| 01 | `PreferredInput` (Touch, KeyboardAndMouse, Gamepad), observable avec `GetPropertyChangedSignal` | OK | enum PreferredInput ; input (index) | |
+| 01 | Input Action System | OK | projects/cross-platform | |
+| 01 | Orientation par défaut `LandscapeSensor` | OK | input/mobile | |
+| 01 | Device Simulator « sorti de bêta le 16/10/2026 » | CORRIGÉ (précisé) | DevForum 4861695 (catégorie Announcements, signé « The Roblox Studio Team ») ; studio/device-simulator | Confirmé : post du 9 sept. 2026, désormais intitulé « [Full Release] ». Mise à jour du 16 oct. 2026 : « now out of beta and available for everyone », ouverture via Test › Device Simulator. La page doc affiche encore l’avertissement beta et la procédure File › Beta Features › New Device Simulator : ajoutées comme solution de repli, datée. |
+| 01 | Barre d’outils au-dessus de la vue 3D, catégories Phone/Desktop/Console/Headset, Flagship/Mid-range/Entry level, Rotate, Alt+glisser, Alt+Shift+glisser, Display scaling (Physical size…), Calibrate physical scaling (carte d’étudiant), changement d’appareil en cours de test | OK | studio/device-simulator | |
+| 01 | Network Simulator : latence, jitter, pertes, profils 3G/4G/Wi-Fi | OK | studio/network-simulator ; annonce DevForum | Source network-simulator ajoutée. |
+| 01 | Émulateur non fiable pour la mémoire (Studio = serveur + client) | OK | design ; test-on-hardware | Le staff le confirme aussi sur le DevForum (l’ancienne option mémoire était un « placeholder »). |
+| 01 | Performance Stats depuis le menu Settings | OK | test-on-hardware | |
+| 01 | Quiz (6 questions) et `trouve-le-bug` (ligne 6, Enum vs texte) | OK | | Numéros de ligne vérifiés (3, 6, 14). Un seul bug. |
+| 02 | Tableau ms ↔ FPS, exemple 59 images + 410 ms | OK | microprofiler (index) | |
+| 02 | Heartbeat serveur plafonné à 60, Server Jobs › Heartbeat › Steps Per Sec, Server Stats (ping) | OK | identify | |
+| 02 | Ouverture de la Developer Console : F9, `/console`, Settings › Developer Console › Open | OK | include opening-developer-console | |
+| 02 | Barre de raccourcis (erreurs, mémoire, ping), Client/Server, sortie serveur visible seulement par le propriétaire et les éditeurs | OK | studio/developer-console | |
+| 02 | Outils Log, Memory, Luau heap, Network (appels web HttpService/DataStore, pas les remotes), Script Profiler | OK | studio/developer-console | |
+| 02 | CoreMemory/PlaceMemory, LuaHeap, PlaceScriptMemory, GraphicsTexture, GraphicsMeshParts, Sounds, InstanceCount | OK | studio/optimization/memory-usage ; improve | |
+| 02 | Mémoire mesurée dans le client plutôt que dans Studio | OK | identify | |
+| 02 | Raccourcis Ctrl+Alt+F7, Shift+F5, Shift+F2, Shift+F3, Shift+Ctrl+F1…F5 dans Studio | OK | identify ; improve ; workspace/streaming | |
+| 02 | Raccourci du MicroProfiler (Ctrl+Alt+F6 en principal, Ctrl+F6 en alternative) | CORRIGÉ | microprofiler (index) ; identify ; test-on-hardware ; use-microprofiler ; historique Git creator-docs | La page MicroProfiler est passée volontairement de Ctrl+Alt+F6 à Ctrl+F6 le 22/01/2026 (commit 5792590), puis a confirmé Ctrl+F6 dans ses mises à jour de juillet et du 22/10/2026 (page la plus à jour). identify, test-on-hardware, use-microprofiler et network gardent Ctrl+Alt+F6. La leçon donne maintenant Ctrl+F6 en principal et Ctrl+Alt+F6 comme ancien raccourci encore cité, avec ce contexte. |
+| 02 | Mobile : Settings › MicroProfiler On, IP:port, même réseau, exemple 172.18.56.105:1338 ; mobile = meilleur endroit pour profiler | OK | microprofiler (index) | |
+| 02 | Couleurs orange/bleu/rouge (GPU wait > 2,5 ms), pas de « bonne » couleur | OK | microprofiler (index) | |
+| 02 | Ctrl+P met en pause et ouvre le mode détaillé ; navigation dans la timeline ; Dump dans `%LOCALAPPDATA%\Roblox\logs` | OK | use-microprofiler ; microprofiler (index) | |
+| 02 | Profilage serveur : 60 images max, Begin server recording, chemin du fichier donné | OK | microprofiler (index) | La doc dit d’ouvrir la console avec Ctrl+F9 à cet endroit : la leçon écrit seulement « ouvre la Developer Console » (non faux). |
+| 02 | Script Profiler : Client par défaut/Server, Freq 1 kHz par défaut/10 kHz, Time Manual par défaut/1/5/10 min, Callgraph/Functions, ne compte pas les fils en attente | OK | studio/optimization/scriptprofiler | |
+| 02 | Scene Analysis (Window › Performance Summary › Scene Analysis), exemple des 25 000 émetteurs | OK | performance-optimization/scene-analysis | |
+| 02 | Script de temps de chargement (ReplicatedFirst, os.clock, game.Loaded) et ses limites | OK | identify (Load times) | Garde `game:IsLoaded()` ajoutée par le rédacteur : correct. |
+| 02 | Cycle identifier/améliorer/surveiller | OK | performance-optimization (index) | |
+| 02 | Quiz `trouve-le-bug` `profilebegin`/`profileend` | CORRIGÉ | | Second bug involontaire : `calculerHauteur(Players:GetPlayers()[1])` passe `nil` quand aucun joueur n’est présent au lancement du Script, d’où une erreur ligne 5. Remplacé par un appel dans `Players.PlayerAdded`, qui passe d’ailleurs par le `return 0` fautif. La question précise maintenant « Script serveur ». Lignes 4/7/9 inchangées, explication ajustée. |
+| 02 | Autres questions du quiz (5) | OK | | |
+| 03 | Avantages du streaming ; `StreamingEnabled` activé par défaut pour les nouveaux places et non modifiable par script | OK | workspace/streaming ; référence Workspace | |
+| 03 | Portée : uniquement Workspace (pas ReplicatedStorage/ReplicatedFirst) | OK | workspace/streaming (Scope) | |
+| 03 | Exceptions à l’arrivée : BaseParts, modèles Atomic/Persistent, descendants | CORRIGÉ (complété) | workspace/streaming (Stream in) | Ajouté : les modèles Nonatomic (« normaux ») sont aussi différés quand `ModelStreamingBehavior = Improved`, le réglage que la leçon recommande. |
+| 03 | Stream out : parent `nil`, changements locaux perdus possibles, zone < MinRadius jamais déchargée | OK | workspace/streaming | |
+| 03 | MinRadius 64 / TargetRadius 1024 (défauts et recommandés), StreamOutBehavior LowMemory → Opportunistic, ModelStreamingBehavior Legacy → Improved, IntegrityMode recommandé PauseOutsideLoadedArea | OK | workspace/streaming (tableau Streaming properties) ; référence Workspace | |
+| 03 | Valeur par défaut de `StreamingIntegrityMode` = `Default` | REFORMULÉ | enum StreamingIntegrityMode ; référence Workspace ; API dump Roblox-Client-Tracker | Ni la doc ni la référence n’affichent de valeur par défaut pour cette propriété. L’API dump ne la donne pas non plus (classe non créable). L’item d’enum `Default` (valeur 0) est décrit seulement comme « Default behavior (subject to change) ». D’anciennes versions de la référence le disaient équivalent à `Disabled`, la version actuelle ne le dit plus. Tableau : « `Default` (comportement non détaillé par la doc) ». Ajouté : ne pas compter dessus, choisir un mode explicitement. Aucun Studio n’était connecté au MCP pour vérifier l’affichage. |
+| 03 | Valeurs de l’enum StreamingIntegrityMode, `GameplayPaused`, message par défaut | OK | enum StreamingIntegrityMode | |
+| 03 | `PredictiveStreamingMode` : Default se comporte comme Disabled ; Enabled = opt-in ; préchargement des lieux de réapparition ; compatible avec RequestStreamAroundAsync | OK | référence Workspace ; workspace/streaming (Predictive streaming) | |
+| 03 | `ModelStreamingMode` : Default/Nonatomic, Atomic, Persistent (`PersistentLoaded`), PersistentPerPlayer (`AddPersistentPlayer`) ; jamais depuis un LocalScript | OK | enum ModelStreamingMode ; référence Model ; workspace/streaming | |
+| 03 | Erreur « Persistent revient à désactiver le streaming » | REFORMULÉ | workspace/streaming (Persistent) | Remplacé par la formulation officielle : pas fait pour contourner le streaming, l’abus peut nuire aux performances, réservé à de très rares cas. |
+| 03 | Débogage Shift+F3 / Shift+Ctrl+F3, Shift+1, 4e panneau, CameraMaxZoomDistance 1000 | OK | workspace/streaming (Runtime debugging) | |
+| 03 | Pièges : GetChildren/GetDescendants partiels, ChildAdded/Removed, Touched/ProximityPrompt/ClickDetector, objets envoyés par remote, `character.Humanoid` dans CharacterAdded | OK | workspace/streaming/techniques | |
+| 03 | `RequestStreamAroundAsync` : yield, `timeOut` par défaut 0 = « effectivement infini », abandon en mémoire basse, effet temporaire sans garantie, appel côté serveur | OK | Player.yaml (référence) ; techniques (Proactive streaming) | |
+| 03 | Test avec TargetRadius = 64 (minimum), erreurs `attempt to index nil with` | OK | techniques (Realistic test conditions) | |
+| 03 | Code avant/après (surlignage du checkpoint) et module Teleportation | OK | | Logique vérifiée : `FindFirstChild` + `ChildAdded`, recoloration au retour, `pcall`, `PivotTo`. |
+| 03 | Quiz : question `ModelStreamingMode` (Atomic) | CORRIGÉ | workspace/streaming | Ambiguë : l’explication admettait que `Persistent` « marcherait aussi ». La question exige maintenant que la porte puisse être déchargée, donc `Atomic` est la seule bonne réponse. Explication réécrite. |
+| 03 | Autres questions du quiz (5), dont `trouve-le-bug` ligne 6 | OK | | Lignes vérifiées. |
+| 04 | Événements RunService à chaque image (Heartbeat, PreRender, PreSimulation, PostSimulation, PreAnimation), « sparingly », `task.wait`, code piloté par événements | OK | improve ; design | |
+| 04 | Fuites : connexions, Player/personnage non détruits par défaut, tables par joueur ; `Disconnect` ; `PlayerCharacterDestroyBehavior` | OK | improve (Script memory usage) ; référence Workspace | |
+| 04 | LuaHeap/InstanceCount pour détecter une fuite | OK | improve | |
+| 04 | Ancrer, CanCollide, CanTouch (false = pas d’événement, erreur à la connexion), CanQuery (effet seulement si CanCollide = false), petit gain CanTouch + CanCollide à false | OK | BasePart.yaml ; workspace/collisions | |
+| 04 | CollisionFidelity : description de `Default` (« plus détaillée ») | CORRIGÉ | enum CollisionFidelity ; improve (Physics memory usage) | Précisé : décomposition voxel, imprécise sur les creux, nettement plus gourmande en mémoire que Box/Hull. |
+| 04 | Conseils Box/Hull, géométrie stockée même sans collision, filtre Explorer, Visualization Options, non scriptable à l’exécution | OK | improve ; TriangleMeshPart.CollisionFidelity | |
+| 04 | RenderFidelity : Automatic par défaut (< 250 / 250–500 / ≥ 500 studs), Precise, Performance | OK | MeshPart.RenderFidelity ; enum RenderFidelity | |
+| 04 | Draw calls, instancing (même MeshContent + apparence), densité, transparence (0 et 1), particules, décalques | OK | improve (Rendering) ; design | |
+| 04 | Ombres : CastShadow sur petites Parts, défauts visuels ; Roblox dégrade lui-même les ombres | REFORMULÉ | BasePart.CastShadow ; improve | Ajouté : la référence conseille de laisser CastShadow activé dans la plupart des cas ; ombres désactivées sous le niveau de qualité 4. |
+| 04 | Textures 1024² = 4 × 512², ≤ 512 en général, ≤ 256 pour les petites, matériaux intégrés moins gourmands | OK | improve (Asset memory) ; design | |
+| 04 | Réseau : remotes, effets côté client, ReplicatedStorage → ServerStorage | OK | improve (Networking, Load times) | |
+| 04 | « TweenService ou une boucle » répliqués à chaque image | REFORMULÉ | improve (Server-side TweenService) | Ce qui vient de la doc (TweenService) est maintenant séparé de la déduction (boucle serveur qui modifie une propriété à chaque image). |
+| 04 | Avant/après n° 3 : réplication « à tous les joueurs » | REFORMULÉ | workspace/streaming | « À tous les joueurs chez qui la pièce est chargée », pour rester cohérent avec le streaming. |
+| 04 | Avant/après n° 1 (compteur), n° 2 (chrono `os.clock`), code de déconnexion, rotation côté client avec `PreRender` + `ChildAdded`/`ChildRemoved` | OK | improve ; design ; os.yaml (os.clock = temps écoulé, idéal pour mesurer une durée) | Optimisations réelles. `ChildRemoved` se déclenche bien sur le parent quand un objet est déchargé. |
+| 04 | Quiz (6), dont `trouve-le-bug` `CanTouch` (lignes 6/7/10) | OK | | |
+| 05 | Cycle, appareil de référence et limites déduites (draw calls) | OK | performance-optimization ; design | |
+| 05 | Page Performance : Creations › expérience › Monitoring › Performance ; propriétaire ou permissions analytics ; ≥ 100 DAU pour les graphiques ; répartition par plateforme ; Place Version ; OOM | OK | production/analytics/performance | Formulation datée présente. |
+| 05 | Plantages > 2–3 % ou hausse après une mise à jour | OK | identify (Client memory) | |
+| 05 | Script d’audit (Command Bar) : `RenderFidelity` lisible (NotReplicated, sécurité None), `CollisionFidelity` volontairement non lue | OK | MeshPart.yaml ; TriangleMeshPart.yaml | |
+| 05 | Quiz (5), dont `trouve-le-bug` GetChildren (ligne 4) | OK | | |
+| Examen | 14 questions | OK | | Réponses, distracteurs, numéros de ligne des 2 `trouve-le-bug` (ligne 5 `personnage.Humanoid` ; ligne 9 `joueur.Name`) et explications vérifiés sur les mêmes sources. |
 
 ## Erreurs restantes non corrigées
-- Aucune dans le module 10.
-- Signalement hors périmètre (module 4, non modifié) : le `BindToClose` de `module-04/02-datastores-fiables.mdx` utilise un compteur local à `BindToClose`. Il n’attend donc pas les sauvegardes déjà lancées par `PlayerRemoving` quand les joueurs sont déconnectés à la fermeture. Il vaudrait la peine d’appliquer la même correction qu’en module 10, leçon 02 (compteur global incrémenté dans la fonction de sauvegarde).
-- Point à surveiller : les chiffres de l’évaluation Kids/Select. La doc (250 parties uniques en 60 jours) diverge des annonces DevForum (500 pour entrer, 25 pour rester), et les conditions de remboursement des frais de 1 000 Robux diffèrent entre `publish-games-and-places` et `kids-and-select`. La leçon cite la doc actuelle avec une formulation prudente et ne donne pas les conditions de remboursement.
+- Valeur affichée par défaut de `Workspace.StreamingIntegrityMode` dans un nouveau place : invérifiable par la doc, et aucun Studio n’était connecté pour la vérifier. La leçon reste honnête (« `Default`, comportement non détaillé ») et recommande de régler le mode explicitement. À confirmer dans Studio lors d’une prochaine passe.
+- Divergence persistante dans la doc officielle sur le raccourci du MicroProfiler (Ctrl+F6 contre Ctrl+Alt+F6) : les deux sont donnés dans la leçon, avec leur contexte.

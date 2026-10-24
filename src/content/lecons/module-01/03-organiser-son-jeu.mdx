@@ -61,7 +61,7 @@ quiz:
     explication: "Un script qui cherche un enfant par son nom (`FindFirstChild`, `WaitForChild`…) obtient **le premier trouvé** : impossible de savoir à l’avance lequel des deux. Donne un nom unique à chaque objet que tes scripts doivent retrouver."
 ---
 
-Ton niveau commence à se remplir de Parts. Sans rangement, tu auras vite des dizaines d’objets nommés « Part » dans le désordre, et tes futurs scripts ne sauront pas les retrouver. Cette leçon t’apprend comment Roblox organise un jeu, à quoi sert chaque grand service, et comment ranger l’Obby des Nuages dès maintenant pour ne pas le regretter au module 2.
+Ton niveau commence à se remplir de Parts. Sans rangement, tu auras vite des dizaines d’objets nommés « Part » dans le désordre, et tes futurs scripts ne sauront pas les retrouver. Cette leçon t’apprend comment Roblox organise un jeu, à quoi sert chaque grand service, et comment ranger l’Obby des Nuages dès maintenant pour ne pas le regretter au module 3.
 
 ## Le data model : l’arbre de ton jeu
 
@@ -91,7 +91,7 @@ Au premier niveau de l’arbre se trouvent les **services** : des conteneurs fou
 | `Workspace` | Le monde 3D : tout ce qui y est s’affiche chez les joueurs | Plateformes, SpawnLocation, décor |
 | `Players` | Contient un objet `Player` par joueur connecté (créé automatiquement) | Rien à la main |
 | `Lighting` | L’éclairage global, le ciel, l’atmosphère | Réglages d’ambiance |
-| `ReplicatedStorage` | Objets accessibles à la fois par le serveur et par les joueurs | Code partagé (ModuleScripts, module 2), objets de communication (RemoteEvents, module 3) |
+| `ReplicatedStorage` | Objets accessibles à la fois par le serveur et par les joueurs | Code partagé (ModuleScripts, module 3), objets de communication (RemoteEvents, module 4) |
 | `ServerScriptService` | Scripts côté serveur, jamais envoyés aux joueurs | La logique du jeu |
 | `ServerStorage` | Objets côté serveur uniquement ; les scripts ne s’y exécutent pas | Objets à cloner plus tard |
 | `StarterGui` | Interfaces copiées dans le `PlayerGui` de chaque joueur | Écrans, boutons, compteurs |
@@ -106,7 +106,7 @@ Au premier niveau de l’arbre se trouvent les **services** : des conteneurs fou
 Tu croiseras aussi `ReplicatedFirst` (des objets envoyés aux joueurs avant tout le reste), `SoundService` ou `TextChatService`. Pas besoin de les maîtriser maintenant.
 
 <Info>
-Pourquoi certains services sont « côté serveur » et d’autres « côté joueur » ? Parce qu’un jeu Roblox tourne à la fois sur un **serveur** de Roblox et sur l’appareil de chaque joueur (le **client**). Tu découvriras ce modèle client/serveur en détail au module 3. Pour l’instant, retiens seulement : **ServerScriptService pour les scripts du serveur, ReplicatedStorage pour ce qui est partagé.**
+Pourquoi certains services sont « côté serveur » et d’autres « côté joueur » ? Parce qu’un jeu Roblox tourne à la fois sur un **serveur** de Roblox et sur l’appareil de chaque joueur (le **client**). Tu découvriras ce modèle client/serveur en détail au module 4. Pour l’instant, retiens seulement : **ServerScriptService pour les scripts du serveur, ReplicatedStorage pour ce qui est partagé.**
 </Info>
 
 Certains services sont masqués par défaut pour garder l’arbre lisible. Un clic droit dans l’Explorer puis **Show Services…** permet de les afficher.
@@ -166,12 +166,12 @@ Voici la structure que nous allons suivre pendant toute la formation. Crée dès
 Workspace
 ├── SpawnLocation          (le point de départ)
 ├── Plateformes            (Folder : toutes les plateformes, rangées par zone si besoin)
-├── Checkpoints            (Folder : des Parts nommées "1", "2", "3"… — module 2)
-├── KillBricks             (Folder : les pièges qui éliminent le joueur — module 2)
-└── Pieces                 (Folder : les pièces à ramasser — module 2)
+├── Checkpoints            (Folder : des Parts nommées "1", "2", "3"… — module 3)
+├── KillBricks             (Folder : les pièges qui éliminent le joueur — module 3)
+└── Pieces                 (Folder : les pièces à ramasser — module 3)
 ReplicatedStorage
-├── Remotes                (Folder : la communication client/serveur — module 3)
-└── Modules                (Folder : les ModuleScripts partagés, comme Config — module 2)
+├── Remotes                (Folder : la communication client/serveur — module 4)
+└── Modules                (Folder : les ModuleScripts partagés, comme Config — module 3)
 ServerScriptService        (les scripts du serveur)
 ```
 
@@ -179,11 +179,11 @@ Les checkpoints seront nommés par leur **numéro d’étape** (`1`, `2`, `3`…
 
 ## Aperçu : pourquoi les noms comptent pour les scripts
 
-Tu apprendras à écrire du code au module 2. Mais regarde déjà comment un script retrouve un objet : **par son chemin dans l’arbre et par son nom**.
+Tu apprendras à écrire du code au module 3. Mais regarde déjà comment un script retrouve un objet : **par son chemin dans l’arbre et par son nom**.
 
 ```luau
 -- Script (côté serveur) à placer dans ServerScriptService
--- Aperçu : chaque ligne sera expliquée au module 2.
+-- Aperçu : chaque ligne sera expliquée au module 3.
 local Workspace = game:GetService("Workspace")
 
 -- On attend que le dossier « Plateformes » existe dans le Workspace, puis on le récupère

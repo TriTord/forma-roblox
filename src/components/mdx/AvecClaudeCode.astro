@@ -1,0 +1,7 @@
+---
+import Encadre from './Encadre.astro';
+/** Encadré « Avec Claude Code » : le prompt précis pour construire le système de la leçon + ce qu'il faut vérifier. */
+interface Props { titre?: string }
+const { titre = 'Avec Claude Code' } = Astro.props;
+---
+<Encadre variante="ia" titre={titre} icone="🤖"><slot /></Encadre>

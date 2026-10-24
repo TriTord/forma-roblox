@@ -8,7 +8,7 @@ local TweenService = game:GetService("TweenService")
 local joueur = Players.LocalPlayer
 local leaderstats = joueur:WaitForChild("leaderstats")
 local pieces = leaderstats:WaitForChild("Pieces") :: IntValue
--- RemoteEvent du module 3 : le Script « Progression » l'utilise après chaque étape validée
+-- RemoteEvent du module 4 : le Script « Progression » l'utilise après chaque étape validée
 local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
 
 -- Petite interface créée par le script
@@ -42,7 +42,7 @@ local function afficher(texte: string)
 	fondu:Play()
 end
 
--- Sécurité : le script de sauvegarde du module 4 crée les leaderstats directement avec
+-- Sécurité : le script de sauvegarde du module 5 crée les leaderstats directement avec
 -- les valeurs chargées. Mais si ton propre script les met à jour APRÈS les avoir créées
 -- (ex. de 0 à 120 pièces), on ne veut pas célébrer ce saut : on attend un peu.
 local pret = false
@@ -60,7 +60,7 @@ pieces.Changed:Connect(function(nouvelleValeur: number)
 end)
 
 -- Les étapes : le SERVEUR envoie déjà « Étape N atteinte ! » (Script « Progression »,
--- module 3) une fois le checkpoint validé. Il suffit d'écouter et d'afficher.
+-- module 4) une fois le checkpoint validé. Il suffit d'écouter et d'afficher.
 notification.OnClientEvent:Connect(function(texte: string)
 	afficher(texte)
 end)

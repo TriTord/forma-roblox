@@ -1,0 +1,267 @@
+---
+titre: La boucle de jeu (core loop)
+description: Découvre la boucle de jeu, le cœur de tout jeu Roblox, apprends à la décrire en trois parties et applique-la à l’Obby des Nuages.
+duree: 25
+objectifs:
+  - Définir la boucle principale (core loop) d’un jeu et ses trois composantes
+  - Distinguer la boucle courte des boucles plus longues (méta)
+  - Analyser la boucle de jeux Roblox existants
+  - Rendre visible le « retour » (feedback) de la boucle dans l’Obby des Nuages
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Selon la documentation Roblox, quelles sont les trois parties d’une core loop ?
+    options:
+      - texte: L’interaction minute par minute, l’ensemble d’actions le plus répété, le moteur de progression
+        correct: true
+      - texte: Le menu principal, le tutoriel, la boutique
+      - texte: Le graphisme, le son, la musique
+      - texte: L’acquisition, la rétention, la monétisation
+    explication: La page « Core loops » du Creator Hub découpe la boucle en trois sections. Les autres réponses décrivent des écrans ou des indicateurs, pas la boucle de jeu elle-même.
+  - type: vrai-faux
+    question: Sans moteur de progression, une boucle de jeu peut vite devenir répétitive.
+    reponse: true
+    explication: "La documentation Roblox le dit explicitement : sans progression, un jeu devient « répétitif, ennuyeux et superficiel ». La progression transforme l’action répétée en changement durable pour le joueur."
+  - type: qcm
+    question: Dans l’Obby des Nuages, quel élément joue le rôle de boucle longue (méta) plutôt que de boucle courte ?
+    options:
+      - texte: Sauter d’une plateforme à l’autre
+      - texte: Atteindre le checkpoint suivant
+      - texte: Économiser des pièces sur plusieurs parties pour acheter une traînée
+        correct: true
+      - texte: Éviter une kill brick
+    explication: "Sauter ou éviter une kill brick se répète toutes les quelques secondes (boucle courte), et atteindre le checkpoint suivant prend une à quelques minutes (boucle principale). Économiser pour une traînée se joue sur plusieurs étapes, voire plusieurs sessions : c’est la boucle longue."
+  - type: qcm
+    question: Pourquoi est-il utile d’afficher un petit message quand le joueur gagne des pièces ou passe une étape ?
+    options:
+      - texte: Parce que Roblox l’exige pour publier un jeu
+      - texte: Parce que le joueur doit percevoir clairement le résultat de son action pour avoir envie de recommencer
+        correct: true
+      - texte: Parce que cela rend le jeu plus rapide
+    explication: La documentation Roblox insiste sur le feedback, le retour visible après chaque action. Sans retour clair, le joueur ne sait pas ce qu’il vient d’accomplir et la boucle perd son effet.
+  - type: trouve-le-bug
+    question: "Ce LocalScript doit afficher un message quand le nombre de pièces change. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      local joueur = Players.LocalPlayer
+      local leaderstats = joueur:WaitForChild("leaderstats")
+      local pieces = leaderstats:WaitForChild("Pieces") :: IntValue
+
+      local function afficher(texte: string)
+      	print(texte)
+      end
+
+      pieces.Changed:Connect(afficher("+1 pièce"))
+    options:
+      - texte: "Ligne 3 : `Players.LocalPlayer` n’existe pas dans un LocalScript"
+      - texte: "Ligne 5 : on ne peut pas utiliser `WaitForChild` sur leaderstats"
+      - texte: "Ligne 11 : on appelle `afficher` tout de suite au lieu de lui passer une fonction"
+        correct: true
+      - texte: "Ligne 8 : `print` ne fonctionne pas côté client"
+    explication: "`afficher(\"+1 pièce\")` exécute la fonction immédiatement et passe son résultat (`nil`) à `Connect`, ce qui provoque une erreur. Il faut passer une fonction : `pieces.Changed:Connect(function() afficher(\"+1 pièce\") end)`."
+---
+
+Pourquoi certains jeux te donnent envie de « faire encore une partie » alors que d’autres te lassent en deux minutes ? Une grande partie de la réponse tient dans leur **boucle de jeu**, en anglais *core loop*. C’est le premier outil du game designer, et c’est par lui que commence ce module. Tu as maintenant un Obby des Nuages qui fonctionne (modules 1 à 5) : il est temps de le rendre **amusant à rejouer**.
+
+## Qu’est-ce qu’une core loop ?
+
+La documentation officielle de Roblox définit la core loop comme le gameplay central autour duquel tout le jeu est construit. Elle la découpe en **trois parties** :
+
+1. **L’interaction minute par minute** : ce que le joueur fait en permanence. Dans un obby, c’est courir et sauter.
+2. **L’ensemble d’actions le plus répété** : la mécanique qui définit le jeu. Dans un obby, c’est franchir un obstacle.
+3. **Le moteur de progression** : le système qui fait avancer le joueur. Selon la documentation, sans lui, un jeu devient « répétitif, ennuyeux et superficiel ».
+
+L’exemple donné par Roblox est celui d’un jeu de rôle d’action : le joueur **explore** le monde, **combat** des ennemis, puis **améliore** son personnage grâce à un arbre de compétences. Ces améliorations rendent l’exploration et les combats suivants plus intéressants. On obtient un cycle : explorer → combattre → s’améliorer → explorer…
+
+<Info>
+Le mot important est **boucle** : la dernière étape doit ramener à la première, en un peu mieux. Si la progression ne change rien à ce que le joueur fait ensuite, ce n’est pas une boucle, c’est une ligne droite.
+</Info>
+
+### Une formule simple à retenir
+
+Pour un débutant, on peut résumer la boucle en trois mots : **action → récompense → progression**. C’est une simplification proposée par cette formation, pas le vocabulaire officiel de Roblox, mais elle recoupe ses trois parties.
+
+- **Action** : le joueur fait quelque chose (sauter, récolter, combattre).
+- **Récompense** : le jeu répond tout de suite (une pièce, un son, un message, un effet visuel).
+- **Progression** : la récompense change quelque chose de durable (une nouvelle zone, un objet, un niveau).
+
+La page de Roblox sur la rétention le dit avec ses mots : identifie les étapes de ta boucle et rends-les **claires et amusantes**, équilibre le défi pour éviter à la fois la frustration et l’ennui, et **récompense** le joueur qui termine la boucle avec du feedback, de la monnaie, des objets ou des succès.
+
+## Boucles courtes et boucles longues
+
+Un jeu ne contient pas une seule boucle, mais plusieurs boucles imbriquées, de durées différentes. Cette façon de décrire un jeu est très répandue chez les game designers, même si la page « Core loops » de Roblox ne détaille que la boucle principale.
+
+| Boucle | Durée typique | Exemple dans l’Obby des Nuages |
+|---|---|---|
+| Boucle courte | quelques secondes | sauter, atterrir, éviter une kill brick |
+| Boucle principale | une à quelques minutes | franchir une série d’obstacles et atteindre le checkpoint suivant |
+| Boucle longue (méta) | une ou plusieurs sessions | gagner des pièces, acheter une traînée, finir le parcours |
+
+La **boucle méta** (de « méta-jeu », le jeu autour du jeu) donne une raison de revenir demain. On l’approfondira dans les leçons 3 et 4 de ce module.
+
+<Astuce>
+Écris ta boucle sous forme de flèches sur une feuille avant d’ouvrir Studio. Si tu n’arrives pas à la résumer en une ligne, c’est que ton jeu n’est pas encore clair, ni pour toi, ni pour tes joueurs. La documentation Roblox conseille d’ailleurs de vérifier la boucle très tôt, dès le prototype.
+</Astuce>
+
+## Analyser la boucle de jeux existants
+
+Analyser des jeux populaires est un excellent exercice, à condition de **décrire** ce que tu observes, sans copier. Voici des boucles typiques par genre. Ce sont des descriptions générales, pas des recettes garanties : chaque jeu les adapte à sa façon.
+
+### L’obby
+
+- **Action** : sauter d’obstacle en obstacle.
+- **Récompense** : atteindre un checkpoint (on ne recommence plus depuis le début).
+- **Progression** : le numéro d’étape monte, de nouvelles zones apparaissent.
+
+### Le simulateur
+
+- **Action** : cliquer ou récolter une ressource.
+- **Récompense** : de la monnaie.
+- **Progression** : acheter un meilleur outil, qui permet de récolter plus vite, puis de débloquer une nouvelle zone.
+
+### Le tycoon
+
+- **Action** : construire une machine ou un bâtiment.
+- **Récompense** : un revenu qui arrive automatiquement.
+- **Progression** : acheter des bâtiments plus chers qui rapportent plus.
+
+### Le jeu de rôle (roleplay)
+
+- **Action** : choisir un rôle, discuter, jouer une scène avec d’autres joueurs.
+- **Récompense** : surtout sociale (une histoire partagée, des amis).
+- **Progression** : souvent cosmétique (maison, véhicule, tenue).
+
+Le tutoriel officiel « Core curriculum » de Roblox fait construire un petit jeu de plateforme où les joueurs **collectent des pièces pour les échanger contre de la puissance de saut**, ce qui leur permet d’atteindre des plateformes de plus en plus hautes. C’est une boucle complète en une phrase : les pièces (récompense) achètent du saut (progression), qui ouvre de nouveaux sauts (action).
+
+<Erreur titre="Empiler des fonctionnalités sans boucle">
+Ajouter une boutique, des animaux de compagnie, un classement et des quêtes ne rend pas un jeu amusant si l’action de base ne l’est pas. La documentation LiveOps de Roblox le rappelle : toute fonctionnalité ajoutée doit être **reliée à la core loop**. Avant d’ajouter quelque chose, demande-toi : « À quelle étape de ma boucle cela sert-il ? »
+</Erreur>
+
+## La boucle de l’Obby des Nuages
+
+Appliquons tout ça à notre fil rouge :
+
+1. **Action** : le joueur saute de nuage en nuage, en évitant les kill bricks.
+2. **Récompense immédiate** : il ramasse des pièces sur le chemin et atteint un checkpoint.
+3. **Progression** : son étape (`Etape`) augmente et ses pièces (`Pieces`) s’accumulent.
+4. **Retour à l’action** : avec ses pièces, il achète une traînée dans la boutique, qu’il montre fièrement en continuant le parcours… et il repart vers l’étape suivante.
+
+Il manque souvent une chose dans les premiers obbys : le **retour visible** (feedback). Dans l’Obby des Nuages, la valeur `Pieces` change bien dans les leaderstats, mais rien ne le signale vraiment au joueur. Or la documentation Roblox sur les techniques d’onboarding est claire : chaque fois qu’un joueur fait une action, il est impératif de lui donner un retour clair.
+
+### Rendre la récompense visible
+
+Le script ci-dessous affiche un message bref en haut et au centre de l’écran quand le joueur gagne des pièces ou atteint une nouvelle étape. Crée-le comme un **LocalScript** nommé `MessagesProgression` dans **StarterPlayer › StarterPlayerScripts** : il fabrique lui-même sa petite interface, rien à construire à la main. Il ne **modifie** rien : il se contente de **regarder** les valeurs que le serveur met à jour (module 5) et de les mettre en scène.
+
+```luau
+-- LocalScript « MessagesProgression » à placer dans StarterPlayer > StarterPlayerScripts
+-- Affiche un message quand le joueur gagne des pièces ou atteint une nouvelle étape.
+-- Le serveur reste le seul à modifier les valeurs : ici, on ne fait que les afficher.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local joueur = Players.LocalPlayer
+local leaderstats = joueur:WaitForChild("leaderstats")
+local pieces = leaderstats:WaitForChild("Pieces") :: IntValue
+-- RemoteEvent du module 4 : le Script « Progression » l'utilise après chaque étape validée
+local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
+
+-- Petite interface créée par le script
+local ecran = Instance.new("ScreenGui")
+ecran.Name = "RetourBoucle"
+ecran.ResetOnSpawn = false -- l'interface survit à la réapparition du personnage
+ecran.Parent = joueur:WaitForChild("PlayerGui")
+
+local message = Instance.new("TextLabel")
+message.AnchorPoint = Vector2.new(0.5, 0)
+message.Position = UDim2.fromScale(0.5, 0.15)
+message.Size = UDim2.fromScale(0.5, 0.08)
+message.BackgroundTransparency = 1
+message.TextScaled = true
+message.TextColor3 = Color3.fromRGB(255, 220, 80)
+message.TextTransparency = 1 -- invisible au départ
+message.TextStrokeTransparency = 1
+message.Parent = ecran
+
+local infoFondu = TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+
+-- Affiche un texte puis le fait disparaître en fondu
+local function afficher(texte: string)
+	message.Text = texte
+	message.TextTransparency = 0
+	message.TextStrokeTransparency = 0.5
+	local fondu = TweenService:Create(message, infoFondu, {
+		TextTransparency = 1,
+		TextStrokeTransparency = 1,
+	})
+	fondu:Play()
+end
+
+-- Sécurité : le script de sauvegarde du module 5 crée les leaderstats directement avec
+-- les valeurs chargées. Mais si ton propre script les met à jour APRÈS les avoir créées
+-- (ex. de 0 à 120 pièces), on ne veut pas célébrer ce saut : on attend un peu.
+local pret = false
+task.delay(3, function()
+	pret = true
+end)
+
+local anciennesPieces = pieces.Value
+pieces.Changed:Connect(function(nouvelleValeur: number)
+	local gain = nouvelleValeur - anciennesPieces
+	anciennesPieces = nouvelleValeur
+	if pret and gain > 0 then
+		afficher("+" .. gain .. " pièce" .. (if gain > 1 then "s" else ""))
+	end
+end)
+
+-- Les étapes : le SERVEUR envoie déjà « Étape N atteinte ! » (Script « Progression »,
+-- module 4) une fois le checkpoint validé. Il suffit d'écouter et d'afficher.
+notification.OnClientEvent:Connect(function(texte: string)
+	afficher(texte)
+end)
+```
+
+Quelques points à remarquer :
+
+- C’est un **LocalScript** : l’affichage ne concerne que le joueur concerné. Les valeurs, elles, restent modifiées par le serveur, comme on l’a vu au module 4.
+- On mémorise l’ancienne valeur pour calculer le **gain** et pour ne célébrer que les progrès (pas une baisse de pièces après un achat).
+- Pour les étapes, pas besoin de surveiller `Etape` : depuis le module 4, ton Script « Progression » envoie « Étape N atteinte ! » par le RemoteEvent `Notification`, juste après avoir validé le checkpoint. Le LocalScript l’écoute avec `OnClientEvent` et l’affiche.
+- Le texte apparaît puis disparaît en fondu grâce à TweenService (module 5) : le feedback doit être **bref**, pas envahissant.
+
+<Astuce titre="Le feedback se joue aussi avec le son">
+Un son court et joyeux au ramassage d’une pièce peut renforcer la sensation de récompense : à toi de le vérifier en playtest (leçon 5). Dans ses exemples de feedback, la documentation Roblox montre un jeu où des pièces jaillissent à l’écran quand le joueur remporte un combat : le même gain, mais bien plus satisfaisant. Pour essayer : crée par script un objet `Sound` (par exemple rangé dans le ScreenGui `ecran`), donne-lui le `SoundId` d’un son court, puis appelle `son:Play()` au début de la fonction `afficher`.
+</Astuce>
+
+<Defi>
+Joue à deux jeux Roblox populaires de genres différents. Pour chacun, note sur une feuille :
+
+1. l’action minute par minute ;
+2. la récompense immédiate ;
+3. la progression ;
+4. ce qui ramène à l’action.
+
+Fais ensuite le même exercice pour l’Obby des Nuages et repère l’étape la plus faible de ta boucle : c’est elle que tu amélioreras en priorité.
+</Defi>
+
+## Ce qu’une bonne boucle n’est pas
+
+Une boucle efficace n’est pas une boucle **interminable**. Le but n’est pas de garder le joueur le plus longtemps possible par tous les moyens, mais de lui donner une activité amusante avec des objectifs clairs. On verra dans la leçon 4 comment Roblox encadre les mécaniques de rétention, et pourquoi les « dark patterns » (manipulations) sont à proscrire.
+
+<Resume>
+- La core loop est le gameplay central d’un jeu. Roblox la découpe en trois parties : interaction minute par minute, actions les plus répétées, moteur de progression.
+- Formule simple : **action → récompense → progression**, et la progression doit ramener à l’action.
+- Un jeu combine des boucles courtes (secondes), une boucle principale (minutes) et des boucles longues (sessions).
+- Toute nouvelle fonctionnalité doit servir la boucle principale.
+- Le feedback (message, son, effet) rend la récompense perceptible : sans lui, la boucle perd sa force.
+</Resume>
+
+<Sources>
+- [Core loops — documentation Roblox](https://create.roblox.com/docs/production/game-design/core-loops)
+- [Design games on Roblox — vue d’ensemble du game design (Roblox)](https://create.roblox.com/docs/production/game-design)
+- [Retention — conseils pour la core loop et la rétention D1 (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
+- [Onboarding techniques — importance du feedback (Roblox)](https://create.roblox.com/docs/production/game-design/onboarding-techniques)
+- [LiveOps essentials — relier les nouveautés à la core loop (Roblox)](https://create.roblox.com/docs/production/game-design/liveops-essentials)
+- [Core curriculum — tutoriel officiel de jeu de plateforme (Roblox)](https://create.roblox.com/docs/tutorials/curriculums/core)
+- [Prototyping — examiner la core loop dès le prototype (Roblox)](https://create.roblox.com/docs/production/game-design/prototyping)
+</Sources>

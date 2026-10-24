@@ -5,7 +5,7 @@ local DataStoreService = game:GetService("DataStoreService")
 local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
 
 -- À augmenter quand la structure des données change :
--- 1 = module 4 ; 2 = champ achats (module 6) ; 3 = champ zoneOragesDebloquee (module 7)
+-- 1 = module 5 ; 2 = champ achats (module 7) ; 3 = champ zoneOragesDebloquee (module 8)
 local VERSION_DONNEES = 3
 local MAX_TENTATIVES = 3
 local DELAI_MAX_FERMETURE = 25 -- secondes : Roblox n'attend que 30 s à la fermeture
@@ -26,8 +26,8 @@ local function donneesParDefaut(): { [string]: any }
 		pieces = 0,
 		inventaire = {}, -- objets possédés (leçon 3)
 		equipe = "", -- objet équipé (leçon 3), "" = aucun
-		achats = {}, -- PurchaseId des Developer Products déjà donnés (module 6)
-		zoneOragesDebloquee = false, -- mise à jour « Zone des Orages » (module 7)
+		achats = {}, -- PurchaseId des Developer Products déjà donnés (module 7)
+		zoneOragesDebloquee = false, -- mise à jour « Zone des Orages » (module 8)
 	}
 end
 

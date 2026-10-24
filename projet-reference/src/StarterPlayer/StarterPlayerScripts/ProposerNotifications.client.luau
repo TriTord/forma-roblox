@@ -5,7 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ExperienceNotificationService = game:GetService("ExperienceNotificationService")
 
 local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
--- Dernière étape du parcours : etapeFin du dernier niveau de Config.Niveaux (module 2, leçon 6)
+-- Dernière étape du parcours : etapeFin du dernier niveau de Config.Niveaux (module 3, leçon 6)
 local DERNIERE_ETAPE = Config.Niveaux[#Config.Niveaux].etapeFin
 
 local joueur = Players.LocalPlayer

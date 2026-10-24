@@ -1,0 +1,282 @@
+---
+titre: Progression, difficulté et récompenses
+description: Construis une courbe de difficulté par paliers, choisis des récompenses qui motivent et équilibre l’économie de pièces de l’Obby des Nuages avec sources et puits.
+duree: 30
+objectifs:
+  - Construire une courbe de difficulté par paliers qui évite frustration et ennui
+  - Choisir entre récompenses fixes et variables, et savoir ce que Roblox encadre
+  - Équilibrer une économie de jeu avec des sources et des puits de monnaie
+  - Proposer des objectifs à court, moyen et long terme
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Que risque-t-on, selon la documentation Roblox, si les joueurs progressent trop vite ?
+    options:
+      - texte: Ils risquent de manquer de contenu à explorer
+        correct: true
+      - texte: Leurs données risquent de ne pas être sauvegardées
+      - texte: Le jeu devient automatiquement payant
+    explication: "La page Retention de Roblox l’écrit : si les joueurs progressent trop vite, ils peuvent manquer de contenu ; trop lentement, ils s’ennuient, se frustrent et perdent la motivation."
+  - type: qcm
+    question: Dans l’économie de l’Obby des Nuages, lesquels de ces éléments sont des « puits » (sinks), c’est-à-dire des façons de retirer des pièces du jeu ? (plusieurs réponses possibles)
+    options:
+      - texte: Acheter une traînée dans la boutique
+        correct: true
+      - texte: Ramasser une pièce sur un nuage
+      - texte: Gagner un bonus en atteignant un checkpoint
+      - texte: Acheter une traînée en édition limitée pendant un événement
+        correct: true
+    explication: Ramasser une pièce ou gagner un bonus **crée** de la monnaie (ce sont des sources). Acheter un objet la **retire** de la circulation (ce sont des puits). La documentation Roblox cite les cosmétiques à durée limitée comme exemple de puits.
+  - type: vrai-faux
+    question: Sur Roblox, un objet aléatoire payant (une « loot box » achetée en Robux) peut être vendu sans afficher les probabilités tant que le prix est bas.
+    reponse: false
+    explication: "Les Community Standards de Roblox exigent que les probabilités d’un objet aléatoire payant soient affichées de façon exacte et chiffrée avant l’achat, et que chaque résultat possible apporte un bénéfice au joueur. On en reparle au module 7."
+  - type: qcm
+    question: "Avec la configuration de la leçon, combien de pièces rapporte l’étape 10, dernière étape du niveau « La tempête » (3 pièces par étape, bonus de fin de niveau de 10) ?"
+    options:
+      - texte: "3"
+      - texte: "10"
+      - texte: "13"
+        correct: true
+      - texte: "30"
+    explication: "`Config.recompensePourEtape(10)` renvoie la récompense du niveau (3), plus le bonus de fin de niveau (10) car 10 est la dernière étape (`etapeFin`) de « La tempête », soit **13** pièces."
+  - type: trouve-le-bug
+    question: "Cette fonction serveur doit récompenser un joueur seulement la première fois qu’il atteint une étape. Où est le bug ?"
+    code: |
+      local function recompenserEtape(player: Player, nouvelleEtape: number)
+      	local stats = player:FindFirstChild("leaderstats")
+      	if not stats then return end
+      	local etape = stats:FindFirstChild("Etape") :: IntValue?
+      	local pieces = stats:FindFirstChild("Pieces") :: IntValue?
+      	if not (etape and pieces) then return end
+      	if nouvelleEtape < etape.Value then return end
+      	etape.Value = nouvelleEtape
+      	pieces.Value += 5
+      end
+    options:
+      - texte: "Ligne 2 : `FindFirstChild` ne trouve pas les dossiers"
+      - texte: "Ligne 7 : la condition laisse passer une étape déjà atteinte, le joueur peut toucher le même checkpoint en boucle pour gagner des pièces"
+        correct: true
+      - texte: "Ligne 9 : `+=` n’existe pas en Luau"
+      - texte: "Ligne 1 : une fonction locale ne peut pas avoir deux paramètres"
+    explication: "Si `nouvelleEtape` est égale à `etape.Value`, la condition `<` ne bloque pas : chaque contact avec le checkpoint actuel redonne 5 pièces. Il faut n’accepter que l’étape suivante : `if nouvelleEtape ~= etape.Value + 1 then return end`. `+=` est bien valide en Luau."
+---
+
+Ton joueur a passé ses premières secondes avec plaisir. Et maintenant ? Pour qu’il continue, il lui faut un défi à sa mesure, des récompenses qui donnent envie et des objectifs qui l’attirent plus loin. C’est le rôle de la **progression**, le troisième pilier de la core loop. Cette leçon t’apprend à la doser dans l’Obby des Nuages.
+
+## La courbe de difficulté
+
+La difficulté d’un jeu évolue au fil de la partie : c’est sa **courbe de difficulté**. La page de Roblox sur la rétention résume l’enjeu en deux phrases :
+
+- si les joueurs progressent **trop vite**, ils risquent de manquer de contenu à explorer ;
+- s’ils progressent **trop lentement**, ils peuvent s’ennuyer, se frustrer et perdre la motivation de rester.
+
+Elle conseille aussi d’équilibrer le défi de la core loop pour éviter à la fois la frustration et l’ennui. L’objectif n’est donc pas un jeu « facile » ou « dur », mais un jeu dont la difficulté **suit les progrès du joueur**.
+
+### Découper le parcours en paliers
+
+Pour un obby, une méthode simple (c’est le choix de cette formation) consiste à regrouper les étapes en **paliers**, chacun avec son thème et son niveau de difficulté. Bonne nouvelle : tu les as déjà ! Au module 3 (leçon 6), tu as rangé dans `Config.Niveaux` les trois niveaux de l’Obby des Nuages. On va maintenant leur donner une difficulté croissante :
+
+| Niveau (`Config.Niveaux`) | Étapes | Ce qu’il enseigne | Difficulté |
+|---|---|---|---|
+| Les premiers nuages | 1 à 5 | sauter, viser un checkpoint | très facile |
+| La tempête | 6 à 10 | sauts plus longs, plateformes mobiles (module 5) | moyenne |
+| Le sommet | 11 à 12 | combinaisons d’obstacles, kill bricks | difficile |
+
+Quand tu ajouteras des étapes, il suffira de modifier `etapeFin` (ou d’ajouter un niveau) dans `Config`. À l’intérieur de chaque niveau, beaucoup de concepteurs de niveaux alternent les passages difficiles et les moments plus calmes, plutôt que de monter la difficulté sans répit : on parle souvent de courbe « en dents de scie ». Ce n’est pas une règle officielle de Roblox, mais une approche courante à **vérifier avec tes playtests** (leçon 5).
+
+### Introduire un obstacle à la fois
+
+Quand tu présentes un nouvel obstacle (une plateforme qui bouge, par exemple), propose-le d’abord **seul et sans danger**, puis dans une version plus exigeante, puis combiné à d’autres. C’est une pratique courante de level design, pas une règle Roblox, et elle prolonge le principe du tutoriel contextuel de la leçon précédente : on apprend en jouant, un élément à la fois.
+
+<Erreur titre="Le pic de difficulté au début">
+Un premier saut au millimètre, posé « pour montrer que le jeu est dur », va à l’encontre de ce que recommande Roblox : amener vite au plaisir et garder les premiers paliers de progression bas (leçon 2). Garde les défis exigeants pour les joueurs qui ont déjà investi un peu de temps, et place un checkpoint juste **avant** chaque passage difficile pour qu’un échec ne coûte pas tout le parcours.
+</Erreur>
+
+<Astuce titre="Mesurer où les joueurs décrochent">
+La documentation Roblox propose de mesurer la répartition des joueurs à chaque niveau de progression. Dans un obby, c’est facile : le nombre de joueurs par étape. Si beaucoup de joueurs s’arrêtent à la même étape, c’est probablement un pic de difficulté. Tu sauras construire ce graphique au module 9 ; d’ici là, observe tes testeurs (leçon 5).
+</Astuce>
+
+## Choisir des récompenses motivantes
+
+### Récompenses fixes et récompenses variables
+
+- Une **récompense fixe** est toujours la même : 2 pièces par checkpoint, un bonus en fin de niveau. Le joueur sait ce qu’il va gagner, ce qui lui permet de **planifier** (« encore 3 étapes et je peux m’acheter la Traînée Nuage »).
+- Une **récompense variable** change d’une fois à l’autre : une pièce rare qui apparaît parfois, un coffre au contenu aléatoire. Elle crée de la surprise.
+
+Quand ce hasard est **payant**, Roblox l’encadre strictement. Ses Community Standards fixent des règles pour les **objets aléatoires payants** : les probabilités doivent être affichées de façon exacte et chiffrée **avant l’achat**, et chaque résultat possible doit apporter un bénéfice au joueur. Le créateur doit en outre en réserver l’accès aux utilisateurs éligibles (attribut `ArePaidRandomItemsRestricted`). On étudiera ces règles au module 7 ([Fixer ses prix et monétiser éthiquement](/modules/07/prix-et-ethique/)).
+
+Pour l’Obby des Nuages, on reste simple : des récompenses **fixes et lisibles**, et éventuellement un peu de surprise **gratuite** (une pièce dorée cachée qui vaut plus que les autres).
+
+### Faire grandir la récompense avec l’effort
+
+La documentation Roblox sur les quêtes donne un principe clair : en général, plus une tâche est difficile, plus la récompense doit avoir de valeur. Sa page sur l’onboarding conseille aussi de garder les **premiers paliers de progression bas**, pour que le joueur sente tout de suite qu’il avance. Un niveau facile rapporte donc peu par étape, un niveau difficile beaucoup plus, avec un bonus quand on en termine un.
+
+## Coder une récompense par palier
+
+Ces réglages ont leur place dans le ModuleScript `Config` que tu as créé au module 3 (leçon 6), dans **ReplicatedStorage › Modules**. Tu n’as rien à recréer : ouvre-le, fais deux ajouts (repérés par `-- NOUVEAU` ci-dessous) et vérifie l’ordre du fichier :
+
+1. Dans `Config.Niveaux`, ajoute à chaque niveau un champ `piecesParEtape`.
+2. Sous la fonction `Config.obtenirNiveau` (déjà présente), ajoute `Config.BONUS_FIN_DE_NIVEAU` et la fonction `Config.recompensePourEtape`. Elle réutilise `obtenirNiveau` pour trouver le niveau de l’étape.
+3. Garde `return Config` tout à la fin (on ne touche pas au reste du fichier). Si tu as ajouté `table.freeze(Config)` (astuce du module 3), laisse-le juste avant `return Config`, **après** tes ajouts : une fois gelée, la table refuse tout nouveau champ.
+
+Voici le module complet après modification :
+
+```luau
+-- ModuleScript « Config » dans ReplicatedStorage > Modules (créé au module 3, leçon 6)
+-- Tous les réglages de l'Obby des Nuages, au même endroit.
+local Config = {}
+
+-- Pièces
+Config.VITESSE_ROTATION_PIECES = 90 -- degrés par seconde
+Config.VALEUR_PIECE = 1             -- pièces gagnées par ramassage
+
+-- Checkpoints
+Config.HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0)
+
+-- Niveaux : chaque niveau regroupe des étapes de difficulté proche
+-- NOUVEAU : le champ piecesParEtape (pièces gagnées par étape de ce niveau)
+Config.Niveaux = {
+	{nom = "Les premiers nuages", etapeDebut = 1, etapeFin = 5, piecesParEtape = 2},
+	{nom = "La tempête", etapeDebut = 6, etapeFin = 10, piecesParEtape = 3},
+	{nom = "Le sommet", etapeDebut = 11, etapeFin = 12, piecesParEtape = 5},
+}
+
+-- Renvoie le niveau qui contient l'étape donnée (ou nil)
+function Config.obtenirNiveau(etape)
+	for _, niveau in Config.Niveaux do
+		if etape >= niveau.etapeDebut and etape <= niveau.etapeFin then
+			return niveau
+		end
+	end
+	return nil
+end
+
+-- NOUVEAU : bonus versé en terminant un niveau (le « moment de joie » de fin de palier)
+Config.BONUS_FIN_DE_NIVEAU = 10
+
+-- NOUVEAU : pièces gagnées en atteignant une étape pour la première fois
+function Config.recompensePourEtape(etape: number): number
+	local niveau = Config.obtenirNiveau(etape)
+	if niveau == nil then
+		return 0 -- étape hors des niveaux : aucune récompense
+	end
+	local gain = niveau.piecesParEtape
+	if etape == niveau.etapeFin then
+		gain += Config.BONUS_FIN_DE_NIVEAU -- dernière étape du niveau : bonus
+	end
+	return gain
+end
+
+return Config -- OBLIGATOIRE, toujours en dernier
+```
+
+Côté serveur, la récompense doit être versée **là où le checkpoint est validé** (modules 4 et 5), et seulement pour une étape **jamais atteinte**. Sinon, un joueur pourrait toucher le même checkpoint en boucle pour accumuler des pièces. Le petit module ci-dessous fait les deux d’un coup. Crée-le comme un **ModuleScript** dans **ServerScriptService** (efface le code de départ avant de coller le tien, comme pour `DonneesJoueurs` au module 5). On l’appelle `RecompensesEtapes`, et pas `Recompenses`, pour ne pas le confondre avec le Script d’exemple « Recompenses » du module 4 (leçon 3) : deux objets du même nom dans ServerScriptService, et `WaitForChild` risque de renvoyer le mauvais.
+
+```luau
+-- ModuleScript « RecompensesEtapes » dans ServerScriptService
+-- À appeler depuis le script qui valide les checkpoints (modules 4 et 5), côté serveur uniquement.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+
+local RecompensesEtapes = {}
+
+-- Fait passer le joueur à l'étape suivante et lui verse la récompense correspondante.
+-- Renvoie true si l'étape a été acceptée.
+function RecompensesEtapes.valider(player: Player, nouvelleEtape: number): boolean
+	local stats = player:FindFirstChild("leaderstats")
+	if not stats then
+		return false
+	end
+	local etape = stats:FindFirstChild("Etape") :: IntValue?
+	local pieces = stats:FindFirstChild("Pieces") :: IntValue?
+	if not (etape and pieces) then
+		return false
+	end
+
+	-- Seule l'étape qui suit immédiatement est acceptée : pas de saut d'étape, pas de « farm »
+	if nouvelleEtape ~= etape.Value + 1 then
+		return false
+	end
+
+	etape.Value = nouvelleEtape
+	pieces.Value += Config.recompensePourEtape(nouvelleEtape)
+	return true
+end
+
+return RecompensesEtapes
+```
+
+Il reste à le brancher dans ton Script serveur de checkpoints, « Progression » (créé au module 4, adapté au module 5) :
+
+1. en haut du script, charge le module (ajoute aussi la ligne `ServerScriptService` si ton script ne l’a pas déjà) :
+
+```luau
+local ServerScriptService = game:GetService("ServerScriptService")
+local RecompensesEtapes = require(ServerScriptService:WaitForChild("RecompensesEtapes"))
+```
+
+2. remplace la ligne `etape.Value = numero` par `RecompensesEtapes.valider(player, numero)`. Garde avant elle toutes les vérifications déjà en place (étape suivante, distance…).
+
+Grâce au script de feedback de la leçon 1, le joueur verra « +13 pièces » en terminant « La tempête » : le bonus est **perçu**, pas seulement versé.
+
+## Équilibrer l’économie : sources et puits
+
+Dès qu’une monnaie existe, ton jeu a une **économie**. La documentation Roblox la décrit avec deux notions :
+
+- les **sources** : tout ce qui crée de la monnaie (pièces ramassées, bonus d’étape, objectifs quotidiens de la leçon suivante) ;
+- les **puits** (*sinks*) : les systèmes qui **retirent** la monnaie de la circulation (achats en boutique, objets à durée limitée).
+
+Si les sources produisent beaucoup plus que ce que les puits absorbent, les joueurs accumulent des réserves énormes. C’est ce qu’on appelle couramment l’**inflation** (terme général d’économie ; la page Roblox parle de « surplus ») : la monnaie ne vaut plus grand-chose, plus rien n’est désirable, et la boucle méta s’arrête. Roblox décrit exactement ce scénario dans son exemple : un événement mal estimé crée un **surplus** de monnaie ; les joueurs qui en ont beaucoup dépensent sans compter et n’ont plus guère de raison d’en acheter davantage.
+
+Roblox insiste : quand on conçoit une nouvelle source de monnaie, il est impératif d’avoir **prévu les puits** qui absorberont l’excédent, donc de les planifier avant de lancer la source. Pour un événement temporaire, la solution que sa documentation juge la plus sûre est une **monnaie d’événement** séparée, dépensable uniquement dans une boutique d’événement : l’économie principale reste intacte.
+
+### Faire le calcul pour l’Obby des Nuages
+
+La documentation Roblox utilise un calcul d’**espérance** (la valeur moyenne gagnée par tentative) pour estimer ce que produit une source. Faisons la version simple pour notre obby :
+
+- Bonus d’étapes, une seule fois par joueur : niveau 1 = 5 × 2 + 10 = 20 ; niveau 2 = 5 × 3 + 10 = 25 ; niveau 3 = 2 × 5 + 10 = 20. Total : **65 pièces**.
+- Pièces ramassées : disons 40 pièces réparties sur le parcours. Comme elles réapparaissent (module 4), un joueur gagne environ **40 pièces par parcours rejoué**, mais plus aucun bonus d’étape.
+
+Compare maintenant avec les prix de ta boutique (le module `Catalogue` du module 5) :
+
+| Objectif | Objet du Catalogue | Prix | Quand le joueur peut l’acheter |
+|---|---|---|---|
+| Court terme | Traînée Nuage | 25 | à la fin du premier niveau (20 de bonus + les pièces ramassées) |
+| Moyen terme | Traînée Soleil | 75 | vers la fin du premier parcours (65 + 40 = 105 pièces) |
+| Long terme | Traînée Aurore | 150 | après environ 4 parcours rejoués, s’il a acheté les deux autres |
+
+Tu obtiens des objectifs à **court, moyen et long terme**, exactement ce que Roblox conseille d’afficher dès l’onboarding. Ces chiffres sont des points de départ : seuls tes playtests et, plus tard, tes statistiques (module 9) te diront s’ils sont justes. Et si tu ajoutes des étapes, refais le calcul : les bonus augmentent, et les prix devront peut-être suivre.
+
+<Info>
+Au moment d’ajouter une nouvelle source (un événement, un bonus), refais ce calcul et compare avec une journée normale. C’est la démarche que décrit Roblox : estimer l’impact d’une nouveauté sur l’économie **avant** de la lancer.
+</Info>
+
+<Defi>
+Dans un tableur ou sur papier, recopie le tableau des niveaux et ajoute une colonne « pièces ramassées par niveau ». Calcule combien un nouveau joueur possède à la fin de chaque niveau, puis vérifie qu’il peut acheter **au moins un objet** avant la fin de son premier parcours. Sinon, ajuste les prix ou les récompenses.
+</Defi>
+
+## Éviter la frustration
+
+Quelques garde-fous :
+
+- **Un échec ne doit jamais coûter trop cher** : checkpoints fréquents avant les passages durs, aucune perte de pièces à la mort. C’est un choix de la formation pour l’Obby des Nuages, au service du conseil Roblox d’éviter la frustration.
+- **Les objectifs doivent rester atteignables** : la page sur les season passes note que si les joueurs échouent régulièrement à leurs missions, leur intérêt s’éteint.
+- **La récompense doit être visible** : le feedback de la leçon 1 transforme un chiffre qui change en moment de satisfaction.
+
+<Resume>
+- Une bonne courbe de difficulté évite les deux écueils cités par Roblox : progresser trop vite (plus de contenu) ou trop lentement (frustration).
+- Découpe le parcours en paliers (les niveaux de `Config`), introduis un obstacle à la fois et place un checkpoint avant chaque passage difficile.
+- Préfère des récompenses fixes et lisibles ; les objets aléatoires payants sont strictement encadrés par Roblox.
+- Une économie saine équilibre sources et puits ; planifie les puits avant d’ajouter des sources.
+- Calcule ce que gagne un joueur pour fixer des prix à court, moyen et long terme, puis vérifie avec des playtests.
+</Resume>
+
+<Sources>
+- [Retention — équilibrer la progression (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
+- [Balance virtual economies — sources, puits et espérance (Roblox)](https://create.roblox.com/docs/production/game-design/balance-virtual-economies)
+- [Quest design — difficulté et valeur des récompenses (Roblox)](https://create.roblox.com/docs/production/game-design/introduction-to-quest-design)
+- [Onboarding — premiers paliers bas et objectifs visibles (Roblox)](https://create.roblox.com/docs/production/game-design/onboarding)
+- [Season pass design — missions atteignables (Roblox)](https://create.roblox.com/docs/production/game-design/season-pass-design)
+- [Roblox Community Standards — objets aléatoires payants](https://about.roblox.com/community-standards)
+</Sources>

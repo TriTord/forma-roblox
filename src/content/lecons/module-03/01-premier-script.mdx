@@ -1,0 +1,270 @@
+---
+titre: Ton premier script
+description: Découvre les trois types de scripts de Roblox (Script, LocalScript, ModuleScript), où les placer, et écris ton tout premier code Luau.
+duree: 20
+objectifs:
+  - Distinguer Script, LocalScript et ModuleScript
+  - Savoir où placer chaque type de script pour qu’il s’exécute
+  - Écrire, lancer et déboguer un premier script avec la fenêtre Output
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Tu veux qu’un code s’exécute sur le serveur dès le lancement de la partie. Quel type de script choisis-tu, et où le ranges-tu ?
+    options:
+      - texte: Un LocalScript dans ServerScriptService
+      - texte: Un Script dans ServerScriptService
+        correct: true
+      - texte: Un ModuleScript dans ReplicatedStorage
+      - texte: Un Script dans ReplicatedStorage
+    explication: Un **Script** (avec le RunContext par défaut, « Legacy ») s’exécute côté serveur s’il se trouve dans un conteneur serveur comme ServerScriptService ou Workspace. Un LocalScript ne tourne jamais dans ServerScriptService, un ModuleScript ne s’exécute pas tout seul, et un Script « Legacy » ne tourne pas dans ReplicatedStorage.
+  - type: vrai-faux
+    question: Un ModuleScript s’exécute automatiquement au lancement du jeu, comme un Script.
+    reponse: false
+    explication: Un ModuleScript ne fait rien tout seul. Son code ne s’exécute que lorsqu’un autre script le charge avec `require(...)`. On le verra en détail dans la leçon 6.
+  - type: qcm
+    question: Lesquelles de ces lignes sont des commentaires valides en Luau ? (plusieurs réponses possibles)
+    options:
+      - texte: "`-- Ce script gère la lave`"
+        correct: true
+      - texte: "`--[[ Ce script gère la lave ]]`"
+        correct: true
+      - texte: "`// Ce script gère la lave`"
+      - texte: "`# Ce script gère la lave`"
+    explication: "En Luau, un commentaire sur une ligne commence par `--`, et un commentaire sur plusieurs lignes s’écrit `--[[ ... ]]`. Les syntaxes `//` et `#` viennent d’autres langages (JavaScript, Python…) et provoquent une erreur."
+  - type: qcm
+    question: Un Script est placé directement à l’intérieur d’une Part nommée `Lave`. Que désigne `script.Parent` dans ce script ?
+    options:
+      - texte: Le service Workspace
+      - texte: La Part `Lave`
+        correct: true
+      - texte: Le script lui-même
+      - texte: Le joueur qui a lancé la partie
+    explication: "`script` désigne le script en cours d’exécution, et `.Parent` l’objet qui le contient dans l’Explorer. Ici, c’est donc la Part `Lave`."
+  - type: trouve-le-bug
+    question: "Ce Script, placé dans une plateforme, doit afficher un message puis la rendre orange. L’Output affiche une erreur. Où est le bug ?"
+    code: |
+      -- Script placé dans une Part du Workspace
+      local plateforme = script.Parent
+
+      Print("Le script de la plateforme démarre")
+      plateforme.Color = Color3.fromRGB(255, 170, 0)
+    options:
+      - texte: "Ligne 2 : il faut écrire `script.parent` en minuscules"
+      - texte: "Ligne 4 : Luau respecte les majuscules, la fonction s’appelle `print`, pas `Print`"
+        correct: true
+      - texte: "Ligne 5 : `Color3.fromRGB` attend des valeurs entre 0 et 1"
+      - texte: "Ligne 1 : un commentaire doit se terminer par `--`"
+    explication: "Luau est sensible à la casse : `Print` et `print` sont deux noms différents, et `Print` n’existe pas. L’Output affiche alors une erreur du type « attempt to call a nil value ». `Parent` prend bien une majuscule, et `Color3.fromRGB` attend des valeurs de 0 à 255."
+---
+
+Au module 1, tu as construit le premier niveau de l’Obby des Nuages à la main. Il est joli… mais rien ne bouge, rien ne réagit. C’est le rôle des **scripts** : des fichiers de code qui donnent vie à ton jeu. Dans cette leçon, tu vas découvrir les trois types de scripts de Roblox, apprendre où les ranger, et écrire tes premières lignes de **Luau**, le langage de programmation de Roblox.
+
+## Luau, le langage de Roblox
+
+Luau est un langage de script **dérivé de Lua 5.1**. Roblox l’a enrichi pour le rendre plus rapide et y a ajouté un **typage optionnel** (on en reparlera à la fin du module). Si tu trouves un jour un tutoriel « Lua » sur Internet, la plupart des bases seront les mêmes, mais Luau a des fonctionnalités en plus.
+
+Un script, c’est simplement une liste d’**instructions** que l’ordinateur exécute de haut en bas, une ligne après l’autre. Par exemple : « affiche ce message », « change la couleur de cette Part », « attends une seconde »…
+
+<Info>
+Tu n’as rien à installer : l’éditeur de code est intégré à Roblox Studio. Il colore le code, propose l’autocomplétion et souligne la plupart des erreurs pendant que tu tapes.
+</Info>
+
+## Les trois types de scripts
+
+Dans Studio, quand tu cliques sur le bouton **⊕** à côté d’un objet de l’**Explorer** (la fenêtre qui montre l’arborescence de ton jeu), tu peux insérer trois sortes de scripts. Ils se ressemblent, mais ils ne s’exécutent pas au même endroit.
+
+| Type | Où s’exécute le code | À quoi il sert |
+|---|---|---|
+| **Script** | Sur le **serveur** (par défaut) | Les règles du jeu : dégâts, checkpoints, sauvegardes, pièces… |
+| **LocalScript** | Sur le **client**, c’est-à-dire l’appareil du joueur | Ce qui concerne un seul joueur : interface, caméra, touches du clavier… |
+| **ModuleScript** | Nulle part tout seul | Du code réutilisable, chargé par d’autres scripts avec `require` |
+
+Le **serveur**, c’est l’ordinateur de Roblox qui fait tourner la partie et que tous les joueurs partagent. Le **client**, c’est le jeu qui tourne sur l’ordinateur, la tablette ou le téléphone de chaque joueur. Le module 4 est entièrement consacré à cette différence ; pour l’instant, retiens juste : **les règles importantes vont dans des Scripts, côté serveur**.
+
+### Où placer chaque type de script
+
+Un script ne s’exécute que s’il est rangé au bon endroit. C’est la source d’erreur numéro un des débutants.
+
+- **Script** : il s’exécute s’il se trouve dans un conteneur serveur, comme **ServerScriptService** (le service prévu pour les scripts serveur) ou **Workspace** (par exemple à l’intérieur d’une Part).
+- **LocalScript** : il s’exécute dans les conteneurs « Starter » du joueur, comme **StarterPlayerScripts**, **StarterCharacterScripts** ou **StarterGui**. Un LocalScript ne s’exécute **pas** dans ServerScriptService ni dans ReplicatedStorage.
+- **ModuleScript** : il peut être rangé presque partout (souvent dans **ReplicatedStorage** ou ServerScriptService), puisqu’il ne fait rien tant qu’un autre script ne le charge pas.
+
+<Info titre="Et la propriété RunContext ?">
+Un Script possède une propriété **RunContext** (dans la fenêtre Properties). Sa valeur par défaut, **Legacy**, donne le comportement décrit ci-dessus. Les valeurs **Server** et **Client** permettent à un Script de tourner à d’autres endroits, par exemple côté client. Tu n’en as pas besoin pour l’instant : garde la valeur par défaut.
+</Info>
+
+<Erreur titre="Ranger un script au mauvais endroit">
+Un Script posé dans ReplicatedStorage, ou un LocalScript posé dans ServerScriptService, **ne s’exécute pas du tout**, et souvent sans aucun message d’erreur. Si ton script « ne fait rien », vérifie d’abord son type et son emplacement dans l’Explorer.
+</Erreur>
+
+## Ton premier script, pas à pas
+
+On va créer un Script côté serveur qui affiche un message.
+
+1. Ouvre ton projet de l’Obby des Nuages dans Studio.
+2. Dans l’Explorer, survole **ServerScriptService** et clique sur le bouton **⊕**.
+3. Choisis **Script**. Un nouvel onglet de code s’ouvre.
+4. Studio a déjà écrit une ligne pour toi : `print("Hello world!")`.
+5. Clique sur **Play** (ou appuie sur `F5`) pour lancer un test.
+6. Regarde la fenêtre **Output** (la « sortie ») : le texte `Hello world!` y apparaît. Si elle n’est pas affichée, ouvre-la depuis le menu **Window** de Studio (tu as découvert l’interface au module 1).
+
+Bravo, tu viens d’exécuter ton premier programme ! Le message s’affiche dans l’Output, pas à l’écran du joueur : l’Output est la console des développeurs.
+
+<Astuce titre="Renomme tes scripts tout de suite">
+Un projet plein de scripts tous nommés « Script » devient vite illisible. Renomme chaque script selon son rôle dès sa création (clic droit, puis **Rename**) : `KillBricks`, `Checkpoints`, `PiecesTournantes`… Tu gagneras un temps fou quand l’Output t’indiquera dans quel script se trouve une erreur.
+</Astuce>
+
+## `print` et les commentaires
+
+### Afficher des messages avec `print`
+
+`print` affiche dans l’Output tout ce que tu lui donnes, séparé par des espaces. C’est ton meilleur outil pour comprendre ce que fait ton code.
+
+```luau
+-- Script dans ServerScriptService
+print("Bienvenue dans l'Obby des Nuages !") -- un texte, entre guillemets
+print(42)                                 -- un nombre
+print("Étape", 3, "sur", 10)              -- plusieurs valeurs d'un coup
+warn("Attention : ceci est un avertissement")
+```
+
+`warn` fonctionne comme `print`, mais le message est marqué comme un **avertissement** dans l’Output : pratique pour signaler un problème sans arrêter le script.
+
+### Les commentaires
+
+Un **commentaire** est un texte que Luau ignore complètement. Il sert à expliquer ton code… à toi-même dans trois semaines, ou à un coéquipier.
+
+```luau
+-- Ceci est un commentaire sur une seule ligne
+
+--[[
+	Ceci est un commentaire
+	sur plusieurs lignes.
+	Pratique pour décrire le rôle d'un script.
+]]
+
+print("Ce code s'exécute") -- un commentaire peut aussi suivre du code
+```
+
+<Info>
+Les commentaires qui commencent par `--!` sont spéciaux : ce sont des **directives** pour Luau. Tu croiseras `--!strict` à la leçon 6. Et si tu écris `TODO` dans un commentaire, Studio met en gras le texte qui le suit (jusqu’au premier espace), pratique pour repérer ce qui reste à faire.
+</Info>
+
+## `script.Parent` : agir sur l’objet qui contient le script
+
+Dans un script, le mot **`script`** désigne le script lui-même. Comme tout objet de l’Explorer, il a une propriété **`Parent`** : l’objet qui le contient. On utilise le **point** pour accéder à une propriété ou à un enfant : `script.Parent`, `plateforme.Color`, `plateforme.Transparency`…
+
+Essaie ceci : dans le Workspace, sélectionne une plateforme de ton obby, clique sur le bouton **⊕** qui apparaît au survol et insère un **Script** directement dedans.
+
+```luau
+-- Script placé DANS une Part du Workspace (une plateforme de l'obby)
+local plateforme = script.Parent -- la Part qui contient ce script
+
+print("Je suis le script de :", plateforme.Name)
+
+-- On modifie quelques propriétés de la Part
+plateforme.Color = Color3.fromRGB(255, 170, 0) -- orange (rouge, vert, bleu de 0 à 255)
+plateforme.Transparency = 0.3                 -- un peu transparente (0 = opaque, 1 = invisible)
+plateforme.Material = Enum.Material.Neon      -- matériau lumineux
+```
+
+Lance le jeu : la plateforme devient orange, lumineuse et légèrement transparente. Le mot `local` crée une **variable**, une sorte d’étiquette qui retient une valeur ; on l’étudie en détail dans la leçon suivante.
+
+<Info>
+Les noms des propriétés (`Color`, `Transparency`, `Material`…) sont exactement ceux que tu vois dans la fenêtre **Properties** quand la Part est sélectionnée. Pour savoir ce que tu peux modifier, regarde simplement cette fenêtre.
+</Info>
+
+## `game:GetService` : accéder aux services
+
+Tout ton jeu est rangé dans un objet racine nommé **`game`**. Ses enfants principaux sont des **services** : Workspace, Players, ReplicatedStorage, ServerScriptService… Pour en récupérer un, la méthode recommandée est **`game:GetService("NomDuService")`**.
+
+```luau
+-- Script dans ServerScriptService
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+print("Nombre de joueurs connectés :", #Players:GetPlayers())
+print("Le Workspace contient", #Workspace:GetChildren(), "objets")
+print("Service récupéré :", ReplicatedStorage.Name)
+```
+
+Pourquoi `GetService` plutôt que `game.Players` ? Parce que `GetService` trouve le service par son **nom de classe**, même quand le nom de l’objet est inhabituel (c’est le cas de RunService, par exemple), et le crée s’il n’existe pas encore. C’est la convention utilisée dans toute la documentation Roblox et dans toute cette formation.
+
+Remarque les deux notations :
+
+- le **point** `.` accède à une propriété ou à un enfant : `script.Parent`, `ReplicatedStorage.Name` ;
+- les **deux-points** `:` appellent une **méthode**, une fonction qui appartient à l’objet : `game:GetService(...)`, `Players:GetPlayers()`. On comprendra pourquoi à la leçon 6.
+
+<Info>
+Le petit `#` devant `Players:GetPlayers()` compte le nombre d’éléments d’une liste. On y reviendra à la leçon 4 sur les tables.
+</Info>
+
+## Lire une erreur dans l’Output
+
+Tout le monde fait des erreurs, même les développeurs expérimentés. Ce qui compte, c’est de savoir **lire** le message. Voici un script volontairement faux :
+
+```luau
+-- Script dans ServerScriptService (volontairement faux, pour voir l'erreur)
+local Workspace = game:GetService("Workspace")
+
+local plateforme = Workspace:FindFirstChild("PlateformeQuiNExistePas")
+plateforme.Color = Color3.fromRGB(255, 0, 0) -- plateforme vaut nil ici !
+```
+
+`FindFirstChild` cherche un enfant par son nom et renvoie **`nil`** (« rien ») s’il ne le trouve pas. À la ligne 5, on essaie donc de changer la couleur de… rien. L’Output affiche alors un message qui ressemble à ceci :
+
+```text
+ServerScriptService.Script:5: attempt to index nil with 'Color'
+```
+
+Décortiquons-le :
+
+- **`ServerScriptService.Script`** : le chemin du script fautif dans l’Explorer ;
+- **`:5:`** : le numéro de la ligne où l’erreur s’est produite ;
+- **`attempt to index nil with 'Color'`** : « tentative d’accéder à `Color` sur `nil` ». Autrement dit, la variable devant `.Color` ne contient rien.
+
+Quand une erreur se produit, le script **s’arrête** à cette ligne : tout ce qui suit n’est pas exécuté. C’est pour ça qu’une seule erreur peut « casser » tout un système.
+
+Quelques messages que tu verras souvent :
+
+| Message (en anglais dans l’Output) | Ce que ça veut dire |
+|---|---|
+| `attempt to index nil with '...'` | Tu utilises une variable qui vaut `nil` (objet introuvable, faute de frappe dans un nom…) |
+| `attempt to call a nil value` | Tu appelles une fonction qui n’existe pas (souvent une faute de frappe : `Print` au lieu de `print`) |
+| `... is not a valid member of ...` | Le nom de l’enfant ou de la propriété est faux ou mal orthographié |
+| `Infinite yield possible on ...` | Un `WaitForChild` attend un objet qui n’arrive pas (avertissement, leçon 5) |
+
+<Astuce titre="Vide l’Output avant chaque test">
+Dans l’Output, le bouton d’effacement (ou `Ctrl`+`K` sur Windows, `⌘`+`K` sur Mac) vide la fenêtre. Fais-le avant chaque test : tu ne verras que les messages du test en cours. Les filtres en haut de la fenêtre permettent aussi de n’afficher que les erreurs, ou seulement les messages du serveur ou du client.
+</Astuce>
+
+<Attention>
+Luau est **sensible à la casse** : `print` et `Print`, `Parent` et `parent`, `Color` et `color` sont des noms différents pour lui. La majorité des erreurs de débutant viennent d’une majuscule oubliée ou en trop.
+</Attention>
+
+<Defi>
+Dans ton Obby des Nuages :
+
+1. Crée un **Script** dans ServerScriptService, renomme-le `Bienvenue`, et fais-lui afficher dans l’Output le nom de ton jeu et le nombre d’objets dans le Workspace.
+2. Insère un **Script** dans la dernière plateforme de ton niveau et fais-la devenir dorée et en matériau `Neon` au lancement.
+3. Provoque volontairement une erreur (par exemple `Print` avec une majuscule), lance le jeu, lis le message dans l’Output, puis corrige-la.
+</Defi>
+
+<Resume>
+- Un **Script** s’exécute sur le serveur (ServerScriptService, Workspace), un **LocalScript** sur le client (StarterPlayerScripts, StarterGui…), un **ModuleScript** seulement quand on le charge avec `require`.
+- `print` (et `warn`) affiche des messages dans l’**Output** ; les commentaires s’écrivent `--` ou `--[[ ... ]]`.
+- `script.Parent` désigne l’objet qui contient le script ; le point `.` accède aux propriétés et aux enfants.
+- On récupère les services avec `game:GetService("NomDuService")`.
+- Un message d’erreur indique le **script**, la **ligne** et la **cause** ; le script s’arrête à cette ligne.
+</Resume>
+
+<Sources>
+- [Script types and locations — documentation Roblox](https://create.roblox.com/docs/scripting/locations)
+- [Create a script — tutoriel officiel Roblox](https://create.roblox.com/docs/tutorials/fundamentals/coding-1/create-a-script)
+- [Comments — documentation Luau de Roblox](https://create.roblox.com/docs/luau/comments)
+- [Output window — documentation Roblox](https://create.roblox.com/docs/studio/output)
+- [Roblox globals (script, game, workspace…) — référence API](https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals)
+- [ServiceProvider:GetService — référence API](https://create.roblox.com/docs/reference/engine/classes/ServiceProvider)
+- [Scripting — vue d’ensemble Roblox](https://create.roblox.com/docs/scripting)
+</Sources>

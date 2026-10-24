@@ -120,7 +120,7 @@ Le bouton **Client** / **Server** permet de passer de l’une à l’autre :
 
 L’Explorer change aussi selon la vue. Par exemple, en vue Client, tu ne vois pas le contenu de `ServerScriptService` ni de `ServerStorage` : ces services ne sont jamais envoyés aux joueurs.
 
-Fais l’expérience : pendant un test, passe en vue **Server**, sélectionne une plateforme et déplace-la. Repasse en vue **Client** : la plateforme a bougé aussi pour le joueur, car le serveur transmet ses changements aux clients. L’inverse n’est pas vrai : sauf exceptions (comme les mouvements de ton propre personnage), un changement fait uniquement sur le client n’est pas renvoyé au serveur. Ce mécanisme s’appelle la **réplication**, et tout le module 3 lui est consacré.
+Fais l’expérience : pendant un test, passe en vue **Server**, sélectionne une plateforme et déplace-la. Repasse en vue **Client** : la plateforme a bougé aussi pour le joueur, car le serveur transmet ses changements aux clients. L’inverse n’est pas vrai : sauf exceptions (comme les mouvements de ton propre personnage), un changement fait uniquement sur le client n’est pas renvoyé au serveur. Ce mécanisme s’appelle la **réplication**, et tout le module 4 lui est consacré.
 
 ## Tester à plusieurs : Server & Clients
 
@@ -131,7 +131,7 @@ Certains bugs n’apparaissent qu’avec plusieurs joueurs. Le mode **Server & C
 3. Clique sur **Play** (ou appuie sur `F7`).
 4. Pour tout fermer, clique sur **End Session** dans n’importe laquelle des fenêtres.
 
-Chaque fenêtre de client est une session Studio de plus : sur un ordinateur modeste, commence avec deux clients. Tu utiliseras ce mode très souvent à partir du module 3, pour vérifier par exemple que deux joueurs qui touchent le même checkpoint reçoivent chacun la bonne étape.
+Chaque fenêtre de client est une session Studio de plus : sur un ordinateur modeste, commence avec deux clients. Tu utiliseras ce mode très souvent à partir du module 4, pour vérifier par exemple que deux joueurs qui touchent le même checkpoint reçoivent chacun la bonne étape.
 
 Le menu propose aussi **Team Test**, qui sert à tester avec tes collaborateurs quand tu travailles à plusieurs sur le même jeu (tu en verras un aperçu dans la leçon 5).
 
@@ -186,7 +186,7 @@ Quelques outils pour t’y retrouver quand l’Output se remplit :
 Beaucoup de « mon jeu ne marche pas » se résolvent en lisant l’Output. Garde cette fenêtre visible en permanence, même quand tu construis sans coder : les modèles insérés, les plugins et le moteur y signalent aussi des problèmes.
 </Astuce>
 
-Dans un jeu publié, tu n’as pas accès à la fenêtre Output de Studio. À la place, la **Developer Console** s’ouvre avec `F9` (ou en tapant `/console` dans le chat) : elle montre les messages du client et du serveur. Tu l’exploreras au module 9, dans [Mesurer les performances](/modules/09/mesurer-les-performances/).
+Dans un jeu publié, tu n’as pas accès à la fenêtre Output de Studio. À la place, la **Developer Console** s’ouvre avec `F9` (ou en tapant `/console` dans le chat) : elle montre les messages du client et du serveur. Tu l’exploreras au module 10, dans [Mesurer les performances](/modules/10/mesurer-les-performances/).
 
 ## La Command Bar
 
@@ -216,7 +216,7 @@ La Command Bar agit **pour de vrai** sur ton place : supprimer, déplacer ou mod
 
 ## Émulation d’appareils : un aperçu
 
-Ton jeu sera joué sur ordinateur, mais aussi sur téléphone, tablette ou console. Studio propose un **Device Simulator** qui reproduit la taille d’écran, la densité de pixels, le clavier virtuel et le tactile de différents appareils (téléphones, ordinateurs, consoles, casques VR). Au moment de la rédaction (octobre 2026), c’est une barre d’outils au-dessus du viewport. Selon l’annonce officielle de l’équipe Studio (mise à jour du 16 octobre 2026), elle est sortie de bêta : tu l’ouvres depuis le menu **Test** › **Device Simulator**. Tu l’utiliseras en détail au module 9, dans [Penser mobile d’abord](/modules/09/penser-mobile-d-abord/), qui explique aussi quoi faire si l’outil n’apparaît pas encore dans ton Studio.
+Ton jeu sera joué sur ordinateur, mais aussi sur téléphone, tablette ou console. Studio propose un **Device Simulator** qui reproduit la taille d’écran, la densité de pixels, le clavier virtuel et le tactile de différents appareils (téléphones, ordinateurs, consoles, casques VR). Au moment de la rédaction (octobre 2026), c’est une barre d’outils au-dessus du viewport. Selon l’annonce officielle de l’équipe Studio (mise à jour du 16 octobre 2026), elle est sortie de bêta : tu l’ouvres depuis le menu **Test** › **Device Simulator**. Tu l’utiliseras en détail au module 10, dans [Penser mobile d’abord](/modules/10/penser-mobile-d-abord/), qui explique aussi quoi faire si l’outil n’apparaît pas encore dans ton Studio.
 
 <Defi>
 

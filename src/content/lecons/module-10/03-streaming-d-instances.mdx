@@ -1,0 +1,327 @@
+---
+titre: Le streaming d’instances
+description: Comprends comment Roblox charge et décharge le monde autour du joueur, règle les propriétés de streaming et adapte tes LocalScripts pour qu’ils ne cassent plus quand un objet n’est pas encore là.
+duree: 30
+objectifs:
+  - Comprendre ce que le streaming envoie au joueur, et quand
+  - Configurer les propriétés de streaming de Workspace et le mode de streaming des modèles
+  - Adapter les scripts clients avec WaitForChild, FindFirstChild et les événements
+  - Précharger une zone avant une téléportation avec RequestStreamAroundAsync
+miseAJour: 2026-10-24
+quiz:
+  - type: vrai-faux
+    question: On peut activer ou désactiver `Workspace.StreamingEnabled` depuis un script pendant la partie.
+    reponse: false
+    explication: "`StreamingEnabled`, comme les autres propriétés de streaming de Workspace, n’est pas modifiable par script. Elle se règle dans la fenêtre Properties de Studio, avant de publier."
+  - type: qcm
+    question: Dans un jeu avec streaming, quels objets du Workspace ne sont PAS forcément présents chez le joueur dès son arrivée ?
+    options:
+      - texte: Les Parts et MeshParts (les BaseParts)
+        correct: true
+      - texte: Le contenu de ReplicatedStorage
+      - texte: Un Folder placé directement dans Workspace
+      - texte: Les objets de StarterGui
+    explication: "Les BaseParts (et ce qu’elles contiennent) arrivent progressivement selon la distance. Un Folder sans pièce dans Workspace est envoyé dès l’arrivée, mais ses Parts enfants, elles, sont streamées. ReplicatedStorage n’est jamais concerné par le streaming."
+  - type: qcm
+    question: Tu veux qu’un LocalScript accède à toutes les pièces d’un modèle « Porte » dès que ce modèle est là, sans `WaitForChild` sur chaque Part, tout en laissant le streaming décharger la porte quand le joueur est loin. Quel `ModelStreamingMode` choisir ?
+    options:
+      - texte: "`Atomic`"
+        correct: true
+      - texte: "`Nonatomic`"
+      - texte: "`Persistent`, pour être tranquille"
+    explication: "Un modèle `Atomic` arrive d’un bloc avec tous ses descendants initiaux. Il suffit d’attendre le modèle lui-même avec `WaitForChild`. `Persistent` arrive aussi d’un bloc, mais il n’est **jamais** déchargé : il ne répond donc pas à la demande, et la documentation le réserve à de très rares cas. `Nonatomic` laisse arriver les Parts une par une."
+  - type: qcm
+    question: À quoi sert `Player:RequestStreamAroundAsync` ?
+    options:
+      - texte: À désactiver le streaming pour un joueur
+      - texte: À demander au serveur d’envoyer au joueur la zone autour d’une position, avant de l’y téléporter
+        correct: true
+      - texte: À télécharger le jeu entier sur le téléphone du joueur
+      - texte: À rendre un modèle persistant
+    explication: "On l’appelle côté serveur quand on sait que le joueur va bientôt être déplacé ailleurs. Le moteur commence à envoyer la zone d’arrivée, ce qui limite les pauses et les objets manquants. Ce n’est pas une garantie : la mémoire et le réseau du joueur restent des limites."
+  - type: trouve-le-bug
+    question: "Ce LocalScript tourne dans un jeu avec streaming activé. Il plante souvent avec une erreur dès que le joueur rejoint. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+      local Workspace = game:GetService("Workspace")
+
+      local joueur = Players.LocalPlayer
+      local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+      local dernier = dossierCheckpoints["10"]
+
+      print(joueur.Name .. " vise le checkpoint " .. dernier.Name)
+    options:
+      - texte: "Ligne 5 : on ne peut pas utiliser `WaitForChild` sur un Folder"
+      - texte: "Ligne 6 : le checkpoint 10 est loin du joueur, il n’est sans doute pas encore streamé ; l’accès direct provoque une erreur"
+        correct: true
+      - texte: "Ligne 4 : `LocalPlayer` n’existe que côté serveur"
+    explication: "Le Folder `Checkpoints` arrive dès l’arrivée du joueur, mais ses Parts sont streamées selon la distance. Le checkpoint 10, au bout de l’obby, n’est pas encore là : `dossierCheckpoints[\"10\"]` lève une erreur. Il faut soit `WaitForChild(\"10\", delai)`, soit `FindFirstChild(\"10\")` avec un test `if`."
+  - type: vrai-faux
+    question: Quand une Part est déchargée (streamed out) chez un joueur, les changements faits uniquement par un LocalScript sur cette Part peuvent être perdus quand elle revient.
+    reponse: true
+    explication: "Une instance déchargée est rangée hors du jeu (son parent devient `nil`). À son retour, elle peut avoir repris l’état envoyé par le serveur. Un script client doit donc réappliquer ses changements locaux quand l’objet revient, par exemple avec `ChildAdded`."
+---
+
+Imagine que l’Obby des Nuages grandisse : 50 étapes, des îles flottantes, des décors partout. Sans précaution, chaque joueur doit télécharger **tout** le monde avant de faire son premier saut, et le garder en mémoire jusqu’au bout. Sur un téléphone modeste, c’est un chargement interminable, voire un plantage. Le **streaming d’instances** règle ce problème : Roblox n’envoie au joueur que ce qui est autour de lui. Dans cette leçon, tu vas comprendre son fonctionnement, le régler et surtout adapter tes scripts.
+
+## Le principe du streaming
+
+Le streaming d’instances (*instance streaming*, « diffusion » des objets au fil du jeu) charge et décharge dynamiquement le contenu 3D du `Workspace` autour du joueur. Selon la documentation Roblox, il apporte :
+
+- **des arrivées plus rapides** : on joue pendant que le reste du monde se charge ;
+- **moins de mémoire** : le contenu lointain peut être retiré, le jeu tient sur plus d’appareils ;
+- **de meilleures performances** : moins de travail de synchronisation pour le serveur et le client.
+
+Il se contrôle avec la propriété `Workspace.StreamingEnabled`. Elle est **activée par défaut pour les nouveaux jeux (places) créés dans Studio**. Ton obby l’utilise donc probablement déjà. Vérifie-le : sélectionne `Workspace` dans l’Explorer et regarde la section **Streaming** de la fenêtre Properties.
+
+### Ce qui arrive tout de suite, ce qui arrive plus tard
+
+Le streaming ne concerne **que les descendants de `Workspace`**. `ReplicatedStorage` et `ReplicatedFirst` sont toujours envoyés en entier.
+
+Quand un joueur arrive, le contenu de `Workspace` lui est envoyé, **sauf** :
+
+- les **BaseParts** (les `Part` et `MeshPart`) ;
+- les modèles réglés en mode atomique ou persistant (voir plus bas), ainsi que les modèles « normaux » si `ModelStreamingBehavior` est réglé sur `Improved` (le réglage recommandé) ;
+- tout ce qui se trouve **à l’intérieur** de ces objets.
+
+Ceux-là arrivent ensuite, selon la position du joueur, les performances de son appareil et d’autres conditions. Concrètement pour l’obby : le Folder `Workspace.Checkpoints` est là dès l’arrivée, mais les Parts `"1"`, `"2"`, `"3"`… n’arrivent que lorsqu’elles sont assez proches.
+
+### Le chargement (stream in) et le déchargement (stream out)
+
+Le streaming se fait autour d’un point de référence, la **replication focus** (point focal), qui est par défaut le personnage du joueur.
+
+- **Stream in** : les objets proches sont envoyés au joueur, les plus proches en priorité.
+- **Stream out** : quand c’est nécessaire, le client retire les zones les plus éloignées. Un objet déchargé n’est pas détruit : son parent devient `nil`, et il pourra revenir.
+
+<Attention>
+Quand un objet est déchargé puis rechargé, les modifications faites **uniquement par un LocalScript** sur cet objet peuvent être perdues. Si ton script client colore une Part, il doit être capable de la recolorer à son retour.
+</Attention>
+
+Le serveur, lui, voit **toujours** tout le Workspace. Les scripts serveur de l’obby (checkpoints, pièces, achats) ne sont donc pas gênés par le streaming. Ce sont les **LocalScripts** qu’il faut surveiller.
+
+## Les réglages de Workspace
+
+Toutes ces propriétés se règlent **dans Studio**, sur l’objet `Workspace` : aucun script ne peut les modifier. Les rayons sont en **studs**, l’unité de longueur de Roblox vue au module 1. Voici le comportement par défaut et les recommandations de la documentation, au moment de la rédaction (octobre 2026).
+
+| Propriété | Rôle | Comportement par défaut | Recommandation |
+| :--- | :--- | :--- | :--- |
+| `StreamingMinRadius` | Rayon (en studs) chargé en priorité maximale, jamais déchargé | 64 | garder 64 |
+| `StreamingTargetRadius` | Distance maximale à laquelle le contenu est envoyé | 1024 | garder 1024 |
+| `StreamingIntegrityMode` | Que faire si le joueur entre dans une zone pas encore chargée | non détaillé par la doc | `PauseOutsideLoadedArea` |
+| `StreamOutBehavior` | Quand décharger le contenu lointain | comme `LowMemory` | `Opportunistic` |
+| `ModelStreamingBehavior` | Façon de streamer les modèles « normaux » | comme `Legacy` | `Improved` |
+| `PredictiveStreamingMode` | Anticiper les zones dont le joueur aura bientôt besoin (réapparition…) | comme `Disabled` | `Enabled` en option |
+
+Dans la fenêtre Properties, tu verras peut-être la valeur `Default` sur certaines de ces propriétés. La référence API la décrit comme le « comportement par défaut, susceptible de changer » : c’est une raison de plus pour choisir **explicitement** la valeur recommandée.
+
+Quelques explications :
+
+- **Les deux rayons.** `StreamingTargetRadius` doit rester plus grand que `StreamingMinRadius` : l’espace entre les deux sert de tampon si le réseau a un raté. Augmenter les rayons coûte plus de mémoire et de bande passante.
+- **`StreamingIntegrityMode`.** Ses valeurs sont `Default` (le comportement par défaut, susceptible de changer : ne compte pas dessus), `Disabled` (jamais de pause), `MinimumRadiusPause` (pause si le rayon minimum n’est pas chargé) et `PauseOutsideLoadedArea` (pause si le personnage sort de la zone chargée). Avec ce dernier mode, recommandé, le joueur ne tombe pas à travers une plateforme pas encore arrivée : le jeu se met brièvement en pause et Roblox affiche un message.
+- **`StreamOutBehavior`.** Avec `LowMemory`, le client ne décharge que s’il manque de mémoire. Avec `Opportunistic`, il peut décharger ce qui dépasse le rayon cible même sans manque de mémoire, ce qui réduit fortement la consommation et aide à éviter les plantages.
+
+<Astuce titre="Voir le streaming en direct">
+Pendant un test dans Studio, appuie sur <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>F3</kbd> (<kbd>Shift</kbd> + <kbd>F3</kbd> dans le vrai jeu) pour ouvrir les statistiques réseau, puis sur <kbd>Shift</kbd> + <kbd>1</kbd> plusieurs fois : le quatrième panneau est celui du **streaming**. Les zones chargées apparaissent en couleur dans la vue 3D. Astuce de la documentation : augmente temporairement `CameraMaxZoomDistance` (propriété de `StarterPlayer`, par exemple à 1000) pour prendre de la hauteur et tout observer.
+</Astuce>
+
+## Le mode de streaming des modèles
+
+Chaque `Model` a une propriété `ModelStreamingMode` qui décide comment il est streamé. Elle se règle dans Studio ou depuis un `Script` serveur, **jamais depuis un LocalScript**.
+
+- **`Default`** et **`Nonatomic`** : le comportement normal. Le modèle suit le réglage `Workspace.ModelStreamingBehavior` : ses Parts arrivent au fur et à mesure, pas forcément toutes ensemble.
+- **`Atomic`** (atomique) : quand une de ses Parts doit arriver, **tout** le modèle arrive d’un bloc, avec tous ses descendants initiaux. Il ne repart que lorsque toutes ses Parts peuvent repartir. Un LocalScript n’a qu’à attendre le modèle lui-même.
+- **`Persistent`** (persistant) : envoyé en entier peu après l’arrivée du joueur, **jamais** déchargé. Côté client, attends l’événement `Workspace.PersistentLoaded` avant d’y accéder.
+- **`PersistentPerPlayer`** : persistant seulement pour les joueurs ajoutés avec `Model:AddPersistentPlayer()`, atomique pour les autres.
+
+<Erreur titre="Tout passer en Persistent pour que « ça marche »">
+Mettre tous ses modèles en `Persistent` revient à contourner le streaming : ces modèles restent en mémoire pour toujours. La documentation précise que ce mode n’est pas fait pour contourner le streaming, que son abus peut nuire aux performances, et le réserve à de très rares cas, quand quelques Parts doivent absolument rester présentes pour un script client. Préfère `Atomic` et des scripts qui tolèrent l’absence d’un objet.
+</Erreur>
+
+## Adapter tes LocalScripts
+
+C’est là que le streaming demande le plus d’attention. Dans un LocalScript, un objet du Workspace peut :
+
+- ne **pas encore** être arrivé ;
+- **disparaître** puis **revenir** ;
+- manquer dans `GetChildren()` (qui ne renvoie que ce qui est chargé).
+
+La documentation propose trois stratégies :
+
+1. **Le script ne peut rien faire sans l’objet** : attends-le avec `WaitForChild`, idéalement avec un délai maximal en second argument (sinon, il peut attendre indéfiniment).
+2. **Le script peut s’en passer** : cherche-le avec `FindFirstChild`, qui renvoie `nil` s’il est absent, et teste le résultat avec un `if`.
+3. **Il faut un groupe complet** : range les objets dans un modèle `Atomic`.
+
+Et pour réagir à l’arrivée d’un objet, écoute l’événement `ChildAdded` du dossier parent.
+
+### Avant / après : surligner le prochain checkpoint
+
+On veut colorer en jaune, chez le joueur uniquement, le prochain checkpoint à atteindre. Voici une première version, écrite sans penser au streaming :
+
+```luau
+-- AVANT (fragile avec le streaming)
+-- LocalScript placé dans StarterPlayerScripts
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local joueur = Players.LocalPlayer
+local etape = joueur:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
+
+local function surlignerProchain()
+	-- Accès direct : ERREUR si le checkpoint n'est pas encore streamé
+	local prochain = Workspace.Checkpoints[tostring(etape.Value + 1)]
+	prochain.Color = Color3.fromRGB(255, 220, 0)
+end
+
+etape.Changed:Connect(surlignerProchain)
+surlignerProchain()
+```
+
+Trois problèmes : l’accès direct plante si le checkpoint est loin ; si le checkpoint arrive plus tard, il n’est jamais coloré ; et s’il est déchargé puis rechargé, sa couleur locale peut disparaître. La version adaptée :
+
+```luau
+-- APRÈS (compatible avec le streaming)
+-- LocalScript placé dans StarterPlayerScripts
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local joueur = Players.LocalPlayer
+local etape = joueur:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
+-- Le Folder est envoyé dès l'arrivée : WaitForChild suffit pour lui
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+
+local COULEUR_SURLIGNAGE = Color3.fromRGB(255, 220, 0)
+
+local checkpointSurligne: BasePart? = nil
+local couleurOrigine: Color3? = nil
+
+local function retirerSurlignage()
+	if checkpointSurligne and couleurOrigine then
+		checkpointSurligne.Color = couleurOrigine
+	end
+	checkpointSurligne = nil
+	couleurOrigine = nil
+end
+
+local function surligner(objet: Instance)
+	-- On ne colore que le PROCHAIN checkpoint
+	if not objet:IsA("BasePart") or objet.Name ~= tostring(etape.Value + 1) then
+		return
+	end
+	if checkpointSurligne ~= objet then
+		retirerSurlignage()
+		couleurOrigine = objet.Color
+		checkpointSurligne = objet
+	end
+	objet.Color = COULEUR_SURLIGNAGE
+end
+
+local function surEtapeChangee()
+	retirerSurlignage()
+	-- FindFirstChild renvoie nil si le checkpoint n'est pas (encore) chargé
+	local prochain = dossierCheckpoints:FindFirstChild(tostring(etape.Value + 1))
+	if prochain then
+		surligner(prochain)
+	end
+end
+
+-- Un checkpoint qui arrive (ou revient) par le streaming est recoloré si besoin
+dossierCheckpoints.ChildAdded:Connect(surligner)
+etape.Changed:Connect(surEtapeChangee)
+surEtapeChangee()
+```
+
+Ce script ne plante jamais, colore le checkpoint dès qu’il arrive, et réapplique la couleur s’il revient après un déchargement.
+
+### D’autres pièges à connaître
+
+D’après la page « Techniques » de la documentation sur le streaming :
+
+- **`GetChildren()` et `GetDescendants()` côté client** ne renvoient que ce qui est chargé. Pour une liste complète (par exemple tous les checkpoints), fais le calcul **côté serveur**.
+- **`ChildAdded` et `ChildRemoved`** se déclenchent aussi lors du streaming. Un effet « apparition » joué dans `ChildAdded` risque de rejouer à chaque retour de l’objet.
+- **`Touched`, les `ProximityPrompt` et les `ClickDetector`** ne fonctionnent pas pour un joueur chez qui l’objet n’est pas chargé.
+- **Les objets envoyés par RemoteEvent** : si le serveur envoie une Part au client, elle peut ne pas être encore arrivée chez lui. Le client doit l’attendre ou tester qu’elle existe.
+- **Le personnage** : dans `CharacterAdded`, le modèle peut être là avant ses enfants. Utilise `WaitForChild("Humanoid")` plutôt que `character.Humanoid`.
+
+## Précharger une zone : RequestStreamAroundAsync
+
+Quand ton jeu téléporte un joueur loin, la zone d’arrivée n’est peut-être pas chargée chez lui : il risque une pause ou un décor manquant. La méthode `Player:RequestStreamAroundAsync(position, delaiMax)`, appelée **côté serveur**, demande au moteur d’envoyer la zone autour de `position` au joueur. Elle met le script en attente (elle *yield*). Le second paramètre, facultatif, est la durée maximale de la tentative ; sans lui, l’attente n’a pas de limite (sauf si l’appareil manque de mémoire).
+
+Dans l’obby, c’est utile quand tu renvoies un joueur vers un checkpoint lointain, par exemple avec la téléportation sécurisée vers un checkpoint déjà atteint du module 4 (leçon 4). Attention : la fonction ci-dessous peut attendre jusqu’à `DELAI_MAX` avant de déplacer le joueur.
+
+```luau
+-- ModuleScript nommé « Teleportation », placé dans ServerScriptService
+-- Usage depuis un Script serveur :
+--   local Teleportation = require(game:GetService("ServerScriptService").Teleportation)
+--   Teleportation.versCheckpoint(joueur, 5)
+local Workspace = game:GetService("Workspace")
+
+local Teleportation = {}
+
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+local DECALAGE_HAUTEUR = Vector3.new(0, 4, 0) -- pour apparaître au-dessus de la Part
+local DELAI_MAX = 5 -- durée maximale du préchargement
+
+function Teleportation.versCheckpoint(joueur: Player, numero: number)
+	-- Côté serveur, tous les checkpoints sont toujours présents
+	local checkpoint = dossierCheckpoints:FindFirstChild(tostring(numero))
+	if not (checkpoint and checkpoint:IsA("BasePart")) then
+		warn("Checkpoint introuvable : " .. tostring(numero))
+		return
+	end
+	local destination = checkpoint.Position + DECALAGE_HAUTEUR
+
+	-- 1. On demande d'envoyer la zone d'arrivée au joueur (cela peut attendre)
+	local ok, erreur = pcall(function()
+		joueur:RequestStreamAroundAsync(destination, DELAI_MAX)
+	end)
+	if not ok then
+		warn("Préchargement impossible pour " .. joueur.Name .. " : " .. tostring(erreur))
+	end
+
+	-- 2. Puis on déplace le personnage, s'il existe encore
+	local personnage = joueur.Character
+	if personnage and personnage.Parent then
+		personnage:PivotTo(CFrame.new(destination))
+	end
+end
+
+return Teleportation
+```
+
+La documentation est claire : l’effet est temporaire et **sans garantie**. La mémoire et le réseau du joueur restent les limites. C’est une aide, pas une promesse.
+
+<Info>
+Si tu actives `PredictiveStreamingMode`, le moteur précharge aussi de lui-même les lieux de réapparition probables quand un joueur meurt. Ça se combine sans problème avec `RequestStreamAroundAsync`.
+</Info>
+
+## Tester le streaming de ton obby
+
+Les bugs de streaming apparaissent surtout au bord de la zone chargée. La documentation conseille de :
+
+1. **Réduire temporairement `StreamingTargetRadius` à 64** (sa valeur minimale) pendant les tests : les problèmes se révèlent bien plus vite.
+2. **Parcourir tout l’obby**, se téléporter, revenir en arrière.
+3. **Surveiller l’Output et la Developer Console** : une erreur du type `attempt to index nil with…` trahit souvent un `WaitForChild` ou un test `if` manquant.
+
+N’oublie pas de remettre la valeur recommandée avant de publier !
+
+<Defi>
+Dans une copie de ton obby, règle `StreamingTargetRadius` sur 64 et lance un test. Note chaque erreur rouge dans l’Output qui vient d’un **LocalScript**. Pour chacune, choisis la bonne stratégie : `WaitForChild` avec délai, `FindFirstChild` avec un `if`, modèle `Atomic`, ou déplacement de la logique côté serveur.
+</Defi>
+
+<Resume>
+- Le streaming envoie au joueur le contenu du Workspace proche de lui ; les BaseParts et ce qu’elles contiennent arrivent progressivement et peuvent repartir.
+- Les réglages (`StreamingMinRadius` 64, `StreamingTargetRadius` 1024, `StreamingIntegrityMode`, `StreamOutBehavior`…) se font dans Studio, pas par script.
+- `ModelStreamingMode` : `Atomic` pour recevoir un modèle d’un bloc, `Persistent` seulement en dernier recours.
+- Dans un LocalScript : `WaitForChild` avec délai si l’objet est indispensable, `FindFirstChild` + `if` sinon, `ChildAdded` pour réagir à son arrivée.
+- Côté serveur, `RequestStreamAroundAsync` précharge la zone d’arrivée avant une téléportation, sans garantie.
+</Resume>
+
+<Sources>
+- [Instance streaming — documentation Roblox](https://create.roblox.com/docs/workspace/streaming)
+- [Streaming techniques and conversion — documentation Roblox](https://create.roblox.com/docs/workspace/streaming/techniques)
+- [Enum ModelStreamingMode — référence API](https://create.roblox.com/docs/reference/engine/enums/ModelStreamingMode)
+- [Enum StreamingIntegrityMode — référence API](https://create.roblox.com/docs/reference/engine/enums/StreamingIntegrityMode)
+- [Player (méthode RequestStreamAroundAsync) — référence API](https://create.roblox.com/docs/reference/engine/classes/Player)
+- [Workspace (propriétés de streaming) — référence API](https://create.roblox.com/docs/reference/engine/classes/Workspace)
+- [Instance (méthode WaitForChild) — référence API](https://create.roblox.com/docs/reference/engine/classes/Instance)
+</Sources>

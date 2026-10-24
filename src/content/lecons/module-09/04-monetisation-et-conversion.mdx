@@ -1,0 +1,230 @@
+---
+titre: Mesurer la monétisation
+description: Calcule taux de conversion, ARPPU et ARPDAU avec les définitions de Roblox, repère ce qui se vend et vérifie que tes changements ne dégradent pas l’expérience.
+duree: 20
+objectifs:
+  - Calculer le taux de conversion, l’ARPPU et l’ARPDAU
+  - Comprendre le lien mathématique entre ces trois indicateurs
+  - Identifier ce qui se vend grâce aux pages par produit et aux segments de payeurs
+  - Surveiller la rétention après un changement de monétisation
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Exemple fictif : un jour donné, 2 000 joueurs actifs, 50 payeurs et 3 000 Robux de revenus. Quel est le taux de conversion ?"
+    options:
+      - texte: "2,5 %"
+        correct: true
+      - texte: "60 %"
+      - texte: "1,5 %"
+      - texte: "40 %"
+    explication: "Taux de conversion = payeurs ÷ DAU × 100 = 50 ÷ 2 000 × 100 = **2,5 %**. C’est la définition de Roblox : la part des joueurs actifs du jour qui sont aussi des joueurs payants."
+  - type: qcm
+    question: "Même exemple fictif (2 000 DAU, 50 payeurs, 3 000 Robux). Quels sont l’ARPPU et l’ARPDAU ?"
+    options:
+      - texte: "ARPPU = 60 Robux, ARPDAU = 1,5 Robux"
+        correct: true
+      - texte: "ARPPU = 1,5 Robux, ARPDAU = 60 Robux"
+      - texte: "ARPPU = 40 Robux, ARPDAU = 2,5 Robux"
+    explication: "ARPPU = revenu ÷ payeurs = 3 000 ÷ 50 = **60**. ARPDAU = revenu ÷ DAU = 3 000 ÷ 2 000 = **1,5**. Vérification : conversion × ARPPU = 0,025 × 60 = 1,5 = ARPDAU."
+  - type: vrai-faux
+    question: "Un ARPPU élevé avec un ARPDAU faible suggère que les revenus viennent d’un petit groupe de joueurs."
+    reponse: true
+    explication: "C’est l’interprétation donnée par Roblox : peu de joueurs paient, mais ils paient beaucoup. Roblox conseille alors d’élargir l’offre (variété de prix) pour toucher un public plus large."
+  - type: trouve-le-bug
+    question: "Cette fonction doit calculer les trois indicateurs de monétisation d’une journée. Où est le bug ?"
+    code: |
+      local function calculer(dau, payeurs, revenu)
+      	if dau == 0 or payeurs == 0 then
+      		return 0, 0, 0
+      	end
+      	local conversion = payeurs / dau
+      	local arppu = revenu / dau
+      	local arpdau = revenu / dau
+      	return conversion, arppu, arpdau
+      end
+    options:
+      - texte: "Ligne 2 : il ne faut jamais tester `payeurs == 0`"
+      - texte: "Ligne 6 : l’ARPPU se divise par le nombre de **payeurs**, pas par le DAU"
+        correct: true
+      - texte: "Ligne 7 : l’ARPDAU se divise par le nombre de payeurs"
+      - texte: "Ligne 8 : une fonction Luau ne peut pas renvoyer trois valeurs"
+    explication: "ARPPU = *average revenue per paying user* : revenu ÷ **payeurs**. Ici, ligne 6 calcule en réalité l’ARPDAU une deuxième fois. Le test de la ligne 2 évite justement une division par zéro, et Luau sait renvoyer plusieurs valeurs."
+  - type: qcm
+    question: "Tu ajoutes une fenêtre d’achat qui s’ouvre dès l’arrivée dans l’Obby des Nuages. Le revenu monte un peu, mais la rétention D1 baisse. Quelle est la meilleure réaction ?"
+    options:
+      - texte: Garder le changement, puisque le revenu monte
+      - texte: Considérer que le jeu perd des joueurs à cause de la fenêtre et revoir ou retirer ce changement, puis remesurer
+        correct: true
+      - texte: Augmenter les prix pour compenser la baisse de joueurs
+    explication: "Moins de joueurs qui reviennent, c’est moins de joueurs (et de payeurs) demain. Roblox rappelle que l’ARPDAU s’améliore aussi en améliorant la rétention et l’engagement. Une monétisation qui fait fuir les nouveaux joueurs est un mauvais calcul, et souvent une mauvaise pratique envers un public jeune."
+---
+
+Ton Obby des Nuages propose désormais un Game Pass cosmétique et un Developer Product « passer l’étape » (module 7). Comment savoir s’ils fonctionnent, et surtout s’ils ne gâchent pas le jeu ? Cette leçon te donne les formules exactes de Roblox, avec des exemples chiffrés, et une méthode pour lire les chiffres sans tomber dans le piège du « plus de revenus à tout prix ».
+
+## Les indicateurs de la page Monetization
+
+Pour y accéder : page **Creations**, ton jeu, menu **Monetization**, puis **Overview**. Au moment de la rédaction, la documentation de Roblox y décrit ces cinq indicateurs :
+
+| Indicateur | Définition de Roblox |
+|---|---|
+| **Revenue** | Revenus par heure et par jour, répartis entre Developer Products, passes et commissions |
+| **Conversion rate** | Pourcentage des joueurs actifs du jour qui sont aussi des joueurs payants |
+| **Paying users** | Nombre de joueurs actifs du jour qui ont acheté un objet lié au jeu |
+| **ARPPU** | *Average revenue per paying user* : revenu moyen par joueur payant |
+| **ARPDAU** | *Average revenue per daily active user* : revenu moyen par joueur actif du jour |
+
+<Info titre="Une définition « du jour »">
+Dans le tableau de bord, le taux de conversion est calculé **par rapport aux joueurs actifs de la journée** (DAU), et non sur tous les joueurs qui ont un jour touché à ton jeu. Une autre page de la documentation, plus générale, parle de « pourcentage de tous les joueurs qui ont dépensé quelque chose » : quand tu compares des chiffres, vérifie toujours sur quelle base ils sont calculés.
+</Info>
+
+## Les formules, pas à pas
+
+### Les trois calculs
+
+> **Taux de conversion = payeurs du jour ÷ DAU × 100**
+>
+> **ARPPU = revenu du jour ÷ payeurs du jour**
+>
+> **ARPDAU = revenu du jour ÷ DAU**
+
+### Exemple chiffré (fictif)
+
+Une journée **fictive** de l’Obby des Nuages :
+
+| Donnée | Valeur |
+|---|---|
+| DAU | 1 000 |
+| Joueurs payants | 20 |
+| Revenu | 1 500 Robux |
+
+- Taux de conversion = 20 ÷ 1 000 × 100 = **2 %**.
+- ARPPU = 1 500 ÷ 20 = **75 Robux** par joueur payant.
+- ARPDAU = 1 500 ÷ 1 000 = **1,5 Robux** par joueur actif.
+
+### Le lien entre les trois
+
+Roblox le résume ainsi : l’ARPDAU est une **combinaison** du taux de conversion et de l’ARPPU. Mathématiquement :
+
+> **ARPDAU = taux de conversion × ARPPU**
+
+Vérifions avec l’exemple : 0,02 × 75 = **1,5**. C’est logique : (payeurs ÷ DAU) × (revenu ÷ payeurs) = revenu ÷ DAU.
+
+Cette relation te dit qu’il existe **deux leviers** pour améliorer l’ARPDAU :
+
+- faire qu’une plus grande part des joueurs achète **quelque chose** (conversion) ;
+- faire que les joueurs qui achètent trouvent **plus d’objets** qui les intéressent (ARPPU).
+
+### Vérifier ses calculs avec Luau
+
+Pour t’entraîner, voici une petite calculatrice. Colle-la dans la **Command Bar** de Studio (vue au module 1) et appuie sur Entrée : les résultats s’affichent dans la fenêtre Output.
+
+```luau
+-- Calculatrice de monétisation, à exécuter dans la Command Bar de Studio
+-- (aucun Script à créer : ce code ne tourne pas dans le jeu publié)
+
+local function calculerMonetisation(dau: number, payeurs: number, revenu: number): (number, number, number)
+	-- Sans joueur actif, aucun calcul n'a de sens : on renvoie zéro partout
+	if dau == 0 then
+		return 0, 0, 0
+	end
+
+	local conversion = payeurs / dau -- part des joueurs actifs qui ont payé
+	local arpdau = revenu / dau -- revenu moyen par joueur actif
+
+	-- S'il n'y a aucun payeur, on évite une division par zéro
+	local arppu = 0
+	if payeurs > 0 then
+		arppu = revenu / payeurs -- revenu moyen par joueur payant
+	end
+
+	return conversion, arppu, arpdau
+end
+
+-- Exemple fictif : 1 000 DAU, 20 payeurs, 1 500 Robux
+local conversion, arppu, arpdau = calculerMonetisation(1000, 20, 1500)
+
+print(string.format("Taux de conversion : %.1f %%", conversion * 100)) -- 2.0 %
+print(string.format("ARPPU : %.1f Robux", arppu)) -- 75.0 Robux
+print(string.format("ARPDAU : %.2f Robux", arpdau)) -- 1.50 Robux
+print(string.format("Vérification conversion x ARPPU : %.2f", conversion * arppu)) -- 1.50
+```
+
+<Erreur titre="Additionner des moyennes de plusieurs jours">
+Si lundi ton ARPPU est de 100 Robux (2 payeurs) et mardi de 20 Robux (30 payeurs), l’ARPPU des deux jours n’est **pas** (100 + 20) ÷ 2 = 60. Il faut repartir des totaux : (200 + 600) ÷ 32 = 25 Robux (en supposant que ce sont 32 joueurs différents). Une moyenne de moyennes donne trop de poids aux petits jours. Recalcule toujours à partir des revenus et des effectifs totaux.
+</Erreur>
+
+## Identifier ce qui se vend
+
+### Revenus par produit
+
+Depuis la page Monetization, la documentation renvoie vers des statistiques **par type de produit** : Developer Products, passes, objets d’avatar, abonnements, publicités immersives et Creator Rewards. Pour l’Obby des Nuages, compare par exemple :
+
+- le **Game Pass** de traînée exclusive : un achat unique par joueur, qui joue plutôt sur la conversion ;
+- le **Developer Product** « passer l’étape » : rachetable, il peut aussi faire monter l’ARPPU.
+
+Roblox conseille d’ailleurs de proposer un mélange d’objets **durables** (achetés une fois) et **consommables** (rachetables), et une **gamme de prix** variée, parce que certains joueurs ne veulent dépenser que de petites sommes.
+
+### Qui achète ?
+
+Le filtre **Active payer status** classe tes joueurs selon leurs dépenses **dans ton jeu** : *Top 15 %*, *Intermediate 35 %*, *Casual 50 %*, *Lapsed* (aucun achat depuis 30 jours) et *Never* (jamais payé). Ce classement est recalculé chaque jour.
+
+La documentation de Roblox indique qu’en moyenne, **les 15 % de payeurs actifs qui dépensent le plus représentent environ 50 % des revenus**. Si c’est très différent dans ton jeu, c’est un indice : beaucoup moins ? Tes plus gros fans n’ont peut-être plus rien à acheter. Beaucoup plus ? Ton offre manque peut-être d’intérêt pour les petits budgets.
+
+<Info titre="Premium Payouts → Creator Rewards">
+Le programme des **Premium Payouts** (« engagement-based payouts », paiements selon le temps de jeu des abonnés Premium) est **déprécié depuis le 24 juillet 2025** et remplacé par les **Creator Rewards**, selon la documentation officielle (détails dans [Abonnements, Premium Payouts et ce qui les remplace](/modules/07/abonnements-et-premium-payouts/)).
+
+Rappel du fonctionnement des **Daily Engagement Rewards**, au moment de la rédaction :
+
+- tu reçois 5 Robux par jour quand un *Active Spender* passe au moins 10 minutes dans ton jeu dans la journée ;
+- un *Active Spender* est un joueur qui a dépensé au moins 9,99 $ sur Roblox dans les 60 derniers jours, et qui n’est ni un nouvel inscrit ni un joueur revenu sur Roblox pendant cette période ;
+- ton jeu doit faire partie des **trois premiers dans l’ordre de ses visites** parmi ceux où il passe au moins 10 minutes ce jour-là.
+
+Le filtre **Platform spender status** du tableau de bord reprend cette définition : tu peux ainsi comparer le temps de jeu moyen de ces joueurs au seuil des 10 minutes. Les conditions exactes évoluent : vérifie la page officielle avant de t’y fier.
+</Info>
+
+## Améliorer sans dégrader l’expérience
+
+### Regarder plusieurs indicateurs à la fois
+
+Un changement de monétisation se juge **toujours** avec la rétention et l’engagement à côté. La documentation de Roblox recommande, après chaque mise à jour, de vérifier ensemble D1 et D7, la durée moyenne de session, puis conversion, ARPPU et revenus.
+
+Exemple **fictif** : tu affiches la boutique dès l’arrivée. La conversion passe de 2 % à 2,4 %, mais la D1 passe de 15 % à 11 %. Sur le moment, le revenu du jour monte ; mais chaque cohorte perd plus d’un quart de ses joueurs qui reviennent. Dans quelques semaines, tu auras moins de joueurs… donc moins de payeurs.
+
+### Lire les signaux de Roblox
+
+Quelques interprétations proposées par la documentation officielle :
+
+- **conversion faible** : objets trop chers, boutique peu visible, contenu peu attirant, ou étapes d’achat confuses ;
+- **ARPPU faible** : pas assez d’objets variés ou rachetables pour ceux qui aiment acheter ;
+- **ARPPU élevé mais ARPDAU faible** : les revenus viennent d’un petit groupe de joueurs ; élargis ton offre.
+
+<Astuce>
+Pour mesurer l’effet réel d’un changement de prix ou de boutique, le plus fiable est un test A/B avec les **Experiments** de Roblox : une partie des joueurs voit l’ancienne version, l’autre la nouvelle, au même moment. La documentation prévient que les jeux de moins de 1 000 DAU peuvent avoir du mal à obtenir des résultats exploitables : pour un petit jeu, compare plutôt des cohortes hebdomadaires avant et après.
+</Astuce>
+
+<Attention>
+Selon la documentation de Roblox, les joueurs de 13 ans et plus sont désormais majoritaires, mais une part importante du public a toujours moins de 13 ans. Ne cherche jamais à faire monter la conversion avec de la pression (faux comptes à rebours, achats déguisés, avantage payant qui rend le jeu frustrant sans payer). Le module 7 détaille les règles de Roblox et les bonnes pratiques d’une monétisation éthique ([Fixer ses prix et monétiser éthiquement](/modules/07/prix-et-ethique/)).
+</Attention>
+
+<Defi>
+Ouvre la page Monetization de ton jeu (ou, si tu n’as pas encore de ventes, invente une journée fictive). Relève DAU, payeurs et revenus sur une semaine, puis recalcule toi-même conversion, ARPPU et ARPDAU avec la calculatrice Luau à partir des **totaux** de la semaine. Compare tes résultats avec les chiffres du tableau de bord.
+</Defi>
+
+<Resume>
+- **Conversion** = payeurs du jour ÷ DAU × 100 ; **ARPPU** = revenu ÷ payeurs ; **ARPDAU** = revenu ÷ DAU.
+- **ARPDAU = conversion × ARPPU** : deux leviers, faire acheter plus de joueurs ou mieux servir ceux qui achètent.
+- Recalcule les moyennes à partir des totaux, jamais en faisant la moyenne de moyennes.
+- Utilise les pages par produit et le filtre Active payer status pour savoir ce qui se vend et à qui.
+- Les Premium Payouts ont été remplacés par les Creator Rewards (juillet 2025).
+- Juge chaque changement de monétisation avec la rétention et la durée de session à côté.
+</Resume>
+
+<Sources>
+- [Monetization — définitions des indicateurs et conseils (Roblox)](https://create.roblox.com/docs/production/analytics/monetization)
+- [Get started with analytics — segments de payeurs](https://create.roblox.com/docs/production/analytics/get-started)
+- [Analytics dashboard — filtres Active payer status et Platform spender status](https://create.roblox.com/docs/production/analytics/analytics-dashboard)
+- [Creator Rewards — Daily Engagement Rewards](https://create.roblox.com/docs/creator-rewards)
+- [Engagement-based payouts (déprécié)](https://create.roblox.com/docs/production/monetization/engagement-based-payouts)
+- [Experiments — tests A/B](https://create.roblox.com/docs/production/experiments)
+- [Roblox user base — le public de Roblox](https://create.roblox.com/docs/production/roblox-user-base)
+</Sources>

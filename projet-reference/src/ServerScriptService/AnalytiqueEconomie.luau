@@ -1,5 +1,5 @@
 -- ModuleScript « AnalytiqueEconomie » placé dans ServerScriptService
--- À appeler depuis le script serveur d'achat (modules 3 et 4), APRÈS un achat réussi.
+-- À appeler depuis le script serveur d'achat (modules 4 et 5), APRÈS un achat réussi.
 local AnalyticsService = game:GetService("AnalyticsService")
 
 local AnalytiqueEconomie = {}

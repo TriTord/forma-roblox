@@ -1,0 +1,159 @@
+---
+titre: Engagement et sessions
+description: "DAU, MAU, joueurs simultanés, durée de session, temps de jeu : apprends ce que mesure chaque chiffre d’engagement et comment repérer le moment où les joueurs décrochent."
+duree: 20
+objectifs:
+  - Lire la durée moyenne de session et le temps de jeu par joueur
+  - Comprendre DAU, MAU, le ratio DAU/MAU et les joueurs simultanés
+  - Utiliser les répartitions par appareil sans se tromper
+  - Repérer les moments où les nouveaux joueurs abandonnent
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Exemple fictif : en une journée, ton jeu totalise 6 000 minutes de jeu réparties en 400 sessions, jouées par 300 joueurs différents. Quelle est la durée moyenne de session ?"
+    options:
+      - texte: "15 minutes"
+        correct: true
+      - texte: "20 minutes"
+      - texte: "6,7 minutes"
+      - texte: "1,3 minute"
+    explication: "Durée moyenne de session = temps de jeu total ÷ nombre de sessions = 6 000 ÷ 400 = **15 minutes**. Le temps de jeu par joueur, lui, serait 6 000 ÷ 300 = 20 minutes : un joueur peut faire plusieurs sessions."
+  - type: vrai-faux
+    question: "Le DAU compte le nombre de joueurs présents dans ton jeu au même instant."
+    reponse: false
+    explication: "Le DAU (*daily active users*) compte les joueurs **uniques** qui ont rejoint le jeu au moins une fois **dans la journée**. Le nombre de joueurs présents au même instant, c’est le CCU (*concurrent users*)."
+  - type: qcm
+    question: "Exemple fictif : ton DAU moyen sur le mois est de 500 et ton MAU de 5 000. Que vaut le ratio DAU/MAU ?"
+    options:
+      - texte: "10 %"
+        correct: true
+      - texte: "1 000 %"
+      - texte: "50 %"
+      - texte: "4 500"
+    explication: "DAU/MAU = 500 ÷ 5 000 = 0,1, soit **10 %**. En moyenne, un joueur actif du mois est venu environ 3 jours sur 30. Plus ce ratio est haut, plus les joueurs reviennent souvent."
+  - type: vrai-faux
+    question: "Dans les répartitions par plateforme du tableau de bord, un même joueur peut être compté plusieurs fois s’il joue sur plusieurs appareils."
+    reponse: true
+    explication: "La documentation de Roblox le précise pour les répartitions **Platform** et **OS**. La somme des catégories peut donc dépasser le total."
+  - type: qcm
+    question: "Après une mise à jour du spawn, le graphique New User First Session Retention montre que beaucoup moins de nouveaux joueurs sont encore là après 5 minutes. Que vérifier en premier, selon les conseils de Roblox ? (plusieurs réponses possibles)"
+    options:
+      - texte: Les changements récents de l’onboarding (nouvelle étape, nouveau message)
+        correct: true
+      - texte: Les rapports d’erreurs et de performance depuis la mise à jour
+        correct: true
+      - texte: Le prix de tes Game Passes
+      - texte: La description de la page du jeu
+    explication: "Ce graphique parle de la **toute première session**. Roblox conseille de regarder les frictions ajoutées à l’onboarding et les rapports d’erreurs et de performance après la mise à jour."
+---
+
+La rétention (leçon 2) te dit si les joueurs **reviennent**. L’engagement te dit ce qu’ils font **pendant** qu’ils sont là : combien ils sont, combien de temps ils restent, sur quel appareil. Ces chiffres sont aussi ceux qui révèlent le plus vite un problème dans les premières minutes de jeu.
+
+## Combien de joueurs ? DAU, MAU et CCU
+
+### DAU : les joueurs actifs du jour
+
+Le **DAU** (*daily active users*, utilisateurs actifs quotidiens) est, selon la définition de Roblox, le **nombre de joueurs uniques qui ont rejoint le jeu au moins une fois dans la journée**. Un joueur qui vient trois fois dans la même journée compte pour 1.
+
+Dans la liste de suivi d’Analytics Home, Roblox affiche à côté les **New Users** : les joueurs du DAU qui jouent pour la **première fois**. Le rapport entre les deux te dit si ton audience du jour est faite surtout de nouveaux ou d’habitués.
+
+### MAU : les joueurs actifs du mois
+
+Le **MAU** (*monthly active users*) suit le même principe sur un mois : le nombre de joueurs uniques venus au moins une fois dans le mois. La documentation de Roblox le présente comme utile pour comparer de grandes périodes, par exemple ton événement d’Halloween de cette année avec celui de l’an dernier. La page **Demographics** (âge, pays, langue…) est d’ailleurs calculée sur les joueurs actifs du mois.
+
+### Le ratio DAU/MAU
+
+Le ratio **DAU/MAU** est un indicateur classique de l’industrie, souvent appelé « stickiness » (le fait de « coller » au jeu). Il n’est pas présenté comme un indicateur à part dans la documentation de Roblox, mais tu peux le calculer toi-même à partir de tes chiffres :
+
+> **DAU/MAU = DAU moyen du mois ÷ MAU du mois × 100**
+
+Exemple **fictif** : en octobre, l’Obby des Nuages a un DAU moyen de 1 200 et un MAU de 9 000. DAU/MAU = 1 200 ÷ 9 000 ≈ **13 %**. En moyenne, un joueur du mois est venu environ 4 jours sur 30 (0,13 × 30 ≈ 4).
+
+### CCU : les joueurs en même temps
+
+Le **CCU** (*concurrent users*, utilisateurs simultanés) est le nombre de joueurs présents **au même instant**. Dans la liste de suivi d’Analytics Home, le CCU fait partie des statistiques publiques affichées même pour un jeu dont tu n’as pas les analytics. Pour ton propre jeu, un graphique **Concurrent users** existe dans le tableau de bord **Performance**.
+
+Ne confonds pas CCU et DAU. Exemple **fictif** : un jeu peut avoir 1 200 DAU et seulement 60 joueurs simultanés au pic de la journée, parce que les visites sont réparties sur 24 heures et durent quelques minutes.
+
+<Erreur titre="Comparer le CCU d’un petit jeu à celui des géants">
+Le CCU des jeux les plus populaires n’a rien à voir avec celui d’un jeu qui démarre : s’y comparer décourage et n’apprend rien. Pour un jeu débutant, suis plutôt l’évolution de **ton** DAU, de **ta** durée de session et de **ta** rétention semaine après semaine.
+</Erreur>
+
+## Combien de temps ? Sessions et temps de jeu
+
+### La session
+
+Une **session**, c’est une visite : du moment où le joueur arrive dans ton jeu au moment où il le quitte. Un joueur qui revient le soir commence une deuxième session.
+
+### Durée moyenne de session
+
+Roblox la définit ainsi : **temps total passé par les joueurs dans ton jeu ÷ nombre de sessions**. La documentation la décrit comme une métrique clé, étroitement liée à la rétention, et la recommande, avec la D1, comme première chose à améliorer.
+
+### Temps de jeu par joueur
+
+Le **temps de jeu par joueur** répond à une autre question : combien de temps **chaque joueur** passe dans ton jeu, toutes sessions confondues. Tu peux le calculer toi-même : temps de jeu total ÷ nombre de joueurs (DAU). La documentation de Roblox cite aussi un indicateur **Average Playtime** (temps de jeu moyen) sur la page Engagement, sans en donner la formule exacte : survole l’icône d’information du graphique pour savoir comment il est calculé.
+
+### Exemple chiffré (fictif)
+
+Une journée **fictive** de l’Obby des Nuages :
+
+| Donnée | Valeur |
+|---|---|
+| Joueurs uniques (DAU) | 1 200 |
+| Nombre de sessions | 1 800 |
+| Temps de jeu total | 27 000 minutes |
+
+- Durée moyenne de session = 27 000 ÷ 1 800 = **15 minutes**.
+- Temps de jeu par joueur = 27 000 ÷ 1 200 = **22,5 minutes**.
+
+Le temps par joueur est plus élevé parce que certains joueurs sont venus deux fois. Si ta durée de session baisse alors que ton temps par joueur reste stable, tes joueurs font peut-être des visites plus courtes mais plus nombreuses : ce n’est pas forcément une mauvaise nouvelle.
+
+<Astuce>
+Une moyenne cache souvent deux populations : beaucoup de joueurs qui partent en une minute, et quelques fans qui restent une heure. Utilise **Breakdown by** pour séparer, par exemple, les joueurs par plateforme ou par **User engagement** (nombre de jours joués sur les 7 derniers : inactif, faible, moyen, élevé). Tu verras si ta moyenne « correcte » cache en réalité un début de partie raté.
+</Astuce>
+
+## Sur quels appareils ?
+
+Le bouton **Breakdown by** permet de découper un graphique par catégorie de joueurs (certaines catégories ne sont pas disponibles pour toutes les métriques). Au moment de la rédaction, la documentation cite notamment la plateforme (**Computer, phone, tablet, console, VR**), le système d’exploitation (Android, iOS, Windows, macOS, PlayStation…), l’âge, le pays, la langue et la source d’arrivée.
+
+Pourquoi c’est important pour un obby ? Si la durée de session est bien plus faible sur téléphone que sur ordinateur, tes sauts sont peut-être trop difficiles avec les contrôles tactiles, ou ton interface cache le bouton de saut. Le module 10 est entièrement consacré au mobile et aux performances (commence par [Penser mobile d’abord](/modules/10/penser-mobile-d-abord/)).
+
+<Info>
+Selon la documentation, un joueur qui utilise plusieurs appareils peut être compté **plusieurs fois** dans les répartitions par plateforme et par système d’exploitation. Additionner les catégories ne redonne donc pas forcément le total.
+</Info>
+
+## Repérer les points d’abandon
+
+### Le graphique de la première session
+
+La page Engagement contient un graphique précieux : **New User First Session Retention**. Il montre quelle part des nouveaux joueurs **joue encore X minutes** après être arrivée pour la première fois, et compare la période actuelle à la précédente.
+
+C’est le lien direct avec les **60 premières secondes** du module 6. Si la part des nouveaux joueurs encore présents après 5 minutes chute d’une semaine à l’autre, Roblox conseille de vérifier :
+
+1. les **frictions ajoutées à l’onboarding** par une mise à jour récente (nouvelle étape, nouveau message d’accueil…) ;
+2. les **rapports d’erreurs et de performance**, pour voir si la stabilité a changé depuis la mise à jour.
+
+### Quand vs où
+
+Ce graphique répond à la question **« quand ? »** (au bout de combien de minutes les joueurs partent). Il ne dit pas **« où ? »** (devant quel saut, quel écran). Pour ça, il faut instrumenter ton jeu avec un **entonnoir d’onboarding** : c’est l’objet de la leçon 5, où tu enverras un événement à chaque checkpoint franchi.
+
+<Defi>
+Ouvre la page Engagement de ton jeu. Note la durée moyenne de session globale, puis applique **Breakdown by → Platform**. Quelle plateforme a la durée de session la plus courte ? Écris une hypothèse qui pourrait l’expliquer (contrôles, interface, performances), et une façon de la vérifier en jouant toi-même sur cet appareil.
+</Defi>
+
+<Resume>
+- **DAU** : joueurs uniques venus au moins une fois dans la journée ; **New Users** : ceux qui viennent pour la première fois ; **MAU** : même principe sur un mois.
+- **DAU/MAU** (indicateur classique, à calculer toi-même) : plus il est élevé, plus les joueurs reviennent souvent.
+- **CCU** : joueurs présents au même instant, à ne pas confondre avec le DAU.
+- **Durée moyenne de session** = temps total ÷ nombre de sessions ; le temps de jeu par joueur divise par le nombre de joueurs.
+- Découpe par plateforme (attention aux doublons) et utilise **New User First Session Retention** pour savoir **quand** les nouveaux joueurs décrochent.
+</Resume>
+
+<Sources>
+- [Analytics — Analytics Home et définitions de la watchlist (DAU, New Users, Session Time)](https://create.roblox.com/docs/production/analytics)
+- [Engagement — durée moyenne de session et première session (Roblox)](https://create.roblox.com/docs/production/analytics/engagement)
+- [Get started with analytics — DAU, MAU, durée de session](https://create.roblox.com/docs/production/analytics/get-started)
+- [Analytics dashboard — filtres et répartitions (Breakdown by)](https://create.roblox.com/docs/production/analytics/analytics-dashboard)
+- [Performance — graphique Concurrent users](https://create.roblox.com/docs/production/analytics/performance)
+- [Demographics — données sur les joueurs actifs du mois](https://create.roblox.com/docs/production/analytics/demographics)
+</Sources>

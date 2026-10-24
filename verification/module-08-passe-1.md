@@ -1,101 +1,102 @@
-# Module 08 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
+# Module 07 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
 ## Résumé
-94 affirmations / éléments vérifiés, 11 corrigés ou reformulés (dont 3 compléments : méthode `GetPlayerSegmentsAsync`, effet des anciens joueurs sur l’entonnoir de progression, 2 sources en leçon 02), 0 supprimé.
-Quiz : 25 questions de leçon + 15 questions d’examen vérifiées (bonnes réponses, distracteurs, numéros de ligne des 4 `trouve-le-bug`, calculs) ; 1 question d’examen corrigée (base de calcul de la D1).
-Code : `node scripts/verifier-luau.mjs 08` → 9 extraits, 0 diagnostic (avant et après corrections) ; relecture d’exécution du script `AnalytiqueObby` (Script serveur dans ServerScriptService, `pcall`, `RunService:IsStudio()`, pas d’API dépréciée, cohérent avec la convention `leaderstats.Etape` = dernier checkpoint validé, 0 au départ, +1 seulement ; vérifié dans les modules 03, 04 et 06) ; 1 délai d’attente rallongé.
-Build : `bash scripts/build-verrou.sh` → code de sortie 0.
+94 affirmations vérifiées (5 leçons + examen), 11 corrigées ou reformulées, 0 supprimée ; quiz : 25 questions de leçon et 14 questions d'examen vérifiées, toutes justes (bonnes réponses, distracteurs et numéros de ligne des 5 `trouve-le-bug` contrôlés) ; code : `node scripts/verifier-luau.mjs 07` donne 10 extraits analysés et 1 seul diagnostic, le bug volontaire du quiz 5 de la leçon 03 (`player.GetJoinData()`). Build `bash scripts/build-verrou.sh` : code de sortie 0.
 
-Méthode : pages lues en direct avec WebFetch sur create.roblox.com (event-types, référence AnalyticsService, economy-events, retention, analytics-dashboard, creator-rewards). Pour le texte exact, j’ai aussi lu les fichiers sources officiels de ces pages et des autres (dépôt `Roblox/creator-docs`, branche `main`, `content/en-us/...`, y compris `AnalyticsService.yaml`). Toutes les URL de `<Sources>` répondent en 200, sauf la référence AnalyticsService : 502 avec curl (protection anti-robots), mais elle s’affiche avec WebFetch.
+Méthode : pages create.roblox.com ouvertes avec WebFetch, et sources YAML/MD du dépôt officiel github.com/Roblox/creator-docs (branche main) téléchargées pour l'API (`GroupService.yaml`, `Player.yaml`, `DataModel.yaml`, `CloseReason.yaml`, `production/promotion/index.md`, `experience-icons.md`, `thumbnails.md`).
 
 ## Détail
+
 | Leçon | Affirmation / élément | Verdict | Source | Commentaire |
 |---|---|---|---|---|
-| 01 | Éligibilité : plus de 10 DAU et 10 h de jeu pendant 7 jours consécutifs | OK | /production/analytics/analytics-dashboard | Citation exacte |
-| 01 | Activation : e-mail vérifié, vérification en 2 étapes, Terms of Use, bouton Activate Analytics ; jeux de groupe | OK | idem | |
-| 01 | Catégories Overview, Retention, Engagement, Acquisition, Demographics, Feedback, Monetization, Explore | OK | idem | Explore : graphiques personnalisés, formules, overlays |
-| 01 | Pages Economy / Funnel / Custom débloquées par les événements | OK | /event-types | |
-| 01 | Monitoring → Performance ; graphiques détaillés à partir de 100 DAU | OK | /performance | |
-| 01 | Analytics Home : watchlist de 9 jeux maximum | OK | /production/analytics | |
-| 01 | Seuils 100 DAU (benchmarks / insights) et 1 000 DAU (rapports IA) | REFORMULÉ | /production/analytics, /insights | Précision : « benchmark scorecards » (seuil de 100+ DAU dans la doc) |
-| 01 | Play through rate = % de joueurs ayant joué après avoir vu le jeu en recommandation | OK | /production/analytics | |
-| 01 | Plan en 3 étapes (D1 et durée de session d’abord, puis acquisition, puis suivi après chaque mise à jour) | OK | idem | |
-| 01 | Benchmarks : similaires → genre → toutes expériences ; 50e–90e percentile ; KPI concernés | OK | analytics-dashboard#benchmarking | |
-| 01 | Benchmarks non utilisés comme signal direct de découverte | OK | /production/analytics | Quiz 5 OK |
-| 01 | Baisse de rétention après afflux = « typical and temporary » | OK | /retention | Quiz 3 OK |
-| 01 | Experiments : tests A/B, impact causal ; jeux de moins de 1 000 DAU | OK | /production/experiments | |
-| 01 | Ligne « en pointillés » quand le taux de crash est bruité | OK | /performance | La doc dit « dashed line » |
-| 01 | Groupes de moins de 3 utilisateurs masqués (âge/genre) | OK | /demographics | |
-| 01 | Explore : période précédente superposée + moyenne mobile 7 jours | OK | analytics-dashboard#overlays-and-smoothing | |
-| 01 | Achievement panel : plus haut niveau depuis 6 mois | OK | /insights | |
-| 01 | « Les métriques montrent où regarder de plus près » | OK | /get-started | |
-| 01 | Calcul : 20 nouveaux joueurs → 1 joueur = 5 points | OK | calcul | |
-| 01 | Quiz 1 à 5 | OK | — | |
-| 02 | Axe X = date de première partie ; exemple 06/20 | OK | /retention (WebFetch) | |
-| 02 | D1 = le lendemain ; D7 = 8e jour (« Day 7 ») ; D30 = 31e jour (« Day 30 ») | OK | /retention | Citations exactes |
-| 02 | Données D7 visibles le 06/27, D30 le 07/20 | OK | /retention | Exemple 20/06 → 27/06 et 20/07 recalculé |
-| 02 | Encadré « exactement le jour N » : « une des raisons pour lesquelles D7 est nettement plus bas que D1 » | REFORMULÉ | /production/analytics, /acquisition | Lien de cause non sourcé, remplacé par un fait mathématique (le calcul strict donne des valeurs ≤ à la méthode cumulative). J’ai cité les définitions divergentes : Analytics Home (« played again after their first session ended ») et Acquisition (D7 « on the 8th day (D8) ») |
-| 02 | Exemple chiffré 400 → 60/16/4 = 15 %/4 %/1 % ; dates 2, 8 et 31 octobre | OK | calcul | |
-| 02 | Cohortes quotidiennes (10 jours) et hebdomadaires (10 semaines, lundi–dimanche) ; 7D playtime, 7D conversion, 7D/30D revenue | OK | /retention | |
-| 02 | D1 ↔ core loop / FTUE / performance ; plaisir en 5 minutes ou moins ; D7 ↔ progression ; D30 ↔ ending system, mises à jour toutes les 2–4 semaines / 2–3 mois, social | OK | /retention | |
-| 02 | Sources | CORRIGÉ | — | Ajout de /production/analytics et /production/analytics/acquisition (définitions citées dans l’encadré) |
-| 02 | Quiz 1 (30/200 = 15 %), quiz 2 à 5 | OK | — | |
-| 03 | DAU = « unique players who joined the game at least once in the given day » ; New Users ; Session Time | OK | /production/analytics | |
-| 03 | CCU parmi les statistiques publiques de la watchlist | OK | idem | |
-| 03 | MAU (exemple d’Halloween), Demographics calculées sur les MAU | OK | /get-started, /demographics | |
-| 03 | DAU/MAU non présenté comme KPI par Roblox | OK | recherche WebSearch sur create.roblox.com : aucun résultat | Présenté comme indicateur de l’industrie à calculer soi-même |
-| 03 | DAU/MAU 1 200 / 9 000 ≈ 13 % ≈ 4 jours sur 30 ; quiz 500/5 000 = 10 % ≈ 3 jours | OK | calcul | |
-| 03 | Durée moyenne de session = temps total ÷ sessions, « closely tied to retention » | OK | /engagement | |
-| 03 | Average Playtime, WAU, MAU sur la page Engagement | OK | /get-started | |
-| 03 | Exemple 27 000 / 1 800 = 15 min ; 27 000 / 1 200 = 22,5 min | OK | calcul | |
-| 03 | Breakdown : Platform (Computer, phone, tablet, console, VR), OS, doublons multi-appareils ; User engagement (0 / 1 / 2–3 / 4–7 jours) | OK | /analytics-dashboard | |
-| 03 | New User First Session Retention + 2 conseils | OK | /engagement | Quiz 5 OK |
-| 03 | Graphique Concurrent users (Performance) | OK | /performance | |
-| 03 | Quiz 1 (6 000/400 = 15 ; 6 000/300 = 20), quiz 2 à 5 | OK | — | |
-| 04 | Tableau Revenue / Conversion rate / Paying users / ARPPU / ARPDAU ; menu Monetization > Overview | OK | /monetization | Définitions exactes |
-| 04 | Divergence sur la définition de la conversion (/get-started : « percentage of all users ») | OK | /get-started | Signalée honnêtement dans la leçon |
-| 04 | « ARPDAU is a combination of payer conversion rate and ARPPU » ; ARPPU élevé + ARPDAU faible | OK | /monetization | |
-| 04 | Exemple 20/1 000 = 2 % ; 1 500/20 = 75 ; 1 500/1 000 = 1,5 ; 0,02 × 75 = 1,5 | OK | calcul | La sortie attendue de la calculatrice Luau a aussi été vérifiée |
-| 04 | Moyenne de moyennes : (200 + 600) ÷ 32 = 25 | OK | calcul | |
-| 04 | Conversion de 2 % à 2,4 %, D1 de 15 % à 11 % → « plus d’un quart » des joueurs qui reviennent perdus (4/15 = 26,7 %) | OK | calcul | |
-| 04 | Pages par produit (Developer Products, Passes, Avatar items, Subscriptions, Immersive ads, Creator rewards) | OK | /monetization | |
-| 04 | Mélange durables/consommables, gamme de prix, conseils conversion/ARPPU | OK | /monetization | |
-| 04 | Active payer status (Top 15 %, 35 %, 50 %, Lapsed 30 jours, Never, recalcul quotidien) ; « top 15 % ≈ 50 % des revenus » | OK | /analytics-dashboard, /get-started | |
-| 04 | Engagement-based payouts dépréciés le 24/07/2025, remplacés par Creator Rewards | OK | /engagement-based-payouts | |
-| 04 | Daily Engagement Rewards : « l’une des trois premières expériences qu’il lance ce jour-là » | CORRIGÉ | /creator-rewards (WebFetch) | Règle de la doc : « one of the first three an Active Spender plays for 10+ minutes » (l’exemple 1 de la doc le confirme). Définition d’Active Spender complétée : pas un New User ni un Reactivated User sur la période |
-| 04 | Filtre Platform spender status = même définition que Creator Rewards ; vérifier Average Playtime par rapport au seuil de 10 min | OK | /analytics-dashboard, /get-started | |
-| 04 | « une part importante de ses joueurs ont moins de 13 ans » | REFORMULÉ | /production/roblox-user-base | La doc dit qu’il y a désormais plus d’utilisateurs de 13 ans et plus que de moins de 13 ans |
-| 04 | Après chaque mise à jour : D1 et D7, durée de session, conversion, ARPPU, revenus | OK | /production/analytics | |
-| 04 | Quiz 1 à 5 (2,5 % ; 60 et 1,5 ; trouve-le-bug ligne 6 ; lignes numérotées vérifiées) | OK | — | |
-| 05 | Signatures des 5 méthodes `Log…` et des raccourcis Start/Complete/Fail | OK | référence API (WebFetch) + AnalyticsService.yaml | |
-| 05 | Méthodes `Fire…` (et la propriété `ApiKey`) dépréciées | OK | idem | |
-| 05 | « Voici les méthodes actuelles » (liste incomplète) | CORRIGÉ | référence API | Ajout d’une mention de `GetPlayerSegmentsAsync` (méthode de lecture, serveur uniquement), présente dans la référence |
-| 05 | `LogProgression…` : « does not currently display in any Roblox-provided charts » | OK | AnalyticsService.yaml | Quiz 5 OK |
-| 05 | Serveur uniquement, jeux publiés uniquement | OK | /funnel-events, /economy-events, /custom-events | |
-| 05 | Fonctionnalités gratuites ; pages Funnel / Economy / Explore débloquées | OK | /event-types, /custom-events | |
-| 05 | Étape répétée ignorée mais comptée dans la limite de débit ; étape sautée → étapes précédentes complétées ; 1re étape dans PlayerAdded ; expiration après 180 jours | OK | /funnel-events | |
-| 05 | funnelSessionId : inutile pour un entonnoir unique ; GUID pour une boutique ; 10 identifiants les plus récents ; `nil` → étapes répétées ignorées | OK | /funnel-events + yaml | |
-| 05 | Validation serveur des étapes envoyées par un RemoteEvent | OK | /funnel-events | |
-| 05 | Custom fields : 3, clés `CustomField01..03.Name`, autres clés ignorées, valeurs en chaînes, 8 000 combinaisons | OK | /custom-fields, page de l’enum | |
-| 05 | Exemple PlantSeed ; regroupement « 10 zombies » | OK | /custom-events | |
-| 05 | Limites : 120 + 20 × CCU par minute ; 10 entonnoirs ; 100 étapes ; 100 eventNames ; 20 transactionTypes / 100 SKU avant « Other » ; 90 jours ; remise à zéro quotidienne | OK | /event-types (WebFetch) | |
-| 05 | Monnaies : « très peu : 5 types par expérience selon la référence de l’API » | CORRIGÉ | /event-types (« Resource types : 10 ») ; référence API, paramètre `currencyType` (« Limited to 5 unique currency types per experience ») ; /economy-events (« up to five currencies ») | La contradiction de la doc est maintenant signalée dans la leçon, avec un conseil prudent : 5 au maximum |
-| 05 | Montant toujours positif, endingBalance ≥ 0, `.Name` de l’enum, 6 types de transaction | OK | /economy-events + yaml | Quiz 4 (trouve-le-bug, ligne 8) OK |
-| 05 | View Events (liste quasi en temps réel) ; graphiques en 24 h environ ; enregistrer après une opération réussie | OK | /event-types | |
-| 05 | Entonnoirs affichés par cohorte ; plage de dates à partir de la modification | OK | /funnel-events | |
-| 05 | Exemple de débit 120 + 20 × 10 = 320 ; 10 × (6 + 2) = 80 | OK | calcul | |
-| 05 | Entonnoir fictif : 96 %, 73 %, 60 %, 93 % ; 280/700 = 40 % ; morts à `Etape` 1 = passage CP1 → CP2 | OK | calcul + convention du fil rouge | |
-| 05 | « Au chargement de la sauvegarde, Etape peut sauter de 0 à 12 » | REFORMULÉ | module 04 (`creerLeaderstats` règle la valeur avant de rattacher l’objet au joueur) | Avec le code du module 04, ce saut n’arrive pas : le filtre « +1 exactement » devient une précaution, justifiée par la convention (+1 par checkpoint ou par « passer l’étape » du module 06) |
-| 05 | `WaitForChild("leaderstats", 15)` | CORRIGÉ | module 04 (3 tentatives avec attente de 2^n s) | Délai passé à 30 s : un chargement lent avec plusieurs tentatives pouvait dépasser 15 s et désactiver le suivi du joueur |
-| 05 | Encadré sur les anciens joueurs (entonnoir d’onboarding) | CORRIGÉ (complété) | /funnel-events (étape sautée) | Ajout : dans `ProgressionObby`, un ancien joueur qui atteint le checkpoint 10 valide d’un coup les étapes 1 à 9 |
-| 05 | Script : Script serveur, `pcall`, rien n’est envoyé dans Studio, `task.spawn`, `WaitForChild` avec délai, pas d’API dépréciée | OK | — | |
-| 05 | Quiz 1 à 5 | OK | — | |
-| Examen | Q1 (sources d’acquisition), Q2 (percentiles), Q4 (25/500 = 5 %, le 12/10 = jour 7), Q5, Q6, Q7, Q8, Q9 (0,04 × 50 = 2), Q11, Q12, Q15 (770 → 380 ≈ 51 % de départs) | OK | pages ci-dessus | |
-| Examen | Q3 : « une quinzaine de joueurs par jour » → D1 | CORRIGÉ | /retention | La D1 se calcule sur la cohorte des **nouveaux** joueurs : énoncé et explication précisés (1/15 ≈ 7 points ; 3/15 = 20 %, 4/15 ≈ 27 %) |
-| Examen | Q10, Q13, Q14 (trouve-le-bug) : un seul bug, numéros de ligne exacts | OK | yaml (étapes 1–100), /custom-fields | |
+| 01 | Game details à la 1re publication (icône, miniature, nom, genre, sous-genre, description) | OK | publish-games-and-places | |
+| 01 | « La doc explique que Roblox utilise le nom et la description pour comprendre le jeu » | REFORMULÉ | publish-games-and-places | La page Discovery ne le dit pas ; la page de publication dit que les mots-clés aident « players and Roblox to understand the themes and genres ». Texte aligné sur cette phrase et attribué à la bonne page. |
+| 01 | Nom stable, pas de répétition (demotion), emojis avec modération | OK | publish-games-and-places | |
+| 01 | Description : résumer dès la 1re phrase, mots-clés pertinents, bourrage = rétrogradation | OK | publish-games-and-places | |
+| 01 | « obby parkour tycoon… » = « exactement l'exemple » de la doc | REFORMULÉ | publish-games-and-places | L'exemple officiel est « Play our fun granny obby game. Obby obby… » suivi de noms de jeux. Remplacé par « le même type de description ». |
+| 01 | Guide descriptions expérimental (~160 caractères, structure en 4 parties, hashtags déconseillés, contrôles, tous âges, visible sur mobile) | OK | descriptions | Page bien marquée « experimental and only meant for select creators ». |
+| 01 | Genre : changement une fois tous les 3 mois, correction par Roblox (e-mail, appel), Charts, boucle principale, Classic Obby | OK | experience-genres | |
+| 01 | « Genre et maturité sont deux choses séparées » | OK | content-maturity | La page maturité le dit (descripteurs vs genres). |
+| 01 | Questionnaire Maturity & Compliance, chemin Publish settings > Content rating, descripteurs, conformité régionale | OK | content-maturity | |
+| 01 | Tableau des labels (Minimal/Mild → Kids, Select, 16+ ; Moderate → Select, 16+ ; Restricted → 18+ vérifié ; Content May Vary → 16+ vérifié) | OK | content-maturity + kids-and-select | « Roblox (16+) allows all rated content except Restricted ». |
+| 01 | Répondre selon le contenu le plus extrême, refaire après mise à jour, UGC avatar exclu, sanctions | OK | content-maturity | |
+| 01 | Comptes Kids (5-8), Select (9-15), Roblox (16+ vérifié) | OK | kids-and-select | Select = aussi « 9+ auto-déclaré tant que l'âge n'est pas vérifié » ; simplification acceptable. |
+| 01 | Conditions 16+ (2 jours, vérif d'âge, 1re question → Content May Vary) | OK | publish-games-and-places | Citation : « answer No… Content May Vary… only to age-checked users 16+ ». |
+| 01 | Conditions tous âges (vérif, 2FA, Plus/Premium 2 mois ou 1 000 Robux, questionnaire complet, évaluation) | OK | publish-games-and-places + kids-and-select | |
+| 01 | Seuil d'évaluation 250 parties uniques de joueurs très engagés, 60 jours | OK + complété | kids-and-select ; DevForum 4685717 (16 juin 2026) ; DevForum 4820164 (19 août 2026) | Contradiction tranchée : 500 (annonce de juin, confirmé le 16 juillet) puis 250 depuis le 19 août 2026 (annonce staff RbxRocketMan), chiffre repris par la doc actuelle. Historique ajouté dans l'encadré « Des règles qui bougent vite ». |
+| 01 | Remboursement des 1 000 Robux | REFORMULÉ (ajout prudent) | publish-games-and-places ; kids-and-select | Divergence documentée entre les deux pages officielles (25 HEP pendant 60 jours vs remboursement automatique 90 jours après l'éligibilité) : les deux versions sont citées, avec renvoi aux pages officielles. |
+| 01 | Frais d'examen accéléré 50 000 vs 100 000 Robux | NON REPRIS (volontaire) | kids-and-select (50 000) ; DevForum juin 2026 (100 000) | La leçon ne parle pas de l'examen accéléré ; rien à corriger. La doc actuelle indique 50 000. |
+| 01 | Community Standards « Repetitive and Misleading Content » (métadonnées trompeuses, « confusingly similar », duplication, jeux pour sortir de Roblox) ; liens externes via Social Links seulement | OK | about.roblox.com/community-standards | |
+| 01 | Discovery : récompense monétaire non prioritaire, exemple dinosaures, jeux non uniques, first play bounce rate parmi les signaux les plus importants | OK | discovery | |
+| 01 | Pas de langage fort dans les métadonnées, même avec le réglage activé | OK | configure-games | Source ajoutée dans `<Sources>`. |
+| 01 | Sources | CORRIGÉ | — | Ajout de l'annonce DevForum du 19 août 2026 et de configure-games. Tous les liens ouverts. |
+| 02 | Icône carrée ≥ 512×512, réduite à 150×150, une par langue, modération, chemin Configurations > Places > lieu de départ > Icon, 3 bonnes pratiques, icône générée par défaut | OK | experience-icons | |
+| 02 | Miniatures 16:9, 1920×1080, jpg/gif/png/tga/bmp, 10 max, 3 vidéos/mois, étirement, bas de l'image, onglets Home Page / Experience Detail Page, Videos | OK | thumbnails | |
+| 02 | Vidéo en premier ; refusée compte dans le quota ; listes autorisé / interdit | OK | thumbnails | |
+| 02 | Caméra libre Maj gauche + P en test solo | OK | thumbnails | |
+| 02 | Thumbnail personalization : 2 à 5 actives, < 3 Mo, ≤ 1920×1080, Edit active thumbnails / Save / Start, algorithme, +8,5 % en moyenne (présenté comme non garanti) | OK | thumbnails | |
+| 02 | Colonnes du tableau Thumbnail Performance | REFORMULÉ | thumbnails | Ajout de « notamment » (le tableau a aussi Status et Winning Segment). |
+| 02 | Garder plusieurs miniatures actives, tester à chaque grosse mise à jour | OK | thumbnails | |
+| 02 | Miniature personnalisée obligatoire pour les recommandations Home | OK | discovery | |
+| 02 | Pas d'outil officiel d'A/B test d'icônes | OK | DevForum 3274267 | Demande de fonctionnalité (nov. 2024), réponses jusqu'en juillet 2026, aucune réponse staff ; aucune annonce de lancement trouvée. |
+| 02 | Experiments : valeurs de config, 14-60 jours, difficile sous 1 000 DAU | OK | experiments | |
+| 02 | Play through rate et bounce rate au même niveau de priorité | OK | discovery | |
+| 03 | Early testers : 10 amis d'âge proche / trusted friends, File > Invite early testers, filigrane | OK | publish-games-and-places | |
+| 03 | Manage Audience (Friends) ; Exclude from recommendations dans Audience > Advanced Settings | OK | publish-games-and-places | |
+| 03 | Share links (onglet Share Links, analytics par lien, LaunchData) | OK | share-links | |
+| 03 | Invitations en jeu via SocialService | OK | invite-prompts | |
+| 03 | Autres sources accélèrent, classement RFY seulement sur joueurs organiques | OK | discovery | |
+| 03 | « Running ads does not affect RFY ranking » ; jeux non uniques → aucune dépense | OK | ads-manager | |
+| 03 | Accès Ads Manager « rubrique Advertise » | REFORMULÉ | ads-manager | La doc renvoie au portail create.roblox.com/advertise ; pas de « rubrique Advertise » décrite. |
+| 03 | 13+ et e-mail vérifié ; carte 18+ ; crédits dès 13 ans, irréversibles | OK | ads-manager | |
+| 03 | Objectifs Plays / Earnings (Limited) / Engagement | OK | ads-manager ; DevForum 4685717 | |
+| 03 | Audiences récentes / parties | CORRIGÉ (précisé) | ads-manager | Ajout des seuils officiels : 10 000 joueurs récents, 20 000 joueurs partis. |
+| 03 | Auto-bidding, budget quotidien / total, 10 miniatures, Home + recherche automatique | OK | ads-manager | « automatically shown on both the Home page and in search results ». |
+| 03 | Modération < 24 h, annulation jusqu'à 6 h avant | OK | ads-manager | |
+| 03 | Attribution 30 jours, données 48 h | OK | ads-manager | |
+| 03 | Remboursement du trafic frauduleux | CORRIGÉ (précisé) | ads-manager | Ajout des délais officiels (analyse à J+14, remboursement à J+16). |
+| 03 | 3-5 jours puis améliorer l'onboarding ; « la plupart des campagnes ont besoin de plusieurs jours » | OK | ads-manager | « Most campaigns require several days to produce meaningful results. » |
+| 03 | Comparaison des visuels par campagne | OK | ads-manager | « breakdown of your metrics at the asset level ». |
+| 03 | LaunchData visible dans l'URL, récompense cosmétique | OK | ads-manager | |
+| 03 | `Player:GetJoinData().LaunchData` de type string | OK | Player.yaml (creator-docs) | |
+| 03 | Exemple 20 $ / 400 parties | OK | — | Calcul pédagogique, présenté comme tel. |
+| 03 | Encadré « Aucune garantie » | OK | — | Aucune promesse de succès dans la leçon. |
+| 04 | 4 types de mises à jour LiveOps | OK | liveops-essentials | |
+| 04 | Cadence 2 semaines à 1 mois, < 3 semaines d'effort, réutiliser les systèmes | OK | content-updates | |
+| 04 | « What you do » influence les signaux | OK | discovery | |
+| 04 | Publier ne migre pas les joueurs ; redémarrer si le format de données change | OK | update-games | |
+| 04 | Configurations > Server management > Restart Servers ; « outdated versions » recommandé ; délai 1-60 min | OK | update-games | |
+| 04 | « Roblox arrête d'envoyer de nouveaux joueurs vers ces serveurs » | REFORMULÉ | update-games | Seul le matchmaking via Jouer est arrêté ; invitations, téléportations et profils d'amis restent possibles. |
+| 04 | Téléportation groupée vers le même nouveau serveur | OK | update-games | |
+| 04 | `DataModel.ServerRestartScheduled(restartTime: DateTime, source: CloseReason, attributes: Dictionary)`, DeveloperUpdate / RobloxMaintenance, non déprécié | OK | DataModel.yaml + CloseReason.yaml | « The actual restart may happen slightly after this projected time, but not before » : cohérent avec « l'heure la plus proche ». `deprecation_message: ''`. |
+| 04 | Code serveur et client (compte à rebours, SetCore protégé par pcall) | OK | — | luau-lsp sans diagnostic ; bon emplacement, WaitForChild côté client, pas d'API dépréciée. |
+| 04 | Configs / ConfigService sans publier ni redémarrer ; contenu caché derrière une config | OK | configs ; update-games | |
+| 04 | Events & Updates : chemin, bouton, champs, privé / public, max 10, Join Event / Notify Me, page partageable, onglet Events du groupe | OK | experience-events | |
+| 04 | Trending Events (7 jours, 1 000 RSVP, public) | OK | experience-events | |
+| 04 | Off-Platform Featuring (13+, 7 jours avant) | CORRIGÉ (précisé) | experience-events | Ajout de l'e-mail lié et de l'option « Submit for Featuring ». |
+| 04 | Annonces de mise à jour : 60 caractères, une tous les 3 jours, joueurs ayant activé les notifications, être précis | OK | experience-events | |
+| 04 | Notifications : pas de pub déguisée ni de fausse urgence | OK | experience-notifications | |
+| 05 | Groups → Communities (21 nov. 2024), « Groups » conservé dans le Creator Hub | OK | DevForum 3268307 (staff) | Le nom des API (`GroupService`) est un fait constaté dans la référence API, pas dans l'annonce. |
+| 05 | Groupe à 100 Robux, 3 liens sociaux, Roblox n'arbitre pas, permissions, 2FA pour certaines permissions | OK | groups | |
+| 05 | Recommandations pour la page de communauté (nom du studio, visuels, liens sociaux) | OK | promotion (index.md, section Communities) | Vérifié dans le source du dépôt (le rendu WebFetch tronquait la page). |
+| 05 | Forums pour tous (21 août 2025), 13+ connectés ; murs en lecture seule le 1er déc. 2025 ; suppression | CORRIGÉ (précisé) | DevForum 3892463 | Précisé « suppression complète annoncée pour début 2026, messages non transférés vers les forums ». La suppression effective n'est confirmée que par des médias tiers, d'où la formulation « annoncée ». |
+| 05 | Blocked Words, Verified Joins, bans, rôles | OK | DevForum 3892463 ; groups | |
+| 05 | Social Links : 16+ vérifié pour ajouter et voir, 3 max, Engagement > Social Links, pas de lien en jeu, exemples | OK | social-media-links ; Community Standards | |
+| 05 | Discord : 13 ans minimum, plus dans certains pays (jusqu'à 16) | OK | support.discord.com 360040724612 | Page en 403 pour WebFetch ; contenu confirmé par l'extrait indexé (13 ans par défaut, 14-15 ou 16 selon les pays). |
+| 05 | Tableau Feedback (Audience > Feedback) | OK | feedback | |
+| 05 | « La raison derrière la suggestion compte plus » | OK | liveops-essentials | « Even more important than players' specific suggestions is the reasoning behind them. » |
+| 05 | `GroupService:GetRolesInGroupAsync(userId, groupId)` → `{IsMember, Roles = {Id, Name, Rank}}` | OK | GroupService.yaml | Existe, non dépréciée, renvoie seulement les rôles publics (rôles triés du plus haut au plus bas). |
+| 05 | Dépréciation de `Player:GetRankInGroupAsync` / `GetRoleInGroupAsync` | OK + complété | Player.yaml | Messages officiels : « returns only the member's highest public role. Use GroupService:GetRolesInGroupAsync() ». Ajout de la mention des méthodes historiques `Player:GetRankInGroup` / `GetRoleInGroup`, elles aussi dépréciées. |
+| 05 | Cache des résultats « visible seulement à la prochaine connexion » | REFORMULÉ | GroupService.yaml | La doc parle d'un cache par utilisateur et par groupe, valable jusqu'à expiration. Texte corrigé, et précision que seuls les rôles publics sont renvoyés. |
+| 05 | Code `GetRolesInGroupAsync` (pcall + vérification de `ok`, `Roles` vide pour un simple membre → « Membre ») | OK | — | Comportement conforme : `Roles` est vide si l'utilisateur n'a pas de rôle autre que le rôle de base. |
+| Quiz 01 | 5 questions | OK | cf. ci-dessus | |
+| Quiz 02 | 5 questions | OK | thumbnails, experience-icons, DevForum 3274267 | |
+| Quiz 03 | 5 questions, `trouve-le-bug` (ligne 4, `.` au lieu de `:`) | OK | Player.yaml | Ligne 10 = `Players.PlayerAdded:Connect(...)` : numérotation juste ; seul diagnostic luau-lsp = le bug voulu. |
+| Quiz 04 | 5 questions, `trouve-le-bug` (ligne 5, `DateTime - number`) | OK | DataModel.yaml | |
+| Quiz 05 | 5 questions, `trouve-le-bug` (ligne 9, `ok` non vérifié) | OK | — | |
+| Examen | 14 questions, 2 `trouve-le-bug` (ligne 3 `LocalPlayer` côté serveur ; ligne 5 `~= nil`) | OK | — | Numéros de ligne vérifiés ; un seul bug par extrait ; distracteurs faux (ex. itération généralisée Luau sans `pairs`). |
 
 ## Erreurs restantes non corrigées
-Aucune erreur restante.
-- Contradiction de la doc officielle sur le nombre de monnaies (5 ou 10) : elle ne peut pas être tranchée ; la leçon la signale en citant les deux pages.
-- La référence AnalyticsService renvoie 502 à curl, mais elle s’affiche avec WebFetch : le lien est conservé.
-- Hors module (pour info) : le module 00 (leçon 04) parle d’un tableau « Home Recommendations » du Creator Dashboard, à vérifier par son vérificateur.
+- Aucune erreur factuelle connue.
+- Point à surveiller : les règles Kids & Select (seuil d'entrée, remboursement des frais de 1 000 Robux, examen accéléré) ont changé quatre fois entre juin et août 2026, et les deux pages officielles se contredisent encore sur le remboursement. Les deux versions sont citées dans la leçon 01, qui renvoie aux pages officielles. À revérifier à chaque mise à jour du site.
+- La suppression effective des murs de communauté (prévue début 2026) n'est confirmée que par des médias tiers : la leçon garde la formulation « annoncée ».

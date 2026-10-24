@@ -1,0 +1,431 @@
+---
+titre: Instrumenter son jeu avec AnalyticsService
+description: Envoie tes propres événements depuis le serveur avec AnalyticsService et construis l’entonnoir d’onboarding et de progression de l’Obby des Nuages, checkpoint par checkpoint.
+duree: 35
+objectifs:
+  - Envoyer des événements d’entonnoir, d’économie et personnalisés depuis le serveur
+  - Construire l’entonnoir d’onboarding et de progression de l’Obby des Nuages
+  - Respecter les limites de cardinalité et de débit d’AnalyticsService
+  - Prendre une décision de game design à partir d’un entonnoir
+miseAJour: 2026-10-24
+quiz:
+  - type: vrai-faux
+    question: "Un LocalScript peut appeler `AnalyticsService:LogOnboardingFunnelStepEvent` pour enregistrer une étape franchie par le joueur."
+    reponse: false
+    explication: "Selon la documentation de Roblox, ces événements ne peuvent être envoyés **que depuis le serveur**, et seulement dans un jeu **publié** (ni depuis le client, ni depuis Studio). Si l’information vient de l’interface, le client prévient le serveur par un RemoteEvent, et le serveur valide avant d’enregistrer."
+  - type: qcm
+    question: "Dans un entonnoir de 5 étapes, tu enregistres l’étape 4 pour un joueur alors que les étapes 2 et 3 n’ont jamais été envoyées. Que fait Roblox ?"
+    options:
+      - texte: Il ignore l’étape 4
+      - texte: Il considère les étapes 2 et 3 comme franchies
+        correct: true
+      - texte: Il affiche une erreur dans l’Output
+      - texte: Il crée un nouvel entonnoir
+    explication: "La documentation est claire : si une étape est sautée, les étapes précédentes sont **automatiquement considérées comme terminées**. C’est pratique, mais cela impose de numéroter les étapes dans l’ordre réel du jeu."
+  - type: qcm
+    question: "Tu veux savoir à quelle étape de l’obby les joueurs meurent le plus. Quelle approche respecte le mieux les limites d’AnalyticsService ?"
+    options:
+      - texte: Un événement personnalisé différent par étape (`MortEtape1`, `MortEtape2`…)
+      - texte: Un seul événement `Mort` avec l’étape dans un custom field (`"Etape 4"`)
+        correct: true
+      - texte: Un événement d’économie avec la monnaie `Morts`
+    explication: "Roblox recommande d’utiliser les **custom fields** plutôt que de multiplier les noms d’événements, car la limite sur les noms d’événements personnalisés (100) est bien plus stricte que celle des combinaisons de custom fields (8 000). Tu gardes un seul événement, découpable par étape."
+  - type: trouve-le-bug
+    question: "Cette fonction (Script serveur) enregistre l’achat d’une traînée avec des pièces, après validation. Où est le bug ?"
+    code: |
+      local AnalyticsService = game:GetService("AnalyticsService")
+
+      local function journaliserAchat(player: Player, idObjet: string, prix: number, solde: number)
+      	AnalyticsService:LogEconomyEvent(
+      		player,
+      		Enum.AnalyticsEconomyFlowType.Sink,
+      		"Pieces",
+      		-prix,
+      		solde,
+      		Enum.AnalyticsEconomyTransactionType.Shop.Name,
+      		idObjet
+      	)
+      end
+    options:
+      - texte: "Ligne 6 : un achat est une `Source`, pas un `Sink`"
+      - texte: "Ligne 8 : le montant doit toujours être **positif**, même pour une dépense"
+        correct: true
+      - texte: "Ligne 10 : il faut passer l’Enum lui-même, pas son `.Name`"
+      - texte: "Ligne 1 : AnalyticsService ne s’obtient pas avec `GetService`"
+    explication: "La documentation précise que le montant est **toujours positif**, que l’événement soit une source ou une dépense : c’est `Sink` qui indique le sens, et les graphiques affichent les dépenses en négatif d’eux-mêmes. Le type de transaction est bien une chaîne, d’où `.Name`."
+  - type: vrai-faux
+    question: "Dans l’Obby des Nuages, `LogProgressionEvent` est le meilleur choix pour voir, dans un graphique de Roblox, combien de joueurs atteignent chaque checkpoint."
+    reponse: false
+    explication: "Au moment de la rédaction, la référence de l’API indique que les événements de progression **ne s’affichent dans aucun graphique fourni par Roblox**. Pour visualiser la progression, on utilise un **entonnoir** (`LogFunnelStepEvent` ou `LogOnboardingFunnelStepEvent`)."
+---
+
+Le tableau de bord te dit **quand** les nouveaux joueurs partent (leçon 3). Il ne sait pas **où** : devant quel saut, avant quel checkpoint. Pour le savoir, tu vas instrumenter ton jeu, c’est-à-dire lui faire envoyer des événements à Roblox à chaque moment important. Objectif de la leçon : l’entonnoir d’onboarding et de progression de l’Obby des Nuages, envoyé **depuis le serveur**.
+
+## AnalyticsService en bref
+
+`AnalyticsService` est le service qui envoie tes propres événements au tableau de bord. Ces fonctionnalités sont **gratuites**, selon la documentation. Une fois tes premiers événements reçus, de nouvelles pages apparaissent dans tes analytics : **Funnel**, **Economy** et, pour les événements personnalisés, la page **Explore**.
+
+### Les méthodes à connaître
+
+Voici les méthodes actuelles d’après la référence officielle de l’API (au moment de la rédaction) :
+
+| Méthode | Paramètres principaux | À quoi ça sert |
+|---|---|---|
+| `LogOnboardingFunnelStepEvent` | `player, step, stepName, customFields` | Entonnoir d’**onboarding** : étapes vécues une seule fois par joueur |
+| `LogFunnelStepEvent` | `player, funnelName, funnelSessionId, step, stepName, customFields` | **Autres entonnoirs** (progression, boutique…), uniques ou répétables |
+| `LogEconomyEvent` | `player, flowType, currencyType, amount, endingBalance, transactionType, itemSku, customFields` | **Économie** du jeu : pièces gagnées (sources) et dépensées (sinks) |
+| `LogCustomEvent` | `player, eventName, value, customFields` | **Événement personnalisé** : compteur ou valeur (par défaut, `value` vaut 1) |
+| `LogProgressionEvent` (et ses raccourcis `LogProgressionStartEvent`, `…CompleteEvent`, `…FailEvent`) | `player, progressionPathName, status, level, levelName, customFields` | Début, réussite ou échec d’un niveau |
+
+<Info titre="Méthodes dépréciées et progression">
+Les anciennes méthodes `FireEvent`, `FireCustomEvent`, `FireInGameEconomyEvent`, `FirePlayerProgressionEvent` et `FireLogEvent` sont **dépréciées** : ne les utilise pas. Quant aux méthodes `LogProgression…`, la référence de l’API précise qu’elles **ne s’affichent actuellement dans aucun graphique fourni par Roblox**. Pour visualiser la progression de ton obby, on utilisera donc un entonnoir.
+
+Le service propose aussi une méthode de **lecture**, `GetPlayerSegmentsAsync` (serveur uniquement), qui renvoie le segment d’un joueur (statut de payeur, date de première partie…) pour adapter le jeu. Elle sort du cadre de cette leçon.
+</Info>
+
+### Les règles d’or
+
+1. **Serveur uniquement, jeu publié uniquement.** La documentation est formelle : les événements ne peuvent pas être envoyés depuis le client ni depuis Studio.
+2. **Enregistre après la réussite.** Un achat s’enregistre une fois validé et appliqué, pas au moment où le joueur clique (l’achat peut échouer).
+3. **Des noms stables et lisibles.** Choisis une fois pour toutes tes noms d’étapes et d’événements, et garde-les.
+4. **Des valeurs venues du serveur.** Comme au module 4 : on ne fait jamais confiance au client, ni pour les pièces… ni pour les statistiques.
+
+## Concevoir l’entonnoir de l’Obby des Nuages
+
+Un **entonnoir** (*funnel*) est une suite d’étapes que les joueurs franchissent dans l’ordre. À chaque étape, certains abandonnent : l’entonnoir montre combien il en reste et où la « fuite » est la plus forte.
+
+Pour l’Obby des Nuages, on construit **deux** entonnoirs :
+
+**Entonnoir d’onboarding** (les 60 premières secondes du module 6), une seule fois par joueur :
+
+| Étape | Nom | Déclencheur côté serveur |
+|---|---|---|
+| 1 | Arrivée | `Players.PlayerAdded` |
+| 2 | Personnage apparu | premier `CharacterAdded` |
+| 3 | Checkpoint 1 | `Etape` passe à 1 |
+| 4 | Checkpoint 2 | `Etape` passe à 2 |
+| 5 | Checkpoint 3 | `Etape` passe à 3 |
+
+**Entonnoir de progression** `ProgressionObby` : une étape par checkpoint de tout le parcours (étape 1 = checkpoint 1, étape 2 = checkpoint 2, etc.).
+
+Pourquoi l’étape « Personnage apparu » ? Parce qu’entre l’arrivée et le premier saut, il y a le chargement. Si beaucoup de joueurs partent entre les étapes 1 et 2, le problème vient sans doute du chargement plutôt que de la difficulté (module 10).
+
+<Erreur titre="Numéroter dans le désordre">
+Si une étape est sautée, Roblox considère les étapes précédentes comme **franchies**. Imagine que l’étape 3 soit « première pièce ramassée » et l’étape 4 « checkpoint 1 » : un joueur qui file au checkpoint sans ramasser de pièce validerait quand même l’étape 3 ! Ne mets dans un entonnoir que des étapes qui arrivent **toujours dans le même ordre**. Les pièces, elles, iront dans un autre type d’événement.
+</Erreur>
+
+## Premier pas : l’arrivée du joueur
+
+Les entonnoirs commencent à la première étape enregistrée. Pour démarrer dès l’arrivée, la documentation conseille d’enregistrer l’étape 1 dans `PlayerAdded` :
+
+```luau
+-- Script placé dans ServerScriptService (exemple minimal :
+-- le script complet plus bas le remplace, ne garde pas les deux)
+local AnalyticsService = game:GetService("AnalyticsService")
+local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player)
+	-- Étape 1 de l'entonnoir d'onboarding : le joueur vient d'arriver
+	AnalyticsService:LogOnboardingFunnelStepEvent(player, 1, "Arrivée")
+end)
+```
+
+Deux règles officielles rendent ce code simple :
+
+- **Étape répétée = ignorée.** Si un joueur revient demain, son « étape 1 » est enregistrée à nouveau mais l’entonnoir ne garde que la **première** fois (l’envoi compte quand même dans la limite de débit).
+- **Mémoire de 180 jours.** Si un joueur n’envoie aucun événement pour un entonnoir pendant plus de 180 jours, son étape enregistrée expire : s’il revient, il compte comme un nouveau joueur dans cet entonnoir.
+
+## Le script complet de l’Obby des Nuages
+
+Plutôt que de modifier tes scripts de checkpoints, on crée un script **à part** qui **écoute** la valeur `leaderstats.Etape`. Cette valeur n’est modifiée que par le serveur, après validation (module 4), et elle est chargée depuis la sauvegarde (module 5) : c’est une source fiable.
+
+Une précaution : selon la façon dont ta sauvegarde est chargée (par exemple si un script crée `Etape` à 0 puis y recopie la valeur sauvegardée), `Etape` peut sauter d’un coup de 0 à 12. Ce n’est pas une progression ! Comme `Etape` n’augmente normalement que de 1 à la fois (checkpoint suivant ou « passer l’étape » du module 7), on ne retient que les augmentations d’**exactement 1**.
+
+```luau
+-- Script « AnalytiqueObby » placé dans ServerScriptService (serveur uniquement).
+-- Il écoute leaderstats.Etape (modifiée seulement par le serveur, modules 4 et 5)
+-- et envoie les événements d'analytics de l'Obby des Nuages.
+local AnalyticsService = game:GetService("AnalyticsService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Entonnoir d'onboarding : les 60 premières secondes (module 6)
+local ETAPES_ONBOARDING = {
+	[1] = "Arrivée",
+	[2] = "Personnage apparu",
+	[3] = "Checkpoint 1",
+	[4] = "Checkpoint 2",
+	[5] = "Checkpoint 3",
+}
+local DECALAGE_CHECKPOINTS = 2 -- le checkpoint 1 correspond à l'étape 3 de l'onboarding
+local DERNIER_CHECKPOINT_ONBOARDING = 3
+
+-- Entonnoir de progression : une étape par checkpoint (100 étapes maximum)
+local ENTONNOIR_PROGRESSION = "ProgressionObby"
+local ETAPE_MAX_ENTONNOIR = 100
+
+-- Clé du premier custom field (les valeurs doivent être des chaînes)
+local CHAMP_ETAPE = Enum.AnalyticsCustomFieldKeys.CustomField01.Name
+
+-- Envoie un événement en le protégeant : une erreur d'analytics
+-- ne doit jamais casser le gameplay. Dans Studio, rien n'est envoyé :
+-- on affiche simplement l'événement dans l'Output pour tester la logique.
+local function envoyer(description: string, envoi: () -> ())
+	if RunService:IsStudio() then
+		print("[Analytics, test Studio] " .. description)
+		return
+	end
+	local ok, erreur = pcall(envoi)
+	if not ok then
+		warn("[Analytics] échec de « " .. description .. " » : " .. tostring(erreur))
+	end
+end
+
+local function etapeOnboarding(player: Player, numero: number)
+	local nom = ETAPES_ONBOARDING[numero]
+	envoyer(player.Name .. " → onboarding " .. numero .. " (" .. nom .. ")", function()
+		AnalyticsService:LogOnboardingFunnelStepEvent(player, numero, nom)
+	end)
+end
+
+-- Lit l'étape actuelle du joueur sans jamais provoquer d'erreur
+local function lireEtape(player: Player): number
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local etape = if leaderstats then leaderstats:FindFirstChild("Etape") else nil
+	if etape and etape:IsA("IntValue") then
+		return etape.Value
+	end
+	return 0
+end
+
+-- Suit les checkpoints franchis
+local function suivreEtape(player: Player, etape: IntValue, heureArrivee: number)
+	local ancienneValeur = etape.Value
+
+	etape.Changed:Connect(function(nouvelleValeur: number)
+		-- Seule une hausse d'exactement 1 est une vraie progression
+		-- (un saut de plusieurs étapes, par exemple au chargement d'une sauvegarde, est ignoré)
+		local estUneProgression = nouvelleValeur == ancienneValeur + 1
+		ancienneValeur = nouvelleValeur
+		if not estUneProgression then
+			return
+		end
+
+		-- 1. Onboarding : checkpoints 1 à 3 = étapes 3 à 5
+		if nouvelleValeur >= 1 and nouvelleValeur <= DERNIER_CHECKPOINT_ONBOARDING then
+			etapeOnboarding(player, nouvelleValeur + DECALAGE_CHECKPOINTS)
+		end
+
+		-- 2. Progression : entonnoir unique par joueur (funnelSessionId = nil)
+		if nouvelleValeur >= 1 and nouvelleValeur <= ETAPE_MAX_ENTONNOIR then
+			envoyer(player.Name .. " → progression checkpoint " .. nouvelleValeur, function()
+				AnalyticsService:LogFunnelStepEvent(
+					player,
+					ENTONNOIR_PROGRESSION,
+					nil, -- pas de session : chaque étape compte une seule fois par joueur
+					nouvelleValeur,
+					"Checkpoint " .. nouvelleValeur
+				)
+			end)
+		end
+
+		-- 3. Temps mis pour atteindre le premier checkpoint (événement avec valeur)
+		if nouvelleValeur == 1 then
+			local secondes = os.time() - heureArrivee
+			envoyer(player.Name .. " → checkpoint 1 en " .. secondes .. " s", function()
+				AnalyticsService:LogCustomEvent(player, "SecondesAvantCheckpoint1", secondes)
+			end)
+		end
+	end)
+end
+
+local function onPlayerAdded(player: Player)
+	local heureArrivee = os.time()
+	etapeOnboarding(player, 1)
+
+	-- Personnage : étape 2 de l'onboarding + suivi des morts
+	local personnageDejaApparu = false
+	local function onCharacterAdded(personnage: Model)
+		if not personnageDejaApparu then
+			personnageDejaApparu = true
+			etapeOnboarding(player, 2)
+		end
+
+		local humanoid = personnage:WaitForChild("Humanoid", 10)
+		if humanoid and humanoid:IsA("Humanoid") then
+			humanoid.Died:Connect(function()
+				local etapeActuelle = lireEtape(player)
+				envoyer(player.Name .. " → mort à l'étape " .. etapeActuelle, function()
+					-- Un seul nom d'événement, l'étape va dans un custom field (texte)
+					AnalyticsService:LogCustomEvent(player, "Mort", 1, {
+						[CHAMP_ETAPE] = "Etape " .. etapeActuelle,
+					})
+				end)
+			end)
+		end
+	end
+	player.CharacterAdded:Connect(onCharacterAdded)
+	if player.Character then
+		task.spawn(onCharacterAdded, player.Character)
+	end
+
+	-- Attend les leaderstats créées par le script du module 5 (60 s, comme au module 5 :
+	-- le chargement de la sauvegarde peut faire plusieurs tentatives)
+	local leaderstats = player:WaitForChild("leaderstats", 60)
+	local etape = if leaderstats then leaderstats:WaitForChild("Etape", 10) else nil
+	if etape and etape:IsA("IntValue") then
+		suivreEtape(player, etape, heureArrivee)
+	else
+		warn("[Analytics] leaderstats.Etape introuvable pour " .. player.Name)
+	end
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+-- Joueurs déjà présents si le script démarre en retard
+for _, player in Players:GetPlayers() do
+	task.spawn(onPlayerAdded, player)
+end
+```
+
+### Ce qu’il faut comprendre dans ce script
+
+- **`envoyer`** protège chaque appel avec `pcall` : si un envoi échoue, le joueur ne s’en aperçoit pas. Dans Studio, comme rien n’est envoyé, la fonction affiche l’événement dans l’Output : tu peux tester toute la logique avec **Play** avant de publier.
+- **Le décalage** `DECALAGE_CHECKPOINTS` relie le checkpoint 1 à l’étape 3 de l’onboarding (les étapes 1 et 2 étant l’arrivée et l’apparition).
+- **`funnelSessionId = nil`** : pour un entonnoir vécu une seule fois par joueur, pas besoin d’identifiant de session. Une étape répétée est ignorée.
+- **`SecondesAvantCheckpoint1`** est un événement **avec valeur** : la page Explore pourra afficher sa moyenne, son minimum, son maximum… C’est la mesure directe de tes « 60 premières secondes ».
+- **`Mort`** est un événement **compteur** avec un custom field. Dans Explore, tu pourras le découper par étape et voir où l’on meurt le plus.
+
+<Info titre="Les anciens joueurs entrent aussi dans l’entonnoir">
+Le jour où tu publies ce script, les joueurs qui avaient déjà joué avant vont, eux aussi, enregistrer l’étape 1 à leur prochaine visite… puis apparaître au checkpoint 9 ou 15, jamais au checkpoint 1. Ils feront baisser artificiellement le passage de l’étape 2 à l’étape 3 pendant les premiers jours. De même, dans l’entonnoir `ProgressionObby`, un ancien joueur qui atteint le checkpoint 10 valide d’un coup les étapes 1 à 9 (règle de l’étape sautée). Comme chaque joueur n’entre qu’une fois dans ces entonnoirs, cet effet s’estompe : interprète les premiers jours avec prudence.
+</Info>
+
+### Les custom fields
+
+Les **custom fields** (champs personnalisés) ajoutent des dimensions propres à ton jeu à tes événements d’entonnoir, d’économie et personnalisés. D’après la documentation :
+
+- tu en as **3 au maximum**, avec les clés `Enum.AnalyticsCustomFieldKeys.CustomField01.Name`, `CustomField02.Name` et `CustomField03.Name` (les autres clés sont ignorées) ;
+- leurs **valeurs doivent être des chaînes de caractères** : un nombre se passe sous forme de texte, d’où `"Etape " .. etapeActuelle` ;
+- au-delà de **8 000 combinaisons** de valeurs différentes, les suivantes sont regroupées dans « Other ».
+
+<Astuce>
+Préfère toujours **un** nom d’événement + un custom field à plusieurs noms d’événements. La documentation donne l’exemple d’un événement unique `PlantSeed` avec des valeurs de champ « Plant - Cabbage », « Plant - Turnip »… plutôt que trois événements séparés. Tu économises ta limite de 100 noms d’événements et tu peux comparer toutes les valeurs dans un même graphique.
+</Astuce>
+
+## L’économie : les achats en boutique
+
+Pour suivre ta monnaie, on utilise `LogEconomyEvent`. Les pièces qui **entrent** dans le portefeuille sont des **sources** (`Source`), celles qui **sortent** sont des **dépenses** (`Sink`). Range cette fonction dans un ModuleScript pour l’appeler depuis ton script de boutique :
+
+```luau
+-- ModuleScript « AnalytiqueEconomie » placé dans ServerScriptService
+-- À appeler depuis le script serveur d'achat (modules 4 et 5), APRÈS un achat réussi.
+local AnalyticsService = game:GetService("AnalyticsService")
+
+local AnalytiqueEconomie = {}
+
+-- idObjet : identifiant de l'objet dans ReplicatedStorage.Modules.Catalogue
+-- prix : nombre de pièces dépensées ; soldeApres : pièces restantes
+function AnalytiqueEconomie.achat(player: Player, idObjet: string, prix: number, soldeApres: number)
+	local ok, erreur = pcall(function()
+		AnalyticsService:LogEconomyEvent(
+			player,
+			Enum.AnalyticsEconomyFlowType.Sink, -- les pièces SORTENT du portefeuille
+			"Pieces", -- nom de la monnaie, toujours identique
+			prix, -- montant TOUJOURS positif, même pour une dépense
+			soldeApres, -- solde après l'achat (jamais négatif)
+			Enum.AnalyticsEconomyTransactionType.Shop.Name, -- type de transaction (texte)
+			idObjet -- « SKU » : identifiant unique de l'objet
+		)
+	end)
+	if not ok then
+		warn("[Analytics] achat non enregistré : " .. tostring(erreur))
+	end
+end
+
+return AnalytiqueEconomie
+```
+
+Dans ton Script « Boutique » (leçon Inventaire du module 5), ajoute deux lignes :
+
+1. en haut, sous les autres `require` : `local AnalytiqueEconomie = require(ServerScriptService:WaitForChild("AnalytiqueEconomie"))` (le script définit déjà `ServerScriptService`) ;
+2. **juste après** avoir retiré les pièces et ajouté la traînée à l’inventaire : `AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value)`.
+
+À ce moment-là, `pieces.Value` contient déjà le solde **après** l’achat.
+
+Les types de transaction proposés par Roblox sont `IAP` (achat en Robux), `TimedReward`, `Onboarding`, `Shop`, `Gameplay` et `ContextualPurchase`. Commence par eux : ils alimentent les graphiques de la page Economy.
+
+<Erreur titre="Enregistrer chaque pièce ramassée">
+Un obby distribue beaucoup de pièces. Envoyer un événement par pièce consomme vite ta limite de débit (voir le tableau ci-dessous). Regroupe plutôt les gains : par exemple, enregistre une seule source `Gameplay` avec le total des pièces gagnées depuis le dernier checkpoint. La documentation suggère la même idée pour les événements personnalisés : envoyer « 10 zombies vaincus » plutôt que dix fois « 1 zombie vaincu ».
+</Erreur>
+
+## Les limites à respecter
+
+Au moment de la rédaction (octobre 2026), la documentation officielle donne ces limites. Plusieurs portent sur la **cardinalité**, c’est-à-dire le nombre de valeurs **différentes** que tu utilises (par exemple, combien de noms d’événements distincts), et non sur le nombre d’envois. Les limites se réinitialisent chaque jour ; vérifie la page officielle, elles peuvent changer.
+
+| Limite | Valeur |
+|---|---|
+| Débit global (toutes les requêtes `AnalyticsService`) | **120 + 20 × CCU** par minute |
+| Entonnoirs par jeu | 10 |
+| Étapes par entonnoir | 100 (de 1 à 100) |
+| Noms d’événements personnalisés | 100 |
+| Custom fields | 3, et 8 000 combinaisons de valeurs avant regroupement en « Other » |
+| Types de transaction (économie) | 20, au-delà regroupés en « Other » |
+| SKU d’objets (identifiants d’objets, économie) | 100, au-delà regroupés en « Other » |
+| Monnaies (économie) | 5 selon la référence de l’API et la page *Economy events* ; 10 selon le tableau de la page *Event types* (la documentation se contredit) : prévois-en **5 au maximum** |
+| Conservation | un événement disparaît du tableau de bord 90 jours après la dernière donnée reçue |
+
+Exemple **fictif** de débit : avec 10 joueurs simultanés, tu as droit à 120 + 20 × 10 = **320** requêtes par minute pour **tout** ton jeu. Si chaque joueur meurt 6 fois par minute (un obby difficile !) et franchit 2 checkpoints (au-delà du checkpoint 3, un seul événement par checkpoint), cela fait déjà 10 × (6 + 2) = 80 requêtes par minute. Ça passe, mais tu vois pourquoi il ne faut pas envoyer un événement par pièce.
+
+### Et pour les entonnoirs répétables ?
+
+Un entonnoir de **boutique** (ouvrir la boutique → voir un objet → acheter) peut être parcouru plusieurs fois par le même joueur. On passe alors un `funnelSessionId` différent à chaque parcours ; la documentation recommande `HttpService:GenerateGUID()`, qui fabrique un identifiant unique au hasard (un *GUID*). Attention : Roblox ne garde en mémoire que les **10 identifiants de session les plus récents** par joueur et par entonnoir. Et si l’information vient de l’interface (le joueur ouvre la boutique dans un LocalScript), le client prévient le serveur via un RemoteEvent de `ReplicatedStorage.Remotes`, et le **serveur vérifie** la demande (numéro d’étape valide, pas de spam) avant d’enregistrer, comme au module 4.
+
+## Vérifier, lire, décider
+
+### Vérifier que les événements arrivent
+
+1. Publie le jeu et joue quelques minutes (les événements ne partent pas depuis Studio).
+2. Dans le tableau de bord, ouvre la page **Funnel**, **Economy** ou **Custom** (selon le type d’événement ; pour les événements personnalisés, la documentation parle aussi de la page **Explore**), puis clique sur **View Events** : une liste quasi en temps réel des derniers événements s’affiche.
+3. Les graphiques, eux, mettent **environ 24 heures** à apparaître. Si tu vois plus d’événements que prévu, vérifie que tu enregistres bien **après** une action réussie.
+
+### Lire l’entonnoir (exemple fictif)
+
+Une semaine **fictive** de l’entonnoir d’onboarding de l’Obby des Nuages :
+
+| Étape | Joueurs | Passage depuis l’étape précédente |
+|---|---|---|
+| 1. Arrivée | 1 000 | — |
+| 2. Personnage apparu | 960 | 96 % |
+| 3. Checkpoint 1 | 700 | 73 % |
+| 4. Checkpoint 2 | 420 | 60 % |
+| 5. Checkpoint 3 | 390 | 93 % |
+
+Lecture : la plus grosse fuite est entre le checkpoint 1 et le checkpoint 2 : 280 joueurs sur 700 (40 %) abandonnent. Le chargement (96 %) n’est pas le problème. En regardant l’événement `Mort` découpé par étape, tu constates que la majorité des morts ont lieu à l’étape 1, c’est-à-dire dans le passage qui mène au checkpoint 2.
+
+### Décider
+
+1. **Hypothèse** : « le saut entre les checkpoints 1 et 2 est trop difficile pour un débutant ».
+2. **Changement unique** : tu élargis la plateforme d’arrivée et tu ajoutes un indice visuel. Note la date.
+3. **Mesure** : la documentation rappelle que les entonnoirs sont affichés **par cohorte** (date d’entrée dans l’entonnoir) et qu’après une modification, il faut choisir une plage de dates qui **commence au jour du changement**.
+4. **Conclusion** : si le passage CP1 → CP2 monte sans que la D1 baisse, garde le changement. Sinon, reviens en arrière et teste une autre hypothèse.
+
+<Defi>
+Ajoute le script `AnalytiqueObby` à ton projet et teste-le dans Studio avec **Play** : franchis trois checkpoints, tombe deux fois, et vérifie que l’Output affiche les messages « [Analytics, test Studio] » dans le bon ordre. Ensuite, publie, joue cinq minutes et contrôle tes événements avec **View Events**. Bonus : ajoute un custom field `CustomField02` qui indique la plateforme du joueur… ou explique pourquoi c’est inutile (indice : le tableau de bord sait déjà découper par plateforme).
+</Defi>
+
+<Resume>
+- `AnalyticsService` envoie tes événements **depuis le serveur, dans un jeu publié** ; dans Studio, rien n’est envoyé.
+- Entonnoirs : `LogOnboardingFunnelStepEvent` (onboarding, une fois par joueur) et `LogFunnelStepEvent` (autres entonnoirs, avec `funnelSessionId` s’ils sont répétables). Étapes de 1 à 100, dans l’ordre réel du jeu : une étape sautée valide les précédentes, une étape répétée est ignorée.
+- `LogEconomyEvent` pour les sources et dépenses (montant toujours positif), `LogCustomEvent` pour compteurs et valeurs ; `LogProgression…` ne s’affiche dans aucun graphique Roblox à ce jour.
+- Utilise les custom fields (3 maximum, valeurs texte) plutôt que de multiplier les noms d’événements, et respecte le débit de 120 + 20 × CCU requêtes par minute.
+- Vérifie avec View Events, lis l’entonnoir par cohorte, change une chose à la fois et remesure.
+</Resume>
+
+<Sources>
+- [AnalyticsService — référence de l’API (Roblox)](https://create.roblox.com/docs/reference/engine/classes/AnalyticsService)
+- [Funnel events — entonnoirs d’onboarding, de progression et de boutique](https://create.roblox.com/docs/production/analytics/funnel-events)
+- [Event types — View Events et limites de suivi](https://create.roblox.com/docs/production/analytics/event-types)
+- [Economy events — sources, sinks et types de transaction](https://create.roblox.com/docs/production/analytics/economy-events)
+- [Custom events — compteurs, valeurs et agrégations](https://create.roblox.com/docs/production/analytics/custom-events)
+- [Custom fields — champs personnalisés](https://create.roblox.com/docs/production/analytics/custom-fields)
+- [AnalyticsCustomFieldKeys — énumération](https://create.roblox.com/docs/reference/engine/enums/AnalyticsCustomFieldKeys)
+</Sources>

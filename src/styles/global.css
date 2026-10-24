@@ -277,7 +277,7 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Encadrés MDX (Astuce, Erreur, Info, Attention, Defi)                */
+/* Encadrés MDX (Astuce, Erreur, Info, Attention, Defi, AvecClaudeCode) */
 /* ------------------------------------------------------------------ */
 .encadre {
   --fond: var(--color-slate-50);
@@ -329,6 +329,11 @@
   --bord: var(--color-violet-600);
   --titre: var(--color-violet-800);
 }
+.encadre-ia {
+  --fond: var(--color-indigo-50);
+  --bord: var(--color-indigo-600);
+  --titre: var(--color-indigo-800);
+}
 .dark .encadre {
   --fond: color-mix(in oklab, var(--bord) 12%, var(--color-slate-950));
 }
@@ -337,6 +342,125 @@
 .dark .encadre-info { --titre: var(--color-sky-300); }
 .dark .encadre-attention { --titre: var(--color-amber-300); }
 .dark .encadre-defi { --titre: var(--color-violet-300); }
+.dark .encadre-ia { --titre: var(--color-indigo-300); }
+
+/* Prompt prêt à copier (<Prompt>) */
+.prompt {
+  margin: 1.25rem 0;
+  border: 1px solid var(--color-slate-300);
+  border-radius: 0.75rem;
+  background: var(--color-white);
+  overflow: hidden;
+}
+.dark .prompt {
+  border-color: var(--color-slate-700);
+  background: var(--color-slate-950);
+}
+.prompt-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0.6rem 0.45rem 0.9rem;
+  border-bottom: 1px solid var(--color-slate-200);
+  background: var(--color-slate-50);
+  font-size: 0.875rem;
+}
+.dark .prompt-entete {
+  border-color: var(--color-slate-800);
+  background: var(--color-slate-900);
+}
+.prompt-titre {
+  font-weight: 700;
+  color: var(--color-slate-800);
+  min-width: 0;
+}
+.dark .prompt-titre {
+  color: var(--color-slate-100);
+}
+.prompt-copier {
+  flex: none;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--color-indigo-600);
+  border-radius: 999px;
+  background: var(--color-white);
+  color: var(--color-indigo-800);
+  font-weight: 600;
+  cursor: pointer;
+}
+.prompt-copier:hover {
+  background: var(--color-indigo-50);
+}
+.prompt-copier:focus-visible {
+  outline: 3px solid var(--color-indigo-500);
+  outline-offset: 2px;
+}
+.prompt-copier[data-etat="copie"] {
+  border-color: var(--color-emerald-700);
+  color: var(--color-emerald-800);
+}
+.prompt-copier[data-etat="echec"] {
+  border-color: var(--color-rose-700);
+  color: var(--color-rose-800);
+}
+.dark .prompt-copier {
+  border-color: var(--color-indigo-400);
+  background: var(--color-slate-950);
+  color: var(--color-indigo-200);
+}
+.dark .prompt-copier[data-etat="copie"] { border-color: var(--color-emerald-400); color: var(--color-emerald-300); }
+.dark .prompt-copier[data-etat="echec"] { border-color: var(--color-rose-400); color: var(--color-rose-300); }
+.prompt-contenu > :first-child { margin-top: 0; }
+.prompt-contenu > :last-child { margin-bottom: 0; }
+.prompt-contenu > :not(pre) {
+  padding: 0 0.9rem;
+}
+.prompt-contenu pre {
+  margin: 0;
+  border-radius: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Question « Améliore ce prompt » */
+.quiz-prompt {
+  margin: 0.85rem 0 0;
+}
+.quiz-prompt-legende {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-slate-600);
+}
+.dark .quiz-prompt-legende {
+  color: var(--color-slate-400);
+}
+.quiz-prompt pre {
+  margin: 0.35rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px dashed var(--color-slate-400);
+  background: var(--color-slate-50);
+  color: var(--color-slate-900);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.dark .quiz-prompt pre {
+  border-color: var(--color-slate-600);
+  background: var(--color-slate-900);
+  color: var(--color-slate-100);
+}
+.quiz-prompt pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+.option-longue .option-texte {
+  white-space: pre-line;
+  font-size: 0.925rem;
+}
 
 /* Résumé et sources */
 .resume,

@@ -17,15 +17,16 @@ export interface OptionSource {
   correct?: boolean;
 }
 export interface QuestionSource {
-  type: 'qcm' | 'vrai-faux' | 'trouve-le-bug';
+  type: 'qcm' | 'vrai-faux' | 'trouve-le-bug' | 'ameliore-le-prompt';
   question: string;
   options?: OptionSource[];
   reponse?: boolean;
   code?: string;
+  prompt?: string;
   explication: string;
 }
 export interface QuizSource {
-  /** « module-02/04-tables » (leçon) ou « examen-02 » (examen). */
+  /** « module-03/04-tables » (leçon) ou « examen-02 » (examen). */
   id: string;
   fichier: string;
   questions: QuestionSource[];
@@ -116,6 +117,8 @@ export function problemesQuestion(q: QuestionSource): string[] {
   if (q.type === 'qcm' && bonnes === options.length) p.push(`${debut} : toutes les options sont correctes`);
   if (q.type === 'trouve-le-bug' && bonnes !== 1) p.push(`${debut} : trouve-le-bug avec ${bonnes} bonnes réponses (1 attendue)`);
   if (q.type === 'trouve-le-bug' && !String(q.code ?? '').trim()) p.push(`${debut} : code vide`);
+  if (q.type === 'ameliore-le-prompt' && bonnes !== 1) p.push(`${debut} : ameliore-le-prompt avec ${bonnes} bonnes réponses (1 attendue)`);
+  if (q.type === 'ameliore-le-prompt' && !String(q.prompt ?? '').trim()) p.push(`${debut} : prompt vide`);
   const vus = new Set<string>();
   for (const o of options) {
     const t = normaliser(String(o.texte ?? ''));

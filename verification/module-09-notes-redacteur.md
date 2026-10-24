@@ -1,116 +1,86 @@
-# Module 09 — Notes du rédacteur pour les vérificateurs
+# Module 08 — Notes du rédacteur pour les vérificateurs
 
-Rédigé le 2026-10-24. Sources principales : la documentation officielle (create.roblox.com/docs), consultée en ligne et via le dépôt officiel `github.com/Roblox/creator-docs` (branche `main`, dernier commit le 2026-10-24, donc à jour), ainsi que le DevForum (annonce officielle de l'équipe Studio).
+Vérifications faites le 2026-10-24 sur la documentation officielle (pages create.roblox.com consultées via WebFetch, et sources Markdown/YAML identiques du dépôt officiel `github.com/Roblox/creator-docs`, branche `main`, derniers commits sur `production/analytics` du 2026-10-14).
 
-## Leçon 01 — Penser mobile d'abord
+## Affirmations factuelles et sources
 
+### Leçon 01 — pourquoi-mesurer
 | Affirmation | Source |
 |---|---|
-| « La majorité des sessions Roblox se jouent sur des appareils mobiles » (sans chiffre) | input/mobile : "The majority of Roblox sessions are played on mobile devices" |
-| « La majorité des joueurs sont sur des appareils mobiles d'entrée de gamme » / tester seulement sur son PC = tester pour la minorité | performance-optimization/test-on-hardware |
-| Roblox n'a pas accès à toute la mémoire de l'appareil | performance-optimization/design (encadré info) |
-| Les jeux visent 60 FPS par défaut | performance-optimization (index) : "By default, Roblox games target 60 FPS" |
-| Thermal throttling, test de 10 à 15 minutes | test-on-hardware |
-| Coins inférieurs réservés aux contrôles par défaut ; zones du pouce ; exemple « 40 % du haut : OK sur téléphone, quasi inaccessible sur tablette » | ui/position-and-size, section Cross-platform factors |
-| `ScreenInsets` : `CoreUISafeInsets` (défaut), `DeviceSafeInsets`, `TopbarSafeInsets`, `None` | include ui/screen-insets (affiché sur la page ScreenGui / position-and-size) |
-| `GuiService.ViewportDisplaySize` : Small / Medium / Large | projects/cross-platform |
-| `UserInputService.PreferredInput` et `Enum.PreferredInput` (Touch, KeyboardAndMouse, Gamepad…) | input (index), enum PreferredInput |
-| Orientation par défaut `LandscapeSensor` | input/mobile |
-| Device Simulator : barre d'outils au-dessus de la vue 3D, catégories Phone/Desktop/Console/Headset, téléphones Flagship/Mid-range/Entry level, Rotate, Display scaling (Physical size, Actual resolution, Fit to window), Calibrate physical scaling, raccourcis tactiles Alt+glisser / Alt+Shift+glisser | studio/device-simulator |
-| Device Simulator « disponible pour tout le monde » (fin de bêta), ouverture via menu Test → Device Simulator, Network Simulator avec profils 3G/4G/Wi-Fi | DevForum https://devforum.roblox.com/t/studio-beta-new-device-simulator-toolbar-and-network-simulator/4861695 (post du 9 sept. 2026, mise à jour du 16 oct. 2026 signée The Roblox Studio Team) |
-| Émulation pas fiable pour la mémoire (Studio = serveur + client) | performance-optimization/design et test-on-hardware |
-| Performance Stats activable dans le menu Settings | test-on-hardware / identify |
+| Éligibilité à tous les KPI : « more than 10 daily active users (DAU) and 10 play hours for 7 consecutive days » | https://create.roblox.com/docs/production/analytics/analytics-dashboard |
+| Activation : e-mail vérifié + vérification en 2 étapes + acceptation des Terms of Use ; bouton « Activate Analytics » ; jeux de groupe : propriétaire et membres ayant la permission | idem |
+| Catégories : Overview, Retention, Engagement, Acquisition, Demographics, Feedback, Monetization (+ sales data), Explore | idem |
+| Pages Economy / Funnel / Custom (Explore) débloquées après envoi d’événements | https://create.roblox.com/docs/production/analytics/event-types , /funnel-events , /custom-events , /economy-events |
+| Menu « Monitoring » > Performance ; graphiques détaillés à partir de 100 DAU | https://create.roblox.com/docs/production/analytics/performance |
+| Analytics Home : watchlist jusqu’à 9 jeux | https://create.roblox.com/docs/production/analytics |
+| Insights : jeux 100+ DAU ; rapports IA : 1000+ DAU ; panneau des réussites = plus haut sur 6 mois | https://create.roblox.com/docs/production/analytics/insights |
+| Benchmark scorecards à partir de 100 DAU ; benchmarks non utilisés comme signal direct de découverte | https://create.roblox.com/docs/production/analytics |
+| Benchmarks : jeux similaires → genre → toutes expériences ; fourchette 50e–90e percentile ; jeux d’au moins 100 DAU ; KPI concernés (rétention, durée moyenne de session, ARPPU, ARPDAU, conversion, play through rate) | analytics-dashboard#benchmarking |
+| Play through rate = % de joueurs ayant joué après avoir vu le jeu en recommandation | https://create.roblox.com/docs/production/analytics |
+| Plan en 3 étapes (D1 + durée de session d’abord, puis acquisition, puis suivi après mise à jour) | https://create.roblox.com/docs/production/analytics |
+| Baisse de rétention après gros afflux = « typical and temporary » | https://create.roblox.com/docs/production/analytics/retention |
+| Experiments = tests A/B mesurant l’impact causal ; jeux < 1 000 DAU peuvent avoir du mal à obtenir des données utiles | https://create.roblox.com/docs/production/experiments |
+| Ligne en pointillés quand le taux de crash est bruité | /performance |
+| Groupes d’âge/genre < 3 utilisateurs masqués | https://create.roblox.com/docs/production/analytics/demographics |
+| Explore : overlay période précédente, moyenne mobile 7 jours | analytics-dashboard#overlays-and-smoothing |
 
-Points d'incertitude :
-- La page doc studio/device-simulator affiche encore un avertissement « beta » alors que l'annonce DevForum (16 oct. 2026) dit « now out of beta ». J'ai suivi l'annonce et ajouté une phrase de prudence (« l'interface évolue vite »).
-- **Part du mobile : volontairement NON chiffrée.** La page test-on-hardware donne « Android ≈ 65 % du public d'un jeu typique » et des répartitions de RAM, mais la page n'est pas datée ; je n'ai trouvé aucun chiffre officiel daté (rapports investisseurs 2026 consultés via recherche : pas de répartition par appareil). Conformément au brief, aucun pourcentage n'est cité.
-- Conseil « contraste en plein soleil / fond semi-opaque » : bon sens, la doc parle seulement de « sufficient contrast » (cross-platform, accessibility).
-
-## Leçon 02 — Mesurer les performances
-
+### Leçon 02 — retention
 | Affirmation | Source |
 |---|---|
-| Tableau temps d'image ↔ FPS (33,33 / 16,67 / 8,33 ms) ; exemple 59 images rapides + une à 410 ms | performance-optimization/microprofiler (index) |
-| Heartbeat serveur plafonné à 60 ; Server Jobs → Heartbeat → Steps Per Sec ; Server Stats (ping moyen) | performance-optimization/identify |
-| Ouvrir la Developer Console : F9, `/console`, menu Settings → Developer Console → Open | include developer-console/opening-developer-console |
-| Outils de la console : Log (client/serveur, serveur visible seulement par propriétaire/éditeurs), Memory, Luau heap, Network (appels web HttpService/DataStore), Script Profiler | studio/developer-console |
-| Catégories mémoire CoreMemory/PlaceMemory, LuaHeap, InstanceCount, PlaceScriptMemory, GraphicsTexture, GraphicsMeshParts, Sounds | studio/optimization/memory-usage ; performance-optimization/improve ; identify |
-| Mesurer la mémoire dans le client plutôt que Studio | identify (« Use the client rather than Studio ») |
-| Raccourcis : Performance Stats Ctrl+Alt+F7 ; debug stats Shift+Ctrl+F1…F5 dans Studio ; Shift+F5 résumé, Shift+F2 rendu, Shift+F3 réseau dans le client | identify ; improve (Render Stats Shift+F2) ; workspace/streaming (Shift+F3 / Shift+Ctrl+F3) |
-| MicroProfiler : couleurs orange/bleu/rouge (rouge = render > jobs ET GPU wait > 2,5 ms), timeline, Ctrl+P pause → mode détaillé, Dump → `%LOCALAPPDATA%\Roblox\logs`, mobile via Settings + IP:port (ex. 172.18.56.105:1338), profilage serveur depuis la console (max 60 images), `debug.profilebegin/profileend` | performance-optimization/microprofiler, use-microprofiler |
-| Script Profiler : Client (défaut)/Server, Freq 1 kHz (défaut)/10 kHz, Time 1/5/10 min/Manual (défaut), Callgraph/Functions, n'enregistre pas les fils qui attendent | studio/optimization/scriptprofiler |
-| Scene Analysis : Window › Performance Summary › Scene Analysis ; modes script memory, instance composition, triangle composition… ; exemple « 25 000 particle emitters » | performance-optimization/scene-analysis |
-| Script de mesure du temps de chargement dans ReplicatedFirst (os.clock + game.Loaded), limites (n'inclut ni connexion ni avatar) | identify, section Load times (adapté en français, avec garde `game:IsLoaded()`) |
-| Cycle identifier → améliorer → surveiller | performance-optimization (index) |
+| Axe X = date de première partie (cohorte) ; exemple 06/20 ; données D7 visibles après 7 jours, D30 après 30 | /retention |
+| D1 = nouveaux joueurs qui reviennent le lendemain ; D7 = « on the 8th day (Day 7) » ; D30 = « on the 31st day (Day 30) » | /retention |
+| Cohortes quotidiennes (10 premiers jours) et hebdomadaires (10 semaines, lundi–dimanche) ; métriques 7D playtime, 7D conversion, 7D/30D revenue per user | /retention |
+| D1 ↔ core loop, FTUE, performance ; plaisir en 5 minutes ou moins ; D7 ↔ progression ; D30 ↔ ending system, mises à jour 2–4 semaines / 2–3 mois, social | /retention |
 
-Points d'incertitude :
-- **Raccourci du MicroProfiler incohérent dans la doc** : identify.md, test-on-hardware.md et le walkthrough donnent Ctrl+Alt+F6 (⌘⌥F6) ; la page MicroProfiler (index) donne Ctrl+F6 (⌘F6) pour le client et Studio. La leçon cite Ctrl+Alt+F6 et mentionne l'alternative Ctrl+F6.
-- Raccourci Performance Stats dans Studio : identify.md le classe « In-Game » mais avec environnement « Studio Testing » ; j'ai indiqué le même raccourci dans les deux colonnes.
-- Le profilage serveur via la console : la doc dit d'ouvrir la console avec Ctrl+F9 à cet endroit (F9 ailleurs) ; la leçon dit simplement « ouvre la Developer Console ».
-
-## Leçon 03 — Le streaming d'instances
-
+### Leçon 03 — engagement-et-sessions
 | Affirmation | Source |
 |---|---|
-| Avantages (arrivée plus rapide, mémoire, performances) ; `StreamingEnabled` activé par défaut pour les nouveaux places, non modifiable par script | workspace/streaming ; référence Workspace.StreamingEnabled |
-| Scope : uniquement les descendants de Workspace (pas ReplicatedStorage/ReplicatedFirst) | workspace/streaming, section Scope |
-| À l'arrivée, tout le Workspace est envoyé sauf BaseParts, modèles Atomic/Persistent/PersistentPerPlayer (et Nonatomic en mode Improved), et leurs descendants | workspace/streaming, Stream in |
-| Stream out : parent = nil, changements locaux perdus possibles ; zone < StreamingMinRadius jamais déchargée | workspace/streaming, Stream out |
-| Valeurs : MinRadius 64, TargetRadius 1024 (défauts et recommandés), Target > Min (tampon) ; StreamOutBehavior LowMemory (défaut) / Opportunistic (recommandé) ; ModelStreamingBehavior Legacy (défaut) / Improved (recommandé) ; StreamingIntegrityMode recommandé PauseOutsideLoadedArea | workspace/streaming, tableau Streaming properties ; techniques |
-| Valeurs de `Enum.StreamingIntegrityMode` : Default, Disabled, MinimumRadiusPause, PauseOutsideLoadedArea ; message par défaut affiché, `Player.GameplayPaused` | enum StreamingIntegrityMode (YAML du dépôt creator-docs) |
-| `PredictiveStreamingMode` : Default se comporte comme Disabled ; Enabled = opt-in (préchargement des lieux de réapparition, etc.) | référence Workspace.PredictiveStreamingMode ; workspace/streaming |
-| `ModelStreamingMode` : Default, Atomic, Persistent, PersistentPerPlayer, Nonatomic ; ne jamais le modifier dans un LocalScript ; PersistentLoaded à attendre côté client ; Persistent pour de « très rares cas » | enum ModelStreamingMode ; référence Model.ModelStreamingMode ; workspace/streaming |
-| Débogage : Shift+F3 (Studio : Shift+Ctrl+F3), puis Shift+1, 4e panneau = Streaming ; astuce CameraMaxZoomDistance 1000 | workspace/streaming, Runtime debugging |
-| Pièges : accès direct, FindFirstChild nil, GetChildren partiel, ChildAdded/Removed au streaming, Touched/ProximityPrompt/ClickDetector inactifs, instances envoyées par RemoteEvent, descendants du personnage dans CharacterAdded | workspace/streaming/techniques, Script patterns |
-| `WaitForChild` avec délai (timeOut) renvoie nil ; avertissement après 5 s sans timeout | référence Instance:WaitForChild |
-| `Player:RequestStreamAroundAsync(position, timeOut)` : yield, timeOut défaut 0 = « effectivement infini », abandon si mémoire basse, effet temporaire sans garantie ; appel côté serveur conseillé | référence Player (YAML) ; techniques, Proactive streaming |
-| Tester avec StreamingTargetRadius = 64 (valeur minimale), surveiller « attempt to index nil with » | techniques, Realistic test conditions |
+| DAU = « Number of unique players who joined the game at least once in the given day » ; New Users = DAU first-time users ; Session Time = total play time / sessions ; CCU parmi les stats publiques | /production/analytics (Analytics Home) |
+| MAU (nombre de joueurs du mois, exemple Halloween), durée moyenne de session « from the start of their session to the time they log out » | /get-started |
+| Average session time = temps total / nombre de sessions, « closely tied to retention » | /engagement |
+| « Average Playtime », WAU, MAU cités dans la page Engagement | /get-started (encadré Active payer status) |
+| Graphique New User First Session Retention + conseils (friction onboarding, rapports erreurs/perf) | /engagement |
+| Breakdown Platform (Computer, phone, tablet, console, VR) / OS ; multi-appareils comptés plusieurs fois ; User engagement (inactif/faible/moyen/élevé, jours joués sur 7) | /analytics-dashboard |
+| Graphique Concurrent users dans Performance | /performance |
+| Demographics calculées sur les MAU | /demographics |
 
-Points d'incertitude :
-- **Valeur par défaut affichée de `StreamingIntegrityMode`** : la doc ne l'indique pas explicitement ; j'ai écrit `Default` (premier item de l'enum, « subject to change »). À confirmer dans Studio.
-- Unité du paramètre `timeOut` de RequestStreamAroundAsync : la doc dit « maximum duration » sans unité ; j'ai évité de l'écrire dans le texte (commentaire « durée maximale du préchargement », valeur 5).
-- `ModelStreamingMode` : la page guide dit « by default, models are Nonatomic » alors que l'enum a un item `Default` ; j'ai présenté `Default` et `Nonatomic` ensemble comme « comportement normal ».
-- L'exemple « AVANT » utilise `etape.Changed` sur un IntValue : la convention leaderstats `Etape` vient du module 4.
-
-## Leçon 04 — Réduire le lag
-
+### Leçon 04 — monetisation-et-conversion
 | Affirmation | Source |
 |---|---|
-| Événements RunService à chaque image (PreAnimation, PreRender, PreSimulation, PostSimulation, Heartbeat), à utiliser avec parcimonie ; task.wait pour étaler ; code piloté par événements ; mettre en cache les valeurs | improve (Script computation) ; design (Scripting) |
-| PreRender remplace RenderStepped | référence RunService.PreRender |
-| Fuites : connexions non déconnectées ; Player et personnage non détruits automatiquement au départ ; tables par joueur ; `Disconnect`, `Destroy` | improve (Script memory usage) |
-| `Workspace.PlayerCharacterDestroyBehavior` (Default/Disabled/Enabled), non scriptable | référence Workspace + enum PlayerCharacterDestroyBehavior |
-| Anchor des parts non simulées ; adaptive timestepping par défaut | improve (Physics computation) |
-| CanCollide / CanTouch (false → Touched ne peut pas être mis en place, erreur à la connexion) / CanQuery (n'a d'effet que si CanCollide = false) ; petit gain si CanTouch et CanCollide à false | référence BasePart ; workspace/collisions (« set CanTouch to false for objects that don't require collisions ») |
-| CollisionFidelity : Default, Hull, Box, PreciseConvexDecomposition (+ Tunable, non cité) ; Box = moins de mémoire ; conseils Box/Hull ; géométrie stockée même sans collision ; filtre Explorer `CollisionFidelity=PreciseConvexDecomposition` ; Visualization Options → Collision fidelity ; propriété non lisible/modifiable par script à l'exécution | improve (Physics computation + Physics memory usage) ; enum CollisionFidelity ; référence TriangleMeshPart.CollisionFidelity |
-| RenderFidelity : Automatic (défaut ; < 250 studs max, 250–500 moyen, ≥ 500 min), Precise, Performance | enum RenderFidelity ; référence MeshPart.RenderFidelity |
-| Draw calls, instancing (même MeshContent + même apparence), densité, transparence partielle (éviter autres que 0 et 1), ombres (Light.Shadows, CastShadow avec artefacts possibles, ombres désactivées sous qualité 4), particules, décalques | improve (Rendering) ; design (Transparency) ; référence BasePart.CastShadow |
-| Textures : 1024² = 4 × 512² en mémoire ; ≤ 512 en général, ≤ 256 pour les petites ; matériaux intégrés moins gourmands | improve (Asset memory usage) ; design (Materials) |
-| Réseau : remotes trop fréquents/trop gros, TweenService côté serveur répliqué à chaque image, effets côté client, ReplicatedStorage chargé par tous → ServerStorage | improve (Networking) ; design (Scripting) ; improve (Load times) |
-| Crash rate > 2–3 % à investiguer (cité en leçon 5) | identify (Client memory) |
+| Tableau Revenue / Conversion rate (% des DAU qui sont payeurs) / Paying users / ARPPU / ARPDAU ; menu Monetization > Overview | https://create.roblox.com/docs/production/analytics/monetization |
+| « ARPDAU is a combination of your payer conversion rate and your ARPPU » ; « high ARPPU and low ARPDAU suggest revenue comes from a limited user subset » ; conseils conversion/ARPPU/ARPDAU | /monetization |
+| Pages par produit : Developer Products, Passes, Avatar items, Subscriptions, Immersive ads, Creator rewards | /monetization |
+| Active payer status : Top 15 %, Intermediate 35 %, Casual 50 %, Lapsed (30 jours), Never ; recalcul quotidien | /analytics-dashboard |
+| « On average, the top 15% of active payers account for roughly 50% of revenue » | /get-started |
+| Engagement-based payouts (Premium Payouts) dépréciés le 24 juillet 2025, remplacés par Creator Rewards | https://create.roblox.com/docs/production/monetization/engagement-based-payouts |
+| Daily Engagement Rewards : 5 Robux/jour, Active Spender (≥ 9,99 $ en 60 jours), ≥ 10 min, parmi les 3 premières expériences du jour | https://create.roblox.com/docs/creator-rewards ; filtre Platform spender status : /analytics-dashboard |
+| Formules (conversion, ARPPU, ARPDAU, ARPDAU = conversion × ARPPU) : calcul vérifié à la main ; exemples chiffrés marqués « fictifs » | — |
 
-Points d'incertitude :
-- Phrase « une propriété animée côté serveur, avec TweenService **ou une boucle**, est répliquée à chaque image » : la doc parle de TweenService ; l'extension aux boucles qui modifient `CFrame` à chaque Heartbeat découle de la réplication normale des propriétés (non citée mot pour mot).
-- La doc improve.md mentionne `Enum.CollisionFidelity.Precise`, qui n'existe pas dans l'enum : j'ai utilisé le vrai nom `PreciseConvexDecomposition`.
-- Les codes « AVANT » sont des versions typiques ; je ne connais pas le code exact écrit par les rédacteurs des modules 2 et 4 (rotation des pièces, compteur). Le texte évite d’affirmer que ce code est exactement celui des modules précédents (la rotation « avant » est celle étiquetée en leçon 2). À harmoniser éventuellement avec les noms réels (`InterfaceObby`, `CompteurPieces`, `BoutonBoutique` sont des noms choisis ici).
-
-## Leçon 05 — Audit
-
+### Leçon 05 — evenements-personnalises
 | Affirmation | Source |
 |---|---|
-| Cycle identifier/améliorer/surveiller | performance-optimization (index) |
-| Choisir un appareil de référence et en déduire ses limites (draw calls, triangles) | design (Low-end devices) |
-| Page Performance : Creator Hub → Creations → expérience → Monitoring → Performance ; propriétaire ou permissions analytics ; graphiques si ≥ 100 DAU ; onglets Client/Server ; ventilation par plateforme et par Place Version ; FPS client, crash rate, unexpected out-of-memory exits, mémoire client | production/analytics/performance |
-| Taux de plantage > 2–3 % ou hausse soudaine après une mise à jour = à investiguer | identify (Client memory) |
-| Tester avec petit rayon de streaming, parcourir, surveiller les erreurs | workspace/streaming/techniques |
-| Sauvegarder avant une conversion (Publish to Roblox As) | techniques (AI streaming conversion skill) — la leçon propose « File › Save to File As » ou l'historique des versions |
+| Signatures : `LogOnboardingFunnelStepEvent(player, step, stepName, customFields)`, `LogFunnelStepEvent(player, funnelName, funnelSessionId, step=1, stepName, customFields)`, `LogEconomyEvent(player, flowType, currencyType, amount, endingBalance, transactionType, itemSku, customFields)`, `LogCustomEvent(player, eventName, value=1, customFields)`, `LogProgressionEvent(player, progressionPathName, status, level, levelName, customFields)` + Start/Complete/Fail | https://create.roblox.com/docs/reference/engine/classes/AnalyticsService (YAML source : `content/en-us/reference/engine/classes/AnalyticsService.yaml`) ; concordance avec `C:/tmp/luau-tools/globalTypes.d.luau` |
+| `LogProgression…` : « This event does not currently display in any Roblox-provided charts » | référence API |
+| FireEvent, FireCustomEvent, FireInGameEconomyEvent, FirePlayerProgressionEvent, FireLogEvent dépréciés | référence API |
+| Serveur uniquement + jeux publiés uniquement (ni client, ni Studio) | /funnel-events, /custom-events, /economy-events |
+| Fonctionnalités gratuites | /event-types |
+| Étape répétée ignorée (mais compte dans le rate limit) ; étape sautée → précédentes complétées ; 1er pas dans PlayerAdded ; expiration 180 jours ; filtres sur 1re étape ; affichage par cohorte ; plage de dates après modification | /funnel-events |
+| funnelSessionId : inutile pour entonnoir unique, GUID pour boutique, 10 derniers IDs par joueur et entonnoir ; funnelSessionId `nil` → étapes répétées ignorées | /funnel-events + référence API (paramètre step) |
+| Validation serveur des étapes envoyées par le client via RemoteEvent | /funnel-events (« Protect your funnels from exploiters ») |
+| Custom fields : 3 max, clés `Enum.AnalyticsCustomFieldKeys.CustomField01..03.Name`, autres clés ignorées, valeurs en chaînes, 8 000 combinaisons | /custom-fields, /event-types |
+| Préférer custom fields aux noms d’événements (exemple PlantSeed) ; batching « 10 zombies » | /custom-events |
+| Limites : 120 + 20 × CCU req/min ; 10 entonnoirs ; 100 étapes ; 100 eventNames ; 20 transactionTypes et 100 itemSkus avant « Other » ; rétention 90 jours après dernière donnée ; reset quotidien | /event-types#event-tracking-limitations |
+| Montant toujours positif ; endingBalance ≥ 0 ; transactionType = `.Name` de l’Enum ; types IAP, TimedReward, Onboarding, Shop, Gameplay, ContextualPurchase | /economy-events + référence API |
+| View Events (liste quasi temps réel) ; graphiques ≈ 24 h ; enregistrer après une opération réussie | /event-types |
 
-Points d'incertitude :
-- Le seuil de 100 DAU pour les graphiques peut évoluer (formulé « au moment de la rédaction »).
-- Le script d'audit lit `RenderFidelity` dans la Command Bar en mode édition : propriété NotReplicated mais de sécurité None, lecture normalement possible. `CollisionFidelity` n'est volontairement pas lue (non accessible par script à l'exécution selon la référence ; on passe par le filtre Explorer).
-- Le tableau du journal de performance utilise des « … » à la place de chiffres pour ne pas inventer de résultats.
-
-## Code
-
-- `node scripts/verifier-luau.mjs 09` : 20 extraits analysés, 0 diagnostic.
-- Les `trouve-le-bug` contiennent volontairement un seul bug chacun (comparaison Enum/texte ; `return` avant `profileend` ; accès direct sous streaming ; `CanTouch = false` sur kill brick ; `GetChildren` au lieu de `GetDescendants` ; examen : `personnage.Humanoid` sous streaming, clé de table `joueur.Name` vs `joueur`).
+## Points incertains / à surveiller
+1. **Nombre de monnaies (économie)** : incohérence dans la doc officielle. Tableau des limites (/event-types) : « Resource types : 10 » ; référence API (`currencyType`) : « Limited to 5 unique currency types per experience » ; /economy-events : « up to five currencies ». J’ai écrit « très peu : 5 types par expérience selon la référence de l’API ».
+2. **Définition exacte de D1** : /retention dit « returned the next day » ; Analytics Home dit « played again after their first session ended » ; /acquisition parle de D7 « played again on the 8th day (D8) after their first session ended ». J’ai présenté la définition de la page Retention (jour N exact) et signalé que les formulations varient (encadré Info leçon 02).
+3. **Taux de conversion** : /monetization = % des DAU payeurs (retenu) ; /get-started = « percentage of all users who have spent any amount ». Signalé dans la leçon 04.
+4. **Revenue** : je n’affirme pas s’il s’agit de Robux nets ou bruts (la doc dit « Robux earned by the game »).
+5. **DAU/MAU** : présenté explicitement comme un indicateur de l’industrie à calculer soi-même ; je n’ai trouvé aucune page Roblox qui l’affiche comme KPI.
+6. **Comportement des méthodes `Log…` dans Studio** (erreur ou ignoré silencieusement) non documenté : le script de la leçon 05 court-circuite l’envoi dans Studio avec `RunService:IsStudio()` et protège chaque appel avec `pcall` (choix de robustesse, pas une exigence officielle).
+7. La méthode `LogJourneyEvent` existe dans les définitions de types mais pas dans la référence publiée : non mentionnée.
+8. Le script de la leçon 05 suppose que `leaderstats.Etape` vaut le numéro du dernier checkpoint validé (0 au départ) et n’augmente que de 1 par checkpoint (module 3). Si le module 4 fait démarrer un nouveau joueur à `Etape = 1`, le script reste correct (l’étape 3 de l’onboarding sera validée automatiquement par saut d’étape), mais l’événement `SecondesAvantCheckpoint1` ne sera jamais envoyé. Le Developer Product « passer l’étape » (module 6) sera compté comme une progression (+1).
+9. **Cohérence inter-modules** : le PLAN mentionne les « Premium Payouts » (modules 6 et 8). Ce programme est déprécié depuis le 24/07/2025 (remplacé par Creator Rewards) : le rédacteur du module 6 devrait en tenir compte.
+10. Les URL `create.roblox.com/docs/reference/engine/classes/...` ont renvoyé un code 502 à `curl` (probablement une protection anti-robots) mais s’affichent via WebFetch : liens corrects.

@@ -28,7 +28,8 @@ export default defineConfig({
     command: `npx astro preview --port ${PORT} --host 127.0.0.1 --ignore-lock`,
     url: URL_BASE,
     reuseExistingServer: false,
-    timeout: 60_000,
+    // Le démarrage d'astro preview peut dépasser une minute sur une machine chargée (import d'Astro lent).
+    timeout: 180_000,
     stdout: 'ignore',
     stderr: 'pipe',
   },

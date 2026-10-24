@@ -1,10 +1,10 @@
 /**
- * Métadonnées des 11 modules de la formation.
+ * Métadonnées des 12 modules de la formation.
  * Source de vérité pour la navigation, la page d'accueil, /programme, les badges et la progression.
  * Les leçons elles-mêmes vivent dans src/content/lecons/module-XX/NN-slug.mdx.
  */
 export interface ModuleInfo {
-  /** Numéro sur deux chiffres : "00" à "10". Sert d'URL (/modules/00) et de dossier (module-00). */
+  /** Numéro sur deux chiffres : "00" à "11". Sert d'URL (/modules/00) et de dossier (module-00). */
   numero: string;
   titre: string;
   /** Titre court pour la barre latérale et les cartes. */
@@ -50,21 +50,36 @@ export const MODULES: ModuleInfo[] = [
   },
   {
     numero: '02',
-    titre: 'Luau de A à Z',
-    titreCourt: 'Luau de A à Z',
+    titre: 'Scripter avec l’IA : piloter Claude Code',
+    titreCourt: 'Scripter avec l’IA',
     description:
-      'Le langage de Roblox, pas à pas : variables, conditions, boucles, fonctions, tables, événements, ModuleScripts et programmation orientée objet.',
+      'Créer ton jeu en dirigeant des IA de code, surtout Claude Code : installer un workflow pro (Rojo, Git, serveur MCP de Studio), écrire des prompts précis, découper un projet, puis relire, tester et déboguer ce que l’IA produit.',
+    emoji: '🤖',
+    objectifs: [
+      'Choisir le bon outil d’IA et installer un workflow pro (Rojo, Git, MCP, outils qualité)',
+      'Écrire des prompts précis : contexte, objectif, contraintes, critères de réussite',
+      'Découper un projet en petites tâches et construire un jeu prompt par prompt',
+      'Relire, tester et déboguer le code généré, et éviter les pièges de l’IA',
+    ],
+    badge: { nom: 'Pilote d’IA', emoji: '🤖' },
+  },
+  {
+    numero: '03',
+    titre: 'Lire et comprendre Luau (pour diriger l’IA)',
+    titreCourt: 'Lire et comprendre Luau',
+    description:
+      'Le langage de Roblox, pas à pas, pour savoir lire et vérifier ce que l’IA écrit : variables, conditions, boucles, fonctions, tables, événements, ModuleScripts et programmation orientée objet.',
     emoji: '📜',
     objectifs: [
-      'Lire et écrire des scripts Luau clairs et commentés',
-      'Réagir aux événements du jeu (contacts, joueurs, temps)',
-      'Structurer ton code avec des ModuleScripts réutilisables',
-      'Créer des objets avec les métatables (POO)',
+      'Lire et comprendre un script Luau, ligne par ligne',
+      'Repérer ce qui cloche dans un script (erreurs, oublis, mauvaises pratiques)',
+      'Reconnaître la structure d’un code bien organisé (événements, ModuleScripts, POO)',
+      'Modifier un script toi-même quand une petite retouche suffit',
     ],
     badge: { nom: 'Scripteur', emoji: '📜' },
   },
   {
-    numero: '03',
+    numero: '04',
     titre: 'Client, serveur et sécurité',
     titreCourt: 'Client / serveur',
     description:
@@ -79,7 +94,7 @@ export const MODULES: ModuleInfo[] = [
     badge: { nom: 'Gardien', emoji: '🛡️' },
   },
   {
-    numero: '04',
+    numero: '05',
     titre: 'Systèmes de jeu',
     titreCourt: 'Systèmes de jeu',
     description:
@@ -94,7 +109,7 @@ export const MODULES: ModuleInfo[] = [
     badge: { nom: 'Ingénieur', emoji: '⚙️' },
   },
   {
-    numero: '05',
+    numero: '06',
     titre: 'Un game design qui retient les joueurs',
     titreCourt: 'Game design',
     description:
@@ -109,7 +124,7 @@ export const MODULES: ModuleInfo[] = [
     badge: { nom: 'Game designer', emoji: '🎯' },
   },
   {
-    numero: '06',
+    numero: '07',
     titre: 'Monétisation et DevEx',
     titreCourt: 'Monétisation',
     description:
@@ -124,7 +139,7 @@ export const MODULES: ModuleInfo[] = [
     badge: { nom: 'Économiste', emoji: '💎' },
   },
   {
-    numero: '07',
+    numero: '08',
     titre: 'Publication et croissance',
     titreCourt: 'Publication',
     description:
@@ -139,7 +154,7 @@ export const MODULES: ModuleInfo[] = [
     badge: { nom: 'Lanceur', emoji: '🚀' },
   },
   {
-    numero: '08',
+    numero: '09',
     titre: 'Analytics : mesurer pour progresser',
     titreCourt: 'Analytics',
     description:
@@ -154,7 +169,7 @@ export const MODULES: ModuleInfo[] = [
     badge: { nom: 'Analyste', emoji: '📊' },
   },
   {
-    numero: '09',
+    numero: '10',
     titre: 'Optimisation et performances',
     titreCourt: 'Optimisation',
     description:
@@ -169,7 +184,7 @@ export const MODULES: ModuleInfo[] = [
     badge: { nom: 'Optimiseur', emoji: '⚡' },
   },
   {
-    numero: '10',
+    numero: '11',
     titre: 'Les erreurs qui tuent un jeu et la checklist de lancement',
     titreCourt: 'Erreurs et checklist',
     description:

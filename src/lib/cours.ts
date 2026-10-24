@@ -73,7 +73,7 @@ export function getLecons(): Promise<Lecon[]> {
 
 let cacheModules: Promise<ModuleAvecLecons[]> | undefined;
 
-/** Les 11 modules avec leurs leçons et leur examen (s'il existe). */
+/** Les 12 modules avec leurs leçons et leur examen (s'il existe). */
 export function getModules(): Promise<ModuleAvecLecons[]> {
   cacheModules ??= Promise.all([getLecons(), getCollection('examens')]).then(([lecons, examens]) => {
     for (const ex of examens) {

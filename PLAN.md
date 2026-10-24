@@ -1,6 +1,6 @@
 # PLAN.md — Plan détaillé de la formation
 
-> « Créer un jeu Roblox qui marche, de A à Z » — 11 modules, 58 leçons.
+> « Créer un jeu Roblox qui marche, de A à Z » — 12 modules, 68 leçons (phase IA : module 02 « Scripter avec l’IA » inséré après le module 01, anciens modules 02 à 10 renumérotés 03 à 11).
 > Ce plan est la référence des rédacteurs : **slugs, titres et ordre sont figés** (ils deviennent les noms de fichiers et les URL).
 > Le titre peut être légèrement reformulé dans le frontmatter ; les objectifs et notions clés sont un minimum à couvrir.
 > Format de fichier, frontmatter, quiz, composants : voir [AUTHORING.md](AUTHORING.md).
@@ -18,15 +18,16 @@ Progression du fil rouge (chaque module ajoute une brique) :
 |---|---|
 | 0 | Le cahier des charges minimal (périmètre « version 1 ») |
 | 1 | Le premier niveau construit à la main (plateformes, SpawnLocation), publié en privé |
-| 2 | Kill bricks, pièces qui tournent, checkpoints basiques, ModuleScript de configuration |
-| 3 | Checkpoints et pièces validés côté serveur, achat en boutique via RemoteEvent sécurisé |
-| 4 | Leaderstats (Étape, Pièces), sauvegarde DataStore, inventaire de trails, UI boutique, plateformes animées (TweenService), animation de victoire |
-| 5 | Onboarding des 60 premières secondes, courbe de difficulté, récompenses et objectifs |
-| 6 | Game Pass cosmétique, Developer Product « passer l’étape », prix et éthique |
-| 7 | Page du jeu, icône, miniatures, lancement, première mise à jour |
-| 8 | Entonnoir d’onboarding et de progression (AnalyticsService), lecture du Creator Dashboard |
-| 9 | Version mobile soignée, streaming d’instances, chasse au lag |
-| 10 | Passage de la checklist de lancement complète |
+| 2 | Le projet Rojo + Git, le fichier CLAUDE.md du jeu, les outils qualité (selene, StyLua) et la méthode pour construire chaque système avec Claude Code |
+| 3 | Kill bricks, pièces qui tournent, checkpoints basiques, ModuleScript de configuration |
+| 4 | Checkpoints et pièces validés côté serveur, achat en boutique via RemoteEvent sécurisé |
+| 5 | Leaderstats (Étape, Pièces), sauvegarde DataStore, inventaire de trails, UI boutique, plateformes animées (TweenService), animation de victoire |
+| 6 | Onboarding des 60 premières secondes, courbe de difficulté, récompenses et objectifs |
+| 7 | Game Pass cosmétique, Developer Product « passer l’étape », prix et éthique |
+| 8 | Page du jeu, icône, miniatures, lancement, première mise à jour |
+| 9 | Entonnoir d’onboarding et de progression (AnalyticsService), lecture du Creator Dashboard |
+| 10 | Version mobile soignée, streaming d’instances, chasse au lag |
+| 11 | Passage de la checklist de lancement complète |
 
 ## Règles communes à tous les modules
 
@@ -78,7 +79,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ### 04 · `tester-son-jeu` — Tester son jeu comme un pro
 - Objectifs : utiliser les différents modes de test ; lire la fenêtre Output ; tester à plusieurs joueurs en local.
-- Notions clés : Play, Play Here, Run, test client/serveur (plusieurs joueurs locaux), vue client vs vue serveur, Output et erreurs, Command Bar, émulation d’appareil (aperçu, approfondi au module 9).
+- Notions clés : Play, Play Here, Run, test client/serveur (plusieurs joueurs locaux), vue client vs vue serveur, Output et erreurs, Command Bar, émulation d’appareil (aperçu, approfondi au module 10).
 
 ### 05 · `premier-niveau-et-publication` — Construire le premier niveau et le publier
 - Objectifs : construire les premiers sauts de l’Obby des Nuages ; publier une première version privée ; gérer versions et collaboration.
@@ -86,7 +87,53 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 02 — Luau de A à Z 📜
+## Module 02 — Scripter avec l’IA : piloter Claude Code 🤖
+
+> Ajouté en phase IA. Message central : plus le prompt est **précis** (contexte, objectif, contraintes, critères de réussite), meilleur est le résultat ; un prompt vague donne du code vague. Message honnête : il faut comprendre assez le code pour **relire** ce que l’IA produit (sécurité, bugs, performances). On n’apprend plus à tout taper : on apprend à **lire, diriger et vérifier**. Le module vient avant « Lire et comprendre Luau » : il présente la méthode et renvoie aux modules 3 à 5 pour le détail du code.
+
+### 01 · `panorama-des-outils-ia` — Panorama des outils IA pour Roblox
+- Objectifs : connaître les outils (Claude Code, Assistant de Roblox Studio, autres IA de code) ; comparer forces, limites et prix ; savoir quand utiliser quoi.
+- Notions clés : agent de code vs assistant dans l’éditeur, Assistant de Studio, Claude Code, Cursor, Copilot, Codex…, prix datés et sourcés, confidentialité, ce que l’IA ne remplace pas.
+
+### 02 · `installer-un-workflow-pro` — Installer un workflow pro : Rojo, Git, MCP et outils qualité
+- Objectifs : avoir le code du jeu en fichiers sur le PC (Rojo) ; versionner avec Git ; brancher le serveur MCP de Roblox Studio à Claude Code ; installer luau-lsp, selene et StyLua.
+- Notions clés : tutoriel pas à pas Windows ET Mac, Rokit, `rojo init`/`rojo serve`, plugin Studio, `default.project.json`, suffixes `.server.luau`/`.client.luau`, Git (init, commit, .gitignore), MCP (installation et `claude mcp add`), VS Code + luau-lsp, `selene.toml`, `stylua.toml`.
+
+### 03 · `claude-code-de-a-a-z` — Claude Code de A à Z
+- Objectifs : installer et lancer Claude Code dans un projet Rojo ; écrire un CLAUDE.md complet pour un jeu Roblox ; maîtriser mode plan, permissions, commandes slash, skills, sous-agents, hooks ; gérer le contexte et revenir en arrière.
+- Notions clés : installation, connexion, `/init`, modèle CLAUDE.md complet (architecture, services, conventions, sécurité serveur, `task.wait`), mode plan, permissions et `settings.json`, commandes slash, skills, sous-agents, hooks (StyLua + selene après chaque modification), `/clear`, `/compact`, checkpoints et Git.
+
+### 04 · `l-art-du-prompt-precis` — L’art du prompt précis
+- Objectifs : structurer un prompt (contexte, existant, objectif, fichiers, contraintes techniques et de sécurité, cas limites, vérification) ; transformer un prompt vague en prompt précis ; comprendre ce que change chaque élément.
+- Notions clés : au moins 8 exemples « mauvais → bon prompt » (DataStore, boutique, combat, inventaire, UI, round system, anti-exploit, leaderboard) avec le résultat obtenu expliqué.
+
+### 05 · `decouper-un-gros-projet` — Découper un gros projet
+- Objectifs : passer d’une idée à un game design doc puis à un plan ; découper en petites tâches ; enchaîner une tâche par prompt → test → commit.
+- Notions clés : ne jamais demander « fais-moi un simulator entier », mode plan, liste de tâches, critères de réussite, exemple complet : un mini-jeu construit entièrement avec Claude Code, prompt par prompt.
+
+### 06 · `relire-et-tester-le-code-de-l-ia` — Relire et tester le code de l’IA
+- Objectifs : appliquer une checklist de revue ; faire relire le code par un sous-agent ; ajouter des tests automatisés en Luau.
+- Notions clés : RemoteEvents validés côté serveur, ne jamais faire confiance au client, DataStores avec `pcall` et nouvelles tentatives, connexions nettoyées (fuites mémoire), performances mobiles, API obsolètes, sous-agent relecteur, frameworks de test actuels.
+
+### 07 · `deboguer-avec-l-ia` — Déboguer avec l’IA
+- Objectifs : donner à l’IA tout ce qu’il faut (erreur complète de l’Output, script, comportement attendu) ; suivre une méthode qui évite de tourner en rond.
+- Notions clés : lire une erreur et sa pile d’appels, reproduire, hypothèses, `print` ciblés, une hypothèse à la fois, `/clear` et repartir d’un résumé, revenir au dernier commit qui marchait.
+
+### 08 · `les-pieges-de-l-ia` — Les pièges de l’IA
+- Objectifs : reconnaître hallucinations d’API et code obsolète ; repérer les failles de sécurité typiques ; protéger ses secrets ; respecter les règles de Roblox sur le contenu généré par IA.
+- Notions clés : API inventées, `wait`/`spawn`/`BodyVelocity`…, failles client/serveur, dépendance sans comprendre, clés et secrets, règles officielles.
+
+### 09 · `l-ia-au-dela-du-code` — L’IA au-delà du code
+- Objectifs : connaître les outils IA de Roblox pour les assets (modèles 3D, textures, matériaux) ; utiliser l’IA pour icônes, miniatures, traduction et descriptions ; respecter les règles d’utilisation.
+- Notions clés : outils officiels et leur état en 2026, limites, modération, droits, transparence.
+
+### 10 · `bibliotheque-de-prompts` — Bibliothèque de prompts
+- Objectifs : disposer de prompts prêts à copier pour chaque système de jeu courant ; savoir les adapter à son projet.
+- Notions clés : prompts commentés et ultra précis (bouton « Copier »), comment les personnaliser, ce qu’il faut vérifier après chacun.
+
+---
+
+## Module 03 — Lire et comprendre Luau (pour diriger l’IA) 📜
 
 ### 01 · `premier-script` — Ton premier script
 - Objectifs : distinguer Script, LocalScript et ModuleScript ; savoir où placer chaque type ; écrire et exécuter un premier script.
@@ -114,7 +161,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 03 — Client, serveur et sécurité 🛡️
+## Module 04 — Client, serveur et sécurité 🛡️
 
 ### 01 · `modele-client-serveur` — Le modèle client/serveur
 - Objectifs : expliquer qui exécute quoi ; comprendre la réplication ; identifier ce que le client peut modifier.
@@ -138,7 +185,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 04 — Systèmes de jeu ⚙️
+## Module 05 — Systèmes de jeu ⚙️
 
 ### 01 · `leaderstats` — Afficher des statistiques avec les leaderstats
 - Objectifs : créer des leaderstats ; mettre à jour les valeurs depuis le serveur ; choisir quoi afficher.
@@ -166,14 +213,14 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 05 — Un game design qui retient les joueurs 🎯
+## Module 06 — Un game design qui retient les joueurs 🎯
 
 ### 01 · `core-loop` — La boucle de jeu (core loop)
 - Objectifs : définir la boucle principale d’un jeu ; distinguer boucles courtes et longues ; analyser la boucle de jeux existants.
 - Notions clés : action → récompense → progression, boucles secondaires (méta), exemples par genre (obby, simulateur, tycoon, jeu de rôle…), boucle de l’Obby des Nuages.
 
 ### 02 · `les-60-premieres-secondes` — Les 60 premières secondes
-- Objectifs : comprendre pourquoi le début de partie est décisif ; concevoir un onboarding sans mur de texte ; mesurer ce moment (lien avec le module 8).
+- Objectifs : comprendre pourquoi le début de partie est décisif ; concevoir un onboarding sans mur de texte ; mesurer ce moment (lien avec le module 9).
 - Notions clés : temps avant la première action amusante, objectif clair et visible, tutoriel par la pratique, guider sans bloquer, éviter chargements et menus d’entrée, premiers succès rapides. Fil rouge : refonte du spawn et du premier saut.
 
 ### 03 · `progression-et-recompenses` — Progression, difficulté et récompenses
@@ -190,7 +237,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 06 — Monétisation et DevEx 💎
+## Module 07 — Monétisation et DevEx 💎
 
 ### 01 · `economie-roblox` — Comprendre l’économie de Roblox
 - Objectifs : connaître les sources de revenus d’une expérience ; comprendre le circuit des Robux ; poser les bases d’une monétisation saine.
@@ -218,7 +265,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 07 — Publication et croissance 🚀
+## Module 08 — Publication et croissance 🚀
 
 ### 01 · `preparer-la-page-du-jeu` — Préparer la page du jeu
 - Objectifs : écrire un titre et une description efficaces ; configurer genre et paramètres ; remplir le questionnaire de maturité.
@@ -242,7 +289,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 08 — Analytics : mesurer pour progresser 📊
+## Module 09 — Analytics : mesurer pour progresser 📊
 
 ### 01 · `pourquoi-mesurer` — Pourquoi et quoi mesurer
 - Objectifs : comprendre le rôle des données ; découvrir le Creator Dashboard ; éviter les pièges d’interprétation.
@@ -266,7 +313,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 09 — Optimisation et performances ⚡
+## Module 10 — Optimisation et performances ⚡
 
 ### 01 · `penser-mobile-d-abord` — Penser mobile d’abord
 - Objectifs : comprendre les contraintes du mobile ; adapter interface et contrôles tactiles ; tester sur émulateur et vrai appareil.
@@ -290,7 +337,7 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ---
 
-## Module 10 — Les erreurs qui tuent un jeu et la checklist de lancement ✅
+## Module 11 — Les erreurs qui tuent un jeu et la checklist de lancement ✅
 
 ### 01 · `erreurs-de-conception` — Les erreurs de conception
 - Objectifs : reconnaître les erreurs de conception fréquentes ; diagnostiquer son propre projet ; corriger le tir.

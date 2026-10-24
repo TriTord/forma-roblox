@@ -1,0 +1,173 @@
+---
+titre: "La rétention : D1, D7, D30"
+description: Comprends comment Roblox calcule la rétention D1, D7 et D30, lis une courbe et un tableau de cohortes, et relie chaque horizon à une partie de ton game design.
+duree: 20
+objectifs:
+  - Définir la rétention D1, D7 et D30 telle que Roblox la calcule
+  - Lire une courbe de rétention et un tableau de cohortes
+  - Relier chaque horizon de rétention à une partie du game design
+  - Choisir une piste d’amélioration adaptée
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Exemple fictif : 200 joueurs découvrent ton jeu le 3 octobre. 30 d’entre eux reviennent le 4 octobre. Quelle est la rétention D1 de cette cohorte ?"
+    options:
+      - texte: "3 %"
+      - texte: "15 %"
+        correct: true
+      - texte: "30 %"
+      - texte: "85 %"
+    explication: "Rétention D1 = joueurs de la cohorte revenus le lendemain ÷ taille de la cohorte = 30 ÷ 200 = 0,15, soit **15 %**."
+  - type: vrai-faux
+    question: "Dans le tableau de bord de Roblox, la date affichée sur l’axe horizontal des courbes de rétention est la date de première partie des nouveaux joueurs (leur cohorte)."
+    reponse: true
+    explication: "Roblox place chaque point à la **date de première partie** de la cohorte. Le point du 20/06 sur la courbe D7 parle donc des joueurs arrivés le 20/06, et il n’apparaît qu’une semaine plus tard."
+  - type: qcm
+    question: Ta rétention D1 est bonne, mais ta rétention D7 est très faible. Sur quoi la documentation de Roblox te conseille-t-elle de travailler en priorité ?
+    options:
+      - texte: Le système de progression (objectifs, variété, dosage de la difficulté)
+        correct: true
+      - texte: L’icône et les miniatures
+      - texte: Le contenu de fin de jeu et les mécaniques sociales uniquement
+      - texte: Le prix des Game Passes
+    explication: "Roblox associe D1 au core loop, au tout premier contact (FTUE) et aux performances ; D7 au **système de progression** ; D30 au contenu de fin de jeu et aux mécaniques sociales."
+  - type: vrai-faux
+    question: "Il est normal que les points les plus récents de la courbe D30 soient vides."
+    reponse: true
+    explication: Pour connaître la rétention D30 des joueurs arrivés hier, il faut attendre 30 jours. Les derniers points des courbes D7 et D30 se remplissent donc avec du retard.
+  - type: qcm
+    question: "Pourquoi le tableau de cohortes est-il utile après un gros événement dans ton jeu ?"
+    options:
+      - texte: Il montre si les joueurs arrivés pendant l’événement restent plus ou moins que les autres
+        correct: true
+      - texte: Il donne le nombre exact de joueurs connectés en ce moment
+      - texte: Il calcule automatiquement le revenu de l’événement en euros
+    explication: "Chaque ligne du tableau suit un groupe de joueurs arrivés le même jour (ou la même semaine). Tu peux donc comparer la cohorte de l’événement aux cohortes précédentes, y compris sur des métriques comme le temps de jeu ou la conversion sur 7 jours."
+---
+
+À la leçon précédente, tu as vu que Roblox conseille de soigner d’abord la rétention. Pourquoi ? Parce qu’un jeu qui garde ses joueurs grandit, alors qu’un jeu qui les perd doit sans cesse en attirer de nouveaux. Voyons précisément ce que signifient D1, D7 et D30 dans le tableau de bord, et ce qu’ils disent de ton Obby des Nuages.
+
+## Qu’est-ce que la rétention ?
+
+La **rétention** mesure combien de joueurs **reviennent** dans ton jeu après leur première visite. Roblox la mesure à trois horizons : 1 jour, 7 jours et 30 jours.
+
+### Les cohortes
+
+Une **cohorte** est un groupe de joueurs qui ont commencé à jouer **le même jour** (ou la même semaine). On suit chaque cohorte séparément, ce qui permet de voir l’effet d’un changement sur les joueurs arrivés après ce changement.
+
+Dans le tableau de bord, l’axe horizontal des courbes de rétention est la **date de première partie** de la cohorte. Roblox donne cet exemple : le point du 20/06 correspond, sur les trois courbes, aux joueurs qui ont joué pour la première fois le 20/06.
+
+### Les définitions de Roblox
+
+Voici comment la documentation officielle définit les trois indicateurs (au moment de la rédaction) :
+
+| Indicateur | Définition de Roblox | Exemple (cohorte du 20/06) |
+|---|---|---|
+| **D1** | Pourcentage de nouveaux joueurs qui reviennent **le lendemain** de leur première visite | revenus le 21/06 |
+| **D7** | Pourcentage de nouveaux joueurs qui reviennent **le 8e jour** (le « jour 7 », la première visite étant le jour 0) | revenus le 27/06 |
+| **D30** | Pourcentage de nouveaux joueurs qui reviennent **le 31e jour** (le « jour 30 ») | revenus le 20/07 |
+
+La formule est toujours la même :
+
+> **Rétention DN = joueurs de la cohorte revenus au jour N ÷ nombre de joueurs de la cohorte × 100**
+
+<Info titre="Définitions de Roblox vs définitions générales">
+Dans l’industrie du jeu vidéo, on trouve deux façons de compter : revenir **exactement** au jour N, ou revenir **à n’importe quel moment** jusqu’au jour N. La page Retention de Roblox décrit la première : un retour **le** jour 7, pas « au moins une fois dans la semaine ». Ce calcul, plus strict, donne forcément des valeurs inférieures ou égales à celles de la méthode « à n’importe quel moment » : ne compare pas tes chiffres à des statistiques calculées autrement.
+
+Les formulations varient un peu d’une page de la documentation à l’autre (la page d’accueil Analytics parle de joueurs « qui ont rejoué après la fin de leur première session », la page Acquisition d’un retour « le 8e jour » pour D7) : en cas de doute, survole l’icône d’information du graphique dans ton tableau de bord.
+</Info>
+
+### Exemple chiffré (fictif)
+
+Imaginons une cohorte **fictive** de l’Obby des Nuages : 400 joueurs découvrent le jeu le 1er octobre.
+
+| Jour | Joueurs de la cohorte revenus ce jour-là | Rétention |
+|---|---|---|
+| 2 octobre (jour 1) | 60 | D1 = 60 ÷ 400 = **15 %** |
+| 8 octobre (jour 7) | 16 | D7 = 16 ÷ 400 = **4 %** |
+| 31 octobre (jour 30) | 4 | D30 = 4 ÷ 400 = **1 %** |
+
+Ces chiffres ne sont pas des objectifs : ils servent seulement à montrer le calcul. Les bons repères pour **ton** jeu sont les benchmarks de jeux similaires de ton tableau de bord, et surtout ta propre évolution.
+
+<Erreur titre="Lire le dernier point de la courbe D30">
+Les données D7 d’une cohorte n’apparaissent qu’au bout de 7 jours, et les données D30 qu’au bout de 30 jours. Les derniers points des courbes D7 et D30 sont donc souvent vides ou incomplets. Ne panique pas devant une « chute » sur les tout derniers jours : vérifie d’abord que la cohorte a eu le temps d’atteindre l’horizon mesuré.
+</Erreur>
+
+## Lire une courbe et un tableau de cohortes
+
+### Les trois courbes
+
+Chaque courbe montre l’évolution d’un indicateur cohorte après cohorte. Ce que tu cherches :
+
+- **une tendance** : est-ce que D1 monte depuis ta dernière mise à jour ?
+- **une rupture** : un creux brutal à une date précise (bug, mise à jour ratée, afflux inhabituel) ;
+- **une cohérence** : si D1 chute à une date, D7 et D30 de la même cohorte chutent souvent aussi.
+
+Roblox montre justement un exemple de creux sur les trois courbes à la même date, qu’il explique par un gros afflux de nouveaux joueurs, un effet qu’il qualifie de « typique et temporaire ». Une explication possible : un pic de visiteurs (publicité, vidéo d’un créateur…) peut amener des joueurs moins attirés par ton genre de jeu, qui repartent plus vite.
+
+### Le tableau de cohortes
+
+En bas de la page Retention, le **tableau de rétention des nouveaux joueurs** existe en deux versions :
+
+- **cohortes quotidiennes** : la rétention des nouveaux joueurs sur leurs **10 premiers jours** ;
+- **cohortes hebdomadaires** : la rétention sur **10 semaines**, en groupant les joueurs par semaine d’arrivée (du lundi au dimanche).
+
+Pour chaque cohorte, Roblox affiche aussi des métriques cumulées : temps de jeu par joueur sur 7 jours, conversion en payeurs sur 7 jours, revenu par joueur sur 7 et 30 jours. Pratique pour savoir si les joueurs arrivés pendant un événement restent **et** jouent plus que les autres.
+
+<Astuce>
+Après une mise à jour importante, compare la cohorte de la semaine qui suit à celle de la semaine qui précède dans le tableau hebdomadaire. C’est bien plus fiable que de regarder un seul jour, car chaque semaine contient le même mélange de jours ouvrés et de week-end.
+</Astuce>
+
+## Ce que révèle chaque horizon
+
+La documentation de Roblox associe chaque horizon à une partie de ton game design. C’est une grille de lecture très pratique.
+
+### D1 : la première impression
+
+Une D1 faible signifie souvent que les joueurs sont perdus, frustrés, ou n’arrivent pas assez vite au plaisir. Roblox conseille de travailler :
+
+- la **boucle de jeu** (core loop, module 6) : claire, bien dosée, récompensée ;
+- le **premier contact** (FTUE, *first-time user experience*) : tutoriel court, un moment de joie rapide, un aperçu de la progression possible. La documentation recommande d’amener les joueurs au plaisir idéalement **en 5 minutes ou moins** ;
+- les **performances** : tester sur plusieurs appareils, surveiller crashs et images par seconde (module 10).
+
+Pour l’Obby des Nuages, c’est tout l’enjeu des 60 premières secondes du module 6 : premier saut, premier checkpoint, première pièce.
+
+### D7 : la profondeur
+
+Une D7 faible signale souvent un **système de progression** insuffisant : le joueur n’a pas de raison concrète de revenir une semaine plus tard. Pistes de Roblox : objectifs à court et long terme, variété du contenu, difficulté ni trop rapide ni trop lente.
+
+### D30 : le long terme
+
+Une D30 faible indique souvent un manque de contenu après les objectifs principaux. Roblox cite des mises à jour régulières (par exemple de petites mises à jour toutes les 2 à 4 semaines et de plus grosses tous les 2 à 3 mois, présentées comme une fréquence courante) et des mécaniques sociales (échanges, groupes, classements…).
+
+<Attention>
+N’ajoute pas de mécaniques compulsives (récompenses qui punissent l’absence, faux comptes à rebours) juste pour faire monter D7 ou D30. Une rétention obtenue par la pression abîme la confiance des joueurs, souvent mineurs. Le module 6 ([Donner envie de revenir](/modules/06/rejouabilite/)) détaille comment donner envie de revenir en respectant leur temps.
+</Attention>
+
+## Méthode : de la courbe à l’action
+
+1. **Repère** l’horizon le plus faible par rapport aux benchmarks de jeux similaires ou à ton historique.
+2. **Formule une hypothèse** : « les nouveaux joueurs abandonnent au checkpoint 2, trop difficile ».
+3. **Vérifie-la** avec des données plus fines : l’entonnoir d’onboarding de la leçon 5 te dira à quelle étape ils partent.
+4. **Change une seule chose**, note la date, puis compare les cohortes avant et après.
+
+<Defi>
+Dans ton tableau de bord, ouvre la page Retention de ton jeu et choisis la vue hebdomadaire du tableau de cohortes. Relève la D1 des trois dernières cohortes complètes. Puis écris une hypothèse (une phrase) qui expliquerait la meilleure ou la pire des trois, en t’aidant de ton journal des mises à jour.
+</Defi>
+
+<Resume>
+- La rétention mesure le pourcentage de **nouveaux joueurs d’une cohorte** qui reviennent : le lendemain (D1), le 8e jour (D7), le 31e jour (D30), selon les définitions de Roblox.
+- Formule : joueurs revenus au jour N ÷ taille de la cohorte × 100.
+- L’axe des courbes est la date de première partie ; les derniers points de D7 et D30 se remplissent avec retard.
+- D1 = core loop, premier contact et performances ; D7 = progression ; D30 = contenu de fin de jeu et social.
+- Compare des cohortes entières (idéalement des semaines) avant et après chaque changement.
+</Resume>
+
+<Sources>
+- [Retention — définitions D1/D7/D30, cohortes et pistes d’amélioration (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
+- [Get started with analytics — métriques de rétention](https://create.roblox.com/docs/production/analytics/get-started)
+- [Analytics — définition de la D1 dans Analytics Home](https://create.roblox.com/docs/production/analytics)
+- [Acquisition — définition de la D7 par source](https://create.roblox.com/docs/production/analytics/acquisition)
+- [Analytics dashboard — benchmarks](https://create.roblox.com/docs/production/analytics/analytics-dashboard#benchmarking)
+- [Onboarding — guide de game design Roblox](https://create.roblox.com/docs/production/game-design/onboarding)
+</Sources>

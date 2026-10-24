@@ -128,7 +128,7 @@ export async function lireProgression(page: Page): Promise<{
 /** Pose un état de progression avant le chargement des pages (contexte neuf). */
 export async function poserProgression(page: Page, lecons: string[], examens: Record<string, boolean> = {}): Promise<void> {
   const etat = {
-    version: 1,
+    version: 2,
     lecons: Object.fromEntries(lecons.map((id) => [id, '2026-01-01T00:00:00.000Z'])),
     quiz: {},
     examens: Object.fromEntries(

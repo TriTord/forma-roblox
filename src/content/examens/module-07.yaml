@@ -1,146 +1,145 @@
 module: "07"
-titre: Examen du module 7
-description: Vérifie que tu sais préparer la page de ton jeu, créer des visuels honnêtes, lancer prudemment, mettre à jour sans casse et animer une communauté en sécurité.
+titre: Examen du module 7 — Monétisation et DevEx
+description: Vérifie que tu sais vendre honnêtement et de façon fiable dans l’Obby des Nuages, et que tu comprends le circuit des Robux jusqu’au DevEx (chiffres d’octobre 2026).
 seuil: 70
 questions:
   - type: qcm
-    question: Quelle première phrase de description suit le mieux les conseils officiels pour l’Obby des Nuages ?
+    question: Un joueur non abonné à Roblox Plus dépense 250 Robux pour un Developer Product de ton jeu. Combien de Robux arrivent sur ton compte, en attente, au taux en vigueur en octobre 2026 ?
     options:
-      - texte: "Le meilleur jeu de tout Roblox, joue maintenant !!!"
-      - texte: "Saute de nuage en nuage dans un parcours d’obstacles céleste et collectionne des pièces pour débloquer des traînées."
+      - texte: "250"
+      - texte: "175"
         correct: true
-      - texte: "obby parkour tycoon simulator adopt me brookhaven piggy"
-      - texte: "Mise à jour 1.4 : corrections de bugs."
-    explication: "La documentation conseille de **résumer le jeu dès la première phrase**, avec des mots-clés pertinents. Les affirmations vagues ou exagérées n’informent pas, et une liste de mots-clés sans rapport peut faire rétrograder le jeu."
-
-  - type: vrai-faux
-    question: "Tu ajoutes à l’Obby des Nuages une zone hantée avec des cris et des apparitions soudaines. Tu dois mettre à jour ton questionnaire de maturité."
-    reponse: true
-    explication: "Les éléments qui font peur (cris, apparitions soudaines, musique angoissante…) font partie des catégories du questionnaire. La documentation impose de refaire le questionnaire quand une mise à jour change une réponse."
+      - texte: "125"
+      - texte: "75"
+    explication: "Le créateur reçoit **70 %** d’un achat en Robux : 250 × 0,7 = 175 Robux. Ces Robux restent d’abord en attente (environ 5 jours pour les passes et produits) avant d’être disponibles."
 
   - type: qcm
-    question: "D’après la documentation au moment de la rédaction, lesquelles de ces conditions faut-il remplir pour ouvrir un jeu à **tous les âges** ? (plusieurs réponses possibles)"
+    question: "Pour l’Obby des Nuages, tu veux vendre : (A) une zone VIP accessible pour toujours, (B) des sacs de 100 pièces, (C) un bonus de pièces actif tant que le joueur paie chaque mois. Quelle association est correcte ?"
     options:
-      - texte: Activer la validation en deux étapes sur son compte
+      - texte: "A : Developer Product, B : Game Pass, C : abonnement"
+      - texte: "A : Game Pass, B : Developer Product, C : abonnement"
         correct: true
-      - texte: Avoir un abonnement Roblox Plus ou Premium depuis 2 mois, ou payer des frais de publication remboursables
-        correct: true
-      - texte: Remplir tout le questionnaire et obtenir un label Minimal, Mild ou Moderate
-        correct: true
-      - texte: Avoir déjà publié au moins trois autres jeux
-    explication: "Pour tous les âges (Roblox Kids et Select), il faut notamment un compte vérifié, la 2FA, un abonnement ou des frais remboursables, le questionnaire complet avec un label adapté, et réussir l’évaluation de Roblox. Aucun nombre minimum de jeux déjà publiés n’est demandé."
-
-  - type: qcm
-    question: Où vaut-il mieux éviter de placer le texte important d’une miniature ?
-    options:
-      - texte: En haut à gauche
-      - texte: Au centre
-      - texte: En bas, où des informations comme le nombre de joueurs peuvent s’afficher par-dessus
-        correct: true
-      - texte: Nulle part, Roblox n’affiche rien par-dessus les miniatures
-    explication: "La documentation prévient que des métadonnées comme le nombre de joueurs peuvent recouvrir le **bas** de la miniature. Garde les éléments essentiels ailleurs."
-
-  - type: vrai-faux
-    question: Un jeu qui n’a que la miniature générée par défaut peut quand même recevoir des affichages dans les recommandations de la page d’accueil.
-    reponse: false
-    explication: "La documentation sur la découverte indique qu’une **miniature personnalisée est obligatoire** pour recevoir des affichages dans les recommandations de la page d’accueil. Avec la seule miniature par défaut, le jeu n’y est pas éligible."
-
-  - type: qcm
-    question: "Pour la vidéo de présentation de ton jeu, quel choix est autorisé ?"
-    options:
-      - texte: Filmer de vraies séquences de jeu avec la caméra libre, sous des angles variés
-        correct: true
-      - texte: Ajouter ta voix pour expliquer les règles
-      - texte: Montrer une mécanique de vol que tu prévois d’ajouter plus tard
-      - texte: "Ajouter le texte « Traînée GRATUITE pour les 100 premiers ! »"
-    explication: "Les angles de caméra variés sont autorisés s’ils montrent le **vrai** gameplay. La voix off, les mécaniques absentes du jeu et les textes promotionnels sont interdits."
-
-  - type: qcm
-    question: "Ton jeu est public depuis une semaine. La plupart des nouveaux joueurs repartent en moins d’une minute. Que faire en priorité ?"
-    options:
-      - texte: Lancer une grosse campagne publicitaire pour compenser
-      - texte: Améliorer le début de partie (onboarding), puis mesurer à nouveau avant de payer de la publicité
-        correct: true
-      - texte: Changer le nom du jeu chaque jour
-      - texte: Ajouter « ROBUX GRATUITS » dans le titre
-    explication: "La publicité amène des joueurs mais ne les retient pas, et elle ne change pas le classement dans Recommended For You. La documentation d’Ads Manager conseille elle-même d’améliorer l’onboarding et la première expérience du joueur si une campagne ne progresse pas après 3 à 5 jours."
-
-  - type: vrai-faux
-    question: "Les données de lancement (*LaunchData*) d’une campagne ou d’un lien de partage sont secrètes : on peut s’en servir pour donner une grosse récompense sans risque."
-    reponse: false
-    explication: "La documentation précise que ces données apparaissent dans l’adresse du lien et ne sont **pas cachées** : n’importe qui peut les copier. On les réserve à des usages sans enjeu (message d’accueil, petit cosmétique)."
+      - texte: "A : abonnement, B : Developer Product, C : Game Pass"
+    explication: "Achat unique et permanent = **Game Pass** ; achat répétable = **Developer Product** ; avantage récurrent payé chaque mois = **abonnement**."
 
   - type: trouve-le-bug
-    question: "Ce Script, placé dans ServerScriptService, doit marquer les joueurs arrivés par le lien de partage YouTube. Où est le bug ?"
+    question: "Ce Script serveur doit donner l’accès VIP aux joueurs qui possèdent le pass. Pourtant, il ne reconnaît jamais personne. Où est le bug ?"
     code: |
+      local MarketplaceService = game:GetService("MarketplaceService")
       local Players = game:GetService("Players")
+      local ID_PASS_VIP = 123456789
 
-      local player = Players.LocalPlayer
-      local joinData = player:GetJoinData()
-
-      if joinData.LaunchData == "lien_youtube" then
-      	player:SetAttribute("SourceArrivee", "youtube")
-      end
-    options:
-      - texte: "Ligne 1 : `Players` doit s’écrire en minuscules"
-      - texte: "Ligne 3 : `Players.LocalPlayer` vaut `nil` dans un Script serveur ; il faut traiter chaque joueur dans `Players.PlayerAdded`"
-        correct: true
-      - texte: "Ligne 6 : on ne peut pas comparer `LaunchData` à un texte"
-      - texte: "Ligne 7 : `SetAttribute` n’existe pas sur un joueur"
-    explication: "`LocalPlayer` n’existe que côté client. Sur le serveur, il n’y a pas « un » joueur local : il faut connecter une fonction à `Players.PlayerAdded` et appeler `player:GetJoinData()` pour chaque joueur qui arrive."
-
-  - type: qcm
-    question: "Tu redémarres les serveurs avec l’option **Delay server restart**. Quel événement permet à ton jeu d’afficher un compte à rebours aux joueurs ?"
-    options:
-      - texte: "`Players.PlayerRemoving`"
-      - texte: "`game.ServerRestartScheduled`"
-        correct: true
-      - texte: "`game:BindToClose`"
-      - texte: "`RunService.Heartbeat`"
-    explication: "`ServerRestartScheduled` se déclenche sur les serveurs concernés et fournit l’heure prévue du redémarrage (`restartTime`), sa cause (`source`) et des attributs facultatifs. `BindToClose` sert à exécuter du code (comme une sauvegarde) juste avant la fermeture, pas à prévenir à l’avance."
-
-  - type: trouve-le-bug
-    question: "Cette fonction doit compléter les anciennes sauvegardes avec les champs ajoutés par une mise à jour. Où est le bug ?"
-    code: |
-      local DEFAUT = { etape = 0, pieces = 0, zoneOragesDebloquee = false }
-
-      local function completerDonnees(donnees)
-      	for cle, valeur in DEFAUT do
-      		if donnees[cle] ~= nil then
-      			donnees[cle] = valeur
-      		end
+      Players.PlayerAdded:Connect(function(player)
+      	local ok, possede = pcall(function()
+      		return MarketplaceService:UserOwnsGamePassAsync(player, ID_PASS_VIP)
+      	end)
+      	if ok and possede then
+      		player:SetAttribute("EstVIP", true)
       	end
-      	return donnees
-      end
+      end)
     options:
-      - texte: "Ligne 1 : une table ne peut pas contenir de booléen"
-      - texte: "Ligne 4 : on ne peut pas parcourir une table sans `pairs`"
-      - texte: "Ligne 5 : la condition est inversée ; avec `~= nil`, on écrase les valeurs existantes au lieu de remplir les champs manquants"
+      - texte: "Ligne 3 : l’ID d’un pass doit être écrit entre guillemets"
+      - texte: "Ligne 7 : il faut passer `player.UserId`, pas l’objet `player`"
         correct: true
-      - texte: "Ligne 9 : une fonction ne peut pas renvoyer une table"
-    explication: "Il faut écrire `if donnees[cle] == nil then` : on ne remplit que les champs **absents**. Avec `~= nil`, un joueur à l’étape 12 serait remis à l’étape 0 : c’est exactement la perte de progression qu’on veut éviter. En Luau, on peut parcourir une table directement avec `for … in`."
-
-  - type: qcm
-    question: "Tu prépares un événement « Ciel d’automne » qui commence dans dix jours et tu ne veux pas encore qu’il soit visible. Que fais-tu ?"
-    options:
-      - texte: Tu le crées en **privé**, puis tu le passes en **public** quand tu es prêt à le promouvoir
-        correct: true
-      - texte: Tu attends le jour J pour le créer, sinon tout le monde le verra
-      - texte: Tu le crées en public avec une fausse date
-      - texte: Tu l’annonces dans la description avec un lien externe
-    explication: "La documentation conseille de créer l’événement en **privé** tant qu’il n’est pas prêt : il n’apparaît alors pas sur la page du jeu. Une fois public, les joueurs peuvent cliquer sur **Notify Me** pour être prévenus au début."
-
-  - type: qcm
-    question: "Quel canal permet de toucher **tous** les joueurs de l’Obby des Nuages, quel que soit leur âge ?"
-    options:
-      - texte: Un serveur Discord annoncé par les liens sociaux
-      - texte: "Le jeu lui-même : un message au spawn ou un panneau des nouveautés"
-        correct: true
-      - texte: Une adresse e-mail affichée sur un panneau dans le jeu
-      - texte: Une chaîne YouTube citée dans la description
-    explication: "Les liens sociaux ne sont visibles que par les 16 ans et plus avec âge vérifié, et Discord impose au moins 13 ans. Afficher une adresse ou un lien externe dans le jeu (ou dans la description) est interdit. Seul le jeu lui-même atteint tous tes joueurs ; ta communauté Roblox vient ensuite, mais ses forums sont réservés aux 13 ans et plus."
+      - texte: "Ligne 9 : il faut tester `possede.IsSubscribed`"
+      - texte: "Ligne 10 : un attribut ne peut pas être modifié côté serveur"
+    explication: "`UserOwnsGamePassAsync` attend l’**UserId** (un nombre) du joueur. `IsSubscribed` concerne les abonnements (`GetUserSubscriptionStatusAsync`), et les attributs se modifient très bien côté serveur."
 
   - type: vrai-faux
-    question: "Pour connaître les rôles d’un joueur dans ta communauté, la méthode recommandée aujourd’hui est `Player:GetRankInGroupAsync()`."
+    question: "Quand `PromptGamePassPurchaseFinished` se déclenche, cela prouve que le joueur a acheté le pass."
     reponse: false
-    explication: "`GetRankInGroupAsync` et `GetRoleInGroupAsync` sont dépréciées : elles ne renvoient que le rôle le plus élevé. La méthode actuelle est `GroupService:GetRolesInGroupAsync(userId, groupId)`, qui renvoie `IsMember` et la liste de tous les rôles publics du joueur."
+    explication: "L’événement se déclenche à chaque fermeture de la fenêtre d’achat, même en cas d’annulation ou d’erreur. Il faut vérifier le troisième paramètre (`wasPurchased`), et écouter l’événement côté serveur."
+
+  - type: qcm
+    question: "Dans ton `ProcessReceipt`, tu as donné l’étape et noté le `PurchaseId` dans les données du joueur, mais `DonneesJoueurs.Sauvegarder` échoue (DataStore indisponible). Que doit renvoyer le callback ?"
+    options:
+      - texte: "`PurchaseGranted`, puisque le joueur a déjà reçu son étape"
+      - texte: "`NotProcessedYet` : le reçu reviendra, et le `PurchaseId` noté dans les données évitera de donner l’étape deux fois"
+        correct: true
+      - texte: Ne rien renvoyer pour que Roblox rembourse automatiquement le joueur
+    explication: "Le guide officiel de Roblox ne renvoie `PurchaseGranted` qu’après une sauvegarde réussie. Ici, rien n’est encore enregistré : `NotProcessedYet` laisse l’achat non résolu. Si une sauvegarde suivante réussit, le reçu sera reconnu grâce au `PurchaseId` et simplement confirmé ; sinon, l’étape sera redonnée à la prochaine connexion. Roblox ne rembourse pas les achats non résolus : ils restent en attente."
+
+  - type: qcm
+    question: "Pourquoi un `ProcessReceipt` doit-il être idempotent ? (plusieurs réponses possibles)"
+    options:
+      - texte: Le même reçu peut être traité sur deux serveurs en même temps si le joueur change de serveur
+        correct: true
+      - texte: "Même après `PurchaseGranted`, l’enregistrement côté Roblox peut échouer et le reçu revenir"
+        correct: true
+      - texte: Roblox rappelle le callback toutes les 10 secondes jusqu’à recevoir une réponse
+      - texte: Chaque achat déclenche obligatoirement deux appels du callback
+    explication: "La référence officielle mentionne ces deux cas. En revanche, il n’y a **pas** de nouvelle tentative basée sur le temps : après `NotProcessedYet`, le reçu revient lors d’un autre achat ou quand le joueur rejoint un serveur."
+
+  - type: trouve-le-bug
+    question: "Ce Script serveur propose « Passer l’étape » quand le client le demande. Où est le problème de sécurité ?"
+    code: |
+      local MarketplaceService = game:GetService("MarketplaceService")
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local remotes = ReplicatedStorage:WaitForChild("Remotes")
+      local demande = remotes:WaitForChild("DemanderPasserEtape") :: RemoteEvent
+
+      demande.OnServerEvent:Connect(function(player, idProduit)
+      	MarketplaceService:PromptProductPurchase(player, idProduit)
+      end)
+    options:
+      - texte: "Ligne 3 : les RemoteEvents doivent être rangés dans Workspace"
+      - texte: "Ligne 6 : le serveur ne peut pas recevoir d’arguments du client"
+      - texte: "Ligne 7 : le serveur utilise l’ID de produit envoyé par le client au lieu de son propre ID"
+        correct: true
+    explication: "Ne jamais faire confiance au client (module 4) : un tricheur peut envoyer n’importe quel ID. Le serveur doit utiliser **sa** constante d’ID et vérifier qu’une étape suivante existe avant d’ouvrir la fenêtre d’achat."
+
+  - type: vrai-faux
+    question: "Pour savoir si un joueur est abonné à « Nuage+ », un LocalScript peut appeler `GetUserSubscriptionStatusAsync` et donner lui-même le bonus de pièces."
+    reponse: false
+    explication: "La vérification d’abonnement doit se faire côté serveur, et c’est le serveur qui applique l’avantage. Le client peut seulement afficher l’offre et appeler `PromptSubscriptionPurchase`."
+
+  - type: qcm
+    question: Un abonnement payé en monnaie locale est vendu 4,99 $. Que gagne le créateur, d’après la documentation officielle (octobre 2026) ?
+    options:
+      - texte: 70 % de la valeur chaque mois
+      - texte: 70 % de la valeur le premier mois, puis 100 % les mois suivants
+        correct: true
+      - texte: 100 % dès le premier mois
+    explication: "Pour un abonnement en monnaie locale : 70 % le premier mois, puis 100 % ensuite, versés en Robux après une attente de 30 jours. Pour un abonnement payé en Robux, c’est 70 % chaque mois."
+
+  - type: qcm
+    question: "Un ancien tutoriel te conseille de « miser sur les Premium Payouts » et de tester `player.MembershipType == Enum.MembershipType.Premium`. Qu’en penser en octobre 2026 ?"
+    options:
+      - texte: Le conseil est toujours valable tel quel
+      - texte: Les Premium Payouts ont été remplacés par les Creator Rewards (juillet 2025), et `MembershipType` est déprécié au profit de `HasRobloxSubscription`
+        correct: true
+      - texte: Les Premium Payouts ont été remplacés par DevEx
+    explication: "Le programme Engagement-Based Payouts (Premium Payouts) est remplacé par les **Creator Rewards** depuis le 24 juillet 2025, et Roblox Plus succède à Premium en 2026. Pour reconnaître un abonné, la documentation recommande `Player.HasRobloxSubscription`."
+
+  - type: qcm
+    question: "Ton jeu vend des « potions de chance » qui augmentent les chances d’obtenir un œuf rare. Que demandent les règles de Roblox ?"
+    options:
+      - texte: Rien, car la potion elle-même n’est pas aléatoire
+      - texte: Expliquer chiffres à l’appui l’effet de la potion avant l’achat, et afficher les probabilités mises à jour quand elle est active
+        correct: true
+      - texte: Afficher seulement le mot « Chance + » sur la potion
+    explication: "Les objets qui modifient des probabilités font partie des objets aléatoires payants : leur effet doit être expliqué numériquement avant l’achat, et les probabilités affichées doivent refléter les vraies chances quand ils sont actifs."
+
+  - type: vrai-faux
+    question: "Un message « DERNIÈRE CHANCE ! » affiché à chaque connexion pour un objet qui reste toujours en vente respecte les règles de Roblox, puisque le prix est correct."
+    reponse: false
+    explication: "Roblox interdit la fausse urgence : fausse rareté, durée limitée inventée, comptes à rebours qui redémarrent. Il recommande aussi des formulations neutres (« Voir l’objet ») plutôt que des injonctions pressantes, surtout envers les mineurs."
+
+  - type: qcm
+    question: "Tu as accumulé 45 000 Earned Robux, tous gagnés en 2026, sans éligibilité au taux U.S. 18+. Combien représentent-ils au taux standard de 0,0038 $, avant frais et impôts ?"
+    options:
+      - texte: "157,50 $"
+      - texte: "171 $"
+        correct: true
+      - texte: "243 $"
+      - texte: "450 $"
+    explication: "45 000 × 0,0038 = **171 $**. 157,50 $ correspondrait à l’ancien taux (0,0035) et 243 $ au taux U.S. 18+ (0,0054). Il faudra encore retirer les frais de paiement et les éventuels impôts."
+
+  - type: qcm
+    question: "Quelle affirmation sur DevEx et les impôts est exacte ?"
+    options:
+      - texte: Roblox calcule et paie pour toi tous les impôts dus dans ton pays
+      - texte: "Tu es responsable de déclarer tes gains ; Roblox ne donne pas de conseil fiscal et des retenues américaines peuvent s’appliquer à partir du 1er novembre 2026"
+        correct: true
+      - texte: Les gains DevEx ne sont jamais imposables pour un mineur
+    explication: "Les conditions DevEx rendent chaque participant responsable de ses impôts, Roblox ne donne aucun conseil fiscal, et la page officielle annonce qu’à partir du 1er novembre 2026 des retenues américaines peuvent s’appliquer selon les informations fiscales fournies. Pour ta situation, consulte un professionnel."

@@ -23,7 +23,7 @@ end
 pieces.Changed:Connect(majCompteur) -- à chaque changement de valeur
 majCompteur() -- et une première fois au démarrage
 
--- (Le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » a été supprimé au module 4, leçon 6 :
+-- (Le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » a été supprimé au module 5, leçon 6 :
 -- c'est AnimationsInterface qui ouvre et ferme la fenêtre.)
 
 -- 3. LES BOUTONS DES OBJETS, fabriqués à partir du catalogue

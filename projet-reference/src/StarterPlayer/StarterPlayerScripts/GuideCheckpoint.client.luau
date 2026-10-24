@@ -30,7 +30,7 @@ local function placerGuide()
 
 	local personnage = joueur.Character
 	local racine = personnage and personnage:FindFirstChild("HumanoidRootPart")
-	-- Avec le streaming (module 9), un checkpoint lointain peut ne pas être encore chargé
+	-- Avec le streaming (module 10), un checkpoint lointain peut ne pas être encore chargé
 	local cible = dossierCheckpoints:FindFirstChild(tostring(prochaine))
 	if not (racine and cible and cible:IsA("BasePart")) then
 		return

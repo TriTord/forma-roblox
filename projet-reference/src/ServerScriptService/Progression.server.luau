@@ -39,7 +39,7 @@ local function placerAuCheckpoint(player: Player, character: Model)
 	if not (checkpoint and checkpoint:IsA("BasePart")) then
 		return
 	end
-	-- Même précaution qu'au module 3 : on laisse Roblox finir de placer le personnage
+	-- Même précaution qu'au module 4 : on laisse Roblox finir de placer le personnage
 	if not character:IsDescendantOf(Workspace) then
 		character.AncestryChanged:Wait()
 	end

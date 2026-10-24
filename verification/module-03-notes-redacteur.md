@@ -1,75 +1,63 @@
-# Module 03 — Notes du rédacteur pour les vérificateurs
+# Module 02 — Notes du rédacteur pour les vérificateurs
 
-Toutes les pages ont été consultées le 2026-10-24 au format Markdown (`https://create.roblox.com/docs/en-us/<chemin>.md`, champ `last_updated` du 2026-10-23).
+Rédigé le 2026-10-24. Sources consultées le jour même (WebFetch). Les comportements purement Luau ont en plus été testés avec `C:/tmp/luau-tools/luau.exe` (interpréteur Luau local) : `//`, `%`, `continue`, itération générale, interpolation, `typeof`, `or` comme valeur par défaut, truthiness de `0`/`""`, `table.find/insert/remove/clone`, `#` sur dictionnaire (0), `ipairs` qui s'arrête au premier `nil`, références de tables, messages d'erreur (`attempt to index nil with 'Health'`, `attempt to concatenate string with nil`, `attempt to call a nil value`), coercition `"5" + 1 = 6`.
 
 ## Affirmations factuelles et sources
 
-### Leçon 01 — modele-client-serveur
-| Affirmation | Source |
-|---|---|
-| Le serveur est « l’autorité finale » sur l’état du jeu et garde les clients synchronisés | create.roblox.com/docs/projects/client-server |
-| La réplication synchronise le modèle de données, la physique et le chat | idem |
-| La plupart des joueurs ont 100 à 300 ms de latence ; Studio n’a aucune latence par défaut ; il faut simuler 50 à 150 ms dans chaque sens | idem (encadré final) |
-| Les changements faits côté client « persistent mais ne sont pas répliqués au serveur » | reference/engine/classes/ReplicatedStorage (Description) |
-| `Workspace.FilteringEnabled` est dépréciée : « discontinued and no longer takes effect » | reference/engine/classes/Workspace#FilteringEnabled |
-| Types de scripts, RunContext `Legacy` par défaut, emplacements (les LocalScripts ne tournent pas dans ReplicatedStorage, les scripts ne tournent pas dans ServerStorage) | scripting/locations ; reference/engine/classes/ReplicatedStorage ; ServerScriptService (jamais répliqué) |
-| Le serveur possède toujours les Parts ancrées (non modifiable) ; propriété automatique selon la proximité et la capacité matérielle ; `SetNetworkOwner(nil)` à utiliser avec modération (saccades) ; visualisation « Network owners » (vert = mon client, blanc/gris = serveur ou autre client) | physics/network-ownership |
-| Le client a la propriété réseau de son personnage ; Roblox ne peut pas vérifier la physique des Parts possédées par un client ; `Touched` peut être déclenché sans contact réel | scripting/security/security-tactics ; physics/network-ownership ; scripting/security/network-ownership |
-| Les états du Humanoid sont communiqués au serveur | scripting/events/remote (introduction) |
-| Les animations lancées par le client sur l’Animator de son personnage sont répliquées (si l’Animator a été créé par le serveur) | reference/engine/classes/Animator (section « Loading an Animation on Client or Server ») |
-| Test (F5) lance deux simulations (client + serveur) ; bouton Client/Server ; Output : bleu = client, vert = serveur | studio/testing-modes |
-| Le « server authority model » est en bêta | scripting/security/network-ownership (encadré : « currently in beta and will be released soon ») ; projects/server-authority |
+### Leçon 01 — premier-script
+- Luau dérivé de Lua 5.1, typage graduel/optionnel : https://create.roblox.com/docs/luau , https://create.roblox.com/docs/scripting
+- Script (RunContext Legacy) s'exécute dans un conteneur serveur (ServerScriptService, Workspace) ; LocalScript dans StarterPlayerScripts / StarterCharacterScripts / StarterGui / StarterPack, pas dans ReplicatedStorage ; ModuleScript ne s'exécute pas seul ; RunContext Legacy/Server/Client : https://create.roblox.com/docs/scripting/locations
+- Nouveau Script contient par défaut `print("Hello world!")` : https://create.roblox.com/docs/tutorials/fundamentals/coding-1/create-a-script
+- Commentaires `--`, `--[[ ]]`, directives `--!`, mise en gras après TODO : https://create.roblox.com/docs/luau/comments
+- Output : print/warn, filtres (type, contexte, texte), Ctrl+K / ⌘K pour vider : https://create.roblox.com/docs/studio/output
+- `GetService` crée le service s'il n'existe pas, utile pour les services au nom inhabituel (exemple RunService) : https://create.roblox.com/docs/reference/engine/classes/ServiceProvider
+- `script`, `game`, `workspace` globaux : https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals
+- Message « Infinite yield possible » (warning après 5 s de WaitForChild) : https://create.roblox.com/docs/reference/engine/classes/Instance
 
-### Leçon 02 — remoteevents
-| Affirmation | Source |
-|---|---|
-| FireServer / OnServerEvent (le joueur en 1er paramètre), FireClient, FireAllClients, OnClientEvent ; pas de communication directe de client à client | scripting/events/remote |
-| Ranger les remotes dans ReplicatedStorage (ou parfois dans le Workspace ou un Tool) | idem |
-| Limites des arguments : clés non textuelles converties en textes, fonctions → nil, tables mixtes et `nil` à éviter, tables copiées, métatables perdues, instances non répliquées → nil (ServerStorage → client ; Part créée par un LocalScript → serveur) | scripting/events/remote, section « Argument limitations » |
-| RemoteEvent fiable et ordonné ; file d’attente limitée quand aucun gestionnaire n’est connecté (erreur « Remote event invocation » dans l’Output) ; messages perdus si le destinataire se déconnecte ; au-delà de la limite de débit, les messages d’un RemoteEvent sont traités plus tard, pas jetés | scripting/events/remote, section « Delivery guarantees » |
-| Environ 500 requêtes/s par client, limite partagée par type de remote | reference/engine/classes/RemoteEvent (section Throttling) ; UnreliableRemoteEvent |
-| UnreliableRemoteEvent : pas de renvoi, pas d’ordre, messages de plus de 1 000 octets jetés, pas de file d’attente, messages en excès jetés en cas de débit trop élevé ; usage : effets éphémères et données continues | scripting/events/remote ; reference/engine/classes/UnreliableRemoteEvent |
+### Leçon 02 — variables-types-et-conditions
+- Règles de nommage, 21 mots réservés, `local` recommandé (plus rapide) : https://create.roblox.com/docs/luau/variables , https://create.roblox.com/docs/luau/scope
+- Opérateurs (`//`, `%`, `^`, `~=`, `and/or/not`, seuls nil et false sont faux, 0 et "" vrais), affectations composées : https://create.roblox.com/docs/luau/operators
+- Interpolation par accents graves, parenthèses obligatoires pour un appel de fonction, `{{` interdit ; expression `if ... then ... else` (else obligatoire, préférée à `a and b or c`) : https://luau.org/syntax
+- `typeof` plus précis que `type` (ne renvoie pas `userdata` pour les types Roblox) : https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals
+- `tonumber` renvoie nil si non convertible : https://create.roblox.com/docs/luau/strings
+- Health = 0 → état Dead ; `TakeDamage` sans effet sous ForceField, fixer `Health` directement contourne le ForceField : https://create.roblox.com/docs/reference/engine/classes/Humanoid
+- Kill brick (Touched + Humanoid + Health = 0) : https://create.roblox.com/docs/tutorials/use-case-tutorials/scripting/basic-scripting/deadly-lava
+- Accent grave sur AZERTY français = AltGr + 7 (touche morte, puis Espace) : connaissance générale, non sourcée officiellement.
 
-### Leçon 03 — remotefunctions-et-bindables
-| Affirmation | Source |
-|---|---|
-| InvokeServer attend la réponse ; OnServerInvoke reçoit le joueur en 1er ; seul le dernier callback défini s’exécute | scripting/events/remote ; reference/engine/classes/RemoteFunction |
-| Les 3 risques d’InvokeClient (erreur relayée, erreur si déconnexion, attente infinie si pas de valeur renvoyée) ; recommandation d’utiliser FireClient | idem (cités presque mot pour mot) |
-| Préférer un RemoteEvent quand on n’a pas besoin du résultat | reference/engine/classes/RemoteFunction (Description) |
-| Bindables : même côté ; emplacements recommandés (ServerScriptService / ReplicatedStorage) ; ordre d’exécution non garanti avec plusieurs connexions ; Invoke attend indéfiniment si OnInvoke n’est jamais défini ; un seul OnInvoke ; mêmes limites d’arguments (clés converties, tables mixtes, copies, métatables) ; les ModuleScripts sont souvent une meilleure solution | scripting/events/bindable ; reference/engine/classes/BindableFunction |
+### Leçon 03 — boucles-et-fonctions
+- for (pas par défaut 1, pas négatif), while, repeat…until (au moins une fois, locale visible dans `until`), break, continue : https://create.roblox.com/docs/luau/control-structures
+- `continue` doit être la dernière instruction du bloc, mot-clé contextuel : https://luau.org/syntax
+- `wait`/`spawn`/`delay` dépréciées, remplacées par `task.*` : https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals ; `task.wait` sans throttling, reprend au premier Heartbeat, renvoie le temps écoulé, défaut 0 : https://create.roblox.com/docs/reference/engine/libraries/task
+- Paramètres manquants = nil, arguments en trop ignorés, retours multiples, fonctions anonymes : https://create.roblox.com/docs/luau/functions
+- Portée/blocs/shadowing : https://create.roblox.com/docs/luau/scope
+- « Script timeout: exhausted allowed execution time » pour une boucle sans attente : fils DevForum (communauté), ex. https://devforum.roblox.com/t/script-timeout-exhausted-allowed-execution-time/2614735 — formulé comme retour du DevForum.
 
-### Leçon 04 — ne-jamais-faire-confiance-au-client
-| Affirmation | Source |
-|---|---|
-| Liste des capacités d’un exploiteur (décompiler les scripts répliqués, propriété réseau, Touched et ProximityPrompt à n’importe quelle distance, remotes avec n’importe quels arguments sauf le Player…) | scripting/security/security-tactics (« Never trust the client ») |
-| Rôle du serveur : recevoir, valider, exécuter, répliquer ; exemple d’achat (vrai prix, argent du joueur, distance de la boutique) ; questions de « threat model » | idem |
-| NaN : `typeof` donne "number", toutes les comparaisons sont fausses ; utiliser `math.isfinite()` ; inf aussi | scripting/security/client-server-boundary (« The danger of NaN », « Value validation ») |
-| Faux objet de boutique (table imitant un Folder avec un prix à 0) ; vérifier `typeof`, `IsDescendantOf` | idem (« Type and structure validation ») |
-| Seau à jetons (token bucket) ; ne jamais compter seulement sur une limite côté client | idem (« Rate limiting ») |
-| ClickDetector : aucune vérification côté serveur ; ProximityPrompt : seul `Triggered` a une vérification de distance | idem (« Securing client-triggered instances ») |
-| WalkSpeed modifiable localement, à ne pas utiliser comme mécanisme de sécurité ; WalkSpeed par défaut = 16 | reference/engine/classes/Humanoid#WalkSpeed ; scripting/security/network-ownership |
-| Pas de solution universelle pour valider les mouvements ; faux positifs avec les connexions instables ; projeter sur XZ ; exemptions pour les téléportations légitimes ; accumulateurs de type « leaky bucket » | scripting/security/network-ownership (« Movement validation ») |
-| Philosophie de sanction : le serveur décide, neutraliser d’abord, proportionné et réversible, score de suspicion, échelle des conséquences, Ban API (`Players:BanAsync`) pour les récidivistes, honeypots | scripting/security/server-side-detection |
-| `utf8.len` renvoie nil pour un texte UTF-8 invalide | scripting/security/client-server-boundary (« Data store manipulation ») |
+### Leçon 04 — tables
+- Indices à partir de 1, `table.insert`/`remove`, références, `table.clone` superficiel, deep clone récursif, `table.freeze` : https://create.roblox.com/docs/luau/tables
+- `table.find` renvoie l'indice ou nil : https://luau.org/library
+- Itération générale, ordre garanti 1..#t puis non ordonné, modification pendant l'itération non spécifiée : https://luau.org/syntax
+- `GetChildren` renvoie un tableau : https://create.roblox.com/docs/reference/engine/classes/Instance
 
-### Leçon 05 — securiser-l-obby
-| Affirmation | Source |
-|---|---|
-| Exemple officiel de l’obby : checkpoints obligatoires validés dans l’ordre par le serveur, plutôt que de détecter la téléportation | scripting/security/defensive-design |
-| Heuristique « Fastest Completion Time », un signal n’est pas une preuve | scripting/security/server-side-detection |
-| Mode Server & Clients (1 à 2 clients suffisent en général, jusqu’à 8) | studio/testing-modes (« Multi-client simulation ») |
+### Leçon 05 — evenements
+- Connect → RBXScriptConnection, Disconnect, Wait (renvoie les arguments), Once, déconnexion auto à Destroy : https://create.roblox.com/docs/scripting/events
+- Touched : seulement mouvement physique, pas sur changement de CFrame ; au moins une part non ancrée ; CanTouch : https://create.roblox.com/docs/reference/engine/classes/BasePart
+- Touched se déclenche plusieurs fois → debounce (motif attribut + task.wait) : https://create.roblox.com/docs/scripting/debounce
+- PlayerAdded peu fiable en test solo, boucle sur GetPlayers ; GetPlayerFromCharacter : https://create.roblox.com/docs/reference/engine/classes/Players
+- CharacterAdded à chaque (ré)apparition ; ordre de chargement : CharacterAdded (étape 2) avant parentage au DataModel (6) et déplacement au point d'apparition (8) : https://create.roblox.com/docs/reference/engine/classes/Player
+- WaitForChild : warning après 5 s, timeout → nil : https://create.roblox.com/docs/reference/engine/classes/Instance
+- Attributs : SetAttribute/GetAttribute/GetAttributeChangedSignal (callback sans paramètre), nil = suppression, réplication serveur → client : https://create.roblox.com/docs/scripting/attributes ; règles de nommage (alphanumérique + `. - / _`, ≤ 100 caractères, pas de préfixe RBX) : https://create.roblox.com/docs/reference/engine/classes/Instance
+- Attendre avant de replacer le personnage : conseil communautaire, https://devforum.roblox.com/t/checkpoint-script-not-working/2030741 (réponse expliquant que le personnage est déplacé au spawn après chargement).
+- Convention du chef d'orchestre appliquée : étape = dernier checkpoint validé (0 au départ), checkpoint N accepté seulement si N == étape + 1 ; étape stockée dans l'attribut `Etape` du Player (leaderstats au module 4).
 
-Convention fil rouge appliquée (consigne du chef d’orchestre) : `leaderstats.Etape` = dernier checkpoint validé, 0 au départ ; checkpoint N accepté seulement si N == Etape + 1.
+### Leçon 06 — modulescripts-et-poo
+- ModuleScript : une seule valeur (pas nil), exécuté une fois par environnement, cache, client/serveur séparés, erreur « Requested module was required recursively », emplacements (ReplicatedStorage, ServerScriptService) : https://create.roblox.com/docs/scripting/module , https://create.roblox.com/docs/reference/engine/classes/ModuleScript
+- Erreur « Module code did not return exactly one value » : https://devforum.roblox.com/t/how-do-i-fix-module-code-did-not-return-exactly-one-value/2667034
+- Métatables, `__index`, setmetatable renvoie la table, motif de classe `Set.__index = Set` : https://create.roblox.com/docs/luau/metatables
+- Annotations, `?`, `type`, `export type`, modes nocheck/nonstrict/strict, `Workspace.LuauTypeCheckMode` : https://create.roblox.com/docs/luau/type-checking ; mode par défaut = nonstrict selon https://luau.org/types
+- Le module typé `Niveaux` (`--!strict`) a été vérifié sans erreur avec luau-analyze.
 
-## Points incertains ou à vérifier en priorité
-1. **Réapparition au checkpoint** (leçon 05, script Progression) : dans `CharacterAdded`, on fait `WaitForChild("HumanoidRootPart")` + `task.wait()` puis `PivotTo`. C’est un motif courant chez les développeurs, mais je ne l’ai pas trouvé décrit dans la documentation officielle (moment exact où la SpawnLocation place le personnage). À tester dans Studio.
-2. **InvokeServer sans délai maximum** (quiz de la leçon 03) : aucune page ne mentionne de timeout et la signature n’a pas de paramètre de délai. J’en déduis qu’il n’y a pas de délai intégré, mais ce n’est pas écrit noir sur blanc.
-3. **Test 2 de la leçon 05** (modifier `Pieces` dans Properties depuis la fenêtre d’un client en mode Server & Clients) : c’est cohérent avec la règle « les changements du client ne sont pas répliqués », mais je ne l’ai pas testé dans Studio (Studio n’était pas disponible via MCP).
-4. **Test 3 de la leçon 05** : `PivotTo` du personnage depuis un LocalScript qui se réplique (le client possède son personnage). C’est cohérent avec la documentation (un exploiteur peut se téléporter), mais pas testé.
-5. Le comportement de `pcall` autour d’`InvokeServer` quand le callback serveur lève une erreur n’est pas documenté sur les pages consultées. Le texte dit seulement « si l’appel échoue », sans préciser comment.
-6. La limite d’environ 500 requêtes/s par client est datée « octobre 2026 » dans le texte, avec un renvoi vers la page officielle.
-
-## Analyse statique (`node scripts/verifier-luau.mjs 03`)
-34 extraits, 6 avec diagnostics, tous attendus :
-- « Unknown require » sur `ServerScriptService.Validation` et `ReplicatedStorage.Modules.Catalogue` : ces ModuleScripts sont définis dans un autre bloc (leçons 04/05), et l’analyseur ne voit pas l’arborescence de Studio.
-- Examen, question 14 (trouve-le-bug) : extrait volontairement partiel (`Catalogue`, `possedes` non déclarés, fonction non appelée).
+## Points incertains / à vérifier
+1. **Téléportation au checkpoint (leçon 05)** : l'approche `AncestryChanged:Wait()` (si pas encore dans le Workspace) + `task.wait()` + `PivotTo` n'a PAS pu être testée dans Studio (aucune instance Studio connectée). Elle repose sur l'ordre de chargement documenté et sur des retours DevForum. À tester en priorité.
+2. Le mode d'analyse par défaut dans Roblox Studio (vs luau.org « nonstrict par défaut ») : formulé en citant la doc Luau.
+3. Le texte exact des messages d'erreur Roblox (« attempt to call a nil value » peut être suivi d'un détail du type « (global 'Print') ») : formulé avec « ressemble à ».
+4. Extraits volontairement erronés signalés par `verifier-luau` : quiz 01#5 (`Print`), leçon 03 bloc 10 (variable hors de portée, démonstration d'erreur), quiz 06#5 (`self`), examen q6 (`accueillir` avant déclaration). Les « Unknown require » de la leçon 06 viennent de l'analyse isolée des extraits.

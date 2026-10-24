@@ -1,145 +1,147 @@
 module: "06"
-titre: Examen du module 6 — Monétisation et DevEx
-description: Vérifie que tu sais vendre honnêtement et de façon fiable dans l’Obby des Nuages, et que tu comprends le circuit des Robux jusqu’au DevEx (chiffres d’octobre 2026).
+titre: Examen du module 6 — Un game design qui retient les joueurs
+description: Vérifie que tu sais concevoir une boucle de jeu, un début de partie, une progression, des raisons de revenir et un playtest, sans manipuler tes joueurs.
 seuil: 70
 questions:
   - type: qcm
-    question: Un joueur non abonné à Roblox Plus dépense 250 Robux pour un Developer Product de ton jeu. Combien de Robux arrivent sur ton compte, en attente, au taux en vigueur en octobre 2026 ?
+    question: Un ami te décrit son jeu « On coupe des arbres, on vend le bois, on achète une hache plus rapide qui coupe plus vite ». Quelle partie de la core loop est « acheter une hache plus rapide » ?
     options:
-      - texte: "250"
-      - texte: "175"
+      - texte: L’interaction minute par minute
+      - texte: Le moteur de progression
         correct: true
-      - texte: "125"
-      - texte: "75"
-    explication: "Le créateur reçoit **70 %** d’un achat en Robux : 250 × 0,7 = 175 Robux. Ces Robux restent d’abord en attente (environ 5 jours pour les passes et produits) avant d’être disponibles."
+      - texte: L’onboarding
+      - texte: Un puits de monnaie sans lien avec la boucle
+    explication: La hache améliorée change durablement la façon de jouer et ramène à l’action (couper plus vite). C’est le moteur de progression, la partie qui, selon Roblox, évite que le jeu devienne répétitif et superficiel.
+
+  - type: vrai-faux
+    question: Avant d’ajouter une fonctionnalité, il est conseillé de vérifier à quelle partie de la core loop elle se rattache.
+    reponse: true
+    explication: La documentation LiveOps de Roblox demande que toute fonctionnalité ajoutée soit reliée à la core loop. Une fonctionnalité sans lien avec la boucle risque de compliquer le jeu sans le rendre plus amusant.
 
   - type: qcm
-    question: "Pour l’Obby des Nuages, tu veux vendre : (A) une zone VIP accessible pour toujours, (B) des sacs de 100 pièces, (C) un bonus de pièces actif tant que le joueur paie chaque mois. Quelle association est correcte ?"
+    question: Un nouveau joueur rejoint l’Obby des Nuages. Quelle arrivée suit le mieux les recommandations Roblox sur l’onboarding ?
     options:
-      - texte: "A : Developer Product, B : Game Pass, C : abonnement"
-      - texte: "A : Game Pass, B : Developer Product, C : abonnement"
+      - texte: Un écran de règles de trois pages, puis le spawn
+      - texte: Le spawn face au premier saut facile, le premier checkpoint visible et une pièce sur le chemin
         correct: true
-      - texte: "A : abonnement, B : Developer Product, C : Game Pass"
-    explication: "Achat unique et permanent = **Game Pass** ; achat répétable = **Developer Product** ; avantage récurrent payé chaque mois = **abonnement**."
+      - texte: La boutique qui s’ouvre automatiquement pour présenter les traînées
+      - texte: Un premier saut très difficile pour montrer le niveau du jeu
+    explication: Roblox recommande d’amener au plaisir de jeu le plus vite possible, avec des tutoriels brefs et visuels et des premiers succès rapides. Les écrans d’entrée et les pics de difficulté au départ retardent ou découragent le joueur.
+
+  - type: qcm
+    question: Quelles techniques d’onboarding sont décrites par la documentation Roblox ? (plusieurs réponses possibles)
+    options:
+      - texte: Les éléments visuels (flèches, traînées, mises en évidence)
+        correct: true
+      - texte: Les tutoriels contextuels, déclenchés par le jeu normal
+        correct: true
+      - texte: Les indices minutés pour les joueurs en difficulté
+        correct: true
+      - texte: Les comptes à rebours pour presser le joueur
+    explication: "Roblox décrit trois techniques : les éléments visuels, les tutoriels contextuels (« juste à temps ») et les indices minutés. Un compte à rebours artificiel est une pression, pas une aide."
 
   - type: trouve-le-bug
-    question: "Ce Script serveur doit donner l’accès VIP aux joueurs qui possèdent le pass. Pourtant, il ne reconnaît jamais personne. Où est le bug ?"
+    question: "Cette fonction doit dire si le faisceau de guidage est encore utile : oui tant que la prochaine étape est 1 ou 2, non ensuite. Pour un nouveau joueur (étape 0), elle affiche pourtant « false ». Où est le bug ?"
     code: |
-      local MarketplaceService = game:GetService("MarketplaceService")
       local Players = game:GetService("Players")
-      local ID_PASS_VIP = 123456789
 
-      Players.PlayerAdded:Connect(function(player)
-      	local ok, possede = pcall(function()
-      		return MarketplaceService:UserOwnsGamePassAsync(player, ID_PASS_VIP)
-      	end)
-      	if ok and possede then
-      		player:SetAttribute("EstVIP", true)
-      	end
-      end)
+      local ETAPES_GUIDEES = 2
+      local joueur = Players.LocalPlayer
+      local etape = joueur:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
+
+      local function guideNecessaire(): boolean
+      	local prochaine = etape.Value + 1
+      	return prochaine >= ETAPES_GUIDEES
+      end
+
+      print("Guide nécessaire :", guideNecessaire())
     options:
-      - texte: "Ligne 3 : l’ID d’un pass doit être écrit entre guillemets"
-      - texte: "Ligne 7 : il faut passer `player.UserId`, pas l’objet `player`"
+      - texte: "Ligne 5 : `Etape` doit être cherché dans `PlayerGui`"
+      - texte: "Ligne 9 : la comparaison est inversée, il faut `prochaine <= ETAPES_GUIDEES`"
         correct: true
-      - texte: "Ligne 9 : il faut tester `possede.IsSubscribed`"
-      - texte: "Ligne 10 : un attribut ne peut pas être modifié côté serveur"
-    explication: "`UserOwnsGamePassAsync` attend l’**UserId** (un nombre) du joueur. `IsSubscribed` concerne les abonnements (`GetUserSubscriptionStatusAsync`), et les attributs se modifient très bien côté serveur."
+      - texte: "Ligne 8 : on ne peut pas additionner un nombre à `etape.Value`"
+      - texte: "Ligne 7 : une fonction locale ne peut pas renvoyer de booléen"
+    explication: "Au départ, `etape.Value` vaut 0, donc `prochaine` vaut 1 et `1 >= 2` est faux : le guide est jugé inutile dès le début. On veut guider tant que la prochaine étape est 1 ou 2, soit `prochaine <= ETAPES_GUIDEES`."
 
   - type: vrai-faux
-    question: "Quand `PromptGamePassPurchaseFinished` se déclenche, cela prouve que le joueur a acheté le pass."
+    question: Pour un petit jeu qui débute, les Experiments (tests A/B) de Roblox sont l’outil le plus fiable pour régler le début de partie.
     reponse: false
-    explication: "L’événement se déclenche à chaque fermeture de la fenêtre d’achat, même en cas d’annulation ou d’erreur. Il faut vérifier le troisième paramètre (`wasPurchased`), et écouter l’événement côté serveur."
+    explication: Au moment de la rédaction, Roblox prévient que les jeux de moins de 1 000 utilisateurs actifs par jour risquent d’avoir du mal à obtenir des résultats utiles. Pour un petit jeu, les playtests observés sont bien plus parlants.
 
   - type: qcm
-    question: "Dans ton `ProcessReceipt`, tu as donné l’étape et noté le `PurchaseId` dans les données du joueur, mais `DonneesJoueurs.Sauvegarder` échoue (DataStore indisponible). Que doit renvoyer le callback ?"
+    question: Dans ton obby, les joueurs ont en moyenne 5 000 pièces et la boutique ne propose que des traînées à 100 pièces. Quel est le problème, et quelle solution suit les conseils de Roblox ?
     options:
-      - texte: "`PurchaseGranted`, puisque le joueur a déjà reçu son étape"
-      - texte: "`NotProcessedYet` : le reçu reviendra, et le `PurchaseId` noté dans les données évitera de donner l’étape deux fois"
+      - texte: Une inflation, car les sources dépassent largement les puits ; ajouter des objets désirables plus chers ou d’autres puits avant toute nouvelle source
         correct: true
-      - texte: Ne rien renvoyer pour que Roblox rembourse automatiquement le joueur
-    explication: "Le guide officiel de Roblox ne renvoie `PurchaseGranted` qu’après une sauvegarde réussie. Ici, rien n’est encore enregistré : `NotProcessedYet` laisse l’achat non résolu. Si une sauvegarde suivante réussit, le reçu sera reconnu grâce au `PurchaseId` et simplement confirmé ; sinon, l’étape sera redonnée à la prochaine connexion. Roblox ne rembourse pas les achats non résolus : ils restent en attente."
+      - texte: Un manque de sources ; doubler les pièces gagnées par étape
+      - texte: Aucun problème, des joueurs riches sont des joueurs heureux
+    explication: Quand la monnaie s’accumule sans rien de désirable à acheter, elle perd sa valeur et la boucle méta s’arrête. Roblox demande de prévoir les puits qui absorberont l’excédent avant de lancer de nouvelles sources (la page parle de « surplus » ; « inflation » est le terme général).
 
   - type: qcm
-    question: "Pourquoi un `ProcessReceipt` doit-il être idempotent ? (plusieurs réponses possibles)"
+    question: Quelle règle s’applique sur Roblox aux objets aléatoires payants ?
     options:
-      - texte: Le même reçu peut être traité sur deux serveurs en même temps si le joueur change de serveur
+      - texte: Aucune règle particulière, c’est au créateur de décider
+      - texte: Les probabilités doivent être affichées de façon exacte et chiffrée avant l’achat, et chaque résultat doit apporter un bénéfice
         correct: true
-      - texte: "Même après `PurchaseGranted`, l’enregistrement côté Roblox peut échouer et le reçu revenir"
-        correct: true
-      - texte: Roblox rappelle le callback toutes les 10 secondes jusqu’à recevoir une réponse
-      - texte: Chaque achat déclenche obligatoirement deux appels du callback
-    explication: "La référence officielle mentionne ces deux cas. En revanche, il n’y a **pas** de nouvelle tentative basée sur le temps : après `NotProcessedYet`, le reçu revient lors d’un autre achat ou quand le joueur rejoint un serveur."
+      - texte: Ils sont autorisés seulement le week-end
+    explication: Les Community Standards de Roblox imposent l’affichage exact et chiffré des probabilités avant l’achat, un bénéfice pour chaque résultat et un accès réservé aux utilisateurs éligibles. Le détail est vu au module 7.
 
   - type: trouve-le-bug
-    question: "Ce Script serveur propose « Passer l’étape » quand le client le demande. Où est le problème de sécurité ?"
+    question: "Cette fonction de Config doit donner 2 pièces par étape dans le niveau 1 (étapes 1 à 5), plus un bonus de 10 à la dernière étape du niveau. Le bonus n’est jamais versé. Où est le bug ?"
     code: |
-      local MarketplaceService = game:GetService("MarketplaceService")
-      local ReplicatedStorage = game:GetService("ReplicatedStorage")
-      local remotes = ReplicatedStorage:WaitForChild("Remotes")
-      local demande = remotes:WaitForChild("DemanderPasserEtape") :: RemoteEvent
+      local Niveau1 = {etapeDebut = 1, etapeFin = 5, piecesParEtape = 2}
+      local BONUS_FIN_DE_NIVEAU = 10
 
-      demande.OnServerEvent:Connect(function(player, idProduit)
-      	MarketplaceService:PromptProductPurchase(player, idProduit)
-      end)
+      local function recompensePourEtape(etape: number): number
+      	if etape < Niveau1.etapeDebut or etape >= Niveau1.etapeFin then
+      		return 0
+      	end
+      	local gain = Niveau1.piecesParEtape
+      	if etape == Niveau1.etapeFin then
+      		gain += BONUS_FIN_DE_NIVEAU
+      	end
+      	return gain
+      end
+
+      print(recompensePourEtape(5))
     options:
-      - texte: "Ligne 3 : les RemoteEvents doivent être rangés dans Workspace"
-      - texte: "Ligne 6 : le serveur ne peut pas recevoir d’arguments du client"
-      - texte: "Ligne 7 : le serveur utilise l’ID de produit envoyé par le client au lieu de son propre ID"
+      - texte: "Ligne 5 : `>=` exclut la dernière étape du niveau, il faut `>`"
         correct: true
-    explication: "Ne jamais faire confiance au client (module 3) : un tricheur peut envoyer n’importe quel ID. Le serveur doit utiliser **sa** constante d’ID et vérifier qu’une étape suivante existe avant d’ouvrir la fenêtre d’achat."
+      - texte: "Ligne 9 : il faut `=` au lieu de `==`"
+      - texte: "Ligne 10 : `+=` n’existe pas en Luau"
+      - texte: "Ligne 1 : une table ne peut pas contenir de nombres"
+    explication: "Pour l’étape 5, `5 >= 5` est vrai : la fonction renvoie 0 avant même d’arriver au bonus. Avec `etape > Niveau1.etapeFin`, l’étape 5 reçoit ses 2 pièces plus le bonus de 10. À la ligne 9, `==` est bien la comparaison attendue."
+
+  - type: qcm
+    question: Quelles affirmations sur les notifications d’expérience sont exactes selon la documentation Roblox ? (plusieurs réponses possibles)
+    options:
+      - texte: Les notifications personnalisées ne sont reçues que par des utilisateurs de 13 ans et plus qui ont donné leur accord
+        correct: true
+      - texte: Un utilisateur peut recevoir au maximum une notification par jour d’une même expérience
+        correct: true
+      - texte: On peut personnaliser librement le texte de la demande d’autorisation
+      - texte: On peut bloquer la progression tant que le joueur n’a pas activé les notifications
+    explication: Le texte de la demande d’autorisation est standard et non modifiable, et Roblox interdit d’exiger l’activation des notifications pour participer ou progresser. Les deux premières affirmations sont tirées de la page officielle.
+
+  - type: qcm
+    question: Tu veux récompenser les joueurs qui reviennent souvent. Quelle option respecte le mieux leur temps ?
+    options:
+      - texte: Une série quotidienne qui retombe à zéro et fait perdre les objets gagnés au premier jour manqué
+      - texte: Un objectif quotidien court et modeste, remis à zéro chaque jour sans rien retirer au joueur
+        correct: true
+      - texte: Un message « Reviens dans 10 minutes ou tu perds tout ! » sans réelle limite
+    explication: Roblox recommande des quotidiennes courtes, réalisables en une session, avec des récompenses modestes. Punir l’absence transforme le jeu en obligation, et une fausse urgence est un dark pattern explicitement interdit dans les notifications.
 
   - type: vrai-faux
-    question: "Pour savoir si un joueur est abonné à « Nuage+ », un LocalScript peut appeler `GetUserSubscriptionStatusAsync` et donner lui-même le bonus de pièces."
+    question: Pendant un playtest, il vaut mieux expliquer au testeur ce qu’il doit faire dès qu’il hésite, pour gagner du temps.
     reponse: false
-    explication: "La vérification d’abonnement doit se faire côté serveur, et c’est le serveur qui applique l’avantage. Le client peut seulement afficher l’offre et appeler `PromptSubscriptionPurchase`."
+    explication: L’hésitation est justement l’information recherchée. En aidant, tu caches le problème que les vrais joueurs rencontreront seuls. On observe, on note et on n’intervient qu’en cas de blocage total.
 
   - type: qcm
-    question: Un abonnement payé en monnaie locale est vendu 4,99 $. Que gagne le créateur, d’après la documentation officielle (octobre 2026) ?
+    question: Après un playtest, un testeur te demande « Mets des dragons ! ». Que conseille la documentation Roblox sur les LiveOps ?
     options:
-      - texte: 70 % de la valeur chaque mois
-      - texte: 70 % de la valeur le premier mois, puis 100 % les mois suivants
+      - texte: Ajouter des dragons immédiatement pour lui faire plaisir
+      - texte: Ignorer la remarque, les joueurs ne savent pas ce qu’ils veulent
+      - texte: Chercher la raison derrière la suggestion (par exemple une zone jugée monotone)
         correct: true
-      - texte: 100 % dès le premier mois
-    explication: "Pour un abonnement en monnaie locale : 70 % le premier mois, puis 100 % ensuite, versés en Robux après une attente de 30 jours. Pour un abonnement payé en Robux, c’est 70 % chaque mois."
-
-  - type: qcm
-    question: "Un ancien tutoriel te conseille de « miser sur les Premium Payouts » et de tester `player.MembershipType == Enum.MembershipType.Premium`. Qu’en penser en octobre 2026 ?"
-    options:
-      - texte: Le conseil est toujours valable tel quel
-      - texte: Les Premium Payouts ont été remplacés par les Creator Rewards (juillet 2025), et `MembershipType` est déprécié au profit de `HasRobloxSubscription`
-        correct: true
-      - texte: Les Premium Payouts ont été remplacés par DevEx
-    explication: "Le programme Engagement-Based Payouts (Premium Payouts) est remplacé par les **Creator Rewards** depuis le 24 juillet 2025, et Roblox Plus succède à Premium en 2026. Pour reconnaître un abonné, la documentation recommande `Player.HasRobloxSubscription`."
-
-  - type: qcm
-    question: "Ton jeu vend des « potions de chance » qui augmentent les chances d’obtenir un œuf rare. Que demandent les règles de Roblox ?"
-    options:
-      - texte: Rien, car la potion elle-même n’est pas aléatoire
-      - texte: Expliquer chiffres à l’appui l’effet de la potion avant l’achat, et afficher les probabilités mises à jour quand elle est active
-        correct: true
-      - texte: Afficher seulement le mot « Chance + » sur la potion
-    explication: "Les objets qui modifient des probabilités font partie des objets aléatoires payants : leur effet doit être expliqué numériquement avant l’achat, et les probabilités affichées doivent refléter les vraies chances quand ils sont actifs."
-
-  - type: vrai-faux
-    question: "Un message « DERNIÈRE CHANCE ! » affiché à chaque connexion pour un objet qui reste toujours en vente respecte les règles de Roblox, puisque le prix est correct."
-    reponse: false
-    explication: "Roblox interdit la fausse urgence : fausse rareté, durée limitée inventée, comptes à rebours qui redémarrent. Il recommande aussi des formulations neutres (« Voir l’objet ») plutôt que des injonctions pressantes, surtout envers les mineurs."
-
-  - type: qcm
-    question: "Tu as accumulé 45 000 Earned Robux, tous gagnés en 2026, sans éligibilité au taux U.S. 18+. Combien représentent-ils au taux standard de 0,0038 $, avant frais et impôts ?"
-    options:
-      - texte: "157,50 $"
-      - texte: "171 $"
-        correct: true
-      - texte: "243 $"
-      - texte: "450 $"
-    explication: "45 000 × 0,0038 = **171 $**. 157,50 $ correspondrait à l’ancien taux (0,0035) et 243 $ au taux U.S. 18+ (0,0054). Il faudra encore retirer les frais de paiement et les éventuels impôts."
-
-  - type: qcm
-    question: "Quelle affirmation sur DevEx et les impôts est exacte ?"
-    options:
-      - texte: Roblox calcule et paie pour toi tous les impôts dus dans ton pays
-      - texte: "Tu es responsable de déclarer tes gains ; Roblox ne donne pas de conseil fiscal et des retenues américaines peuvent s’appliquer à partir du 1er novembre 2026"
-        correct: true
-      - texte: Les gains DevEx ne sont jamais imposables pour un mineur
-    explication: "Les conditions DevEx rendent chaque participant responsable de ses impôts, Roblox ne donne aucun conseil fiscal, et la page officielle annonce qu’à partir du 1er novembre 2026 des retenues américaines peuvent s’appliquer selon les informations fiscales fournies. Pour ta situation, consulte un professionnel."
+    explication: Roblox souligne que la raison derrière une suggestion compte encore plus que la suggestion elle-même. Comprendre le besoin permet de choisir la meilleure solution, qui n’est pas forcément celle proposée.

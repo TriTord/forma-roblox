@@ -1,0 +1,347 @@
+---
+titre: La checklist de lancement
+description: La checklist complète à passer avant de publier, de la sécurité au questionnaire de maturité, appliquée à l’Obby des Nuages, avec un script d’auto-vérification et le plan des premiers jours.
+duree: 45
+objectifs:
+  - Vérifier un jeu de bout en bout avant sa publication grâce à une checklist par thème
+  - Appliquer la checklist à l’Obby des Nuages, avec un script d’auto-vérification
+  - Respecter les exigences de publication et les règles de Roblox
+  - Préparer le jour du lancement et les premières semaines
+miseAJour: 2026-10-24
+quiz:
+  - type: trouve-le-bug
+    question: "Ce morceau du script d’auto-vérification doit signaler les kill bricks qui ne sont PAS ancrées. Où est le bug ?"
+    code: |
+      local killBricks = workspace:FindFirstChild("KillBricks")
+      if killBricks then
+      	for _, objet in killBricks:GetDescendants() do
+      		if objet:IsA("BasePart") and objet.Anchored then
+      			warn(objet:GetFullName() .. " n'est pas ancrée")
+      		end
+      	end
+      end
+    options:
+      - texte: "Ligne 1 : il faut `WaitForChild`, `FindFirstChild` n’existe pas"
+      - texte: "Ligne 3 : `GetDescendants` ne renvoie que les enfants directs"
+      - texte: "Ligne 4 : la condition est inversée, il faut `not objet.Anchored`"
+        correct: true
+      - texte: "Ligne 5 : `warn` ne peut pas afficher de texte concaténé"
+    explication: "Le script signale les pièces **ancrées** au lieu des pièces **non ancrées** : il faut `not objet.Anchored`. `FindFirstChild` existe bien (il renvoie `nil` si rien n’est trouvé), `GetDescendants` renvoie tous les descendants (enfants, petits-enfants…), et `warn` accepte n’importe quel texte."
+  - type: qcm
+    question: "Où remplis-tu le questionnaire de maturité et de conformité (Maturity & Compliance Questionnaire) de ton jeu ?"
+    options:
+      - texte: Dans Studio, menu File › Publish
+      - texte: "Dans le Creator Dashboard, page du jeu, Publish settings › Content rating"
+        correct: true
+      - texte: Sur le DevForum, dans la catégorie Announcements
+      - texte: Il n’existe plus depuis 2026
+    explication: "Au moment de la rédaction, la documentation indique de passer par le Creator Dashboard : page du jeu, puis **Publish settings › Content rating**. Un jeu sans informations de maturité voit sa jouabilité restreinte pour tous les joueurs."
+  - type: vrai-faux
+    question: "Une fois le questionnaire de maturité rempli, tu n’as plus jamais à y toucher, même si tu ajoutes du contenu au jeu."
+    reponse: false
+    explication: "Si une mise à jour change les réponses (nouveau type de contenu, espace de discussion sociale, objets aléatoires payants…), tu dois mettre à jour tes réponses et soumettre à nouveau le questionnaire. Des informations inexactes exposent le jeu et le compte à la modération."
+  - type: qcm
+    question: "Ton obby permet aux joueurs de donner un nom à leur familier, affiché au-dessus de sa tête pour tout le serveur. Que dois-tu faire ?"
+    options:
+      - texte: Rien, le chat de Roblox filtre déjà tout automatiquement
+      - texte: Filtrer le texte côté serveur avec `TextService:FilterStringAsync` avant de l’afficher aux autres
+        correct: true
+      - texte: Interdire les majuscules
+      - texte: Filtrer le texte dans un LocalScript, lettre par lettre
+    explication: "Roblox filtre automatiquement le chat, mais tu es responsable du filtrage de tout autre texte saisi par les joueurs et montré aux autres. La documentation montre un filtrage côté serveur : `FilterStringAsync`, puis `GetNonChatStringForBroadcastAsync` pour un texte visible par tous. Si Roblox détecte qu’un jeu ne filtre pas, il le retire jusqu’à ce que le filtrage soit ajouté."
+  - type: qcm
+    question: "Le jour du lancement, quelles actions sont les plus utiles ? (plusieurs réponses possibles)"
+    options:
+      - texte: Surveiller l’Error Report et la Developer Console
+        correct: true
+      - texte: Jouer dans ton propre jeu pour voir les joueurs en vrai
+        correct: true
+      - texte: Publier trois nouvelles fonctionnalités dans la journée
+      - texte: Tirer des conclusions définitives de la rétention après quelques heures
+    explication: "Le jour J, on observe et on corrige les bugs bloquants. Ajouter des fonctionnalités en urgence crée de nouveaux bugs, et quelques heures de données ne suffisent pas pour juger la rétention."
+---
+
+Tu y es presque. Cette leçon rassemble **tout le parcours** en une seule checklist, à passer avant d’ouvrir ton jeu au public. Chaque case renvoie à la leçon où la notion a été vue : si une case te pose problème, tu sais où aller. On l’applique à l’Obby des Nuages, avec un petit script qui vérifie automatiquement une partie du travail, puis on prépare le jour J.
+
+## Comment utiliser cette checklist
+
+- Passe-la **en entier** avant le premier lancement public, puis repasse les sections concernées avant chaque grosse mise à jour.
+- Copie-la dans un document à toi (les cases de cette page ne se cochent pas) et coche au fur et à mesure.
+- Une case non cochée n’est pas forcément bloquante, mais **décide-le consciemment** et note pourquoi.
+
+<Astuce titre="Fais-la passer par quelqu’un d’autre">
+Après l’avoir passée toi-même, demande à un ami de refaire la partie « Gameplay » et « Mobile » sans ton aide. Tu es la personne la moins bien placée pour voir les défauts de ton propre jeu.
+</Astuce>
+
+## 1. Gameplay
+
+- [ ] La boucle de jeu s’explique en une phrase. ([La boucle de jeu](/modules/06/core-loop/))
+- [ ] Le joueur peut bouger et agir dans les premières secondes, sans menu ni mur de texte. ([Les 60 premières secondes](/modules/06/les-60-premieres-secondes/))
+- [ ] Le premier saut est facile, évident et récompensé (son, pièce ou checkpoint).
+- [ ] La difficulté monte progressivement ; les checkpoints sont réguliers. ([Progression et récompenses](/modules/06/progression-et-recompenses/))
+- [ ] Les kill bricks sont clairement reconnaissables (couleur ou matériau cohérent dans tout le jeu).
+- [ ] La dernière étape est célébrée (animation de victoire, message, récompense). ([Animer les personnages](/modules/05/animations-r6-r15/))
+- [ ] Les gains de pièces et les prix des traînées sont équilibrés et réglés dans le module `Config`.
+- [ ] Au moins trois personnes qui ne connaissent pas le jeu ont été observées pendant un playtest, et les points bloquants sont corrigés. ([Tester avec de vrais joueurs](/modules/06/tester-avec-de-vrais-joueurs/))
+
+## 2. Technique
+
+- [ ] **Zéro erreur rouge** et aucun avertissement « Infinite yield possible » dans l’Output.
+- [ ] Testé en mode **Server & Clients** avec au moins deux clients. ([Tester son jeu](/modules/01/tester-son-jeu/))
+- [ ] Le joueur réapparaît au bon checkpoint après une chute ou une mort.
+- [ ] Les plateformes animées (TweenService) emportent correctement le personnage. ([TweenService](/modules/05/tweenservice/))
+- [ ] Tous les modèles venus de la Toolbox ont été inspectés : scripts lus, recherche dans tous les scripts (Ctrl+Maj+F). ([Erreurs techniques](/modules/11/erreurs-techniques/))
+- [ ] Le script d’auto-vérification (plus bas) ne signale aucun problème.
+- [ ] Tu as noté le numéro de version publié, pour pouvoir revenir en arrière si besoin. ([Premier niveau et publication](/modules/01/premier-niveau-et-publication/))
+
+## 3. Sécurité
+
+- [ ] Chaque RemoteEvent est validé côté serveur : type des arguments, existence de l’objet, valeurs plausibles, fréquence limitée. ([Ne jamais faire confiance au client](/modules/04/ne-jamais-faire-confiance-au-client/))
+- [ ] Aucun prix, aucune récompense, aucun numéro d’étape n’est « cru sur parole » quand il vient du client.
+- [ ] Un checkpoint n’est accepté que s’il suit l’étape actuelle ; les pièces sont validées par le serveur (distance et délai par joueur). ([Sécuriser l’Obby des Nuages](/modules/04/securiser-l-obby/))
+- [ ] Tu as essayé d’envoyer des valeurs absurdes depuis un client de test (prix négatif, mauvais type, spam) : tout est ignoré.
+- [ ] Le serveur n’attend jamais la réponse d’un client avec une RemoteFunction (`InvokeClient`) : un client malveillant pourrait ne jamais répondre. ([RemoteFunctions et BindableEvents](/modules/04/remotefunctions-et-bindables/))
+- [ ] La liste des personnes ayant le droit de modifier le jeu (collaborateurs) ne contient que des personnes de confiance.
+
+## 4. Sauvegarde
+
+- [ ] Chargement dans un `pcall`, avec nouvelles tentatives ; **aucune sauvegarde** pour un joueur dont le chargement a échoué. ([Sauvegarder sans perdre de données](/modules/05/datastores-fiables/))
+- [ ] Sauvegarde au départ du joueur (`PlayerRemoving`), à la fermeture du serveur (`game:BindToClose`) et périodiquement.
+- [ ] Le DataStore et la clé sont les bons : `"DonneesJoueurs_v1"`, `"Joueur_" .. player.UserId`.
+- [ ] Testé : quitter puis revenir, changer de serveur, quitter pendant le chargement, arrêter le serveur avec des joueurs connectés.
+- [ ] L’inventaire de traînées est sauvegardé et rechargé correctement. ([Un inventaire simple et sécurisé](/modules/05/inventaire/))
+- [ ] Studio utilise les **mêmes** DataStores que le jeu publié quand l’option « Enable Studio Access to API Services » est activée : vérifie que tes tests n’ont pas abîmé de vraies données (l’idéal est de tester sur une copie du jeu).
+
+## 5. Mobile et performances
+
+- [ ] Interface testée dans le **Device Simulator** sur plusieurs tailles d’écran : rien ne déborde, rien n’est caché sous les contrôles tactiles. ([Interfaces lisibles partout](/modules/05/interfaces-ui/))
+- [ ] Boutons assez grands pour un pouce, texte lisible sur petit écran. ([Penser mobile d’abord](/modules/10/penser-mobile-d-abord/))
+- [ ] Testé sur au moins **un vrai téléphone**, si possible modeste.
+- [ ] Mémoire et images par seconde vérifiées avec la Developer Console (F9). ([Mesurer les performances](/modules/10/mesurer-les-performances/))
+- [ ] Tu as décidé, en connaissance de cause, de garder ou non le streaming d’instances (le chargement progressif de la carte autour du joueur), et tes LocalScripts utilisent `WaitForChild` pour les objets qui ne sont peut-être pas encore chargés. ([Le streaming d’instances](/modules/10/streaming-d-instances/))
+- [ ] L’audit de performance du module 10 est fait. ([Audit de performance](/modules/10/optimiser-l-obby/))
+
+## 6. Monétisation
+
+- [ ] C’est le serveur qui vérifie que le joueur possède le Game Pass de la traînée exclusive (`UserOwnsGamePassAsync` dans un `pcall`), et c’est lui qui donne la traînée. ([Les Game Passes](/modules/07/game-passes/))
+- [ ] Le Developer Product « Passer l’étape » est traité par **un seul** `ProcessReceipt` (la fonction serveur qui traite les achats). Elle ne renvoie `PurchaseGranted` qu’après avoir réellement fait passer l’étape, et ne la donne jamais deux fois pour le même achat. ([Les Developer Products](/modules/07/developer-products/))
+- [ ] Les descriptions des produits disent exactement ce que le joueur obtient.
+- [ ] Pas de pay-to-win, pas de pop-up d’achat à l’arrivée, pas de faux compte à rebours. ([Prix et éthique](/modules/07/prix-et-ethique/))
+- [ ] **Si** ton jeu vend des objets aléatoires (œufs, coffres, roues) contre des Robux ou une monnaie achetée avec des Robux : toutes les issues et leurs probabilités sont affichées en pourcentage (total 100 %), à l’écran ou dans une fenêtre ouverte par un bouton portant un **mot** comme « Info » (une simple icône (i) ne suffit pas, voir [Prix et éthique](/modules/07/prix-et-ethique/)), et ces achats sont bloqués pour les joueurs des pays qui les interdisent (valeur `ArePaidRandomItemsRestricted` renvoyée par `PolicyService:GetPolicyInfoForPlayerAsync`). L’Obby des Nuages n’en a pas : garde ça en tête pour plus tard.
+
+## 7. Page du jeu
+
+- [ ] Titre clair et honnête, description avec une accroche, les contrôles et les nouveautés. ([Préparer la page du jeu](/modules/08/preparer-la-page-du-jeu/))
+- [ ] Genre et appareils pris en charge renseignés.
+- [ ] Icône lisible en petit. ([Icône et miniatures](/modules/08/icone-et-miniatures/))
+- [ ] Au moins **une miniature personnalisée** (nécessaire pour être recommandé sur la page d’accueil), au format 16:9, idéalement 1920 × 1080.
+- [ ] Les miniatures et vidéos montrent le **vrai** gameplay (des visuels qui ne correspondent pas au jeu réduisent sa visibilité), sans promesse de Robux ; les vidéos ne contiennent ni texte publicitaire (« 50% off », « Free UGC! »), ni voix off, ni musique avec paroles.
+- [ ] Les éléments importants des miniatures ne sont pas en bas de l’image (le nombre de joueurs peut s’y afficher).
+
+## 8. Analytics
+
+- [ ] Les étapes de l’entonnoir d’onboarding sont envoyées avec `LogOnboardingFunnelStepEvent`, **depuis le serveur** (les événements ne sont envoyés que depuis le serveur et dans un jeu publié). ([AnalyticsService](/modules/09/evenements-personnalises/))
+- [ ] L’entonnoir de progression couvre chaque étape de l’obby, avec des noms cohérents.
+- [ ] Les gains et dépenses de pièces sont suivis (événements d’économie).
+- [ ] Tu sais où trouver Retention, Engagement, Monetization, **Error Report** et **Performance** dans le Creator Dashboard. ([Pourquoi et quoi mesurer](/modules/09/pourquoi-mesurer/))
+- [ ] Tu as écrit ce que tu espères observer la première semaine (ton hypothèse de départ).
+
+## 9. Communauté
+
+- [ ] Si tu veux rassembler tes joueurs, tu as créé une communauté Roblox (le nom des « groupes » côté joueurs). ([Construire et animer une communauté](/modules/08/communaute/))
+- [ ] Des règles de conduite claires et, si besoin, des modérateurs de confiance.
+- [ ] Un moyen simple de signaler un bug ou de donner son avis.
+- [ ] Les liens vers des réseaux externes (Discord, YouTube…) passent **uniquement** par la fonctionnalité officielle de liens sociaux (Social Links), affichés sur la **page du jeu** : jamais de lien ni d’adresse dans le jeu lui-même. Dans le jeu, tu peux seulement inviter à consulter les liens de la page du jeu.
+- [ ] Tu as vérifié que tu as le droit d’ajouter ces liens : au moment de la rédaction, il faut avoir fait vérifier son âge (16 ans ou plus), et seuls les utilisateurs de 16 ans et plus à l’âge vérifié les voient.
+- [ ] Les notes de la première mise à jour sont prêtes à être publiées. ([Mises à jour et événements](/modules/08/mises-a-jour-et-evenements/))
+
+## 10. Conformité aux règles de Roblox
+
+<Attention titre="Des règles qui ont beaucoup changé en 2026">
+Les conditions de publication ont été profondément revues en 2026 (comptes Roblox Kids et Roblox Select, nouvelles exigences pour publier à destination de tous les âges, processus d’évaluation). Les points ci-dessous sont ceux de la documentation **au moment de la rédaction (octobre 2026)**. Vérifie toujours la page officielle « Publish games and places » avant ton lancement : les montants, seuils et conditions peuvent encore évoluer.
+</Attention>
+
+### Questionnaire de maturité et de conformité
+
+- [ ] Le **Maturity & Compliance Questionnaire** est rempli : Creator Dashboard, page du jeu, **Publish settings › Content rating**. Sans informations de maturité, la jouabilité du jeu est restreinte pour tous les joueurs. ([Préparer la page du jeu](/modules/08/preparer-la-page-du-jeu/))
+- [ ] Les réponses décrivent le contenu **le plus mature** du jeu, honnêtement. Des informations inexactes exposent le jeu et le compte à la modération.
+- [ ] Tu sais que tu devras **soumettre à nouveau** le questionnaire si une mise à jour change tes réponses.
+- [ ] Tu connais le label obtenu (Minimal, Mild, Moderate…) et ce qu’il implique pour l’audience de ton jeu.
+- [ ] Si tu vises les plus jeunes, tu as rempli le questionnaire **en entier**. Attention : si, au moment de publier, tu réponds seulement à la première question (« Non », pas de contenu à accès restreint selon l’âge), ton jeu reçoit le label **Content May Vary** et n’est accessible qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ; pour viser les plus jeunes, il faut remplir le questionnaire **en entier**.
+
+### Exigences de publication
+
+Au moment de la rédaction, la documentation distingue deux niveaux de publication publique, détaillés dans [Préparer la page du jeu](/modules/08/preparer-la-page-du-jeu/) :
+
+- **Joueurs de 16 ans et plus (et « amis de confiance », *Trusted Friends*)** : compte en règle, créé depuis au moins 2 jours, vérification de l’âge (estimation faciale ou pièce d’identité), et réponse à la première question du questionnaire, celle sur le contenu à accès restreint selon l’âge.
+- **Tous les âges** (y compris Roblox Kids et Roblox Select) : les conditions précédentes, **plus** :
+  - un compte vérifié (estimation faciale de l’âge si tu as moins de 18 ans, pièce d’identité si tu as 18 ans ou plus) ;
+  - la validation en deux étapes (2FA) ;
+  - un abonnement Roblox Plus ou Premium actif depuis deux mois consécutifs, **ou** des frais de publication remboursables (1 000 Robux par jeu au moment de la rédaction) ;
+  - le questionnaire complet, avec un label Minimal, Mild ou Moderate ;
+  - la réussite d’un **processus d’évaluation**.
+
+Rappel de ce processus, décrit sur la page officielle « Roblox Kids and Select » :
+
+1. le jeu n’est d’abord proposé qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ;
+2. Roblox vérifie que de vrais joueurs « très engagés » (*highly engaged players*) y jouent et fait une revue de sécurité ;
+3. le jeu devient éligible aux comptes Roblox Kids et Roblox Select (dans la limite de son label) après **250 parties uniques** de ces joueurs en **60 jours**.
+
+Ce seuil était de 500 au lancement mondial (juin 2026), puis Roblox l’a abaissé à 250 le 19 août 2026 : il peut encore changer, tout comme les conditions de remboursement des frais. La progression se suit dans le tableau **Audience Reach** du Creator Hub ; fie-toi à la page officielle « Roblox Kids and Select » au moment où tu t’organises.
+
+- [ ] Ton compte remplit les conditions du niveau de publication que tu vises. Elles sont vérifiées à **chaque** publication, y compris pour une mise à jour d’un jeu déjà sorti.
+- [ ] La validation en deux étapes est activée sur ton compte (indispensable pour tous les âges, et une bonne protection dans tous les cas).
+- [ ] Si tu vises tous les âges : tu sais que ton jeu passera d’abord par la phase d’évaluation (16 ans et plus) et tu suis sa progression dans le tableau Audience Reach.
+- [ ] Ton label de maturité est compatible avec l’audience visée : Minimal ou Mild pour Roblox Kids (5-8 ans), jusqu’à Moderate pour Roblox Select (9-15 ans).
+
+### Règles de la communauté et contenu
+
+- [ ] Le jeu respecte les **règles de la communauté** (Community Standards) : pas de contenu ou de métadonnées trompeurs ou dupliqués, pas de violation de propriété intellectuelle (pour les liens externes, voir la section 9).
+- [ ] Tous les assets (images, sons, musiques, modèles) t’appartiennent ou tu as le droit de les utiliser.
+- [ ] Tout texte saisi par un joueur et affiché aux autres (nom de familier, panneau…) est filtré côté serveur avec `TextService:FilterStringAsync` (puis `GetNonChatStringForBroadcastAsync` pour un texte visible par tout le serveur). Roblox peut retirer un jeu qui ne filtre pas, jusqu’à ce que le filtrage soit ajouté.
+
+<Erreur titre="Remplir le questionnaire « au plus gentil »">
+Cocher les réponses les moins matures pour viser un public plus large, alors que ton jeu contient autre chose, est une très mauvaise idée : Roblox peut vérifier les réponses et modifier le label, et les inexactitudes répétées entraînent des sanctions. Réponds pour le contenu **réel** de ton jeu, puis adapte le jeu si tu veux viser un autre public.
+</Erreur>
+
+## Le script d’auto-vérification de l’Obby des Nuages
+
+Certaines cases se vérifient automatiquement. Ce script parcourt ton jeu et signale dans l’Output ce qui ne va pas. Il ne s’exécute **que dans Studio**, donc il est sans danger même si tu oublies de le retirer.
+
+```luau
+-- Script « AutoVerification » dans ServerScriptService
+-- Lance un test (Play) et lis l'Output. Ne s'exécute que dans Studio.
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+if not RunService:IsStudio() then
+	return -- jamais exécuté dans le jeu publié
+end
+
+local problemes = 0
+
+local function signaler(message: string)
+	problemes += 1
+	warn("[Checklist] " .. message)
+end
+
+-- 1. Checkpoints numérotés 1, 2, 3... sans trou, et ancrés
+local checkpoints = workspace:FindFirstChild("Checkpoints")
+if checkpoints == nil then
+	signaler("Dossier Workspace.Checkpoints introuvable")
+else
+	local total = #checkpoints:GetChildren()
+	for numero = 1, total do
+		local part = checkpoints:FindFirstChild(tostring(numero))
+		if part == nil then
+			signaler("Checkpoint " .. numero .. " manquant (trou dans la numérotation)")
+		elseif part:IsA("BasePart") and not part.Anchored then
+			signaler("Checkpoint " .. numero .. " n'est pas ancré (Anchored)")
+		end
+	end
+end
+
+-- 2. Kill bricks et pièces : les dossiers existent et les Parts sont ancrées
+for _, nomDossier in { "KillBricks", "Pieces" } do
+	local dossier = workspace:FindFirstChild(nomDossier)
+	if dossier == nil then
+		signaler("Dossier Workspace." .. nomDossier .. " introuvable")
+	else
+		for _, objet in dossier:GetDescendants() do
+			if objet:IsA("BasePart") and not objet.Anchored then
+				signaler(objet:GetFullName() .. " n'est pas ancré")
+			end
+		end
+	end
+end
+
+-- 3. Les RemoteEvents attendus existent
+local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+for _, nomRemote in { "AcheterObjet", "EquiperObjet" } do
+	local remote = remotes and remotes:FindFirstChild(nomRemote)
+	if remote == nil or not remote:IsA("RemoteEvent") then
+		signaler("RemoteEvent ReplicatedStorage.Remotes." .. nomRemote .. " introuvable")
+	end
+end
+
+-- 4. Les ModuleScripts partagés existent
+local modules = ReplicatedStorage:FindFirstChild("Modules")
+for _, nomModule in { "Config", "Catalogue" } do
+	local objetModule = modules and modules:FindFirstChild(nomModule)
+	if objetModule == nil or not objetModule:IsA("ModuleScript") then
+		signaler("ModuleScript ReplicatedStorage.Modules." .. nomModule .. " introuvable")
+	end
+end
+
+if problemes == 0 then
+	print("[Checklist] Aucun problème détecté par l'auto-vérification.")
+else
+	warn("[Checklist] " .. problemes .. " problème(s) à corriger.")
+end
+```
+
+<Info>
+Adapte les listes (`"AcheterObjet"`, `"Config"`…) aux noms réellement utilisés dans ton jeu. Ce script ne remplace pas la checklist : il vérifie la structure, pas le plaisir de jeu ni la sécurité de tes remotes.
+</Info>
+
+## Le plan des premiers jours
+
+Le lancement n’est pas un événement d’un jour, c’est une période. Voici un plan simple, à adapter.
+
+### Une semaine avant (J-7)
+
+- [ ] Gel des fonctionnalités : plus aucune nouveauté, seulement des corrections.
+- [ ] Dernier playtest avec des personnes extérieures, sur ordinateur **et** sur téléphone.
+- [ ] Page du jeu prête : titre, description, icône, miniatures.
+
+### La veille (J-1)
+
+- [ ] Checklist complète passée, script d’auto-vérification sans alerte.
+- [ ] Version publiée testée en conditions réelles (dans l’application Roblox, pas seulement dans Studio).
+- [ ] Questionnaire de maturité soumis, exigences de publication vérifiées.
+
+### Le jour J
+
+- [ ] Ouvre l’accès au public.
+- [ ] Joue dans ton propre jeu : observe les vrais joueurs, leurs hésitations, leurs messages.
+- [ ] Surveille l’**Error Report** et la Developer Console ; corrige uniquement les bugs **bloquants**.
+
+### La première semaine (J+1 à J+7)
+
+- [ ] Note chaque jour les visites, la durée des sessions et les premiers chiffres de rétention D1, **sans conclusion hâtive** : avec peu de joueurs, les chiffres varient beaucoup.
+- [ ] Regarde ton entonnoir d’onboarding : quelle étape perd le plus de joueurs ?
+- [ ] Publie une première petite mise à jour de confort, avec des notes de mise à jour.
+
+### Le premier mois (J+30)
+
+- [ ] Premier vrai bilan : rétention D1 et D7, entonnoirs, retours de la communauté.
+- [ ] Décision selon la méthode fixée à l’avance : persévérer, pivoter ou passer au projet suivant. ([Erreurs de lancement et de suivi](/modules/11/erreurs-de-lancement-et-de-suivi/))
+- [ ] Seulement si l’onboarding tient la route : envisager un petit test de publicité. ([Lancer et publicité](/modules/08/lancer-et-publicite/))
+
+<Defi titre="Le grand passage de la checklist">
+Passe toute la checklist sur l’Obby des Nuages. Ajoute le script `AutoVerification` dans ServerScriptService, lance un test et corrige chaque alerte. Pour chaque case que tu ne coches pas, écris une ligne : « non coché parce que… ». Quand tout est vert ou justifié, tu es prêt pour le lancement.
+</Defi>
+
+<Resume>
+- La checklist couvre **dix thèmes** : gameplay, technique, sécurité, sauvegarde, mobile, monétisation, page du jeu, analytics, communauté et conformité.
+- Le **questionnaire de maturité** est obligatoire en pratique : sans lui, la jouabilité du jeu est restreinte.
+- Les **exigences de publication** ont changé en 2026 : vérifie la page officielle juste avant ton lancement.
+- Un script d’auto-vérification attrape les oublis de structure, mais ne remplace pas les tests humains.
+- Le lancement est une **période** : J-7, J-1, jour J, première semaine, premier bilan à un mois.
+</Resume>
+
+<Sources>
+- [Publish games and places (exigences de publication) — documentation Roblox](https://create.roblox.com/docs/production/publishing/publish-games-and-places)
+- [Roblox Kids and Select — documentation Roblox](https://create.roblox.com/docs/production/publishing/kids-and-select)
+- [Content maturity and compliance (questionnaire) — documentation Roblox](https://create.roblox.com/docs/production/promotion/content-maturity)
+- [Social media links — documentation Roblox](https://create.roblox.com/docs/production/promotion/social-media-links)
+- [« Introducing Roblox Communities » — annonce officielle du DevForum (novembre 2024)](https://devforum.roblox.com/t/introducing-roblox-communities/3268307)
+- [« New Publishing Requirements & Evaluation Process for Games » — annonce officielle du DevForum (avril 2026)](https://devforum.roblox.com/t/new-publishing-requirements-evaluation-process-for-games/4573166)
+- [« Alternate Publishing Requirements for Roblox Kids and Select » — annonce officielle du DevForum (mai 2026)](https://devforum.roblox.com/t/alternate-publishing-requirements-for-roblox-kids-and-select/4630944)
+- [Règles de la communauté de Roblox](https://about.roblox.com/community-standards)
+- [Text filtering — documentation Roblox](https://create.roblox.com/docs/ui/text-filtering)
+- [Paid random items — documentation Roblox](https://create.roblox.com/docs/production/monetization/paid-random-items)
+- [Thumbnails — documentation Roblox](https://create.roblox.com/docs/production/publishing/thumbnails)
+- [Discovery — documentation Roblox](https://create.roblox.com/docs/discovery)
+- [Funnel events (AnalyticsService) — documentation Roblox](https://create.roblox.com/docs/production/analytics/funnel-events)
+</Sources>

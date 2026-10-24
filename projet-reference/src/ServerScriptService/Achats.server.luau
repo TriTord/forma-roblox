@@ -1,6 +1,6 @@
 -- Script (côté serveur) dans ServerScriptService, nommé « Achats »
 -- C'est le SEUL script du jeu qui définit MarketplaceService.ProcessReceipt.
--- Il utilise le ModuleScript « DonneesJoueurs » du module 4 (DataStore « DonneesJoueurs_v1 »).
+-- Il utilise le ModuleScript « DonneesJoueurs » du module 5 (DataStore « DonneesJoueurs_v1 »).
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -40,7 +40,7 @@ local produits: { [number]: (Player, Donnees, IntValue, IntValue) -> () } = {
 	[ID_PASSER_ETAPE] = donnerPasserEtape,
 }
 
--- Attend que les données du joueur soient chargées (module 4), tant qu'il est sur le serveur.
+-- Attend que les données du joueur soient chargées (module 5), tant qu'il est sur le serveur.
 -- Les achats en attente sont rejoués dès l'arrivée du joueur, AVANT la fin du chargement.
 local function attendreDonnees(player: Player): (Donnees?, IntValue?, IntValue?)
 	local debut = os.clock()

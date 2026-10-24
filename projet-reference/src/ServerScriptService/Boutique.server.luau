@@ -4,9 +4,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs"))
-local Validation = require(ServerScriptService:WaitForChild("Validation")) -- module 3, leçon 4
+local Validation = require(ServerScriptService:WaitForChild("Validation")) -- module 4, leçon 4
 local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue"))
-local AnalytiqueEconomie = require(ServerScriptService:WaitForChild("AnalytiqueEconomie")) -- module 8, leçon 5
+local AnalytiqueEconomie = require(ServerScriptService:WaitForChild("AnalytiqueEconomie")) -- module 9, leçon 5
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local acheterObjet = remotes:WaitForChild("AcheterObjet") :: RemoteEvent
@@ -14,7 +14,7 @@ local equiperObjet = remotes:WaitForChild("EquiperObjet") :: RemoteEvent
 
 local NOMS_TRAINEE = { "TraineeObby", "TraineeHaut", "TraineeBas" }
 local LONGUEUR_ID_MAX = 50 -- aucun identifiant du catalogue n'est plus long
-local peutAcheter = Validation.creerCooldown(1) -- un achat par seconde maximum (module 3)
+local peutAcheter = Validation.creerCooldown(1) -- un achat par seconde maximum (module 4)
 local peutEquiper = Validation.creerCooldown(0.5) -- limite aussi le spam d'équipement
 
 -- Retrouve une statistique des leaderstats (voir leçon 1)
@@ -87,7 +87,7 @@ acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
 	if typeof(idObjet) ~= "string" or not Validation.estTexte(idObjet, LONGUEUR_ID_MAX) then
 		return
 	end
-	-- Pas plus d'une demande par seconde (cooldown du module 3)
+	-- Pas plus d'une demande par seconde (cooldown du module 4)
 	if not peutAcheter(player) then
 		return
 	end
@@ -110,7 +110,7 @@ acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
 	-- Tout est valide : on débite, puis on donne l'objet
 	pieces.Value -= objet.prix
 	donnees.inventaire[idObjet] = true
-	AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value) -- module 8 : solde APRÈS l'achat
+	AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value) -- module 9 : solde APRÈS l'achat
 	publierInventaire(player, donnees)
 end)
 

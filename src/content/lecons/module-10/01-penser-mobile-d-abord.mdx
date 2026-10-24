@@ -1,0 +1,238 @@
+---
+titre: Penser mobile d’abord
+description: Comprends les contraintes des téléphones et tablettes, adapte l’interface et les contrôles tactiles de ton obby, puis teste avec le Device Simulator et sur un vrai appareil.
+duree: 25
+objectifs:
+  - Comprendre les contraintes matérielles et d’usage des appareils mobiles
+  - Adapter l’interface et les contrôles tactiles de l’Obby des Nuages
+  - Tester ton jeu avec le Device Simulator de Studio puis sur un vrai appareil
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Pourquoi le simulateur d’appareils de Studio ne suffit-il pas pour juger la consommation de mémoire de ton jeu ?
+    options:
+      - texte: Parce qu’il ne sait simuler que des ordinateurs
+      - texte: Parce que Studio fait tourner le serveur et le client sur ton ordinateur, ce qui fausse la mesure de mémoire
+        correct: true
+      - texte: Parce qu’il désactive automatiquement le streaming
+      - texte: Parce qu’il ne fonctionne qu’en mode édition
+    explication: La documentation Roblox précise que l’émulation est utile pour l’affichage et les contrôles, mais pas pour la mémoire. En test dans Studio, ton PC exécute à la fois le serveur et le client, et il est bien plus puissant qu’un téléphone. Seul un vrai appareil donne une mesure fiable.
+  - type: vrai-faux
+    question: Par défaut, un jeu Roblox s’affiche en mode portrait sur un téléphone.
+    reponse: false
+    explication: Le réglage par défaut de `StarterGui.ScreenOrientation` est `LandscapeSensor` (paysage, qui se retourne selon le sens du téléphone). Tu peux forcer une autre orientation si ton jeu en a besoin.
+  - type: qcm
+    question: Sur mobile, où faut-il éviter de placer des boutons importants de ton interface ?
+    options:
+      - texte: En haut au centre de l’écran
+      - texte: Dans les coins en bas à gauche et en bas à droite, occupés par le joystick et le bouton de saut
+        correct: true
+      - texte: Au milieu du bord droit de l’écran
+      - texte: Nulle part, Roblox déplace automatiquement les boutons qui gênent
+    explication: Les contrôles par défaut de Roblox occupent une partie des coins inférieurs. Un bouton placé là sera caché ou provoquera des appuis involontaires pendant un saut.
+  - type: qcm
+    question: Quelle valeur de `ScreenGui.ScreenInsets` garde ton interface à l’écart des encoches de l’écran ET des boutons de la barre du haut de Roblox ?
+    options:
+      - texte: "`None`"
+      - texte: "`DeviceSafeInsets`"
+      - texte: "`CoreUISafeInsets`"
+        correct: true
+    explication: "`CoreUISafeInsets` (la valeur par défaut) protège à la fois des encoches et des contrôles de Roblox en haut de l’écran. `DeviceSafeInsets` ne tient compte que des encoches, et `None` ne protège de rien : à réserver aux images de fond."
+  - type: trouve-le-bug
+    question: "Ce LocalScript doit agrandir le bouton de la boutique quand le joueur joue au tactile. Le bouton ne change jamais de taille. Où est le bug ?"
+    code: |
+      local UserInputService = game:GetService("UserInputService")
+      local interface = script.Parent
+      local bouton = interface:WaitForChild("BoutonBoutique")
+
+      local function adapter()
+      	if UserInputService.PreferredInput == "Touch" then
+      		bouton.Size = UDim2.fromScale(0.2, 0.12)
+      	else
+      		bouton.Size = UDim2.fromScale(0.15, 0.08)
+      	end
+      end
+
+      adapter()
+      UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(adapter)
+    options:
+      - texte: "Ligne 3 : il faut `FindFirstChild` au lieu de `WaitForChild`"
+      - texte: "Ligne 6 : `PreferredInput` est une valeur d’énumération, il faut la comparer à `Enum.PreferredInput.Touch` et non au texte `\"Touch\"`"
+        correct: true
+      - texte: "Ligne 14 : `GetPropertyChangedSignal` n’existe pas"
+    explication: "`PreferredInput` contient un `Enum`, pas une chaîne de caractères. La comparaison avec `\"Touch\"` est donc toujours fausse et le bouton garde la petite taille. Il faut écrire `UserInputService.PreferredInput == Enum.PreferredInput.Touch`."
+  - type: vrai-faux
+    question: Pour repérer la surchauffe d’un téléphone, il suffit de jouer une minute à ton jeu.
+    reponse: false
+    explication: "La documentation Roblox conseille une session de 10 à 15 minutes de jeu actif. Un téléphone qui chauffe réduit la vitesse de son processeur : la baisse d’images par seconde apparaît progressivement, pas dès la première minute."
+---
+
+Tu as construit, sécurisé et publié l’Obby des Nuages. Mais sur quel appareil tes joueurs vont-ils le lancer ? Selon la documentation officielle de Roblox (page « Mobile input »), **la majorité des sessions Roblox se jouent sur des appareils mobiles** (*« The majority of Roblox sessions are played on mobile devices »*). La page « Test on hardware » ajoute que la majorité des joueurs utilisent des appareils mobiles peu puissants. Un obby qui tourne parfaitement sur ton PC peut donc ramer, chauffer ou devenir injouable au doigt. Dans ce module, tu vas apprendre à mesurer et à corriger tout ça. On commence par changer de réflexe : penser mobile d’abord.
+
+## Pourquoi le mobile change tout
+
+Ton ordinateur de développement est presque toujours bien plus puissant que l’appareil de tes joueurs. La page « Test on hardware » de la documentation le dit clairement : si tu testes uniquement sur ta machine, tu testes pour la **minorité** de ton public.
+
+Voici les quatre grandes contraintes d’un téléphone ou d’une tablette.
+
+### La mémoire
+
+La mémoire vive (RAM) d’un téléphone est limitée, et Roblox n’y a pas accès en entier : le système et les autres applications en gardent une partie. Quand un jeu en demande trop, le système le ferme brutalement. C’est ce qu’on appelle un plantage par manque de mémoire (*out of memory*, OOM).
+
+### Le processeur et la carte graphique
+
+Un PC puissant peut « encaisser » un script mal optimisé sans que tu remarques rien. Sur un téléphone modeste, le même script fait chuter le nombre d’images par seconde (FPS, *frames per second*). Par défaut, les jeux Roblox visent **60 FPS**.
+
+### La chaleur
+
+Quand un téléphone chauffe, il réduit volontairement la vitesse de son processeur pour se protéger. C’est le *thermal throttling* (bridage thermique). Ton jeu peut tourner correctement pendant deux minutes, puis ralentir petit à petit.
+
+### L’écran et les doigts
+
+Un petit écran (5 ou 6 pouces de diagonale, soit 13 à 15 cm environ), des doigts qui cachent une partie de l’image, pas de souris ni de clavier : l’interface et les contrôles doivent être pensés pour ça.
+
+<Info>
+Tu verras peut-être circuler des pourcentages précis sur la part de joueurs mobiles. Méfie-toi : la documentation donne quelques statistiques générales sur les appareils, mais sans dire de quand elles datent ni sur quelle période elles portent, et elle précise que la répartition varie selon les pays, les âges et les genres de jeux. On ne les reprend donc pas ici. Pour **ton** jeu, la donnée qui compte est celle de ton Creator Dashboard : la page Performance affiche la répartition par appareil de tes joueurs (on l’utilisera dans la leçon 5).
+</Info>
+
+## Des contrôles tactiles confortables
+
+Sur mobile, Roblox affiche par défaut un joystick virtuel en bas à gauche et un bouton de saut en bas à droite. La plupart des joueurs mobiles jouent avec leurs deux pouces : un sur le joystick, un sur le saut.
+
+### Les zones réservées
+
+Les coins inférieurs gauche et droit sont **réservés** aux contrôles par défaut. N’y place jamais d’information importante ni de bouton : il serait caché par le pouce, ou déclenché par erreur au milieu d’un saut.
+
+<Attention titre="Le bouton de la boutique du module 5">
+Au module 5, on a placé `BoutonBoutique` sur le bord gauche, à mi-hauteur (`AnchorPoint = (0, 0.5)`, `Position = {0.02, 0}, {0.5, 0}`), justement pour éviter le coin inférieur gauche, qui est la zone du joystick sur téléphone. Vérifie que tu n’as pas gardé une ancienne position en bas à gauche, et applique la même règle à tout bouton que tu ajoutes : jamais dans les coins inférieurs. Contrôle ensuite le résultat avec le Device Simulator (plus bas dans cette leçon).
+</Attention>
+
+### Les zones accessibles au pouce
+
+Un bouton que l’on utilise souvent doit rester à portée de pouce. La documentation donne un bon exemple : un bouton placé à 40 % du haut de l’écran est facile à atteindre sur un téléphone, mais presque inaccessible sur une tablette, dont l’écran est bien plus grand. Teste donc les deux formats.
+
+<Erreur titre="Des boutons pensés pour la souris">
+Un bouton qui paraît confortable sur ton écran d’ordinateur peut être minuscule sur un téléphone de 5 pouces. Ne règle jamais la taille de tes boutons en regardant seulement ton moniteur : vérifie-la avec le Device Simulator en mode « Physical size », puis sur un vrai téléphone.
+</Erreur>
+
+## Une interface lisible sur tous les écrans
+
+Au module 5, tu as construit l’interface de l’obby (compteur de pièces, boutique) avec des tailles en `Scale`. C’est la bonne base. Quelques points à vérifier spécialement pour le mobile :
+
+- **Les zones de sécurité.** Les téléphones récents ont des encoches (*notch*) et des découpes pour la caméra. Roblox ajoute aussi sa barre de boutons en haut de l’écran (menu, chat…). La propriété `ScreenInsets` d’un `ScreenGui` règle la zone de sécurité (*safe area*) de son contenu. Sa valeur par défaut, `CoreUISafeInsets`, garde ton interface à l’écart des encoches **et** de la barre de Roblox. Garde-la pour toute interface avec des boutons.
+- **Le texte.** Un texte lisible sur un grand écran d’ordinateur (en 1440p, par exemple) peut devenir illisible sur un petit écran. Utilise un `UITextSizeConstraint` (contrainte de taille de texte) pour qu’il ne descende jamais sous une taille minimale.
+- **Le contraste.** Une interface claire posée sur un ciel clair (c’est le cas de notre obby dans les nuages !) devient vite illisible en plein soleil. Ajoute un fond sombre semi-opaque ou un contour au texte.
+- **La taille de l’écran.** La propriété `GuiService.ViewportDisplaySize` classe l’écran en `Small` (la plupart des téléphones et tablettes), `Medium` (ordinateurs) ou `Large` (télévisions).
+
+### Adapter l’interface au mode de contrôle
+
+La propriété `UserInputService.PreferredInput` indique le mode de contrôle **principal** du joueur : `Touch` (tactile), `KeyboardAndMouse` (clavier et souris), `Gamepad` (manette)… Elle change en direct, par exemple si un joueur sur tablette branche une manette Bluetooth.
+
+Ce LocalScript agrandit le bouton de la boutique quand le joueur joue au tactile :
+
+```luau
+-- Nouveau LocalScript « AdaptationMobile », placé dans StarterGui > InterfaceObby
+-- (le ScreenGui du module 5, à côté de ScriptInterface).
+-- InterfaceObby contient le TextButton « BoutonBoutique » créé au module 5.
+local UserInputService = game:GetService("UserInputService")
+
+local interface = script.Parent
+local boutonBoutique = interface:WaitForChild("BoutonBoutique") :: TextButton
+
+-- Tailles en Scale : une fraction de l'écran, pas des pixels
+local TAILLE_TACTILE = UDim2.fromScale(0.2, 0.12) -- plus grand pour le doigt
+local TAILLE_CLAVIER_SOURIS = UDim2.fromScale(0.15, 0.08) -- la taille du module 5
+
+local function adapterInterface()
+	if UserInputService.PreferredInput == Enum.PreferredInput.Touch then
+		-- Au doigt : un bouton plus grand, plus facile à toucher
+		boutonBoutique.Size = TAILLE_TACTILE
+	else
+		-- Souris ou manette : un bouton plus discret suffit
+		boutonBoutique.Size = TAILLE_CLAVIER_SOURIS
+	end
+end
+
+-- On adapte une première fois au lancement…
+adapterInterface()
+-- … puis à chaque changement de mode de contrôle (manette branchée, etc.)
+UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(adapterInterface)
+```
+
+Remarque l’approche : on ne vérifie pas en boucle si le mode de contrôle a changé, on **réagit à un événement**. C’est une habitude clé pour les performances, on y reviendra à la leçon 4.
+
+<Astuce titre="Penser à toutes les entrées d’un coup">
+Roblox propose l’Input Action System : tu définis des **actions** (« ouvrir la boutique », « sauter ») et tu y associes plusieurs touches, boutons de manette et boutons tactiles. Ton jeu reste jouable sur tous les appareils sans écrire un `if` par plateforme. Consulte la page « Cross-platform development » de la documentation pour aller plus loin.
+</Astuce>
+
+### L’orientation de l’écran
+
+Par défaut, un jeu Roblox s’affiche en **paysage** et se retourne quand le joueur tourne son téléphone : c’est la valeur `LandscapeSensor` de `StarterGui.ScreenOrientation`. Pour un obby, c’est le bon choix : garde-le, sauf raison précise.
+
+## Tester avec le Device Simulator
+
+Studio contient un simulateur d’appareils, le **Device Simulator**. Depuis septembre 2026, il prend la forme d’une **barre d’outils au-dessus de la vue 3D**. Tu l’ouvres depuis le menu **Test** › **Device Simulator**.
+
+L’annonce officielle de l’équipe Studio sur le DevForum (publiée le 9 septembre 2026, mise à jour le 16 octobre 2026) indique qu’il est sorti de bêta et disponible pour tout le monde. Pourtant, en octobre 2026, la page de documentation affiche encore un avertissement « beta ». Si l’outil n’apparaît pas dans ton Studio, active **New Device Simulator** dans **File** › **Beta Features**, puis redémarre Studio. L’interface évolue vite : si elle diffère un peu de cette description, fie-toi à la page officielle.
+
+Ce qu’il permet :
+
+1. **Choisir une catégorie d’appareil** : Phone (téléphones et tablettes), Desktop, Console, Headset (casques VR).
+2. **Choisir un modèle** dans le menu de l’appareil. Les téléphones sont classés en **Flagship** (haut de gamme), **Mid-range** (milieu de gamme) et **Entry level** (entrée de gamme).
+3. **Tourner l’appareil** avec le bouton Rotate.
+4. **Simuler le tactile** à la souris : un pincement (avec rotation) se fait avec <kbd>Alt</kbd> + glisser, un déplacement à deux doigts avec <kbd>Alt</kbd> + <kbd>Shift</kbd> + glisser.
+5. **Changer d’appareil pendant un test**, sans arrêter la partie.
+
+Le menu **Display scaling** est très utile. En mode **Physical size**, l’écran simulé est affiché à sa **taille réelle** : tu vois tes boutons aussi grands qu’ils le seront dans la main du joueur. Pour que ce mode soit exact, Studio doit connaître la taille de ton moniteur : l’option **Calibrate physical scaling** te fait aligner une image avec une carte au format carte d’étudiant.
+
+<Info>
+La même barre d’outils contient le **Network Simulator**, qui ajoute de la latence, des variations (*jitter*) et des pertes de paquets à tes tests, avec des profils comme 3G, 4G ou Wi-Fi. Pratique pour voir comment ton obby se comporte sur une connexion mobile.
+</Info>
+
+### Les limites de la simulation
+
+Le simulateur vérifie très bien l’**affichage** et les **contrôles**. Il ne dit rien de fiable sur la **mémoire** ni sur les vraies performances : pendant un test dans Studio, ton PC fait tourner à la fois le serveur et le client. Pour ça, il faut un vrai appareil.
+
+## Tester sur un vrai appareil
+
+Pas besoin d’un laboratoire. Un téléphone Android modeste, même ancien, suffit pour commencer. La documentation recommande de choisir au moins un **appareil de référence** (*baseline*) représentatif de tes joueurs et de tester dessus tout au long du développement.
+
+1. **Publie** ton jeu (même en privé, comme au module 1) et lance-le depuis l’application Roblox du téléphone, connectée à ton compte.
+2. **Affiche les statistiques** : dans le menu Roblox, onglet **Settings**, active **Performance Stats**. Une barre affiche FPS, mémoire et ping (le temps d’aller-retour d’un message entre ton appareil et le serveur, en millisecondes).
+3. **Joue tout l’obby**, en touchant chaque bouton de l’interface, en pleine lumière si possible.
+4. **Teste la chaleur** : joue **10 à 15 minutes** d’affilée. Une baisse progressive des FPS indique un bridage thermique.
+5. **Note tout** : on construira une vraie fiche de mesure à la leçon 5.
+
+<Attention>
+Un téléphone qui tient 60 FPS peut quand même offrir une mauvaise expérience si les boutons sont trop petits ou le texte illisible. Les chiffres ne disent pas tout : regarde aussi quelqu’un jouer au doigt.
+</Attention>
+
+<Defi>
+Ouvre l’Obby des Nuages dans Studio. Dans le Device Simulator, choisis un téléphone **Entry level**, passe en **Physical size**, puis lance un test.
+
+1. Tous les boutons sont-ils visibles et en dehors des coins inférieurs ?
+2. Le compteur de pièces est-il lisible ?
+3. Tourne l’appareil : rien ne disparaît sous l’encoche ?
+
+Note chaque problème trouvé : ce sera le début de ton audit de la leçon 5.
+</Defi>
+
+<Resume>
+- Selon la documentation Roblox, la majorité des sessions se jouent sur mobile, et la majorité des joueurs ont des appareils peu puissants : mémoire limitée, processeur plus lent, surchauffe.
+- Les coins inférieurs de l’écran sont réservés au joystick et au saut (c’est pour ça que le `BoutonBoutique` du module 5 est au bord gauche, à mi-hauteur) ; garde tes boutons à portée de pouce.
+- Garde `ScreenInsets` sur `CoreUISafeInsets` et utilise `PreferredInput` pour adapter l’interface au mode de contrôle.
+- Le Device Simulator vérifie l’affichage et les contrôles, pas la mémoire ni les vraies performances.
+- Teste régulièrement sur un vrai appareil de référence, avec des sessions de 10 à 15 minutes.
+</Resume>
+
+<Sources>
+- [Mobile input — documentation Roblox](https://create.roblox.com/docs/input/mobile)
+- [Test on hardware — documentation Roblox](https://create.roblox.com/docs/performance-optimization/test-on-hardware)
+- [Design for performance — documentation Roblox](https://create.roblox.com/docs/performance-optimization/design)
+- [Device Simulator — documentation Roblox](https://create.roblox.com/docs/studio/device-simulator)
+- [Annonce officielle de l’équipe Studio (Full Release) : New Device Simulator Toolbar and Network Simulator (DevForum)](https://devforum.roblox.com/t/full-release-new-device-simulator-toolbar-and-network-simulator/4861695)
+- [Network Simulator — documentation Roblox](https://create.roblox.com/docs/studio/network-simulator)
+- [Position and size (zones réservées et zones du pouce) — documentation Roblox](https://create.roblox.com/docs/ui/position-and-size)
+- [Cross-platform development — documentation Roblox](https://create.roblox.com/docs/projects/cross-platform)
+- [ScreenGui (propriété ScreenInsets) — référence API](https://create.roblox.com/docs/reference/engine/classes/ScreenGui)
+</Sources>

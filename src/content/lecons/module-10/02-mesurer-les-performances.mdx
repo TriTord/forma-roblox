@@ -1,0 +1,285 @@
+---
+titre: Mesurer les performances
+description: Utilise la Developer Console, les statistiques à l’écran, le MicroProfiler et le Script Profiler pour trouver ce qui ralentit vraiment ton jeu, avant de toucher au moindre réglage.
+duree: 30
+objectifs:
+  - Utiliser la Developer Console pour suivre mémoire, erreurs et serveur
+  - Lire le MicroProfiler à un niveau débutant (images, pics, couleurs)
+  - Identifier les scripts coûteux avec le Script Profiler et des étiquettes personnalisées
+  - Adopter le réflexe « mesurer avant d’optimiser »
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Ton obby tourne à 60 images par seconde. Combien de temps dure en moyenne une image ?
+    options:
+      - texte: Environ 6 millisecondes
+      - texte: Environ 16,67 millisecondes
+        correct: true
+      - texte: Environ 33,33 millisecondes
+      - texte: Une seconde
+    explication: "On divise 1 000 millisecondes par le nombre d’images par seconde : 1 000 / 60 ≈ 16,67 ms. À 30 FPS, chaque image dure environ 33,33 ms."
+  - type: qcm
+    question: Dans le graphique du MicroProfiler, tu vois surtout des barres **bleues** très hautes. Que faut-il soupçonner en premier ?
+    options:
+      - texte: Des scripts trop lourds
+      - texte: Un goulot d’étranglement côté rendu (trop d’objets, de lumières, d’effets…)
+        correct: true
+      - texte: Une perte de connexion Internet
+      - texte: Un problème de sauvegarde DataStore
+    explication: "Selon la documentation, une barre bleue signifie que le fil de rendu a pris plus de temps que les fils de travail. Si les FPS sont trop bas avec beaucoup de barres bleues, le rendu est en cause. Les barres orange orientent plutôt vers les scripts, la physique ou les animations."
+  - type: vrai-faux
+    question: Pour mesurer la mémoire de ton jeu de façon fiable, il vaut mieux regarder la Developer Console dans le vrai client Roblox plutôt que dans Studio.
+    reponse: true
+    explication: Studio fait tourner à la fois le serveur et le client, et ajoute sa propre consommation. La documentation recommande d’utiliser le client pour obtenir les lectures de mémoire les plus exactes.
+  - type: qcm
+    question: Que mesure le Script Profiler ?
+    options:
+      - texte: Le temps processeur consommé par les fonctions des scripts pendant l’enregistrement
+        correct: true
+      - texte: Le nombre de lignes de chaque script
+      - texte: Le temps pendant lequel un script attend avec `task.wait`
+      - texte: La mémoire utilisée par les textures
+    explication: "Le Script Profiler enregistre le temps processeur (CPU) de chaque appel de fonction. Il n’enregistre pas les fils qui dorment ou attendent : un `task.wait(10)` ne coûte presque rien et n’y apparaît pas."
+  - type: trouve-le-bug
+    question: "Ce Script serveur ajoute une étiquette au MicroProfiler autour d’un calcul. Dans certains cas, l’étiquette « déborde » sur la suite du programme. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      local function calculerHauteur(joueur: Player): number
+      	debug.profilebegin("CalculHauteur")
+      	local personnage = joueur.Character
+      	if not personnage then
+      		return 0
+      	end
+      	local hauteur = personnage:GetPivot().Position.Y
+      	debug.profileend()
+      	return hauteur
+      end
+
+      Players.PlayerAdded:Connect(function(joueur)
+      	print(calculerHauteur(joueur))
+      end)
+    options:
+      - texte: "Ligne 4 : `debug.profilebegin` n’accepte pas de texte"
+      - texte: "Ligne 7 : on quitte la fonction sans appeler `debug.profileend`, l’étiquette n’est jamais fermée"
+        correct: true
+      - texte: "Ligne 9 : `GetPivot` n’existe pas sur un Model"
+    explication: "Chaque `debug.profilebegin` doit être suivi d’un `debug.profileend`, sur **tous** les chemins du code. Ici, quand le joueur n’a pas encore de personnage (c’est souvent le cas au moment de `PlayerAdded`), le `return 0` sort de la fonction sans fermer l’étiquette. Il faut appeler `debug.profileend()` juste avant ce `return`."
+  - type: vrai-faux
+    question: Avant d’optimiser, il faut noter des mesures de référence (FPS, mémoire, temps de chargement) pour pouvoir comparer après chaque changement.
+    reponse: true
+    explication: Sans mesure de départ, impossible de savoir si une modification a amélioré, dégradé ou laissé inchangées les performances. La documentation recommande de mesurer avant et après chaque optimisation.
+---
+
+À la leçon précédente, tu as vu que ton jeu doit tourner sur des appareils modestes. Mais *qu’est-ce* qui ralentit ton obby, exactement ? Un script ? Trop de pièces ? Des ombres ? Optimiser au hasard fait perdre des heures et casse parfois le jeu. Les développeurs expérimentés suivent une règle simple : **on mesure d’abord, on optimise ensuite**. Dans cette leçon, tu découvres les outils de mesure intégrés à Roblox.
+
+## Les grandeurs à surveiller
+
+La documentation Roblox distingue trois grandes familles de problèmes.
+
+### Le nombre d’images par seconde
+
+Le **frame rate** (fréquence d’images) se mesure en images par seconde (FPS). Son inverse est le **frame time** (temps d’image) : la durée d’une image, en millisecondes (ms, des millièmes de seconde). On le calcule en divisant 1 000 ms par le nombre d’images par seconde.
+
+| Temps moyen d’une image | Images par seconde |
+| :--- | :--- |
+| 33,33 ms | 30 FPS |
+| 16,67 ms | 60 FPS |
+| 8,33 ms | 120 FPS |
+
+Par défaut, les jeux Roblox visent 60 FPS : tout ce que ton jeu fait à chaque image doit tenir en 16,67 ms environ. La **régularité** compte autant que la moyenne : si 59 images arrivent vite et une seule met 410 ms, le joueur ressent une saccade très désagréable, même à « 60 FPS » de moyenne.
+
+Côté serveur, il n’y a pas d’images à dessiner, mais un équivalent : le **heartbeat** (battement) du serveur, le nombre de mises à jour du monde par seconde. Il est plafonné à 60. Un heartbeat bas ralentit tous les joueurs et augmente la latence.
+
+### La mémoire
+
+C’est la quantité de RAM utilisée. Trop de mémoire fait planter le client (surtout sur mobile) ou même le serveur, ce qui déconnecte tout le monde. Une **fuite de mémoire** (*memory leak*) est une consommation qui grossit sans cesse avec le temps.
+
+### Le temps de chargement
+
+C’est le temps entre le clic sur « Jouer » et le moment où le joueur peut bouger. Un chargement trop long fait partir des joueurs avant même qu’ils aient vu ton premier saut.
+
+## La Developer Console
+
+La **Developer Console** (console développeur) fonctionne dans Studio **et** dans le vrai jeu, y compris sur téléphone. Pour l’ouvrir :
+
+- appuie sur <kbd>F9</kbd> ;
+- ou tape `/console` dans le chat ;
+- ou ouvre le menu Roblox, onglet **Settings**, puis **Developer Console** et **Open** (pratique sur mobile).
+
+En haut, une barre de raccourcis affiche le nombre d’erreurs et d’avertissements, la mémoire du client et le ping moyen. Un menu déroulant permet de choisir l’outil, et un sélecteur **Client** / **Server** de choisir le côté observé. Dans le vrai jeu, les messages côté serveur ne sont visibles que par le propriétaire du jeu ou les membres ayant les droits de modification.
+
+Les outils les plus utiles pour toi :
+
+- **Log** : les messages et erreurs des scripts, comme la fenêtre Output de Studio. Tes erreurs en jeu réel apparaissent ici.
+- **Memory** : la mémoire par catégorie. **CoreMemory** regroupe ce que le moteur gère seul ; **PlaceMemory** ce qui dépend de ton jeu. Repère en particulier `LuaHeap` (mémoire des scripts : si elle grandit sans arrêt, suspecte une fuite), `InstanceCount` (nombre d’instances), `PlaceScriptMemory` (mémoire script par script), `GraphicsTexture`, `GraphicsMeshParts` et `Sounds` (images, maillages 3D — les *meshes* — et sons chargés).
+- **Luau heap** : des « photos » (*snapshots*) de la mémoire des scripts, que tu peux comparer dans le temps.
+- **Network** : les appels web du jeu (`HttpService`, requêtes des DataStores…). Attention, ce ne sont pas les RemoteEvents.
+- **Script Profiler** : le temps processeur de chaque fonction (on y revient plus bas).
+- Côté serveur, la documentation cite aussi **Server Jobs** (la ligne **Heartbeat** et sa valeur **Steps Per Sec** donnent le heartbeat) et **Server Stats** (dont le ping moyen des joueurs).
+
+<Attention>
+Les mesures de mémoire et de FPS dans Studio sont faussées : ton PC fait tourner le serveur, le client et Studio en même temps. Pour des chiffres fiables, lance le **vrai jeu publié** (idéalement sur ton téléphone de référence) et ouvre la console là.
+</Attention>
+
+## Les statistiques à l’écran
+
+Pour un coup d’œil rapide pendant que tu joues :
+
+| Outil | Raccourci dans le client | Dans Studio (en test) |
+| :--- | :--- | :--- |
+| Performance Stats (FPS, mémoire, ping…) | menu **Settings**, ou <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F7</kbd> | <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F7</kbd> |
+| Résumé des statistiques de débogage | <kbd>Shift</kbd> + <kbd>F5</kbd> | <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>F5</kbd> |
+| Statistiques de rendu (dont les *draw calls*) | <kbd>Shift</kbd> + <kbd>F2</kbd> | <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>F2</kbd> |
+| Statistiques réseau | <kbd>Shift</kbd> + <kbd>F3</kbd> | <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>F3</kbd> |
+
+Sur Mac, remplace <kbd>Ctrl</kbd> par <kbd>⌘</kbd> et <kbd>Alt</kbd> par <kbd>⌥</kbd>. Un *draw call* (appel de dessin) est une instruction envoyée à la carte graphique : moins il y en a, plus l’image se dessine vite.
+
+## Le MicroProfiler
+
+Le **MicroProfiler** est l’outil le plus précis. Il montre, image par image, combien de temps a pris chaque tâche du moteur : scripts, physique, animations, rendu…
+
+### L’ouvrir
+
+- Dans le client sur ordinateur et dans Studio : <kbd>Ctrl</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>F6</kbd> sur Mac), selon la page consacrée au MicroProfiler. Au moment de la rédaction (octobre 2026), d’autres pages de la documentation donnent encore <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>F6</kbd>) : si un raccourci ne marche pas, essaie l’autre.
+- Sur mobile : dans le menu **Settings**, passe **MicroProfiler** sur **On**. Le téléphone affiche une adresse IP et un port (l’adresse où le joindre sur ton réseau local). Depuis un ordinateur **sur le même réseau Wi-Fi**, tape cette adresse dans un navigateur (par exemple `172.18.56.105:1338`) : tu vois les dernières images du téléphone.
+
+La documentation insiste : le téléphone est souvent le meilleur endroit pour profiler, car un PC puissant masque les problèmes.
+
+### Le lire à un niveau débutant
+
+Le MicroProfiler a deux parties :
+
+1. **En haut, le graphique des images.** Chaque barre est une image ; plus elle est haute, plus l’image a duré longtemps. Les plus récentes sont à droite. Une barre beaucoup plus haute que les autres est un **pic** (*spike*) : c’est elle qu’on va examiner.
+2. **En dessous, la frise chronologique** (*timeline*). Elle montre les tâches de l’image : plus une barre est large, plus la tâche a duré. Une étiquette placée sous une autre est une sous-tâche.
+
+La couleur des barres donne un premier indice :
+
+- **orange** : les fils de travail (*worker threads*, les tâches qui préparent l’image : scripts, physique, animations) ont pris plus de temps que le rendu ;
+- **bleu** : le rendu a pris plus de temps (trop d’objets, de lumières…) ;
+- **rouge** : rendu plus long **et** attente de la carte graphique au-delà de 2,5 ms (souvent : objets trop complexes, textures trop grandes, effets visuels).
+
+Il n’y a pas de « bonne » couleur. Ce qui compte, c’est le temps d’image. Les couleurs disent seulement où chercher **si** tu n’atteins pas ton objectif.
+
+Quelques commandes utiles : <kbd>Ctrl</kbd> + <kbd>P</kbd> met en pause (et ouvre la vue détaillée), le clic gauche maintenu déplace la frise, la molette zoome, et le survol d’une étiquette affiche sa durée. Le menu **Dump** enregistre les images dans un fichier HTML, que tu peux rouvrir ou partager. Sur Windows, il est rangé dans `%LOCALAPPDATA%\Roblox\logs`.
+
+### Ajouter tes propres étiquettes
+
+Le MicroProfiler affiche les tâches du moteur, mais pas le nom de *tes* fonctions. Tu peux les étiqueter avec `debug.profilebegin` et `debug.profileend`. Reprenons le Script `PiecesTournantes` du module 3 (leçon 6), qui fait tourner toutes les pièces de l’obby. On le soupçonne d’être coûteux : on y ajoute seulement deux lignes d’étiquette pour le mesurer.
+
+```luau
+-- Script « PiecesTournantes » dans ServerScriptService (version du module 3)
+-- Seules les deux lignes debug.profilebegin / debug.profileend sont nouvelles.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+
+local dossierPieces = Workspace:WaitForChild("Pieces")
+
+while true do
+	-- task.wait() reprend à chaque battement du moteur : environ 60 fois par seconde
+	local ecoule = task.wait()
+	debug.profilebegin("ObbyRotationPieces") -- début de l'étiquette
+	local rotation = CFrame.Angles(0, math.rad(Config.VITESSE_ROTATION_PIECES * ecoule), 0)
+	for _, piece in dossierPieces:GetChildren() do
+		if piece:IsA("BasePart") then
+			piece.CFrame = piece.CFrame * rotation
+		end
+	end
+	debug.profileend() -- fin de l'étiquette : à appeler sur tous les chemins
+end
+```
+
+Dans le MicroProfiler (côté serveur pour ce script), l’étiquette `ObbyRotationPieces` apparaît dans la frise : sa largeur te dit combien elle coûte. Petite annonce : à la leçon 4, on verra pourquoi ce script coûte surtout… en **réseau**, et comment le réécrire.
+
+<Astuce titre="Profiler le serveur">
+Depuis le client sur ordinateur, dans un jeu que tu peux modifier, ouvre la Developer Console et choisis l’outil **MicroProfiler**. Dans l’onglet **Server**, indique le nombre d’images à capturer (60 au maximum) puis clique sur **Begin server recording**. La console te donne ensuite le chemin du fichier enregistré.
+</Astuce>
+
+## Le Script Profiler
+
+Le **Script Profiler** est un outil de la Developer Console. Il enregistre pendant un moment toutes les fonctions qui tournent et indique combien de temps processeur chacune a consommé.
+
+1. Ouvre la Developer Console (<kbd>F9</kbd>) et choisis **ScriptProfiler** dans le menu des outils.
+2. Choisis **Client** (par défaut) ou **Server**.
+3. En option : la fréquence (**Freq** : 1 kHz par défaut, ou 10 kHz, plus précis mais plus coûteux) et la durée (**Time** : manuelle par défaut, ou 1, 5, 10 minutes).
+4. Clique sur **Start**, joue normalement, puis clique sur **Stop**.
+
+Le résultat est un tableau trié de la fonction la plus coûteuse à la moins coûteuse. La vue **Callgraph** les range par catégorie de tâche (par exemple *Heartbeat*), la vue **Functions** les liste toutes. Survole une ligne pour voir le script et le numéro de ligne.
+
+<Info>
+Le Script Profiler ne mesure que le temps où un script **travaille**. Un script qui attend (`task.wait`, événement pas encore déclenché) ne coûte quasiment rien et n’y apparaît pas.
+</Info>
+
+## Et dans Studio : Scene Analysis
+
+Pendant un test dans Studio, le menu **Window** › **Performance Summary** › **Scene Analysis** ouvre une vue d’ensemble : mémoire par script, nombre d’instances par catégorie, triangles et *draw calls*, mémoire audio et animations. Parfait pour repérer d’un coup d’œil « 25 000 émetteurs de particules » que tu n’avais pas prévus. Les chiffres de rendu ne correspondent pas forcément à ce que voit un téléphone, mais les proportions sont parlantes.
+
+## Mesurer le temps de chargement
+
+Il n’existe pas d’outil intégré pour le temps de chargement complet. Un chronomètre suffit souvent ! Pour une indication plus fine, la documentation propose ce type de script :
+
+```luau
+-- LocalScript placé dans ReplicatedFirst (il s'exécute très tôt chez le joueur)
+-- Mesure le temps entre son démarrage et le chargement initial du jeu.
+-- Attention : ne compte ni la connexion au serveur, ni le chargement de l'avatar.
+local Workspace = game:GetService("Workspace")
+
+local debut = os.clock()
+
+local function afficherTempsDeChargement()
+	local duree = os.clock() - debut
+	print(string.format("Jeu chargé en %.2f secondes", duree))
+	print("Instances chargées dans Workspace : " .. #Workspace:GetDescendants())
+end
+
+if game:IsLoaded() then
+	afficherTempsDeChargement()
+else
+	game.Loaded:Connect(afficherTempsDeChargement)
+end
+```
+
+<Erreur titre="Optimiser à l’aveugle">
+Changer dix réglages d’un coup « parce qu’on a lu que ça aide » est le meilleur moyen de ne rien comprendre. Si le jeu va mieux, tu ne sais pas pourquoi ; s’il va moins bien, tu ne sais pas quoi annuler. Mesure, change **une** chose, mesure à nouveau.
+</Erreur>
+
+## La méthode : mesurer avant d’optimiser
+
+Retiens ce cycle, que la documentation Roblox présente comme le cœur de l’optimisation :
+
+1. **Identifier** : mesurer pour trouver le vrai problème (FPS, mémoire ou chargement ? client ou serveur ? quelle tâche ?).
+2. **Améliorer** : corriger la cause précise.
+3. **Surveiller** : vérifier le gain avec les mêmes mesures, puis suivre le jeu publié dans le temps.
+
+Pour que deux mesures soient comparables, garde les mêmes conditions : même appareil, même parcours dans l’obby, même durée.
+
+<Defi>
+Lance l’Obby des Nuages publié sur ton ordinateur ou ton téléphone. Note dans un carnet :
+
+1. les FPS moyens au départ et dans la zone la plus chargée (Performance Stats) ;
+2. la mémoire client (Developer Console, outil **Memory**) ;
+3. le temps de chargement, au chronomètre, depuis le clic sur « Jouer ».
+
+Garde ces trois chiffres : ce sont tes mesures de référence pour la leçon 5.
+</Defi>
+
+<Resume>
+- Trois familles de problèmes : images par seconde (16,67 ms par image à 60 FPS), mémoire, temps de chargement ; côté serveur, surveille le heartbeat.
+- La Developer Console (<kbd>F9</kbd> ou `/console`) montre erreurs, mémoire, appels web et donne accès au Script Profiler, côté client et serveur.
+- Le MicroProfiler montre le temps de chaque image : cherche les pics, puis la tâche la plus large ; orange oriente vers scripts et physique, bleu ou rouge vers le rendu.
+- `debug.profilebegin` et `debug.profileend` ajoutent tes propres étiquettes, à fermer sur tous les chemins du code.
+- Mesure dans le vrai client, sur un appareil de référence, avant et après chaque changement.
+</Resume>
+
+<Sources>
+- [Performance optimization — vue d’ensemble (documentation Roblox)](https://create.roblox.com/docs/performance-optimization)
+- [Identify performance issues — outils et raccourcis (documentation Roblox)](https://create.roblox.com/docs/performance-optimization/identify)
+- [Developer Console — documentation Roblox](https://create.roblox.com/docs/studio/developer-console)
+- [Memory usage — documentation Roblox](https://create.roblox.com/docs/studio/optimization/memory-usage)
+- [MicroProfiler — documentation Roblox](https://create.roblox.com/docs/performance-optimization/microprofiler)
+- [MicroProfiler walkthrough — documentation Roblox](https://create.roblox.com/docs/performance-optimization/microprofiler/use-microprofiler)
+- [Script Profiler — documentation Roblox](https://create.roblox.com/docs/studio/optimization/scriptprofiler)
+- [Scene Analysis — documentation Roblox](https://create.roblox.com/docs/performance-optimization/scene-analysis)
+</Sources>

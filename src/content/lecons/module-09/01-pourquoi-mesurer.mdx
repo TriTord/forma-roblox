@@ -1,0 +1,193 @@
+---
+titre: Pourquoi et quoi mesurer
+description: Découvre le Creator Dashboard de Roblox, les quatre familles de métriques et les pièges qui font tirer de mauvaises conclusions des chiffres.
+duree: 15
+objectifs:
+  - Comprendre à quoi servent les données pour améliorer un jeu
+  - Repérer les grandes sections des analytics du Creator Dashboard
+  - Distinguer acquisition, engagement, rétention et monétisation
+  - Éviter les pièges d’interprétation les plus courants
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: À quelle famille de métriques appartient la rétention D1 ?
+    options:
+      - texte: Acquisition
+      - texte: Rétention
+        correct: true
+      - texte: Monétisation
+      - texte: Démographie
+    explication: La rétention mesure combien de nouveaux joueurs **reviennent** après leur première visite. L’acquisition, elle, mesure d’où viennent les joueurs et combien cliquent pour jouer.
+  - type: vrai-faux
+    question: Pour accéder à tous les indicateurs (KPI) du tableau de bord analytics, il suffit d’avoir publié son jeu, même sans aucun joueur.
+    reponse: false
+    explication: "Au moment de la rédaction, la documentation de Roblox indique qu’un jeu est éligible à tous les KPI quand il a **plus de 10 DAU et 10 heures de jeu pendant 7 jours consécutifs**. Il faut aussi un e-mail vérifié et la validation en deux étapes pour activer le tableau de bord."
+  - type: qcm
+    question: "Après ta mise à jour du lundi, ta rétention D1 baisse. Le même jour, une grosse vague de nouveaux joueurs est arrivée grâce à une publicité. Quelle conclusion est la plus prudente ?"
+    options:
+      - texte: La mise à jour a forcément cassé quelque chose, il faut l’annuler
+      - texte: La baisse peut venir de l’afflux de nouveaux joueurs ; il faut regarder plus de jours et d’autres indices avant de conclure
+        correct: true
+      - texte: La publicité attire toujours de mauvais joueurs, il ne faut jamais en faire
+    explication: "Deux événements le même jour : impossible de savoir lequel a causé la baisse (corrélation ≠ causalité). Roblox note d’ailleurs qu’une baisse de rétention après un gros afflux de nouveaux joueurs est **typique et temporaire**."
+  - type: qcm
+    question: "Quels sont de bons réflexes face aux chiffres d’un petit jeu (une trentaine de joueurs par jour) ? (plusieurs réponses possibles)"
+    options:
+      - texte: Comparer tes propres chiffres d’une semaine sur l’autre
+        correct: true
+      - texte: Regarder une tendance sur plusieurs jours plutôt qu’un seul point
+        correct: true
+      - texte: Conclure qu’un changement marche dès qu’un chiffre monte d’un jour à l’autre
+      - texte: Compléter les chiffres par l’observation de vrais joueurs
+        correct: true
+    explication: Avec peu de joueurs, les chiffres « sautent » beaucoup d’un jour à l’autre. Les tendances, la comparaison avec toi-même dans le temps et les playtests (module 6) évitent de réagir au bruit.
+  - type: vrai-faux
+    question: Selon la documentation de Roblox, les benchmarks affichés dans le tableau de bord sont utilisés directement comme signal par l’algorithme de découverte.
+    reponse: false
+    explication: "La documentation précise que Roblox **n’utilise pas ces benchmarks comme signal direct** dans l’algorithme de découverte. Ce sont des points de comparaison pour t’aider à fixer tes objectifs."
+---
+
+Ton Obby des Nuages est publié (module 8) : des joueurs arrivent, sautent, tombent… et repartent. Mais lesquels reviennent ? Où abandonnent-ils ? Sans données, tu devines. Avec des données, tu sais **où regarder**. Ce module t’apprend à lire les statistiques que Roblox te fournit, puis à ajouter tes propres mesures dans le jeu.
+
+## Pourquoi mesurer ?
+
+Quand tu crées un jeu, tu es la pire personne pour juger s’il est clair : tu connais déjà chaque saut par cœur. Les joueurs, eux, découvrent tout pour la première fois.
+
+Les analytics (les statistiques d’utilisation de ton jeu) servent à trois choses :
+
+1. **Repérer un problème** : « beaucoup de nouveaux joueurs partent au bout de quelques minutes » ;
+2. **Le localiser** : « ils partent juste avant le checkpoint 2 » ;
+3. **Vérifier qu’une correction a marché** : « depuis que j’ai élargi la plateforme, plus de joueurs passent le checkpoint 2 ».
+
+La documentation de Roblox résume bien l’état d’esprit : les métriques ne donnent pas toujours l’explication complète, mais elles montrent **où regarder de plus près**. C’est exactement le cycle « publier → mesurer → améliorer » vu au module 0.
+
+## Le Creator Dashboard et ses analytics
+
+Le **Creator Dashboard** (tableau de bord des créateurs) est la partie du Creator Hub, sur `create.roblox.com`, où tu gères tes jeux. Pour voir les statistiques d’un jeu : page **Creations**, puis clic sur ton jeu, puis menu **Analytics** à gauche.
+
+### Activer le tableau de bord
+
+Au moment de la rédaction (octobre 2026), la documentation officielle indique que :
+
+- un jeu est éligible à **tous** les indicateurs quand il a **plus de 10 utilisateurs actifs par jour (DAU, de l’anglais *daily active users*) et 10 heures de jeu, pendant 7 jours consécutifs** ;
+- pour l’activer, il faut un **e-mail vérifié**, une méthode de **validation en deux étapes** sur ton compte, puis accepter les conditions d’utilisation depuis la page d’aperçu du jeu (bouton **Activate Analytics** si besoin) ;
+- pour un jeu de groupe, seuls le propriétaire et les membres ayant la permission analytics voient les chiffres.
+
+### Les grandes sections
+
+Voici les catégories que décrit la documentation de Roblox au moment de la rédaction. Les noms exacts et l’emplacement des menus évoluent souvent : fie-toi à ce que tu vois à l’écran.
+
+| Section | Ce qu’elle te dit |
+|---|---|
+| **Overview** | Vue d’ensemble, tableaux de comparaison (benchmarks) et « insights » |
+| **Retention** | Combien de nouveaux joueurs reviennent après 1, 7 et 30 jours |
+| **Engagement** | Joueurs actifs, durée des sessions, temps de jeu |
+| **Acquisition** | D’où viennent les joueurs (recommandations, recherche, publicités…) et combien cliquent pour jouer |
+| **Demographics** | Âge, genre, pays et langue des joueurs actifs du mois |
+| **Feedback** | Avis et notes des joueurs |
+| **Monetization** | Revenus, taux de conversion, revenus par joueur, détail par produit |
+| **Explore** | Graphiques personnalisés, formules, comparaisons |
+| **Economy / Funnel / Custom** | Pages débloquées quand tu envoies tes propres événements (leçon 5) |
+
+À part, le menu **Monitoring → Performance** affiche les joueurs connectés, les crashs, la mémoire et les images par seconde (FPS). Il y a aussi **Analytics Home**, une page d’accueil où tu peux suivre jusqu’à neuf jeux dans une liste de suivi (*watchlist*).
+
+<Info>
+Plusieurs fonctions demandent un minimum de joueurs. Selon la documentation, au moment de la rédaction : les tableaux de comparaison avec des jeux similaires (*benchmark scorecards*) et les « insights » sont proposés à partir de **100 DAU**, les graphiques détaillés de performance aussi, et les rapports d’analyse hebdomadaires et mensuels générés par IA (*analytics reports*) à partir de **1 000 DAU**. Si ton jeu est petit, c’est normal de ne pas tout voir.
+</Info>
+
+## Les quatre familles de métriques
+
+Une **métrique** (ou KPI, *key performance indicator*, indicateur clé) est un chiffre qui résume un comportement. On les range en quatre familles, qui suivent le parcours d’un joueur.
+
+### 1. Acquisition : est-ce qu’on vient ?
+
+Combien de joueurs voient ton jeu, d’où ils viennent et combien cliquent pour jouer. Roblox affiche par exemple le **play through rate** : le pourcentage de joueurs qui ont joué à ton jeu après l’avoir vu dans les recommandations. Exemple fictif : si 1 000 joueurs voient ton jeu dans les recommandations et que 40 d’entre eux le lancent, ton play through rate est de 40 ÷ 1 000 = 4 %. Ton icône et tes miniatures (module 8) jouent ici un grand rôle.
+
+### 2. Engagement : est-ce qu’on s’amuse ?
+
+Combien de joueurs sont actifs chaque jour, combien de temps dure une session (une visite, de l’arrivée au départ), combien de temps chacun joue. C’est le sujet de la leçon 3.
+
+### 3. Rétention : est-ce qu’on revient ?
+
+Parmi les nouveaux joueurs d’un jour donné, combien reviennent le lendemain (D1), une semaine après (D7), un mois après (D30). C’est le sujet de la leçon 2.
+
+### 4. Monétisation : est-ce que le jeu rapporte ?
+
+Revenus, part de joueurs qui achètent, revenu moyen par joueur. C’est le sujet de la leçon 4.
+
+### Dans quel ordre s’en occuper ?
+
+La documentation de Roblox propose un plan en trois étapes :
+
+1. **D’abord**, améliorer rétention, engagement et monétisation jusqu’à un niveau comparable aux jeux similaires, en commençant par la **rétention D1** et la **durée moyenne de session** ;
+2. **Ensuite**, attirer plus de nouveaux joueurs (acquisition) ;
+3. **Après chaque mise à jour**, revérifier ces métriques.
+
+C’est logique : faire venir beaucoup de joueurs dans un jeu qu’ils quittent au bout d’une minute, c’est remplir un seau percé.
+
+<Astuce>
+Note la date de chaque mise à jour dans un petit journal (module 6) : « 12/10 : checkpoint 2 élargi ». Quand une courbe bouge, tu sauras tout de suite ce qui a changé ce jour-là. Le tableau de bord ne connaît pas tes intentions : c’est à toi de faire le lien.
+</Astuce>
+
+## Les benchmarks : se comparer… avec prudence
+
+Un **benchmark** est une valeur de référence. Pour plusieurs métriques (rétention, durée de session, conversion, revenus par joueur, play through rate), le tableau de bord compare ton jeu à des **jeux aux joueurs similaires**. Faute de données suffisantes, il se rabat sur des jeux du même **genre**, puis sur **l’ensemble des jeux**.
+
+Selon la documentation, le benchmark est affiché sous forme de fourchette entre le **50e et le 90e percentile** :
+
+- la borne basse est la valeur sous laquelle se trouve la moitié des jeux similaires ;
+- la borne haute est la valeur au-dessus de laquelle se trouvent seulement 10 % d’entre eux.
+
+Roblox précise aussi que ces benchmarks ne sont **pas un signal direct** de l’algorithme de découverte : ce sont des repères pour fixer tes objectifs, pas une note.
+
+## Les pièges d’interprétation
+
+Les chiffres ne mentent pas, mais on peut leur faire dire n’importe quoi. Voici les quatre pièges les plus fréquents.
+
+### Corrélation n’est pas causalité
+
+Deux choses qui bougent en même temps ne sont pas forcément liées par une cause. Exemple fictif : tu sors une mise à jour le samedi et ton nombre de joueurs monte. Était-ce ta mise à jour… ou simplement le week-end ? Roblox donne lui-même un exemple : une baisse de rétention juste après un gros afflux de nouveaux joueurs est « typique et temporaire ».
+
+Pour mesurer une vraie cause, Roblox propose les **Experiments** (tests A/B) : une partie des joueurs reçoit la version A, l’autre la version B, en même temps. La documentation prévient toutefois que les jeux de moins de 1 000 DAU peuvent avoir du mal à obtenir des résultats utiles.
+
+<Erreur titre="Changer cinq choses à la fois">
+Si tu modifies en même temps la difficulté, la boutique, l’icône et le spawn, puis que la rétention monte, tu ne sauras jamais ce qui a marché. Fais des changements ciblés, un à la fois quand c’est possible, et laisse-leur quelques jours avant de juger.
+</Erreur>
+
+### Les petits échantillons
+
+Avec 20 nouveaux joueurs par jour, un seul joueur qui revient (ou pas) fait bouger la rétention de 5 points (1 joueur sur 20 = 5 %) ! Sur un petit jeu, les courbes sont très « bruitées ». Le tableau de bord le signale parfois lui-même : le graphique des crashs affiche une ligne en pointillés quand il y a trop peu de sessions pour que le taux soit fiable. Et la page Demographics masque les groupes de moins de 3 joueurs, pour protéger leur vie privée.
+
+### Un seul jour ne fait pas une tendance
+
+Le week-end, les vacances scolaires et les jours fériés font varier l’audience. Compare plutôt des semaines entières, ou utilise les outils prévus pour ça : la page **Explore** permet de superposer une période précédente au graphique et d’appliquer une **moyenne mobile sur 7 jours** qui gomme l’effet du week-end.
+
+### Se comparer au mauvais modèle
+
+Comparer ton premier obby aux plus gros jeux de Roblox n’a pas de sens. Ta meilleure référence, c’est **toi-même dans le temps** : est-ce que ta rétention D1 de ce mois-ci est meilleure que celle du mois dernier ? Le panneau des réussites (*achievement panel*) de la page d’aperçu met d’ailleurs en avant les métriques qui atteignent leur plus haut niveau depuis 6 mois.
+
+<Attention>
+Les données décrivent ce que font les joueurs, pas ce qu’ils ressentent. Un chiffre te dit **où** il y a un problème ; pour comprendre **pourquoi**, rien ne remplace l’observation de vrais joueurs (module 6) et la lecture de leurs avis.
+</Attention>
+
+<Defi>
+Ouvre le Creator Dashboard, va sur ton Obby des Nuages et note : est-il éligible aux analytics ? Si oui, relève sa rétention D1 et sa durée moyenne de session sur les 28 derniers jours. Sinon, note le nombre de jours qui te manquent pour atteindre 10 DAU et 10 heures de jeu 7 jours de suite.
+</Defi>
+
+<Resume>
+- Les analytics servent à repérer un problème, le localiser et vérifier qu’une correction a marché.
+- Le Creator Dashboard regroupe Retention, Engagement, Acquisition, Demographics, Feedback, Monetization et Explore ; il faut un minimum d’activité (au moment de la rédaction, plus de 10 DAU et 10 h de jeu sur 7 jours consécutifs) pour tout débloquer.
+- Quatre familles de métriques : acquisition, engagement, rétention, monétisation. Roblox conseille de soigner d’abord D1 et la durée de session.
+- Les benchmarks (50e–90e percentile de jeux similaires) sont des repères, pas un signal direct de découverte.
+- Méfie-toi de la corrélation, des petits échantillons et des journées isolées : compare-toi à toi-même dans le temps.
+</Resume>
+
+<Sources>
+- [Analytics — vue d’ensemble (Roblox Creator Hub)](https://create.roblox.com/docs/production/analytics)
+- [Analytics dashboard : activation, filtres, benchmarks](https://create.roblox.com/docs/production/analytics/analytics-dashboard)
+- [Get started with analytics](https://create.roblox.com/docs/production/analytics/get-started)
+- [Analytics insights](https://create.roblox.com/docs/production/analytics/insights)
+- [Performance dashboard](https://create.roblox.com/docs/production/analytics/performance)
+- [Demographics](https://create.roblox.com/docs/production/analytics/demographics)
+- [Experiments (tests A/B)](https://create.roblox.com/docs/production/experiments)
+</Sources>

@@ -1,0 +1,534 @@
+---
+titre: Sécuriser l’Obby des Nuages
+description: Applique tout le module à ton obby, avec des checkpoints validés dans l’ordre, des pièces vérifiées par le serveur et un achat en boutique impossible à truquer, puis teste avec deux clients.
+duree: 45
+objectifs:
+  - Valider les checkpoints côté serveur, uniquement dans l’ordre
+  - Faire ramasser les pièces par le serveur (distance et cooldown par joueur)
+  - Implémenter un achat en boutique sûr via le RemoteEvent AcheterObjet
+  - Tester ses protections avec deux clients et un client « tricheur »
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Un joueur est à l’étape 2 et touche le checkpoint « 5 ». Que doit faire le serveur ?"
+    options:
+      - texte: Passer son étape à 5, il a été rapide
+      - texte: Ignorer le contact, car seule l’étape 3 peut être validée
+        correct: true
+      - texte: Le bannir immédiatement
+      - texte: Passer son étape à 3, puis 4, puis 5
+    explication: "Le serveur n’accepte que l’étape **suivante** (`etape + 1`). Sauter des étapes n’a donc aucun intérêt pour un tricheur. Un bannissement immédiat serait disproportionné : un joueur honnête peut tomber sur un checkpoint plus bas ou trouver un raccourci."
+  - type: vrai-faux
+    question: "Comme une pièce est ramassée par un contact (`Touched`) détecté sur le serveur, il est inutile de vérifier la distance."
+    reponse: false
+    explication: "Le client possède la physique de son personnage : un tricheur peut provoquer des contacts à n’importe quelle distance. Le serveur vérifie donc la distance réelle entre le personnage et la pièce."
+  - type: qcm
+    question: "Avant de valider un achat, quelles vérifications fait le serveur de l’Obby des Nuages ? (plusieurs réponses possibles)"
+    options:
+      - texte: L’identifiant reçu est un texte court
+        correct: true
+      - texte: L’objet existe dans le catalogue du serveur
+        correct: true
+      - texte: Le joueur ne possède pas déjà l’objet
+        correct: true
+      - texte: Le prix envoyé par le client est positif
+    explication: "Le client n’envoie **pas** de prix : le serveur le lit dans son catalogue. Il vérifie aussi le type, le débit, la possession et le solde réel du joueur."
+  - type: qcm
+    question: "Dans un test à deux clients, tu changes la valeur `Pieces` à 9999 dans la fenêtre Properties du **client 1**, puis tu tentes un achat cher. Que se passe-t-il ?"
+    options:
+      - texte: L’achat réussit, puisque le client affiche 9999 pièces
+      - texte: L’achat est refusé, car le serveur voit toujours le vrai solde
+        correct: true
+      - texte: Le jeu plante pour tous les joueurs
+      - texte: Le client 2 voit aussi 9999 pièces
+    explication: "Le changement fait sur le client n’est pas répliqué au serveur. Le serveur compare le prix à **sa** valeur de `Pieces`. C’est exactement ce qui protège ta boutique."
+  - type: trouve-le-bug
+    question: "Ce code serveur valide les checkpoints. Un tricheur arrive pourtant à finir l’obby en touchant seulement le dernier checkpoint. Où est le bug ?"
+    code: |
+      local function surContact(checkpoint, player)
+      	local numero = tonumber(checkpoint.Name)
+      	local etape = player.leaderstats.Etape
+      	if numero == nil then
+      		return
+      	end
+      	if numero > etape.Value then
+      		etape.Value = numero
+      	end
+      end
+    options:
+      - texte: "Ligne 2 : `tonumber` ne fonctionne pas sur un nom de Part"
+      - texte: "Ligne 7 : il faut exiger `numero == etape.Value + 1`, sinon on peut sauter des étapes"
+        correct: true
+      - texte: "Ligne 8 : il faut écrire `etape = numero`"
+      - texte: "Ligne 4 : il faut tester `numero == 0`"
+    explication: "Avec `numero > etape.Value`, toucher le checkpoint 20 depuis l’étape 1 est accepté. En exigeant l’étape suivante uniquement, le serveur force le passage par chaque checkpoint, dans l’ordre."
+---
+
+C’est l’heure de mettre en pratique tout le module. L’Obby des Nuages va gagner des **checkpoints validés par le serveur**, des **pièces impossibles à aspirer à distance** et une **boutique** où l’on ne peut ni choisir son prix ni dépenser des pièces qu’on n’a pas. On terminera par une séance de tests avec deux clients, dont un qui triche volontairement.
+
+## Préparer l’Explorer
+
+Vérifie que ton projet contient ces éléments (crée ceux qui manquent) :
+
+```text
+Workspace
+├── Checkpoints (Folder)      → Parts ancrées nommées "1", "2", "3"…
+└── Pieces (Folder)           → Parts ancrées nommées "Piece"
+ReplicatedStorage
+├── Modules (Folder)
+│   └── Catalogue (ModuleScript)
+└── Remotes (Folder)
+    ├── AcheterObjet (RemoteEvent)
+    └── Notification (RemoteEvent)
+ServerScriptService
+├── Validation (ModuleScript, leçon 4)
+├── Progression (Script)
+├── Pieces (Script)
+└── Boutique (Script)
+```
+
+Le Script « Checkpoints » du module 3 (qui rangeait l’étape dans un attribut `Etape` du joueur) est remplacé par le Script « Progression » ci-dessous : désactive-le ou supprime-le, sinon les deux scripts réagiraient aux mêmes checkpoints. Le Script « PiecesTournantes » du module 3, lui, peut rester : il ne fait que tourner les pièces.
+
+<Info>
+On crée ici des **leaderstats** minimales (`Etape` et `Pieces`) et un inventaire gardé en mémoire. Le module 5 les détaillera : affichage, sauvegarde avec les DataStores, inventaire complet et interface de la boutique.
+</Info>
+
+## Des checkpoints validés dans l’ordre
+
+La documentation de Roblox donne justement l’obby en exemple de **conception défensive** : plutôt que de chercher à détecter un joueur qui se téléporte à l’arrivée, on impose des **checkpoints obligatoires**, validés dans l’ordre par le serveur. Se téléporter au checkpoint 10 ne sert alors à rien.
+
+Les règles du serveur :
+
+1. le contact vient bien d’un personnage de joueur ;
+2. le checkpoint touché est **exactement l’étape suivante** (`Etape + 1`) ;
+3. le personnage est **vraiment proche** du checkpoint (un contact peut être simulé) ;
+4. un passage anormalement rapide est **journalisé**, pas puni.
+
+```luau
+-- Script « Progression » placé dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
+
+local Validation = require(ServerScriptService:WaitForChild("Validation"))
+
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
+
+local DISTANCE_MAX = 15 -- studs entre le personnage et le centre du checkpoint (augmente-la si tes checkpoints sont grands)
+local TEMPS_MIN_ETAPE = 2 -- secondes : un passage plus rapide est suspect (journalisé seulement)
+
+local dernierPassage: { [Player]: number } = {}
+
+-- Renvoie l'IntValue « Etape » du joueur, ou nil si elle n'existe pas encore
+local function obtenirEtape(player: Player): IntValue?
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+	if etape and etape:IsA("IntValue") then
+		return etape
+	end
+	return nil
+end
+
+-- Leaderstats minimales et réapparition au dernier checkpoint
+local function initialiserJoueur(player: Player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+
+	local etape = Instance.new("IntValue")
+	etape.Name = "Etape"
+	etape.Value = 0 -- 0 = aucun checkpoint atteint (départ sur la SpawnLocation)
+	etape.Parent = leaderstats
+
+	local pieces = Instance.new("IntValue")
+	pieces.Name = "Pieces"
+	pieces.Value = 0
+	pieces.Parent = leaderstats
+
+	leaderstats.Parent = player
+
+	player.CharacterAdded:Connect(function(character: Model)
+		if etape.Value == 0 then
+			return -- premier départ : la SpawnLocation suffit
+		end
+		local checkpoint = dossierCheckpoints:FindFirstChild(tostring(etape.Value))
+		if not (checkpoint and checkpoint:IsA("BasePart")) then
+			return
+		end
+		-- CharacterAdded se déclenche AVANT que le personnage soit dans le Workspace,
+		-- et Roblox le place sur la SpawnLocation juste APRÈS l'y avoir mis.
+		-- On attend qu'il y soit, puis une image de plus, sinon notre placement serait écrasé.
+		if not character:IsDescendantOf(Workspace) then
+			character.AncestryChanged:Wait()
+		end
+		task.wait()
+		if not character:IsDescendantOf(Workspace) then
+			return -- le personnage a déjà disparu (joueur parti, nouvelle réapparition…)
+		end
+		character:PivotTo(checkpoint.CFrame + Vector3.new(0, 4, 0))
+	end)
+end
+
+local function surContactCheckpoint(checkpoint: BasePart, partieTouchee: BasePart)
+	-- 1. Le contact vient-il d'un personnage de joueur ?
+	local player = Players:GetPlayerFromCharacter(partieTouchee.Parent)
+	if player == nil then
+		return
+	end
+
+	local numero = tonumber(checkpoint.Name)
+	local etape = obtenirEtape(player)
+	if numero == nil or etape == nil then
+		return
+	end
+
+	-- 2. Uniquement l'étape SUIVANTE : ni retour en arrière, ni saut d'étapes
+	if numero ~= etape.Value + 1 then
+		return
+	end
+
+	-- 3. Distance réelle : un tricheur peut provoquer un contact à distance
+	if not Validation.estAPortee(player, checkpoint.Position, DISTANCE_MAX) then
+		return
+	end
+
+	-- 4. Heuristique : passage trop rapide → on note, on ne punit pas
+	local maintenant = os.clock()
+	local precedent = dernierPassage[player]
+	if precedent and maintenant - precedent < TEMPS_MIN_ETAPE then
+		warn(string.format("[Anti-triche] %s : étape %d atteinte en %.1f s", player.Name, numero, maintenant - precedent))
+	end
+	dernierPassage[player] = maintenant
+
+	-- Tout est valide : le SERVEUR met à jour la progression
+	etape.Value = numero
+	notification:FireClient(player, "Étape " .. numero .. " atteinte !")
+end
+
+-- On branche chaque checkpoint du dossier
+for _, checkpoint in dossierCheckpoints:GetChildren() do
+	if checkpoint:IsA("BasePart") then
+		checkpoint.Touched:Connect(function(partieTouchee: BasePart)
+			surContactCheckpoint(checkpoint, partieTouchee)
+		end)
+	end
+end
+
+Players.PlayerAdded:Connect(initialiserJoueur)
+-- Joueurs déjà présents si le script démarre après eux (rare, mais possible en test)
+for _, player in Players:GetPlayers() do
+	task.spawn(initialiserJoueur, player)
+end
+
+Players.PlayerRemoving:Connect(function(player: Player)
+	dernierPassage[player] = nil
+end)
+```
+
+<Info titre="Pourquoi attendre avant de replacer le personnage ?">
+D’après la référence de `Player`, quand un personnage (ré)apparaît, Roblox déclenche d’abord `CharacterAdded`, charge l’apparence, place le personnage dans le jeu, construit son squelette (rig), puis seulement le déplace sur le point d’apparition. Un `PivotTo` fait trop tôt serait donc écrasé par ce dernier déplacement. Attendre l’entrée dans le `Workspace` puis une image de plus est le motif que tu as vu au module 3 ; il est courant chez les développeurs, mais la documentation ne le décrit pas tel quel. Teste-le : meurs après avoir validé une étape, tu dois réapparaître sur ton dernier checkpoint.
+</Info>
+
+<Astuce titre="Un seul script pour tous les checkpoints">
+Au lieu d’un script dans chaque checkpoint, un seul Script parcourt le dossier `Checkpoints`. Pour ajouter l’étape 12, tu dupliques une Part et tu la renommes `"12"` : rien d’autre à faire. Et si tu dois corriger une règle de sécurité, tu la corriges à un seul endroit.
+</Astuce>
+
+<Erreur titre="Un checkpoint posé sur le chemin du retour">
+Si un joueur tombe et atterrit sur un checkpoint **précédent**, il ne doit pas reculer d’étape. C’est pour ça que le test exige exactement `Etape + 1` : toucher un checkpoint plus ancien ne change rien. Avec un simple `etape.Value = numero`, un joueur honnête perdrait sa progression en tombant.
+</Erreur>
+
+## Des pièces ramassées par le serveur
+
+Pour une pièce, le serveur vérifie que le joueur est **assez près** et applique un **cooldown par joueur** : même en se téléportant partout, un tricheur ne peut pas vider la carte en une fraction de seconde. La pièce disparaît pour tout le monde, puis réapparaît au bout de quelques secondes.
+
+```luau
+-- Script « Pieces » placé dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
+
+local Validation = require(ServerScriptService:WaitForChild("Validation"))
+
+local dossierPieces = Workspace:WaitForChild("Pieces")
+
+local VALEUR_PIECE = 1 -- pièces gagnées par ramassage (valeur décidée par le SERVEUR)
+local DISTANCE_MAX = 12 -- studs
+local DELAI_REAPPARITION = 10 -- secondes avant que la pièce revienne
+
+-- Un même joueur ne peut ramasser qu'une pièce toutes les 0,2 seconde
+local peutRamasser = Validation.creerCooldown(0.2)
+
+local function preparerPiece(piece: BasePart)
+	local transparenceInitiale = piece.Transparency
+	local disponible = true -- état connu du serveur seulement
+
+	piece.Touched:Connect(function(partieTouchee: BasePart)
+		if not disponible then
+			return -- déjà ramassée (évite aussi les contacts multiples d'un même personnage)
+		end
+
+		local player = Players:GetPlayerFromCharacter(partieTouchee.Parent)
+		if player == nil then
+			return
+		end
+
+		-- Le personnage est-il vraiment à côté de la pièce ?
+		if not Validation.estAPortee(player, piece.Position, DISTANCE_MAX) then
+			return
+		end
+
+		-- Ramassage trop rapide pour ce joueur ?
+		if not peutRamasser(player) then
+			return
+		end
+
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+		if not (pieces and pieces:IsA("IntValue")) then
+			return
+		end
+
+		-- On désactive la pièce AVANT de récompenser : un second contact ne passera pas
+		disponible = false
+		piece.Transparency = 1
+		piece.CanTouch = false
+		pieces.Value += VALEUR_PIECE
+
+		task.delay(DELAI_REAPPARITION, function()
+			disponible = true
+			piece.Transparency = transparenceInitiale
+			piece.CanTouch = true
+		end)
+	end)
+end
+
+for _, piece in dossierPieces:GetChildren() do
+	if piece:IsA("BasePart") and piece.Name == "Piece" then
+		preparerPiece(piece)
+	end
+end
+```
+
+Pourquoi deux protections ? La variable `disponible` empêche qu’une même pièce soit comptée deux fois (par deux parties du corps, ou par deux joueurs en même temps). Le cooldown par joueur, lui, limite la **vitesse** de ramassage d’un même joueur.
+
+## Une boutique impossible à truquer
+
+### Le catalogue
+
+Le catalogue est un ModuleScript dans `ReplicatedStorage.Modules` : le client peut le lire pour **afficher** les prix, et le serveur l’utilise pour **décider**. Un tricheur peut modifier sa copie locale, mais cela ne change rien à la copie du serveur.
+
+```luau
+-- ModuleScript « Catalogue » placé dans ReplicatedStorage > Modules (partagé client/serveur)
+export type Objet = {
+	nom: string, -- nom affiché (accents autorisés)
+	prix: number, -- prix en pièces
+}
+
+local Catalogue: { [string]: Objet } = {
+	TrailNuage = { nom = "Traînée Nuage", prix = 25 },
+	TrailSoleil = { nom = "Traînée Soleil", prix = 75 },
+	TrailAurore = { nom = "Traînée Aurore", prix = 150 },
+}
+
+return Catalogue
+```
+
+Ces identifiants (`TrailNuage`, `TrailSoleil`, `TrailAurore`) sont ceux du module 5, qui complétera ce catalogue avec les couleurs des traînées.
+
+### Le script serveur de la boutique
+
+Le client envoie **uniquement l’identifiant** de l’objet, par exemple `"TrailNuage"`. Le serveur répond sur le même RemoteEvent avec `FireClient` pour indiquer si l’achat a réussi.
+
+```luau
+-- Script « Boutique » placé dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local Validation = require(ServerScriptService:WaitForChild("Validation"))
+local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue"))
+
+local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+
+local LONGUEUR_ID_MAX = 50
+local peutAcheter = Validation.creerCooldown(1) -- un achat par seconde maximum
+
+-- Objets possédés, gardés sur le serveur (sauvegardés au module 5)
+local objetsPossedes: { [Player]: { [string]: boolean } } = {}
+
+local function acheter(player: Player, idObjet: unknown): (boolean, string)
+	-- 1. Type et taille
+	if not Validation.estTexte(idObjet, LONGUEUR_ID_MAX) then
+		return false, "Requête invalide."
+	end
+	local id = idObjet :: string
+
+	-- 2. Débit
+	if not peutAcheter(player) then
+		return false, "Doucement ! Réessaie dans un instant."
+	end
+
+	-- 3. L'objet existe : le PRIX vient du catalogue du serveur, jamais du client
+	local objet = Catalogue[id]
+	if objet == nil then
+		return false, "Cet objet n'existe pas."
+	end
+
+	-- 4. Pas déjà possédé
+	local possedes = objetsPossedes[player]
+	if possedes == nil then
+		return false, "Tes données ne sont pas encore prêtes."
+	end
+	if possedes[id] then
+		return false, "Tu possèdes déjà cet objet."
+	end
+
+	-- 5. Solde réel, lu sur le serveur
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+	if not (pieces and pieces:IsA("IntValue")) then
+		return false, "Tes données ne sont pas encore prêtes."
+	end
+	if pieces.Value < objet.prix then
+		return false, "Il te manque " .. (objet.prix - pieces.Value) .. " pièce(s)."
+	end
+
+	-- 6. Transaction : on retire le prix et on ajoute l'objet, sans pause entre les deux
+	pieces.Value -= objet.prix
+	possedes[id] = true
+	return true, objet.nom .. " achetée !"
+end
+
+-- Les arguments en trop (un « prix » envoyé par un tricheur, par exemple) sont simplement ignorés
+acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+	local succes, message = acheter(player, idObjet)
+	acheterObjet:FireClient(player, succes, message)
+end)
+
+Players.PlayerAdded:Connect(function(player: Player)
+	objetsPossedes[player] = {}
+end)
+for _, player in Players:GetPlayers() do
+	objetsPossedes[player] = {}
+end
+
+Players.PlayerRemoving:Connect(function(player: Player)
+	objetsPossedes[player] = nil
+end)
+```
+
+Les étapes 5 et 6 se suivent **sans aucune pause** (pas de `task.wait` ni d’appel réseau entre elles). Deux demandes ne peuvent donc pas « passer entre les gouttes » pour dépenser deux fois les mêmes pièces.
+
+<Attention>
+Ici, la boutique est une interface : pas besoin de vérifier la distance. Si tu crées un **comptoir physique** dans le monde (un PNJ, personnage non joueur, qui sert de vendeur, par exemple), ajoute `Validation.estAPortee(player, comptoir.Position, 15)` avant l’achat. La documentation cite justement la distance à la boutique parmi les vérifications de contexte.
+</Attention>
+
+### Le côté client
+
+En attendant l’interface du module 5, un LocalScript de démonstration achète la Traînée Nuage au bout de quelques secondes et affiche la réponse du serveur :
+
+```luau
+-- LocalScript placé dans StarterPlayer > StarterPlayerScripts (côté client)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+
+-- Réponse du serveur
+acheterObjet.OnClientEvent:Connect(function(succes: boolean, message: string)
+	if succes then
+		print("Achat réussi :", message)
+	else
+		warn("Achat refusé :", message)
+	end
+end)
+
+-- Démonstration : on DEMANDE l'achat par son identifiant (au module 5, ce sera un bouton)
+task.wait(5)
+acheterObjet:FireServer("TrailNuage")
+```
+
+## Tester ses protections
+
+Une protection non testée est une protection qui ne marche pas. Utilise le mode **Server & Clients** de Studio : dans le menu déroulant des modes de test, choisis-le, règle **2** clients et lance. Studio ouvre une fenêtre serveur et une fenêtre par client.
+
+### Test 1 : deux joueurs, une pièce
+
+Avec les deux clients, approche-toi de la même pièce. Un seul joueur la récupère, elle disparaît dans les deux fenêtres, et elle revient après 10 secondes. Vérifie les compteurs dans la fenêtre **serveur** (Explorer → Players → ton joueur → leaderstats).
+
+### Test 2 : un faux solde
+
+Dans la fenêtre du **client 1**, ouvre Players → ton joueur → leaderstats → `Pieces` et mets `Value` à 9999 dans Properties. Puis fais acheter `"TrailAurore"` (change l’identifiant dans le LocalScript de démonstration). Tant que ton vrai solde est inférieur à 150 pièces, l’achat est **refusé** : le serveur voit toujours ton vrai solde. Dans la fenêtre serveur, `Pieces` n’a pas bougé.
+
+### Test 3 : un client tricheur
+
+Ajoute temporairement ce LocalScript, qui imite un logiciel de triche :
+
+```luau
+-- LocalScript TEMPORAIRE « TestTriche » (StarterPlayerScripts) : simule un client malveillant
+-- À SUPPRIMER après les tests !
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+local player = Players.LocalPlayer
+
+task.wait(8)
+
+-- Arguments piégés : tous doivent être refusés par le serveur
+acheterObjet:FireServer(nil)
+acheterObjet:FireServer(0 / 0)
+acheterObjet:FireServer({ prix = 0 })
+acheterObjet:FireServer(string.rep("A", 10000))
+acheterObjet:FireServer("ObjetInexistant")
+task.wait(1.5) -- on attend la fin du cooldown d'achat (1 s) pour isoler le test suivant
+acheterObjet:FireServer("TrailAurore", 0) -- le « prix » est ignoré : le serveur lit 150 dans son catalogue
+task.wait(1.5)
+
+-- Spam : au plus un achat par seconde passe le cooldown
+for _ = 1, 20 do
+	acheterObjet:FireServer("TrailNuage")
+end
+
+-- Téléportation : le client déplace son propre personnage (la position est répliquée !)
+local character = player.Character or player.CharacterAdded:Wait()
+local dernierCheckpoint = Workspace:WaitForChild("Checkpoints"):FindFirstChild("3")
+if dernierCheckpoint and dernierCheckpoint:IsA("BasePart") then
+	character:PivotTo(dernierCheckpoint.CFrame + Vector3.new(0, 3, 0))
+end
+```
+
+Résultats attendus dans l’Output :
+
+- chaque argument piégé reçoit un refus : « Requête invalide » pour `nil`, NaN, la table et le texte géant, « Cet objet n’existe pas » pour l’identifiant inconnu ;
+- l’achat de `"TrailAurore"` avec un prix de 0 est refusé (« Il te manque… ») si tu as moins de 150 pièces : le prix envoyé n’a servi à rien ;
+- sur les 20 demandes de spam, une seule passe le cooldown (et l’achat ne réussit que si tu as assez de pièces et ne possèdes pas déjà la traînée), les 19 autres reçoivent « Doucement ! » ;
+- le personnage apparaît bien sur le checkpoint 3 (le client contrôle sa position), mais ton `Etape` **ne passe pas à 3** si tu n’as pas validé les étapes 1 et 2. La téléportation ne rapporte rien ;
+- si le détecteur de déplacements de la leçon 4 est actif, il signale cette téléportation dans l’Output, sans exclure personne.
+
+<Erreur titre="Oublier le script de test">
+Supprime `TestTriche` avant de publier ! Plus généralement, ne laisse jamais de remote « de debug » (donner des pièces, changer d’étape) dans ton jeu publié : un tricheur lit tes LocalScripts et trouvera tes RemoteEvents en quelques minutes.
+</Erreur>
+
+<Defi>
+Ajoute une Part `LigneArrivee` à la fin du parcours. Écris un Script serveur qui annonce la victoire avec le RemoteEvent `AnnonceVictoire` (leçon 2), mais **seulement** si l’`Etape` du joueur est égale au nombre de checkpoints du dossier (`#dossierCheckpoints:GetChildren()`) et s’il est réellement à portée de la ligne. Teste avec `TestTriche` modifié pour te téléporter sur la ligne d’arrivée : l’annonce ne doit pas partir.
+</Defi>
+
+<Resume>
+- Les checkpoints n’acceptent que l’**étape suivante** (`Etape + 1`) et vérifient la **distance réelle** : se téléporter ne sert à rien.
+- Les pièces sont ramassées par le **serveur** : distance, cooldown par joueur, pièce désactivée avant la récompense.
+- Le client envoie seulement l’**identifiant** de l’objet ; le serveur vérifie le type, le débit, l’existence, la possession et le **solde réel**, avec le **prix de son catalogue**.
+- Retirer les pièces et ajouter l’objet se fait **sans pause** entre les deux.
+- On teste avec **Server & Clients** et un LocalScript « tricheur » temporaire, à supprimer avant publication.
+</Resume>
+
+<Sources>
+- [Defensive design tactics — documentation Roblox (exemple de l’obby)](https://create.roblox.com/docs/scripting/security/defensive-design)
+- [Security and cheat mitigation tactics — documentation Roblox (exemple d’achat)](https://create.roblox.com/docs/scripting/security/security-tactics)
+- [Securing the client-server boundary — documentation Roblox](https://create.roblox.com/docs/scripting/security/client-server-boundary)
+- [Server-side detection and consequencing — documentation Roblox](https://create.roblox.com/docs/scripting/security/server-side-detection)
+- [Studio testing modes — Server & Clients, documentation Roblox](https://create.roblox.com/docs/studio/testing-modes)
+- [Remote events and callbacks — documentation Roblox](https://create.roblox.com/docs/scripting/events/remote)
+- [Player — référence de l’API (CharacterAdded, ordre de chargement du personnage)](https://create.roblox.com/docs/reference/engine/classes/Player)
+</Sources>

@@ -1,157 +1,146 @@
 module: "08"
-titre: "Examen du module 8 : Analytics"
-description: "Rétention, engagement, monétisation et événements personnalisés : vérifie que tu sais lire les chiffres de ton jeu et instrumenter l’Obby des Nuages."
+titre: Examen du module 8
+description: Vérifie que tu sais préparer la page de ton jeu, créer des visuels honnêtes, lancer prudemment, mettre à jour sans casse et animer une communauté en sécurité.
 seuil: 70
 questions:
   - type: qcm
-    question: "Tu veux savoir si tes nouveaux joueurs arrivent surtout par les recommandations de la page d’accueil ou par la recherche. Quelle page du tableau de bord ouvres-tu ?"
+    question: Quelle première phrase de description suit le mieux les conseils officiels pour l’Obby des Nuages ?
     options:
-      - texte: Retention
-      - texte: Acquisition
+      - texte: "Le meilleur jeu de tout Roblox, joue maintenant !!!"
+      - texte: "Saute de nuage en nuage dans un parcours d’obstacles céleste et collectionne des pièces pour débloquer des traînées."
         correct: true
-      - texte: Monetization
-      - texte: Performance
-    explication: "La page **Acquisition** montre d’où viennent les joueurs (recommandations, recherche, amis, publicités, téléportations…) et combien cliquent pour jouer après avoir vu ton jeu."
+      - texte: "obby parkour tycoon simulator adopt me brookhaven piggy"
+      - texte: "Mise à jour 1.4 : corrections de bugs."
+    explication: "La documentation conseille de **résumer le jeu dès la première phrase**, avec des mots-clés pertinents. Les affirmations vagues ou exagérées n’informent pas, et une liste de mots-clés sans rapport peut faire rétrograder le jeu."
 
   - type: vrai-faux
-    question: "Ton benchmark de rétention D1 affiche la fourchette 9 % – 14 % (50e–90e percentile). Cela signifie que la moitié des jeux similaires ont une D1 de 9 % ou moins."
+    question: "Tu ajoutes à l’Obby des Nuages une zone hantée avec des cris et des apparitions soudaines. Tu dois mettre à jour ton questionnaire de maturité."
     reponse: true
-    explication: "La borne basse est le **50e percentile** : la moitié des jeux similaires sont à ce niveau ou en dessous. La borne haute est le **90e percentile** : seuls 10 % des jeux similaires font mieux."
+    explication: "Les éléments qui font peur (cris, apparitions soudaines, musique angoissante…) font partie des catégories du questionnaire. La documentation impose de refaire le questionnaire quand une mise à jour change une réponse."
 
   - type: qcm
-    question: "Ton jeu reçoit une quinzaine de nouveaux joueurs par jour. Le lendemain d’une petite mise à jour, ta D1 passe de 20 % à 27 %. Que faut-il en penser ?"
+    question: "D’après la documentation au moment de la rédaction, lesquelles de ces conditions faut-il remplir pour ouvrir un jeu à **tous les âges** ? (plusieurs réponses possibles)"
     options:
-      - texte: La mise à jour est un grand succès, il faut faire pareil partout
-      - texte: Avec si peu de joueurs, un ou deux joueurs suffisent à faire bouger ce chiffre ; il faut observer la tendance sur plusieurs semaines
+      - texte: Activer la validation en deux étapes sur son compte
         correct: true
-      - texte: Le tableau de bord est forcément en panne
-    explication: "La D1 se calcule sur les nouveaux joueurs du jour : avec une cohorte de 15, un seul joueur représente près de 7 points de rétention. C’est le piège des **petits échantillons** : regarde des cohortes hebdomadaires et compare-toi à toi-même dans le temps avant de conclure."
+      - texte: Avoir un abonnement Roblox Plus ou Premium depuis 2 mois, ou payer des frais de publication remboursables
+        correct: true
+      - texte: Remplir tout le questionnaire et obtenir un label Minimal, Mild ou Moderate
+        correct: true
+      - texte: Avoir déjà publié au moins trois autres jeux
+    explication: "Pour tous les âges (Roblox Kids et Select), il faut notamment un compte vérifié, la 2FA, un abonnement ou des frais remboursables, le questionnaire complet avec un label adapté, et réussir l’évaluation de Roblox. Aucun nombre minimum de jeux déjà publiés n’est demandé."
 
   - type: qcm
-    question: "Exemple fictif : 500 joueurs découvrent l’Obby des Nuages le 5 octobre. 25 d’entre eux reviennent le 12 octobre. Quelle est la rétention D7 de cette cohorte ?"
+    question: Où vaut-il mieux éviter de placer le texte important d’une miniature ?
     options:
-      - texte: "5 %"
+      - texte: En haut à gauche
+      - texte: Au centre
+      - texte: En bas, où des informations comme le nombre de joueurs peuvent s’afficher par-dessus
         correct: true
-      - texte: "25 %"
-      - texte: "7 %"
-      - texte: "20 %"
-    explication: "Le 12 octobre est le jour 7 de la cohorte du 5 octobre. D7 = 25 ÷ 500 × 100 = **5 %**."
+      - texte: Nulle part, Roblox n’affiche rien par-dessus les miniatures
+    explication: "La documentation prévient que des métadonnées comme le nombre de joueurs peuvent recouvrir le **bas** de la miniature. Garde les éléments essentiels ailleurs."
 
   - type: vrai-faux
-    question: "Selon la page Retention de Roblox, la rétention D30 compte les nouveaux joueurs revenus au moins une fois à n’importe quel moment pendant leurs 30 premiers jours."
+    question: Un jeu qui n’a que la miniature générée par défaut peut quand même recevoir des affichages dans les recommandations de la page d’accueil.
     reponse: false
-    explication: "La documentation de Roblox décrit la D30 comme le pourcentage de nouveaux joueurs qui reviennent **le 31e jour** (le jour 30), pas à n’importe quel moment du mois. Même logique pour D7 : le 8e jour."
+    explication: "La documentation sur la découverte indique qu’une **miniature personnalisée est obligatoire** pour recevoir des affichages dans les recommandations de la page d’accueil. Avec la seule miniature par défaut, le jeu n’y est pas éligible."
 
   - type: qcm
-    question: "Selon la grille de lecture de Roblox, quel indicateur reflète le mieux la qualité de ton onboarding et de ton tout premier contact avec le joueur ?"
+    question: "Pour la vidéo de présentation de ton jeu, quel choix est autorisé ?"
     options:
-      - texte: La rétention D1
+      - texte: Filmer de vraies séquences de jeu avec la caméra libre, sous des angles variés
         correct: true
-      - texte: La rétention D30
-      - texte: L’ARPPU
-      - texte: Le MAU
-    explication: "Roblox associe une D1 faible à un problème de core loop, de premier contact (FTUE) ou de performances : le joueur est perdu, frustré, ou n’arrive pas assez vite au plaisir."
+      - texte: Ajouter ta voix pour expliquer les règles
+      - texte: Montrer une mécanique de vol que tu prévois d’ajouter plus tard
+      - texte: "Ajouter le texte « Traînée GRATUITE pour les 100 premiers ! »"
+    explication: "Les angles de caméra variés sont autorisés s’ils montrent le **vrai** gameplay. La voix off, les mécaniques absentes du jeu et les textes promotionnels sont interdits."
 
   - type: qcm
-    question: "Ton jeu affiche 2 000 DAU, mais jamais plus de 80 joueurs connectés en même temps. Comment l’expliquer ?"
+    question: "Ton jeu est public depuis une semaine. La plupart des nouveaux joueurs repartent en moins d’une minute. Que faire en priorité ?"
     options:
-      - texte: Le DAU compte les joueurs uniques de toute la journée, le CCU ceux qui sont présents au même instant
+      - texte: Lancer une grosse campagne publicitaire pour compenser
+      - texte: Améliorer le début de partie (onboarding), puis mesurer à nouveau avant de payer de la publicité
         correct: true
-      - texte: Le tableau de bord compte chaque joueur 25 fois
-      - texte: Les serveurs sont limités à 80 joueurs par jour
-    explication: "Le **DAU** additionne tous les joueurs uniques venus dans la journée ; le **CCU** compte les joueurs présents au même moment. Des visites de quelques minutes réparties sur 24 heures donnent un CCU bien plus faible que le DAU."
+      - texte: Changer le nom du jeu chaque jour
+      - texte: Ajouter « ROBUX GRATUITS » dans le titre
+    explication: "La publicité amène des joueurs mais ne les retient pas, et elle ne change pas le classement dans Recommended For You. La documentation d’Ads Manager conseille elle-même d’améliorer l’onboarding et la première expérience du joueur si une campagne ne progresse pas après 3 à 5 jours."
 
   - type: vrai-faux
-    question: "Si chaque joueur ne fait qu’une seule session par jour, la durée moyenne de session et le temps de jeu moyen par joueur de cette journée sont égaux."
-    reponse: true
-    explication: "Durée de session = temps total ÷ nombre de sessions ; temps par joueur = temps total ÷ nombre de joueurs. Avec une session par joueur, les deux diviseurs sont identiques."
-
-  - type: qcm
-    question: "Exemple fictif : ton taux de conversion est de 4 % et ton ARPPU de 50 Robux. Quel est ton ARPDAU ?"
-    options:
-      - texte: "2 Robux"
-        correct: true
-      - texte: "12,5 Robux"
-      - texte: "200 Robux"
-      - texte: "54 Robux"
-    explication: "ARPDAU = conversion × ARPPU = 0,04 × 50 = **2 Robux**. Vérification : (payeurs ÷ DAU) × (revenu ÷ payeurs) = revenu ÷ DAU."
+    question: "Les données de lancement (*LaunchData*) d’une campagne ou d’un lien de partage sont secrètes : on peut s’en servir pour donner une grosse récompense sans risque."
+    reponse: false
+    explication: "La documentation précise que ces données apparaissent dans l’adresse du lien et ne sont **pas cachées** : n’importe qui peut les copier. On les réserve à des usages sans enjeu (message d’accueil, petit cosmétique)."
 
   - type: trouve-le-bug
-    question: "Cette fonction (à lancer dans la Command Bar) doit afficher le taux de conversion d’une journée. Où est le bug ?"
+    question: "Ce Script, placé dans ServerScriptService, doit marquer les joueurs arrivés par le lien de partage YouTube. Où est le bug ?"
     code: |
-      local function tauxDeConversion(dau: number, payeurs: number): number
-      	if dau == 0 then
-      		return 0
-      	end
-      	return dau / payeurs * 100
-      end
-
-      print(tauxDeConversion(1000, 20) .. " %")
-    options:
-      - texte: "Ligne 2 : il faut tester `payeurs == 0` au lieu de `dau == 0`"
-      - texte: "Ligne 5 : la division est inversée, c’est `payeurs / dau * 100`"
-        correct: true
-      - texte: "Ligne 8 : on ne peut pas coller un nombre et un texte avec `..`"
-    explication: "Le taux de conversion est la part des joueurs actifs qui ont payé : **payeurs ÷ DAU**. Ici, le code afficherait 5000 % au lieu de 2 %. Le test de la ligne 2 protège bien la bonne division, et `..` convertit automatiquement un nombre en texte."
-
-  - type: vrai-faux
-    question: "Au moment de la rédaction, les Premium Payouts (paiements selon le temps de jeu des abonnés Premium) sont toujours le programme en vigueur pour récompenser l’engagement."
-    reponse: false
-    explication: "Selon la documentation de Roblox, le programme des paiements basés sur l’engagement (Premium Payouts) est **déprécié depuis le 24 juillet 2025** et remplacé par les **Creator Rewards** (Daily Engagement Rewards, Audience Expansion Rewards)."
-
-  - type: qcm
-    question: "Quelles affirmations sur AnalyticsService sont exactes ? (plusieurs réponses possibles)"
-    options:
-      - texte: Les événements sont envoyés depuis le serveur, dans un jeu publié
-        correct: true
-      - texte: Les valeurs des custom fields doivent être des chaînes de caractères
-        correct: true
-      - texte: Les étapes d’un entonnoir commencent à 1
-        correct: true
-      - texte: Les événements envoyés depuis Studio apparaissent dans le tableau de bord après 24 heures
-    explication: "La documentation précise que les événements ne partent **ni du client, ni de Studio**, que tous les entonnoirs commencent à l’étape 1 et que les valeurs de custom fields sont des **chaînes**. Pour tester dans Studio, affiche plutôt tes événements dans l’Output."
-
-  - type: trouve-le-bug
-    question: "Ce Script serveur doit enregistrer la première étape de l’entonnoir d’onboarding. Où est le bug ?"
-    code: |
-      local AnalyticsService = game:GetService("AnalyticsService")
       local Players = game:GetService("Players")
 
-      local ETAPES = { "Arrivée", "Personnage apparu", "Checkpoint 1" }
+      local player = Players.LocalPlayer
+      local joinData = player:GetJoinData()
 
-      Players.PlayerAdded:Connect(function(player)
-      	AnalyticsService:LogOnboardingFunnelStepEvent(player, 0, ETAPES[1])
-      end)
-    options:
-      - texte: "Ligne 4 : une table ne peut pas contenir de textes avec accents"
-      - texte: "Ligne 6 : il faut utiliser `CharacterAdded` au lieu de `PlayerAdded`"
-      - texte: "Ligne 7 : les étapes d’un entonnoir commencent à **1**, pas à 0"
-        correct: true
-    explication: "La référence de l’API indique que tous les entonnoirs commencent à l’étape 1 (étapes de 1 à 100). La documentation recommande justement d’enregistrer la première étape dans `PlayerAdded` pour démarrer l’entonnoir dès l’arrivée."
-
-  - type: trouve-le-bug
-    question: "Cette fonction serveur enregistre une mort avec l’étape du joueur dans un custom field. Où est le bug ?"
-    code: |
-      local AnalyticsService = game:GetService("AnalyticsService")
-      local CHAMP_ETAPE = Enum.AnalyticsCustomFieldKeys.CustomField01.Name
-
-      local function signalerMort(player: Player, etape: number)
-      	AnalyticsService:LogCustomEvent(player, "Mort", 1, {
-      		[CHAMP_ETAPE] = etape,
-      	})
+      if joinData.LaunchData == "lien_youtube" then
+      	player:SetAttribute("SourceArrivee", "youtube")
       end
     options:
-      - texte: "Ligne 2 : il faut utiliser `CustomField1`, sans zéro"
-      - texte: "Ligne 5 : `LogCustomEvent` n’accepte pas de valeur numérique"
-      - texte: "Ligne 6 : la valeur d’un custom field doit être une **chaîne**, par exemple `\"Etape \" .. etape`"
+      - texte: "Ligne 1 : `Players` doit s’écrire en minuscules"
+      - texte: "Ligne 3 : `Players.LocalPlayer` vaut `nil` dans un Script serveur ; il faut traiter chaque joueur dans `Players.PlayerAdded`"
         correct: true
-    explication: "Les clés valides sont bien `CustomField01`, `CustomField02` et `CustomField03`, et `LogCustomEvent` accepte une valeur numérique (1 par défaut). Mais la documentation précise que les **valeurs** des custom fields doivent être des chaînes : un nombre doit être converti en texte."
+      - texte: "Ligne 6 : on ne peut pas comparer `LaunchData` à un texte"
+      - texte: "Ligne 7 : `SetAttribute` n’existe pas sur un joueur"
+    explication: "`LocalPlayer` n’existe que côté client. Sur le serveur, il n’y a pas « un » joueur local : il faut connecter une fonction à `Players.PlayerAdded` et appeler `player:GetJoinData()` pour chaque joueur qui arrive."
 
   - type: qcm
-    question: "Exemple fictif d’entonnoir d’onboarding : Arrivée 800, Personnage apparu 770, Checkpoint 1 380, Checkpoint 2 350, Checkpoint 3 330. Où faut-il concentrer tes efforts en priorité ?"
+    question: "Tu redémarres les serveurs avec l’option **Delay server restart**. Quel événement permet à ton jeu d’afficher un compte à rebours aux joueurs ?"
     options:
-      - texte: Sur le chargement, entre l’arrivée et l’apparition du personnage
-      - texte: Sur le parcours entre l’apparition et le checkpoint 1, où plus de la moitié des joueurs abandonnent
+      - texte: "`Players.PlayerRemoving`"
+      - texte: "`game.ServerRestartScheduled`"
         correct: true
-      - texte: Sur le passage du checkpoint 2 au checkpoint 3
-    explication: "De 770 à 380, plus de la moitié des joueurs (environ 51 %) partent avant le checkpoint 1 : c’est de loin la plus grosse fuite. Le chargement (96 % de passage) et la suite (plus de 90 %) vont bien. Formule une hypothèse sur ce premier passage, change une chose et remesure."
+      - texte: "`game:BindToClose`"
+      - texte: "`RunService.Heartbeat`"
+    explication: "`ServerRestartScheduled` se déclenche sur les serveurs concernés et fournit l’heure prévue du redémarrage (`restartTime`), sa cause (`source`) et des attributs facultatifs. `BindToClose` sert à exécuter du code (comme une sauvegarde) juste avant la fermeture, pas à prévenir à l’avance."
+
+  - type: trouve-le-bug
+    question: "Cette fonction doit compléter les anciennes sauvegardes avec les champs ajoutés par une mise à jour. Où est le bug ?"
+    code: |
+      local DEFAUT = { etape = 0, pieces = 0, zoneOragesDebloquee = false }
+
+      local function completerDonnees(donnees)
+      	for cle, valeur in DEFAUT do
+      		if donnees[cle] ~= nil then
+      			donnees[cle] = valeur
+      		end
+      	end
+      	return donnees
+      end
+    options:
+      - texte: "Ligne 1 : une table ne peut pas contenir de booléen"
+      - texte: "Ligne 4 : on ne peut pas parcourir une table sans `pairs`"
+      - texte: "Ligne 5 : la condition est inversée ; avec `~= nil`, on écrase les valeurs existantes au lieu de remplir les champs manquants"
+        correct: true
+      - texte: "Ligne 9 : une fonction ne peut pas renvoyer une table"
+    explication: "Il faut écrire `if donnees[cle] == nil then` : on ne remplit que les champs **absents**. Avec `~= nil`, un joueur à l’étape 12 serait remis à l’étape 0 : c’est exactement la perte de progression qu’on veut éviter. En Luau, on peut parcourir une table directement avec `for … in`."
+
+  - type: qcm
+    question: "Tu prépares un événement « Ciel d’automne » qui commence dans dix jours et tu ne veux pas encore qu’il soit visible. Que fais-tu ?"
+    options:
+      - texte: Tu le crées en **privé**, puis tu le passes en **public** quand tu es prêt à le promouvoir
+        correct: true
+      - texte: Tu attends le jour J pour le créer, sinon tout le monde le verra
+      - texte: Tu le crées en public avec une fausse date
+      - texte: Tu l’annonces dans la description avec un lien externe
+    explication: "La documentation conseille de créer l’événement en **privé** tant qu’il n’est pas prêt : il n’apparaît alors pas sur la page du jeu. Une fois public, les joueurs peuvent cliquer sur **Notify Me** pour être prévenus au début."
+
+  - type: qcm
+    question: "Quel canal permet de toucher **tous** les joueurs de l’Obby des Nuages, quel que soit leur âge ?"
+    options:
+      - texte: Un serveur Discord annoncé par les liens sociaux
+      - texte: "Le jeu lui-même : un message au spawn ou un panneau des nouveautés"
+        correct: true
+      - texte: Une adresse e-mail affichée sur un panneau dans le jeu
+      - texte: Une chaîne YouTube citée dans la description
+    explication: "Les liens sociaux ne sont visibles que par les 16 ans et plus avec âge vérifié, et Discord impose au moins 13 ans. Afficher une adresse ou un lien externe dans le jeu (ou dans la description) est interdit. Seul le jeu lui-même atteint tous tes joueurs ; ta communauté Roblox vient ensuite, mais ses forums sont réservés aux 13 ans et plus."
+
+  - type: vrai-faux
+    question: "Pour connaître les rôles d’un joueur dans ta communauté, la méthode recommandée aujourd’hui est `Player:GetRankInGroupAsync()`."
+    reponse: false
+    explication: "`GetRankInGroupAsync` et `GetRoleInGroupAsync` sont dépréciées : elles ne renvoient que le rôle le plus élevé. La méthode actuelle est `GroupService:GetRolesInGroupAsync(userId, groupId)`, qui renvoie `IsMember` et la liste de tous les rôles publics du joueur."

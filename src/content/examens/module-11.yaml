@@ -1,0 +1,151 @@
+module: "11"
+titre: Examen du module 11
+description: Vérifie que tu sais reconnaître les erreurs qui tuent un jeu, les corriger et passer la checklist de lancement de bout en bout.
+seuil: 70
+questions:
+  - type: qcm
+    question: "Pendant un playtest de ton obby, trois testeurs sur quatre demandent « Je dois faire quoi, là ? » dès leur arrivée. Quelles erreurs de conception faut-il suspecter ? (plusieurs réponses possibles)"
+    options:
+      - texte: Une boucle de jeu floue ou mal présentée
+        correct: true
+      - texte: Un début de partie qui ne montre pas clairement le premier objectif
+        correct: true
+      - texte: Des prix de traînées trop élevés
+      - texte: Un manque de publicité
+    explication: "Si les joueurs ne savent pas quoi faire, c’est que la boucle de jeu n’est pas claire ou que l’onboarding ne la montre pas. Les prix et la publicité n’ont aucun rapport avec ce moment-là."
+
+  - type: vrai-faux
+    question: "Pour un coffre payant à contenu aléatoire, afficher une simple icône (i) sans texte qui ouvre les probabilités suffit à respecter les règles de Roblox."
+    reponse: false
+    explication: "La documentation sur les objets aléatoires payants précise qu’une icône isolée comme (i), sans mot descriptif (« Info », « Détails »), ne suffit pas. Les probabilités doivent être affichées en pourcentage, et leur total doit faire exactement 100 %."
+
+  - type: qcm
+    question: "Tu prépares un événement d’Halloween qui fera gagner beaucoup de pièces. Que recommande la documentation de Roblox pour ne pas déséquilibrer l’économie principale ?"
+    options:
+      - texte: Doubler tous les prix de la boutique pendant l’événement
+      - texte: Créer une monnaie d’événement séparée, dépensable dans une boutique d’événement
+        correct: true
+      - texte: Supprimer les pièces des joueurs à la fin de l’événement
+      - texte: Ne rien prévoir, l’économie s’équilibre seule
+    explication: "Une monnaie d’événement dédiée évite d’injecter un surplus de pièces dans l’économie principale. Sans puits adaptés, ce surplus fait perdre leur valeur aux pièces et retire aux joueurs l’envie d’en gagner."
+
+  - type: trouve-le-bug
+    question: "Ce script charge les données d’un joueur. À son départ, `donneesJoueurs[player]` est sauvegardé avec `SetAsync`. Des joueurs se plaignent d’avoir perdu toute leur progression. Quelle ligne en est la cause ?"
+    code: |
+      local Players = game:GetService("Players")
+      local magasin = game:GetService("DataStoreService"):GetDataStore("DonneesJoueurs_v1")
+      local donneesJoueurs = {}
+
+      Players.PlayerAdded:Connect(function(player)
+      	local succes, donnees = pcall(function()
+      		return magasin:GetAsync("Joueur_" .. player.UserId)
+      	end)
+      	if succes then
+      		donneesJoueurs[player] = donnees or { etape = 0, pieces = 0 }
+      	else
+      		donneesJoueurs[player] = { etape = 0, pieces = 0 }
+      	end
+      end)
+    options:
+      - texte: "Ligne 6 : `pcall` empêche `GetAsync` de fonctionner"
+      - texte: "Ligne 10 : un nouveau joueur ne devrait pas recevoir de données de départ"
+      - texte: "Ligne 12 : en cas d’échec, les données de départ seront sauvegardées par-dessus la vraie progression"
+        correct: true
+      - texte: "Ligne 7 : la clé doit être `player.Name` et non `player.UserId`"
+    explication: "Quand le chargement échoue, le joueur reçoit des données de départ qui, à son départ, **écrasent** sa vraie sauvegarde. Il faut au contraire ne rien enregistrer pour lui (réessayer, ou l’inviter à revenir). La ligne 10 est correcte : `nil` signifie un nouveau joueur. Et `UserId` est la bonne clé, car un pseudo peut changer."
+
+  - type: trouve-le-bug
+    question: "Ce script serveur enregistre l’étape atteinte par le joueur. Un tricheur qui se téléporte au dernier checkpoint valide tout l’obby d’un coup. Quelle ligne corriger ?"
+    code: |
+      local function validerCheckpoint(player, checkpoint)
+      	local leaderstats = player:FindFirstChild("leaderstats")
+      	local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+      	local numero = tonumber(checkpoint.Name)
+      	if etape and numero and numero > etape.Value then
+      		etape.Value = numero
+      	end
+      end
+    options:
+      - texte: "Ligne 2 : il faut utiliser `WaitForChild` au lieu de `FindFirstChild`"
+      - texte: "Ligne 4 : `tonumber` ne fonctionne pas sur un nom d’objet"
+      - texte: "Ligne 5 : il faut n’accepter que l’étape suivante (`numero == etape.Value + 1`)"
+        correct: true
+      - texte: "Ligne 6 : il faut écrire `etape.Value += numero`"
+    explication: "Avec `numero > etape.Value`, n’importe quel checkpoint plus loin est accepté, même s’il a été atteint en trichant. En n’acceptant que l’étape suivante, le serveur oblige à passer par chaque checkpoint dans l’ordre. `tonumber(\"5\")` renvoie bien `5`."
+
+  - type: qcm
+    question: "Après une mise à jour, tu soupçonnes que ton jeu plante davantage sur les téléphones. Quel outil du Creator Dashboard consulter en priorité ?"
+    options:
+      - texte: Le tableau Performance (taux de plantage, FPS, mémoire par plateforme)
+        correct: true
+      - texte: La page Thumbnails
+      - texte: Le questionnaire de maturité
+      - texte: Ads Manager
+    explication: "Le tableau Performance (section Monitoring) montre notamment le taux de plantage, les images par seconde et la mémoire, avec une répartition par plateforme et par version. La documentation conseille de le consulter avant et après chaque mise à jour."
+
+  - type: vrai-faux
+    question: "Quand l’option « Enable Studio Access to API Services » est activée, Studio utilise des DataStores de test séparés, sans risque pour les données des vrais joueurs."
+    reponse: false
+    explication: "Studio accède aux **mêmes** DataStores que le jeu publié. La documentation recommande donc de n’activer cet accès que sur une copie de test du jeu, pour ne pas abîmer de vraies données."
+
+  - type: qcm
+    question: "Lequel de ces titres de jeu risque d’être moins mis en avant dans les recommandations de Roblox ?"
+    options:
+      - texte: Obby des Nuages
+      - texte: "Obby des Nuages [FREE ROBUX à la fin !]"
+        correct: true
+      - texte: "Obby des Nuages : parcours dans le ciel"
+      - texte: Cloud Obby
+    explication: "La documentation sur la découverte indique que les métadonnées qui laissent entendre des récompenses en argent ou en Robux ne sont pas mises en avant dans les recommandations. Et une promesse mensongère est en plus contraire aux règles de la communauté."
+
+  - type: vrai-faux
+    question: "Roblox impose de publier au moins une mise à jour par semaine pour rester dans les recommandations."
+    reponse: false
+    explication: "Il n’existe pas de telle obligation. La documentation sur les LiveOps observe des rythmes allant d’hebdomadaire à mensuel selon les capacités de chaque équipe, et insiste sur un rythme que tu peux tenir de façon fiable."
+
+  - type: qcm
+    question: "Après plusieurs itérations, tes statistiques montrent que les joueurs passent presque tout leur temps sur la tour de plateformes mobiles et ignorent le reste de l’obby. Quelle décision est la plus cohérente avec la méthode vue dans ce module ?"
+    options:
+      - texte: Persévérer sans rien changer
+      - texte: Pivoter en recentrant le jeu sur ce qui plaît
+        correct: true
+      - texte: Supprimer la tour de plateformes mobiles
+      - texte: Abandonner immédiatement Roblox
+    explication: "Quand les joueurs adorent une partie précise et ignorent le reste, c’est un signal fort : recentrer le jeu sur cette partie (pivoter) est souvent plus prometteur que de continuer comme avant ou de tout jeter."
+
+  - type: qcm
+    question: "Au moment de la rédaction (octobre 2026), lesquelles de ces conditions font partie des exigences pour publier un jeu à destination de tous les âges ? (plusieurs réponses possibles)"
+    options:
+      - texte: La validation en deux étapes (2FA) activée sur le compte
+        correct: true
+      - texte: Un abonnement Roblox Plus ou Premium depuis deux mois, ou des frais de publication remboursables
+        correct: true
+      - texte: La réussite d’un processus d’évaluation par de vrais joueurs de 16 ans et plus
+        correct: true
+      - texte: Avoir déjà un jeu à plus de 100 joueurs actifs par jour
+    explication: "La documentation « Publish games and places » liste notamment la vérification du compte, la 2FA, l’abonnement Plus/Premium (ou des frais remboursables), le questionnaire complet et la réussite de l’évaluation. Aucun nombre minimal de joueurs actifs sur un autre jeu n’est demandé. Ces conditions évoluent : vérifie toujours la page officielle."
+
+  - type: vrai-faux
+    question: "Un jeu dont le questionnaire de maturité n’a jamais été rempli voit sa jouabilité restreinte pour tous les joueurs."
+    reponse: true
+    explication: "Selon la documentation sur la maturité du contenu, si un jeu n’a pas d’informations de maturité, Roblox restreint automatiquement sa jouabilité sur la plateforme pour tous les joueurs."
+
+  - type: qcm
+    question: "Tu veux inviter tes joueurs à rejoindre ton serveur Discord. Que disent les règles de la communauté de Roblox, au moment de la rédaction ?"
+    options:
+      - texte: Tu peux écrire l’adresse du serveur sur un panneau dans le jeu
+      - texte: "Les liens externes ne sont autorisés que via la fonctionnalité officielle Social Links"
+        correct: true
+      - texte: Tu peux envoyer le lien en message privé à chaque joueur
+      - texte: Tout lien externe est autorisé s’il est dans la description
+    explication: "Les règles de la communauté interdisent d’afficher ou de partager des URL externes, et toute autre tentative d’envoyer les joueurs hors de Roblox, sauf avec la fonctionnalité Social Links : des liens affichés sur la page du jeu (jamais dans le jeu lui-même), réservés aux utilisateurs de 16 ans et plus dont l’âge a été vérifié."
+
+  - type: qcm
+    question: "Roblox annonce un changement de règles de publication. Où trouver l’information officielle en premier ?"
+    options:
+      - texte: Dans la catégorie Announcements du DevForum et la documentation officielle
+        correct: true
+      - texte: Dans les commentaires d’une vidéo populaire
+      - texte: Dans la catégorie Community Tutorials du DevForum
+      - texte: Dans la Toolbox de Studio
+    explication: "Les changements officiels sont publiés par le personnel de Roblox dans la catégorie Announcements du DevForum, et répercutés dans la documentation du Creator Hub. Les tutoriels communautaires et les vidéos peuvent être utiles, mais ne sont pas des sources officielles."

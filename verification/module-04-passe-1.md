@@ -1,75 +1,68 @@
-# Module 04 — passe 1 (vérificateur faits + sources + quiz + code) — 2026-10-24
+# Module 03 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
 ## Résumé
-Environ 110 affirmations vérifiées, dont 13 corrigées ou reformulées et 1 supprimée. Les sources sont les pages create.roblox.com, lues via WebFetch et via leur source officielle `github.com/Roblox/creator-docs` (branche main, octobre 2026), plus les annonces du staff sur le DevForum.
-Quiz : 32 questions de quiz et 15 questions d'examen vérifiées. Toutes sont correctes ; 1 explication a été reformulée (tween / plateforme). Les 6 `trouve-le-bug` ont un bug unique, et les numéros de ligne sont exacts.
-Code : `node scripts/verifier-luau.mjs 04` analyse 26 extraits. Il reste 9 extraits avec des diagnostics, tous attendus : `require` de modules définis dans d'autres blocs, extraits de quiz volontairement partiels (`UnknownGlobal`), bug volontaire de `TweenInfo.new` dans le quiz 06, et `script.Parent` typé `Instance?`. Une correction de logique a été faite dans le code DataStore (voir plus bas).
-Build : `bash scripts/build-verrou.sh` → code de sortie 0.
+71 affirmations ou éléments vérifiés (5 leçons, 25 questions de quiz de leçon, 15 questions d'examen, 34 extraits de code) : 8 corrigés ou reformulés, 0 supprimé. Quiz : 40 questions vérifiées, 1 extrait `trouve-le-bug` complété (sans décalage des numéros de ligne), 1 explication reformulée. Code : 1 API dépréciée remplacée (`LoadCharacter` → `LoadCharacterAsync`), 1 condition de course corrigée (réapparition au checkpoint), 1 script de test rendu déterministe. `verifier-luau 03` : 6 extraits avec diagnostics, tous attendus (require de ModuleScripts définis ailleurs, extrait d'examen volontairement partiel). Build : OK (code de sortie 0).
+
+Pages consultées le 2026-10-24 (format `.md` de create.roblox.com, `last_updated` 2026-10-23), plus l'annonce officielle du DevForum sur Server Authority.
 
 ## Détail
 | Leçon | Affirmation / élément | Verdict | Source | Commentaire |
 |---|---|---|---|---|
-| 01 | Le dossier `leaderstats` doit être tout en minuscules, sinon le joueur n'apparaît pas | OK | https://create.roblox.com/docs/players/leaderboards | |
-| 01 | Vues Here / Friends / Global ; Friends et Global en bêta, avec un OrderedDataStore enregistré dans le Creator Hub | OK | idem | |
-| 01 | Ordre des colonnes : ordre de création, `IsPrimary`, `Priority` | OK | idem | |
-| 01 | Masquer la liste avec `SetCoreGuiEnabled(PlayerList, false)` depuis un client | OK | idem | |
-| 01 | Code Leaderstats / Checkpoints (N == Etape + 1, `FindFirstChild`, `GetPlayerFromCharacter`) | OK | — | Conforme aux conventions du fil rouge |
-| 02 | **`completer()` ne mettait jamais à jour `version`** : quand `VERSION_DONNEES` augmente, une ancienne sauvegarde complétée était réécrite avec son ancien numéro. Un serveur encore sur l'ancienne version du jeu pouvait donc l'écraser (la protection `ancienne.version > VERSION_DONNEES` ne jouait plus) | CORRIGÉ | Raisonnement sur le code (signalement module 07 via le chef d'orchestre) | `completer` passe maintenant `donnees.version` à `VERSION_DONNEES` si elle est inférieure, sans jamais la baisser. Champs en minuscules et `donneesParDefaut()` inchangés. Explication et Défi bonus (passer `VERSION_DONNEES` à 2) mis à jour |
-| 02 | Accès dans Studio : File ⟩ Experience Settings ⟩ Security ⟩ Enable Studio Access to API Services ⟩ Save ; jeu publié ; utiliser une version de test | OK | https://create.roblox.com/docs/cloud-services/data-stores | |
-| 02 | Erreur `StudioAccessToApisNotAllowed` (403) | OK | https://create.roblox.com/docs/cloud-services/data-stores/error-codes-and-limits | |
-| 02 | DataStores accessibles seulement depuis des Scripts ; erreur dans un LocalScript | OK | data-stores | |
-| 02 | Valeur stockée sous forme de texte / JSON ; types non sérialisables refusés | OK | error-codes-and-limits (« stored as a string », erreur 104 `CantStoreValue`) | |
-| 02 | `SetAsync` : écrit sans lire, compte seulement dans la limite d'écriture. `UpdateAsync` : lit puis écrit, plus lent, compte en lecture ET en écriture | OK | https://create.roblox.com/docs/reference/engine/classes/GlobalDataStore + best-practices | |
-| 02 | Callback d'`UpdateAsync` : ne doit pas céder la main (yield) ; `nil` annule l'écriture ; peut être rappelé plusieurs fois | OK | GlobalDataStore:UpdateAsync | |
-| 02 | Retries : backoff exponentiel + aléa, délai et nombre d'essais plafonnés, ne pas réessayer les requêtes invalides | REFORMULÉ | https://create.roblox.com/docs/cloud-services/data-stores/best-practices | Ajout des plafonds et de « ne pas réessayer une requête invalide ». Le code reste à 3 essais (≈ 2-3 s puis 4-5 s), ce qui est raisonnable |
-| 02 | Échec de chargement → on expulse le joueur | REFORMULÉ | https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing | Le code de référence Roblox recommande plutôt de laisser jouer avec des données par défaut marquées « ne jamais sauvegarder », avec un message clair. La leçon présente maintenant les deux choix et la règle commune : ne jamais écraser des données non chargées. Le code ne crée jamais de session en cas d'échec (vérifié) |
-| 02 | Clé stable basée sur le UserId (`User_123456`) ; une clé par joueur | OK | best-practices | |
-| 02 | `userIds` « fortement recommandé » (RGPD) | REFORMULÉ | GlobalDataStore (paramètre `userIds` de SetAsync ; UpdateAsync : IDs effacés s'ils ne sont pas renvoyés) | Formulation précisée |
-| 02 | **BindToClose : le code n'attendait que ses propres sauvegardes** (sur `Players:GetPlayers()`), pas celles déjà lancées par `PlayerRemoving` | CORRIGÉ | https://create.roblox.com/docs/reference/engine/classes/DataModel#BindToClose (attente de 30 s) + signalement du chef d'orchestre / module 10 | Ajout d'un compteur commun `sauvegardesEnCours` dans `DonneesJoueurs.Sauvegarder` et d'une fonction `DonneesJoueurs.SauvegarderTout()`. Elle sauvegarde en parallèle les **sessions en mémoire** (pas `GetPlayers()`, que les joueurs ont pu quitter) puis attend que le compteur revienne à 0, avec une limite de 25 s. Même principe que `module-10/02-erreurs-techniques.mdx` (compteur commun, attente jusqu'à 0) |
-| 02 | Faut-il sauter la sauvegarde de BindToClose dans Studio ? | CORRIGÉ (tranché) | DataModel:BindToClose (« To verify that the current session is not in Roblox Studio, use RunService:IsStudio() » ; l'exemple officiel fait `if RunService:IsStudio() then return end` avec le commentaire « Avoid writing studio data to production and stalling test session closing ») | La recommandation officielle existe, on la suit : `if RunService:IsStudio() and not SAUVEGARDER_EN_STUDIO then return end`, avec `SAUVEGARDER_EN_STUDIO = false` par défaut. La nouvelle section « Et dans Studio ? » explique pourquoi, ce que ça implique (la sauvegarde de PlayerRemoving n'est pas garantie au Stop) et comment tester (passer la constante à `true` sur une copie de test). Le Défi est mis à jour. L'ancienne Info, fondée sur un fil DevForum, est remplacée |
-| 02 | Le serveur attend 30 s ; fonctions exécutées en parallèle ; BindToClose recommandé avec DataStoreService | OK | DataModel:BindToClose | |
-| 02 | Sauvegarde automatique à 180 s (exemple officiel), décalage aléatoire entre serveurs | OK | best-practices (« uses 180 seconds », « Stagger recurring requests ») | |
-| 02 | Data Stores Manager : Creator Hub ⟩ expérience ⟩ Configurations ⟩ Data stores manager | OK | https://create.roblox.com/docs/cloud-services/data-stores/data-stores-manager | |
-| 02 | Limites par serveur : lecture / écriture / suppression 60 + joueurs × 40, liste 5 + joueurs × 2 | OK | error-codes-and-limits (consulté le 2026-10-24) | Formulation datée « octobre 2026 » présente ; `miseAJour: 2026-10-24` |
-| 02 | Limite de l'expérience, débit par clé (25 Mo/min en lecture, 4 Mo/min en écriture), noms de 50 caractères, valeur de 4 194 304, stockage 500 Mo + 1 Mo × utilisateurs | OK | idem | |
-| 02 | « Une écriture toutes les trois minutes » | CORRIGÉ | error-codes-and-limits / GlobalDataStore | Chaque `UpdateAsync` compte en lecture ET en écriture : précisé |
-| 02 | Versions conservées 30 jours, la dernière n'expire jamais ; ListVersionsAsync / GetVersionAsync | OK | https://create.roblox.com/docs/cloud-services/data-stores/versioning-listing-and-caching | |
-| 02 | Métadonnées : DataStoreKeyInfo, UserIds, SetMetadata (300 caractères), à renvoyer à chaque écriture | OK | data-stores (Metadata) + error-codes-and-limits | |
-| 02 | Renommer le DataStore = DataStore vide | OK | data-stores (GetDataStore crée un store s'il n'existe pas) | |
-| 02 | Verrouillage de session : scénario, verrou posé dans le même UpdateAsync | REFORMULÉ | player-data-purchasing | « Les autres serveurs attendent » devient « refusent de lire ou d'écrire » ; verrou dans les métadonnées ; expiration s'il n'est plus rafraîchi |
-| 02 | Code de référence Roblox : « à ne pas utiliser tel quel sans tests » | OK | player-data-purchasing | |
-| 02 | Modules tiers « always an option » ; DataStore2 legacy | OK | best-practices | |
-| 02 | ProfileStore (loleris, successeur de ProfileService, verrouillage + autosave à 300 s, pas pour les classements) | CORRIGÉ | https://devforum.roblox.com/t/profilestore-save-your-player-data-easy-datastore-module/3190543 (11/10/2024) + https://madstudioroblox.github.io/ProfileStore/ | Présenté explicitement comme module **communautaire** (le « fil officiel » laissait croire à une source Roblox). Ajout du lien vers la documentation de l'auteur, dans le texte et dans les Sources |
-| 03 | Les attributs n'acceptent pas les tables ; liste des types | OK | https://create.roblox.com/docs/studio/properties | |
-| 03 | Noms d'attributs (alphanumériques + `. - / _`, ≤ 100 caractères, pas de RBX) : `Possede_TrailNuage` valide | OK | référence Instance:SetAttribute | |
-| 03 | Ordre de réplication non garanti entre une propriété et un RemoteEvent | OK | https://create.roblox.com/docs/scripting/attributes | |
-| 03 | Trail entre Attachment0 et Attachment1 ; Lifetime | OK | https://create.roblox.com/docs/reference/engine/classes/Trail | |
-| 03 | Serveur source de vérité ; cohérence des noms `Catalogue`, `AcheterObjet`, `EquiperObjet`, `Possede_<id>`, `TrailEquipe`, `donnees.inventaire` / `donnees.equipe` | OK | — | Noms identiques dans 03, 04 et le quiz. Le serveur vérifie type, existence, possession et solde, et prend le prix dans son propre catalogue |
-| 04 | Scale / Offset additifs ; saisie raccourcie 0.5 / 20 ; AnchorPoint | OK | https://create.roblox.com/docs/ui/position-and-size | |
-| 04 | ScreenGui cloné dans PlayerGui au premier spawn ; ResetOnSpawn vaut true par défaut | OK | https://create.roblox.com/docs/ui/on-screen-containers | |
-| 04 | `ScreenInsets` : CoreUISafeInsets (défaut, recommandé pour l'UI interactive), DeviceSafeInsets, TopbarSafeInsets, None | OK | on-screen-containers + Enum.ScreenInsets | Noms actuels vérifiés |
-| 04 | `ClipToDeviceSafeArea` à true par défaut ; `SafeAreaCompatibility` à éviter pour les nouveaux projets | OK | https://create.roblox.com/docs/reference/engine/classes/ScreenGui | |
-| 04 | MinTextSize pas en dessous de 9 | OK | https://create.roblox.com/docs/ui/size-modifiers | |
-| 04 | `Activated` : clic, toucher, console | OK | https://create.roblox.com/docs/ui/buttons + GuiButton.Activated | |
-| 04 | UIGridLayout / CellSize | OK (source ajoutée) | https://create.roblox.com/docs/ui/grid-table-layouts | |
-| 04 | Device Simulator : « emplacement change selon la version » | CORRIGÉ | https://create.roblox.com/docs/studio/device-simulator | Précisé : barre d'outils en bêta, à activer via File ⟩ Beta Features ⟩ New Device Simulator |
-| 05 | R6 legacy à 6 parties, R15 à 15 ; vêtements superposables seulement en R15 | OK | https://create.roblox.com/docs/studio/rig-builder | |
-| 05 | Avatar Settings ⋯ : R6 / R15 / R15 & R6 « (le joueur garde son choix) » | SUPPRIMÉ (parenthèse) | https://create.roblox.com/docs/studio/avatar-settings | La doc dit seulement « default avatar type » |
-| 05 | Save = KeyframeSequence dans ServerStorage ; Publish to Roblox via ⋯ ; champ Creator pour un jeu de groupe | OK | https://create.roblox.com/docs/animation/editor | |
-| 05 | Animations « Restricted » (31/07/2025), permission automatique, pas d'Open Use, permission d'expérience non révocable | OK | https://devforum.roblox.com/t/improving-animation-asset-permissions/3852101 (annonce BobaMuncher, catégorie Announcements) | Aucune annonce plus récente qui change ces règles (recherche du 2026-10-24) |
-| 05 | Partage avec connexions et groupes (21/08/2025), onglet Permissions (Collaborators / Experiences) | OK | https://devforum.roblox.com/t/sharing-animation-assets-with-connections-and-groups/3892540 | |
-| 05 | `Animator:LoadAnimation` : réplication si l'animation est lancée par le client sur son propre personnage, sinon par le serveur ; crée toujours une nouvelle piste ; `GetTrackByAnimationId` | OK | https://create.roblox.com/docs/reference/engine/classes/Animator | |
-| 05 | `Humanoid:LoadAnimation` dépréciée | OK | référence Humanoid (tag Deprecated) | |
-| 05 | Play(0.1, 1, 1) ; Ended ; priorités Action4 > … > Core ; animations par défaut en Core | OK | AnimationTrack + Enum.AnimationPriority | |
-| 05 | « L'ancien script est détruit avec ses connexions, pas de connexions en double » | REFORMULÉ | — | Comportement qui dépend du mode de destruction du personnage ; affirmation non sourcée remplacée par une formulation sûre |
-| 06 | Signature `TweenInfo.new(time=1, easingStyle=Quad, easingDirection=Out, repeatCount=0, reverses=false, delayTime=0)`, -1 = infini, non modifiable | OK | https://create.roblox.com/docs/reference/engine/datatypes/TweenInfo | Ordre des paramètres exact (leçon, quiz, examen) |
-| 06 | Types qu'on peut tweener ; 2 tweens sur la même propriété → le premier est annulé (Completed avec `Cancelled`) | OK | TweenService + exemple « Tween-Conflict » de TweenBase | |
-| 06 | Completed à la fin ou après Cancel, pas après Pause | OK | https://create.roblox.com/docs/reference/engine/classes/TweenBase | |
-| 06 | Une plateforme ancrée tweenée n'emporte pas le personnage (« de nombreux retours ») | REFORMULÉ | https://devforum.roblox.com/t/platform-moves-while-character-doesnt/1051218 (2021) | Aucune source officielle trouvée. La leçon, la question vrai-faux et le résumé le présentent comme un retour de développeurs, à vérifier en test |
-| 06 | PrismaticConstraint en Servo, citée pour les plateformes d'ascenseur | OK | https://create.roblox.com/docs/physics/constraints/prismatic | |
-| Examen | 15 questions (2 trouve-le-bug, lignes 9 et 2 exactes) | OK | — | Toutes les leçons sont couvertes |
+| 01 | Serveur = autorité finale, garde les clients synchronisés | OK | projects/client-server | « ultimate authority for maintaining the game's state » |
+| 01 | La réplication synchronise le modèle de données, la physique et le chat | OK | projects/client-server | |
+| 01 | Latence 100 à 300 ms ; Studio sans latence ; simuler 50 à 150 ms dans chaque sens | OK | projects/client-server | |
+| 01 | Changements client persistants mais non répliqués, écrasables par le serveur | OK | ReplicatedStorage (référence) | |
+| 01 | `Workspace.FilteringEnabled` dépréciée, sans effet | OK | Workspace (référence) | « discontinued and no longer takes effect » |
+| 01 | RunContext `Legacy` par défaut, `Client` possible depuis ReplicatedStorage ; LocalScripts : StarterPlayerScripts, StarterCharacterScripts, StarterGui, StarterPack ; pas dans ReplicatedStorage ; scripts inactifs dans ServerStorage | OK | scripting/locations ; ReplicatedStorage | |
+| 01 | ServerScriptService jamais répliqué | OK | ServerScriptService (référence) | « never replicated to player clients at all » |
+| 01 | Parts ancrées toujours au serveur ; attribution auto selon proximité et matériel ; `SetNetworkOwner(nil)` avec modération (saccades) ; visualisation Network owners vert / blanc-gris | OK | physics/network-ownership | Le code `SetNetworkOwner(nil)` vérifie `Anchored` avant l'appel : correct |
+| 01 | Roblox ne peut pas vérifier la physique d'un client | OK | physics/network-ownership | |
+| 01 | « déclencher des Touched sur les Parts qu'il possède, y compris sans vrai contact » | REFORMULÉ | security-tactics ; security/network-ownership | Les docs disent « manipulate the firing of Touched » et « at any range » ; formulation alignée, source security-tactics ajoutée |
+| 01 | États du Humanoid communiqués au serveur ; animations du personnage répliquées (Animator créé par le serveur) | OK | scripting/events/remote ; Animator | |
+| 01 | F5 = deux simulations, bouton Client/Server, Output bleu/vert | OK | studio/testing-modes | |
+| 01 | « Server authority en bêta » | CORRIGÉ | Annonce officielle DevForum (9 juillet 2026) ; projects/server-authority ; Workspace.AuthorityMode | Lancé pour tous les jeux le 9 juillet 2026, opt-in via `Workspace.AuthorityMode = Server`. La page security/network-ownership dit encore « currently in beta » (page en retard sur l'annonce) |
+| 01 | Quiz (5 questions) | OK | — | trouve-le-bug : ligne 9 = `pieces.Value += 10`, numéros vérifiés |
+| 02 | FireServer/OnServerEvent (joueur en 1er), FireClient, FireAllClients, OnClientEvent ; pas de client à client | OK | scripting/events/remote | |
+| 02 | Seul le `player` est garanti | OK | security-tactics | « with arbitrary arguments (besides the first Player argument) » ; source ajoutée |
+| 02 | Remotes dans ReplicatedStorage | OK | scripting/events/remote | |
+| 02 | `player:LoadCharacter()` | CORRIGÉ | Player (référence) | Méthode dépréciée, « superseded by LoadCharacterAsync() » ; remplacée + encadré Attention + note sur l'appel répété avant `CharacterAppearanceLoaded` |
+| 02 | Tableau des limites d'arguments (fonctions → nil, clés converties, tables mixtes, trous, métatables, copies, instances invisibles → nil) | OK | scripting/events/remote (Argument limitations) | |
+| 02 | RemoteEvent fiable et ordonné, file limitée sans gestionnaire (erreur « Remote event invocation »), perte si déconnexion | OK | scripting/events/remote (Delivery guarantees) | |
+| 02 | ~500 requêtes/s/client, partagée ; excès traité plus tard pour RemoteEvent | REFORMULÉ | RemoteEvent (Throttling) ; scripting/events/remote | Précisé « partagée entre les remotes du même type » (RemoteEvents d'un côté, UnreliableRemoteEvents de l'autre) |
+| 02 | UnreliableRemoteEvent : pas de renvoi, désordre, > 1 000 octets jeté, pas de file, excès jeté | OK | UnreliableRemoteEvent (référence) ; scripting/events/remote | « Events with payloads larger than 1000 bytes are dropped » |
+| 02 | Quiz (5 questions) | OK | — | trouve-le-bug : ligne 6 vérifiée ; `print(player)` affiche bien le nom |
+| 03 | InvokeServer attend ; OnServerInvoke reçoit le joueur ; un seul callback (le dernier) | OK | RemoteFunction ; scripting/events/remote | |
+| 03 | Pas de délai maximum d'InvokeServer (quiz 1) | REFORMULÉ | RemoteFunction (« yields until it receives a response », signature sans timeout) | Point incertain n° 2 du rédacteur : non écrit noir sur blanc ; explication reformulée en « la documentation ne prévoit aucun délai maximum » |
+| 03 | Comportement de `pcall` autour d'InvokeServer | REFORMULÉ | — | Non documenté (point n° 5) : ajout « pcall protège contre une erreur, pas contre une attente » |
+| 03 | Appels mis en file si `OnServerInvoke` n'est pas encore défini | AJOUTÉ (OK) | scripting/events/remote (RemoteFunctions) | Encadré Info ajouté |
+| 03 | 3 risques d'InvokeClient ; FireClient recommandé ; « le client a rarement une information que le serveur n'a pas » | OK | RemoteFunction (Warning) | |
+| 03 | Bindables : même côté, emplacements recommandés, ordre non garanti, Invoke bloqué sans OnInvoke, un seul OnInvoke, limites d'arguments, ModuleScripts souvent préférables | OK | scripting/events/bindable ; BindableFunction ; BindableEvent | |
+| 03 | Code `invoquerAvecDelai` | OK | — | task.spawn + pcall + attente bornée ; la limite (fil bloqué si pas de réponse) est dite |
+| 03 | Quiz (5 questions) | OK | — | trouve-le-bug : `OnServerInvoke:Connect` lève bien une erreur (callback non lisible), ligne 6 |
+| 04 | Capacités d'un exploiteur, rôle du serveur (4 étapes), exemple d'achat, questions de menace | OK | security-tactics | |
+| 04 | NaN / inf, `math.isfinite` | OK | client-server-boundary ; bibliothèque math | `math.isfinite` documenté ; source ajoutée |
+| 04 | Faux objet de boutique, `IsDescendantOf` | OK | client-server-boundary | |
+| 04 | Token bucket, ne jamais compter seulement sur le client ; ClickDetector sans contrôle, ProximityPrompt : seul `Triggered` vérifié | OK | client-server-boundary | |
+| 04 | WalkSpeed modifiable, pas un mécanisme de sécurité, 16 par défaut | OK | Humanoid.WalkSpeed ; security/network-ownership | |
+| 04 | Validation des mouvements : pas de solution universelle, faux positifs, plan XZ, exemptions, leaky bucket | OK | security/network-ownership | |
+| 04 | Philosophie de sanction, échelle, BanAsync, honeypot | OK | server-side-detection | |
+| 04 | « Server authority en bêta, solution la plus fiable une fois disponible » | CORRIGÉ | Annonce DevForum ; projects/server-authority ; security/network-ownership | Disponible depuis juillet 2026 (opt-in) ; la « plus fiable » est conservée (citée par la doc de sécurité) ; sources ajoutées |
+| 04 | Module `Validation` (typeof, isfinite, entier, UTF-8, distance, cooldown + PlayerRemoving) | OK | — | Correct à l'exécution ; affinage de type `unknown` OK |
+| 04 | Script `AllerAuCheckpoint`, détecteur de mouvements | OK | — | Validation type → débit → contexte → existence ; PlayerRemoving nettoie |
+| 04 | Quiz trouve-le-bug (prix venant du client) | CORRIGÉ | — | Le code ne donnait jamais l'objet (2e défaut potentiel) : ajout d'une ligne commentaire après la ligne 11, numéros cités inchangés |
+| 05 | Exemple officiel de l'obby (checkpoints obligatoires dans l'ordre) | OK | defensive-design | |
+| 05 | Heuristique du temps de parcours, « un signal, pas une preuve » | OK | server-side-detection | |
+| 05 | Server & Clients, 1 à 2 clients suffisent, jusqu'à 8 | OK | studio/testing-modes | |
+| 05 | Réapparition au checkpoint : `WaitForChild("HumanoidRootPart")` + `task.wait()` + `PivotTo` | CORRIGÉ | Player (référence : ordre de chargement ; CharacterAdded « before the character is parented to the Workspace » ; Humanoid et parties du corps déjà présents) | Point incertain n° 1 : course réelle. La HRP existe déjà quand `CharacterAdded` se déclenche, donc `WaitForChild` ne bloque pas ; l'apparence peut charger plusieurs images, et le déplacement vers la SpawnLocation (étape 8) arrive après la mise dans le Workspace (étape 6) → le `PivotTo` pouvait être écrasé. Remplacé par le motif du module 2 (attendre `IsDescendantOf(Workspace)` / `AncestryChanged`, puis `task.wait()`, puis vérifier que le personnage existe encore) + encadré explicatif honnête (motif de développeurs, pas décrit tel quel par la doc) |
+| 05 | Test 2 (modifier `Pieces` dans un client) | OK (raisonnement) | ReplicatedStorage (changements client non répliqués) | Non testé dans Studio (pas d'accès), cohérent avec la doc |
+| 05 | Test 3 (client tricheur) | CORRIGÉ | — | Avec le cooldown d'1 s, « TraineeDoree, 0 » et tout le spam étaient refusés par le cooldown dès « ObjetInexistant » ; ajout de deux `task.wait(1.5)` et résultats attendus détaillés (« Requête invalide », « Cet objet n'existe pas », « Il te manque… », un seul passage sur 20) |
+| 05 | Téléportation côté client répliquée | OK | security-tactics (« Modify their player's position ») | Point incertain n° 4 : cohérent avec la doc |
+| 05 | Scripts Progression / Pieces / Boutique | OK | — | typeof/taille, cooldown par joueur, distance, PlayerRemoving, pièce désactivée avant récompense, débit + solde + transaction sans yield |
+| 05 | Quiz (5 questions) | OK | — | trouve-le-bug : ligne 7 vérifiée |
+| Examen | 15 questions | OK | — | Les 3 `trouve-le-bug` (q6, q9, q14) : numéros de ligne vérifiés ; q7 (1 000 octets) confirmée par la référence |
 
 ## Erreurs restantes non corrigées
-- Aucune erreur factuelle connue.
-- Remarque : `curl` renvoie 502 sur certaines grosses pages de référence (DataModel, Players, AnimationTrack). Elles s'ouvrent bien via WebFetch (vérifié), donc les liens sont conservés.
-- Non testé dans Roblox Studio (pas d'instance connectée). Le comportement exact de la sauvegarde `PlayerRemoving` au Stop d'un test Studio n'est pas documenté par Roblox : la leçon le présente comme non garanti.
+- Aucune dans le module 03.
+- Remarque hors périmètre (non modifiée) : `Player:LoadCharacter()` est dépréciée ; si d'autres modules l'utilisent, à signaler à leurs vérificateurs.
+- La page officielle `scripting/security/network-ownership` dit encore que Server Authority est « currently in beta », alors que l'annonce officielle du 9 juillet 2026 indique le lancement pour tous les jeux : le texte suit l'annonce, plus récente.
+- Les tests 2 et 3 de la leçon 05 et le motif de réapparition n'ont pas pu être exécutés dans Studio. Le raisonnement s'appuie sur l'ordre de chargement documenté dans la référence `Player`.

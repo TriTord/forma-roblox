@@ -1,102 +1,84 @@
-# Module 07 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
+# Module 06 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
 ## Résumé
-94 affirmations vérifiées (5 leçons + examen), 11 corrigées ou reformulées, 0 supprimée ; quiz : 25 questions de leçon et 14 questions d'examen vérifiées, toutes justes (bonnes réponses, distracteurs et numéros de ligne des 5 `trouve-le-bug` contrôlés) ; code : `node scripts/verifier-luau.mjs 07` donne 10 extraits analysés et 1 seul diagnostic, le bug volontaire du quiz 5 de la leçon 03 (`player.GetJoinData()`). Build `bash scripts/build-verrou.sh` : code de sortie 0.
+Environ 150 affirmations vérifiées (6 leçons + examen), 22 corrigées / reformulées / précisées, 0 supprimée ; 6 sources ajoutées, 0 lien mort (32 liens testés : HTTP 200, les 3 pages de référence API qui renvoyaient 502 à curl ont été ouvertes avec succès via WebFetch).
+Quiz : 30 questions de leçon + 14 d’examen relues ; 0 bonne réponse fausse ; 1 question de leçon (L4 Q5) et 1 question d’examen (Q1) reformulées ; les numéros de ligne des 5 `trouve-le-bug` ont été vérifiés (un seul bug chacun).
+Code : `node scripts/verifier-luau.mjs 06` → 16 extraits, 0 diagnostic (avant et après corrections). Correction importante de fiabilité dans `ProcessReceipt` (L3). Build `bash scripts/build-verrou.sh` : OK (code 0).
 
-Méthode : pages create.roblox.com ouvertes avec WebFetch, et sources YAML/MD du dépôt officiel github.com/Roblox/creator-docs (branche main) téléchargées pour l'API (`GroupService.yaml`, `Player.yaml`, `DataModel.yaml`, `CloseReason.yaml`, `production/promotion/index.md`, `experience-icons.md`, `thumbnails.md`).
+Méthode : sources lues directement dans le dépôt officiel `Roblox/creator-docs` (commit 4e795e6 du 2026-10-24, source de create.roblox.com/docs, YAML de la référence API compris), pages en ligne vérifiées (WebFetch/curl), help center (curl avec User-Agent navigateur), DevForum.
 
 ## Détail
-
 | Leçon | Affirmation / élément | Verdict | Source | Commentaire |
 |---|---|---|---|---|
-| 01 | Game details à la 1re publication (icône, miniature, nom, genre, sous-genre, description) | OK | publish-games-and-places | |
-| 01 | « La doc explique que Roblox utilise le nom et la description pour comprendre le jeu » | REFORMULÉ | publish-games-and-places | La page Discovery ne le dit pas ; la page de publication dit que les mots-clés aident « players and Roblox to understand the themes and genres ». Texte aligné sur cette phrase et attribué à la bonne page. |
-| 01 | Nom stable, pas de répétition (demotion), emojis avec modération | OK | publish-games-and-places | |
-| 01 | Description : résumer dès la 1re phrase, mots-clés pertinents, bourrage = rétrogradation | OK | publish-games-and-places | |
-| 01 | « obby parkour tycoon… » = « exactement l'exemple » de la doc | REFORMULÉ | publish-games-and-places | L'exemple officiel est « Play our fun granny obby game. Obby obby… » suivi de noms de jeux. Remplacé par « le même type de description ». |
-| 01 | Guide descriptions expérimental (~160 caractères, structure en 4 parties, hashtags déconseillés, contrôles, tous âges, visible sur mobile) | OK | descriptions | Page bien marquée « experimental and only meant for select creators ». |
-| 01 | Genre : changement une fois tous les 3 mois, correction par Roblox (e-mail, appel), Charts, boucle principale, Classic Obby | OK | experience-genres | |
-| 01 | « Genre et maturité sont deux choses séparées » | OK | content-maturity | La page maturité le dit (descripteurs vs genres). |
-| 01 | Questionnaire Maturity & Compliance, chemin Publish settings > Content rating, descripteurs, conformité régionale | OK | content-maturity | |
-| 01 | Tableau des labels (Minimal/Mild → Kids, Select, 16+ ; Moderate → Select, 16+ ; Restricted → 18+ vérifié ; Content May Vary → 16+ vérifié) | OK | content-maturity + kids-and-select | « Roblox (16+) allows all rated content except Restricted ». |
-| 01 | Répondre selon le contenu le plus extrême, refaire après mise à jour, UGC avatar exclu, sanctions | OK | content-maturity | |
-| 01 | Comptes Kids (5-8), Select (9-15), Roblox (16+ vérifié) | OK | kids-and-select | Select = aussi « 9+ auto-déclaré tant que l'âge n'est pas vérifié » ; simplification acceptable. |
-| 01 | Conditions 16+ (2 jours, vérif d'âge, 1re question → Content May Vary) | OK | publish-games-and-places | Citation : « answer No… Content May Vary… only to age-checked users 16+ ». |
-| 01 | Conditions tous âges (vérif, 2FA, Plus/Premium 2 mois ou 1 000 Robux, questionnaire complet, évaluation) | OK | publish-games-and-places + kids-and-select | |
-| 01 | Seuil d'évaluation 250 parties uniques de joueurs très engagés, 60 jours | OK + complété | kids-and-select ; DevForum 4685717 (16 juin 2026) ; DevForum 4820164 (19 août 2026) | Contradiction tranchée : 500 (annonce de juin, confirmé le 16 juillet) puis 250 depuis le 19 août 2026 (annonce staff RbxRocketMan), chiffre repris par la doc actuelle. Historique ajouté dans l'encadré « Des règles qui bougent vite ». |
-| 01 | Remboursement des 1 000 Robux | REFORMULÉ (ajout prudent) | publish-games-and-places ; kids-and-select | Divergence documentée entre les deux pages officielles (25 HEP pendant 60 jours vs remboursement automatique 90 jours après l'éligibilité) : les deux versions sont citées, avec renvoi aux pages officielles. |
-| 01 | Frais d'examen accéléré 50 000 vs 100 000 Robux | NON REPRIS (volontaire) | kids-and-select (50 000) ; DevForum juin 2026 (100 000) | La leçon ne parle pas de l'examen accéléré ; rien à corriger. La doc actuelle indique 50 000. |
-| 01 | Community Standards « Repetitive and Misleading Content » (métadonnées trompeuses, « confusingly similar », duplication, jeux pour sortir de Roblox) ; liens externes via Social Links seulement | OK | about.roblox.com/community-standards | |
-| 01 | Discovery : récompense monétaire non prioritaire, exemple dinosaures, jeux non uniques, first play bounce rate parmi les signaux les plus importants | OK | discovery | |
-| 01 | Pas de langage fort dans les métadonnées, même avec le réglage activé | OK | configure-games | Source ajoutée dans `<Sources>`. |
-| 01 | Sources | CORRIGÉ | — | Ajout de l'annonce DevForum du 19 août 2026 et de configure-games. Tous les liens ouverts. |
-| 02 | Icône carrée ≥ 512×512, réduite à 150×150, une par langue, modération, chemin Configurations > Places > lieu de départ > Icon, 3 bonnes pratiques, icône générée par défaut | OK | experience-icons | |
-| 02 | Miniatures 16:9, 1920×1080, jpg/gif/png/tga/bmp, 10 max, 3 vidéos/mois, étirement, bas de l'image, onglets Home Page / Experience Detail Page, Videos | OK | thumbnails | |
-| 02 | Vidéo en premier ; refusée compte dans le quota ; listes autorisé / interdit | OK | thumbnails | |
-| 02 | Caméra libre Maj gauche + P en test solo | OK | thumbnails | |
-| 02 | Thumbnail personalization : 2 à 5 actives, < 3 Mo, ≤ 1920×1080, Edit active thumbnails / Save / Start, algorithme, +8,5 % en moyenne (présenté comme non garanti) | OK | thumbnails | |
-| 02 | Colonnes du tableau Thumbnail Performance | REFORMULÉ | thumbnails | Ajout de « notamment » (le tableau a aussi Status et Winning Segment). |
-| 02 | Garder plusieurs miniatures actives, tester à chaque grosse mise à jour | OK | thumbnails | |
-| 02 | Miniature personnalisée obligatoire pour les recommandations Home | OK | discovery | |
-| 02 | Pas d'outil officiel d'A/B test d'icônes | OK | DevForum 3274267 | Demande de fonctionnalité (nov. 2024), réponses jusqu'en juillet 2026, aucune réponse staff ; aucune annonce de lancement trouvée. |
-| 02 | Experiments : valeurs de config, 14-60 jours, difficile sous 1 000 DAU | OK | experiments | |
-| 02 | Play through rate et bounce rate au même niveau de priorité | OK | discovery | |
-| 03 | Early testers : 10 amis d'âge proche / trusted friends, File > Invite early testers, filigrane | OK | publish-games-and-places | |
-| 03 | Manage Audience (Friends) ; Exclude from recommendations dans Audience > Advanced Settings | OK | publish-games-and-places | |
-| 03 | Share links (onglet Share Links, analytics par lien, LaunchData) | OK | share-links | |
-| 03 | Invitations en jeu via SocialService | OK | invite-prompts | |
-| 03 | Autres sources accélèrent, classement RFY seulement sur joueurs organiques | OK | discovery | |
-| 03 | « Running ads does not affect RFY ranking » ; jeux non uniques → aucune dépense | OK | ads-manager | |
-| 03 | Accès Ads Manager « rubrique Advertise » | REFORMULÉ | ads-manager | La doc renvoie au portail create.roblox.com/advertise ; pas de « rubrique Advertise » décrite. |
-| 03 | 13+ et e-mail vérifié ; carte 18+ ; crédits dès 13 ans, irréversibles | OK | ads-manager | |
-| 03 | Objectifs Plays / Earnings (Limited) / Engagement | OK | ads-manager ; DevForum 4685717 | |
-| 03 | Audiences récentes / parties | CORRIGÉ (précisé) | ads-manager | Ajout des seuils officiels : 10 000 joueurs récents, 20 000 joueurs partis. |
-| 03 | Auto-bidding, budget quotidien / total, 10 miniatures, Home + recherche automatique | OK | ads-manager | « automatically shown on both the Home page and in search results ». |
-| 03 | Modération < 24 h, annulation jusqu'à 6 h avant | OK | ads-manager | |
-| 03 | Attribution 30 jours, données 48 h | OK | ads-manager | |
-| 03 | Remboursement du trafic frauduleux | CORRIGÉ (précisé) | ads-manager | Ajout des délais officiels (analyse à J+14, remboursement à J+16). |
-| 03 | 3-5 jours puis améliorer l'onboarding ; « la plupart des campagnes ont besoin de plusieurs jours » | OK | ads-manager | « Most campaigns require several days to produce meaningful results. » |
-| 03 | Comparaison des visuels par campagne | OK | ads-manager | « breakdown of your metrics at the asset level ». |
-| 03 | LaunchData visible dans l'URL, récompense cosmétique | OK | ads-manager | |
-| 03 | `Player:GetJoinData().LaunchData` de type string | OK | Player.yaml (creator-docs) | |
-| 03 | Exemple 20 $ / 400 parties | OK | — | Calcul pédagogique, présenté comme tel. |
-| 03 | Encadré « Aucune garantie » | OK | — | Aucune promesse de succès dans la leçon. |
-| 04 | 4 types de mises à jour LiveOps | OK | liveops-essentials | |
-| 04 | Cadence 2 semaines à 1 mois, < 3 semaines d'effort, réutiliser les systèmes | OK | content-updates | |
-| 04 | « What you do » influence les signaux | OK | discovery | |
-| 04 | Publier ne migre pas les joueurs ; redémarrer si le format de données change | OK | update-games | |
-| 04 | Configurations > Server management > Restart Servers ; « outdated versions » recommandé ; délai 1-60 min | OK | update-games | |
-| 04 | « Roblox arrête d'envoyer de nouveaux joueurs vers ces serveurs » | REFORMULÉ | update-games | Seul le matchmaking via Jouer est arrêté ; invitations, téléportations et profils d'amis restent possibles. |
-| 04 | Téléportation groupée vers le même nouveau serveur | OK | update-games | |
-| 04 | `DataModel.ServerRestartScheduled(restartTime: DateTime, source: CloseReason, attributes: Dictionary)`, DeveloperUpdate / RobloxMaintenance, non déprécié | OK | DataModel.yaml + CloseReason.yaml | « The actual restart may happen slightly after this projected time, but not before » : cohérent avec « l'heure la plus proche ». `deprecation_message: ''`. |
-| 04 | Code serveur et client (compte à rebours, SetCore protégé par pcall) | OK | — | luau-lsp sans diagnostic ; bon emplacement, WaitForChild côté client, pas d'API dépréciée. |
-| 04 | Configs / ConfigService sans publier ni redémarrer ; contenu caché derrière une config | OK | configs ; update-games | |
-| 04 | Events & Updates : chemin, bouton, champs, privé / public, max 10, Join Event / Notify Me, page partageable, onglet Events du groupe | OK | experience-events | |
-| 04 | Trending Events (7 jours, 1 000 RSVP, public) | OK | experience-events | |
-| 04 | Off-Platform Featuring (13+, 7 jours avant) | CORRIGÉ (précisé) | experience-events | Ajout de l'e-mail lié et de l'option « Submit for Featuring ». |
-| 04 | Annonces de mise à jour : 60 caractères, une tous les 3 jours, joueurs ayant activé les notifications, être précis | OK | experience-events | |
-| 04 | Notifications : pas de pub déguisée ni de fausse urgence | OK | experience-notifications | |
-| 05 | Groups → Communities (21 nov. 2024), « Groups » conservé dans le Creator Hub | OK | DevForum 3268307 (staff) | Le nom des API (`GroupService`) est un fait constaté dans la référence API, pas dans l'annonce. |
-| 05 | Groupe à 100 Robux, 3 liens sociaux, Roblox n'arbitre pas, permissions, 2FA pour certaines permissions | OK | groups | |
-| 05 | Recommandations pour la page de communauté (nom du studio, visuels, liens sociaux) | OK | promotion (index.md, section Communities) | Vérifié dans le source du dépôt (le rendu WebFetch tronquait la page). |
-| 05 | Forums pour tous (21 août 2025), 13+ connectés ; murs en lecture seule le 1er déc. 2025 ; suppression | CORRIGÉ (précisé) | DevForum 3892463 | Précisé « suppression complète annoncée pour début 2026, messages non transférés vers les forums ». La suppression effective n'est confirmée que par des médias tiers, d'où la formulation « annoncée ». |
-| 05 | Blocked Words, Verified Joins, bans, rôles | OK | DevForum 3892463 ; groups | |
-| 05 | Social Links : 16+ vérifié pour ajouter et voir, 3 max, Engagement > Social Links, pas de lien en jeu, exemples | OK | social-media-links ; Community Standards | |
-| 05 | Discord : 13 ans minimum, plus dans certains pays (jusqu'à 16) | OK | support.discord.com 360040724612 | Page en 403 pour WebFetch ; contenu confirmé par l'extrait indexé (13 ans par défaut, 14-15 ou 16 selon les pays). |
-| 05 | Tableau Feedback (Audience > Feedback) | OK | feedback | |
-| 05 | « La raison derrière la suggestion compte plus » | OK | liveops-essentials | « Even more important than players' specific suggestions is the reasoning behind them. » |
-| 05 | `GroupService:GetRolesInGroupAsync(userId, groupId)` → `{IsMember, Roles = {Id, Name, Rank}}` | OK | GroupService.yaml | Existe, non dépréciée, renvoie seulement les rôles publics (rôles triés du plus haut au plus bas). |
-| 05 | Dépréciation de `Player:GetRankInGroupAsync` / `GetRoleInGroupAsync` | OK + complété | Player.yaml | Messages officiels : « returns only the member's highest public role. Use GroupService:GetRolesInGroupAsync() ». Ajout de la mention des méthodes historiques `Player:GetRankInGroup` / `GetRoleInGroup`, elles aussi dépréciées. |
-| 05 | Cache des résultats « visible seulement à la prochaine connexion » | REFORMULÉ | GroupService.yaml | La doc parle d'un cache par utilisateur et par groupe, valable jusqu'à expiration. Texte corrigé, et précision que seuls les rôles publics sont renvoyés. |
-| 05 | Code `GetRolesInGroupAsync` (pcall + vérification de `ok`, `Roles` vide pour un simple membre → « Membre ») | OK | — | Comportement conforme : `Roles` est vide si l'utilisateur n'a pas de rôle autre que le rôle de base. |
-| Quiz 01 | 5 questions | OK | cf. ci-dessus | |
-| Quiz 02 | 5 questions | OK | thumbnails, experience-icons, DevForum 3274267 | |
-| Quiz 03 | 5 questions, `trouve-le-bug` (ligne 4, `.` au lieu de `:`) | OK | Player.yaml | Ligne 10 = `Players.PlayerAdded:Connect(...)` : numérotation juste ; seul diagnostic luau-lsp = le bug voulu. |
-| Quiz 04 | 5 questions, `trouve-le-bug` (ligne 5, `DateTime - number`) | OK | DataModel.yaml | |
-| Quiz 05 | 5 questions, `trouve-le-bug` (ligne 9, `ok` non vérifié) | OK | — | |
-| Examen | 14 questions, 2 `trouve-le-bug` (ligne 3 `LocalPlayer` côté serveur ; ligne 5 `~= nil`) | OK | — | Numéros de ligne vérifiés ; un seul bug par extrait ; distracteurs faux (ex. itération généralisée Luau sans `pairs`). |
+| 01 | Part du créateur 70 % sur achats en Robux (passes, dev products) | REFORMULÉ (source explicite trouvée) | https://create.roblox.com/docs/get-started/monetization (« You receive 70% of Robux spent… The remaining 30% is Roblox's Marketplace Fee », section In-app purchases) | Le rédacteur l’avait déduit du tableau Roblox Plus ; phrase officielle citée dans le texte et l’explication du quiz Q1 |
+| 01 | 70 % pour abonnements en Robux / serveurs privés payants | OK | pages subscriptions (« 70% of subscription earnings each month ») et roblox-plus (« 70% revenue share on a 100 Robux server price ») | Attribution ajoutée dans le texte |
+| 01 | Ligne « Roblox Plus : bonus quand des abonnés Plus achètent… » | CORRIGÉ | roblox-plus | Pas de bonus sur les achats (réduction subventionnée, gain identique). Remplacé par : bonus d’inscription, compensation serveurs privés, 10 % des transferts |
+| 01 | Premium : « annoncé qu’il cessait de vendre Premium » | CORRIGÉ | https://en.help.roblox.com/hc/en-us/articles/360024256251 (« On April 30, 2026, Roblox Premium membership will no longer be available for purchase… ») | Date désormais précise (30 avril 2026), abonnés existants conservés sans réabonnement |
+| 01 | Plus : −10 % puis −20 % dès le 3e mois, payé par Roblox | PRÉCISÉ | roblox-plus | Ajout « achats éligibles en Robux » (liste officielle) |
+| 01 | Attentes : ~5 j (passes, produits, abos Robux), 7 j accès payant, 30 j abos monnaie locale, 60 j Creator Rewards | OK | subscriptions ; paid-access-robux (« up to 7 days ») ; creator-rewards | — |
+| 01 | « bonus Roblox Plus : 60 jours » | PRÉCISÉ | roblox-plus (60 j documentés pour le bonus d’inscription) | → « bonus d’inscription Roblox Plus » |
+| 01 | Earned Robux / non-Earned (achetés, cartes cadeaux, transferts reçus, allocation mensuelle) | OK | developer-exchange | — |
+| 01 | Premium Payouts remplacés par Creator Rewards le 24/07/2025 | OK | engagement-based-payouts (bandeau « Effective July 24, 2025… ») | — |
+| 01 | Roblox n’enregistre pas l’historique d’achat | OK | monetization ; passes ; developer-products | — |
+| 01 | « downvote », pas de garantie, minuteurs déconseillés, touristes/locals | OK | https://create.roblox.com/docs/production/monetization | — |
+| 01 | Seuil DevEx 30 000 Earned Robux | OK | developer-exchange | — |
+| 02 | Création d’un pass (étapes, 512×512, jpg/png/bmp, cercle, catégorie), Copy Asset ID | OK | passes | — |
+| 02 | « fixer le prix depuis l’onglet Sales » | REFORMULÉ | regional-pricing (seule mention : page **Sales** qui affiche les prix par pays) | La doc ne décrit plus l’étape de mise en prix ; formulation prudente |
+| 02 | Prix régionaux activés par défaut pour les passes, plancher 30 %, désactivables pass par pass | OK | regional-pricing ; managed-pricing | — |
+| 02 | `UserOwnsGamePassAsync(userId, gamePassId)` non déprécié, cache, mise à jour par `PromptGamePassPurchaseFinished`, achat hors jeu « plusieurs minutes » | OK | MarketplaceService.yaml (param. `User \| number`, tags: Yields) | — |
+| 02 | `PromptGamePassPurchase(player, gamePassId)` ; `PromptGamePassPurchaseFinished(player, gamePassId, wasPurchased)`, à écouter côté serveur | OK | MarketplaceService.yaml | — |
+| 02 | `GetProductInfoAsync` / `PriceInRobux` (côté client) ; `GetProductInfo` déprécié | OK | MarketplaceService.yaml ; passes (« make sure the script runs on the client ») | — |
+| 02 | « Achats simulés dans Studio » (source 2016) appliqués aux passes | CORRIGÉ | https://create.roblox.com/docs/resources/feature-packages/season-passes (« Studio does not mock pass purchasing ») + annonce staff 2016 (qui signalait déjà des valeurs incorrectes pour la possession de pass) | Section de test réécrite : Studio pour l’UI + attribution forcée temporairement, jeu publié pour l’achat réel |
+| 02 | Code serveur et client (pcall + 3 essais, attribut, CharacterAdded, prix dynamique) | OK | passes ; Trail API | Raisonnement d’exécution : correct, aucune API dépréciée |
+| 03 | Création dev product, prix 1 à 1 milliard de Robux | OK | developer-products | — |
+| 03 | Garanties/limites de `ProcessReceipt` (appel à l’arrivée, pas de retry temporel, deux serveurs, échec d’enregistrement, auto-acquittement) | OK | MarketplaceService.yaml (sections Guarantees / Retries and Timeouts / Limitations) | — |
+| 03 | `ProcessReceipt` : `NotProcessedYet` immédiat si les leaderstats ne sont pas chargées | CORRIGÉ (code) | MarketplaceService.yaml (« can yield for as long as the server is running ») ; https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing (« If the player's data hasn't loaded yet (which is expected when a player joins a game), wait for the player's data to load ») | Bug de fiabilité : les reçus non résolus sont rejoués à l’arrivée, avant la fin du chargement (module 4) → reçu bloqué jusqu’à la reconnexion suivante. Ajout de `attendrePreparation` (attente ≤ 60 s tant que le joueur est présent) et explication dans le tableau |
+| 03 | Idempotence : `UpdateAsync` sur `"Achat_" .. PurchaseId`, `return nil` pour annuler, effet appliqué hors de la fonction de transformation, `PurchaseGranted` seulement après | OK | GlobalDataStore:UpdateAsync ; player-data-purchasing | Approche « enregistrer puis donner » : jamais de double octroi ; limites (crash avant sauvegarde, départ du joueur pendant l’`UpdateAsync`) déjà expliquées honnêtement — renvoi ajouté vers l’approche officielle « même sauvegarde » |
+| 03 | Achats hors jeu (Store / Listed) livrés via `ProcessReceipt` à l’arrivée ; callback peut attendre | AJOUTÉ | developer-products ; MarketplaceService.yaml | Justifie l’attente des données |
+| 03 | Studio : achats simulés + `ProcessReceipt` appelé (DevForum 2016) | REFORMULÉ | https://devforum.roblox.com/t/mock-purchases-in-studio/26974 (staff Seranok, 12/07/2016, catégorie Announcements) ; https://devforum.roblox.com/t/marketplaceserviceprocessreceipt-is-not-called-in-team-test/3983692 (rapport de développeurs, 2025) | Aucune source officielle plus récente trouvée (doc developer-products, testing-modes, MarketplaceService muets) : âge de la source signalé, conseil de test final en jeu publié, mise en garde Team Test présentée comme retour de développeurs |
+| 03 | Scénario de test « désactive l’accès aux API » | CORRIGÉ | module 04 leçon 02 (échec de chargement → joueur expulsé) | Le scénario était impossible ; remplacé par une panne simulée temporaire (`error(...)` dans le pcall) |
+| 03 | `BindReceiptHandler` alternative récente, `Enum.ReceiptDecision.Processed/NotProcessedYet` | PRÉCISÉ | MarketplaceService.yaml ; ReceiptDecision.yaml | La référence appelle `ProcessReceipt` « legacy » (non déprécié) ; priorité des handlers liés ajoutée |
+| 03 | `PromptProductPurchase(player, productId)` non déprécié ; `PromptProductPurchaseFinished` ne prouve pas l’achat | OK | MarketplaceService.yaml (tags: []) | — |
+| 03 | Script `DemandesAchat` (rate limit, vérif. étape suivante côté serveur, ID constant) | OK | — | Raisonnement d’exécution correct |
+| 04 | Abonnements : auto-renouvelés, Robux ou monnaie locale, payés en Robux, non exclusifs, 50 max/jeu | OK | subscriptions | — |
+| 04 | Tableau Robux / monnaie locale (éligibilité ID ou téléphone, ≥ 49 Robux, 2,99–14,99 $, 70 % / 70 % puis 100 %, 5 j / 30 j, prix régionaux, pays) | OK | subscriptions | — |
+| 04 | 0,01 $ = 1 Robux, exemple 5 $ → 350 puis 500 | OK | subscriptions | — |
+| 04 | Nom unique non modifiable, nom court définitif, prix 1×/60 j + préavis 30 j, suppression = remboursement | OK | subscriptions | — |
+| 04 | Règles des abonnements | OK | subscriptions (Subscription guidelines) | — |
+| 04 | `GetUserSubscriptionStatusAsync(player, id)` → `IsSubscribed`/`IsRenewing`, côté serveur | OK | MarketplaceService.yaml ; subscriptions | — |
+| 04 | `Players.UserSubscriptionStatusChanged` « abonnement acheté, résilié ou expiré pendant la partie » | CORRIGÉ | Players.yaml (« the server only attempts to check and update the status after the Subscription Purchase modal has been closed ») | Commentaire du code et texte corrigés |
+| 04 | `PromptSubscriptionPurchase(player, id)` ; `PolicyService.IsEligibleToPurchaseSubscription` | OK | MarketplaceService.yaml ; PolicyService.yaml ; monetization (intégration PolicyService obligatoire) | — |
+| 04 | Creator Rewards : 5 Robux/jour, 10 min, 3 premiers jeux ; Audience Expansion 35 % des 100 premiers $ sur 60 j, ID vérifié, ≥ 100 DAU ; 60 j d’attente ; abus | OK | creator-rewards | — |
+| 04 | Définition « Active Spender = actif depuis au moins 60 jours » | CORRIGÉ | creator-rewards (« (b) was not a New User or Reactivated User during the past 60 days ») | — |
+| 04 | Raison du changement (manque de transparence) | OK | creator-rewards FAQ | — |
+| 04 | Roblox Plus 30/04/2026, 4,99 $/mois ; Premium modifié au 30/05/2026 | OK | https://devforum.roblox.com/t/introducing-roblox-plus/4567894 (Announcements) | — |
+| 04 | Arrêt de vente de Premium (non daté) | CORRIGÉ | help center 360024256251 | Daté au 30 avril 2026 (texte, résumé, quiz Q5) |
+| 04 | Bonus d’inscription 750 Robux (250×3), serveurs privés ≤ 100 Robux/abonné ≥ 60 min/30 j, 10 % des transferts | PRÉCISÉ | roblox-plus | Ajouts : « mois consécutifs, hors essai gratuit » ; « dans le serveur privé qu’il a créé » |
+| 04 | `Player.MembershipType` déprécié → `Player.HasRobloxSubscription` (booléen lecture seule) | OK | Player.yaml (deprecation_message) | Code `GetPropertyChangedSignal("HasRobloxSubscription")` conforme à l’exemple officiel de roblox-plus |
+| 04 | Conseils Premium (pas de paywall, pas de promesse de Robux, pas d’avantage tactique) | OK | engagement-based-payouts | — |
+| 05 | Valeur claire, boutique contextuelle | OK | monetization-foundations | — |
+| 05 | « La description doit être exacte et honnête » attribué à Monetization foundations | REFORMULÉ | monetization (« transparent, honest, and user-friendly ») | Phrase introuvable dans foundations ; rattachée à la bonne page |
+| 05 | Gamme de prix, offres de bienvenue | OK | production/analytics/monetization | — |
+| 05 | Promoted pass > 49 et < 801 Robux, pas d’objets aléatoires payants | OK | passes | — |
+| 05 | Managed Pricing (onglet, prix régionaux 30–100 %, défaut passes & abonnements Robux), price optimization (~3 semaines, revenu incrémental positif, passes & produits seulement, 60 000 transactions/30 j), Dynamic Price Check, `GetUsersPriceLevelsAsync` | OK | managed-pricing ; price-optimization ; regional-pricing | — |
+| 05 | Experiments cite la tarification | OK | production/experiments (« Monetization - … pricing ») | — |
+| 05 | Règles de présentation (réductions authentiques et équitables, fausse rareté, compte à rebours), formulations à éviter | OK | monetization (Guidelines) | — |
+| 05 | Objets aléatoires payants (achats indirects, % avant achat, somme 100 %, arrondi + mention, bouton avec mot, modificateurs, gratuit exempté, traitements `ArePaidRandomItemsRestricted`) | OK | paid-random-items ; PolicyService.yaml | — |
+| 05 | PolicyService obligatoire ; `IsPaidItemTradingAllowed`, `AreAdsAllowed`, `IsEligibleToPurchaseSubscription` | OK | monetization ; PolicyService.yaml | — |
+| 06 | Earned Robux (liste incluse/exclue, passes de jeux modèles, contenus modérés) | OK | developer-exchange ; DevEx Terms | — |
+| 06 | « Seuls les créateurs qui réussissent… aucune garantie » | OK | help center 203314100 (« only successful creators will be able to meet the high requirements… no guarantee ») | — |
+| 06 | Conditions : 13 ans, 30 000, e-mail vérifié, portail DevEx (invitation après 1re demande), W-9/W-8, conformité, Ongoing Service Requirements | OK | DevEx Terms ; developer-exchange ; help center 203314100 | — |
+| 06 | 1 demande/mois, inactivité 2,5 ans, > 100 pays, vente de Robux hors DevEx = refus | OK | DevEx Terms ; developer-exchange FAQ | — |
+| 06 | Taux standard 0,0038 $ (114 $/30 000) depuis le 05/09/2025 10 h PT ; ancien 0,0035 (105 $) converti en premier | OK | developer-exchange | — |
+| 06 | Taux U.S. 18+ 0,0054 $ depuis le 08/06/2026 ; produits, passes, abonnements, serveurs privés ; joueurs US 18+ vérifiés ; R6 ⇒ inéligible | OK | 18-plus-devex-rate (FAQ « June 8, 2026 ») | — |
+| 06 | Frais de transaction du prestataire, variables selon le moyen de paiement | OK | DevEx Terms (« Transaction fees… charged by our DevEx portal provider… vary depending on payment method ») | — |
+| 06 | Démarche (Finances ⟩ Cash Out, nom légal, Robux retirés/rendus, e-mail no-reply, Tipalti, 1 semaine, ~10/~5 jours ouvrés, non annulable, dashboard 24 h) | OK | developer-exchange | — |
+| 06 | Fiscalité : pas de conseil fiscal ; royalties au 01/11/2026 ; 0–30 % sur la part US si infos valides ; 24 % sinon ; Finances ⟩ Taxes ; W-8BEN ; mineurs / parents | OK | tax-information ; DevEx Terms | — |
+| Quiz L1–L6 | 30 questions | OK (L4 Q5 reformulée) | — | Bonnes réponses justes, distracteurs faux ; lignes des `trouve-le-bug` L2 Q4 (ligne 6), L3 Q5 (lignes 5/9/14), L4 Q4 (lignes 3/7/9), L5 Q4 (lignes 5/8/9) vérifiées |
+| Examen | 14 questions | OK (Q1 précisée) | — | Q1 : « joueur non abonné à Roblox Plus » (évite l’ambiguïté du prix réduit). Calculs vérifiés (175 ; 171 / 157,50 / 243). `trouve-le-bug` Q3 (ligne 7 : `player` au lieu de `player.UserId`) et Q7 (ligne 7 : ID venant du client) : lignes justes, un seul bug |
 
 ## Erreurs restantes non corrigées
 - Aucune erreur factuelle connue.
-- Point à surveiller : les règles Kids & Select (seuil d'entrée, remboursement des frais de 1 000 Robux, examen accéléré) ont changé quatre fois entre juin et août 2026, et les deux pages officielles se contredisent encore sur le remboursement. Les deux versions sont citées dans la leçon 01, qui renvoie aux pages officielles. À revérifier à chaque mise à jour du site.
-- La suppression effective des murs de communauté (prévue début 2026) n'est confirmée que par des médias tiers : la leçon garde la formulation « annoncée ».
+- Limite assumée (documentée dans L3) : le `ProcessReceipt` « enregistrer puis donner » peut perdre un octroi si le joueur quitte pendant l’`UpdateAsync` ou si le serveur plante avant la sauvegarde suivante ; il ne double jamais un octroi. L’approche officielle « même sauvegarde » est citée comme solution robuste.
+- Comportement des achats simulés dans Studio pour les Developer Products : seule source officielle = annonce staff de 2016 ; présenté comme tel, avec conseil de vérifier dans le jeu publié.
+- Libellé exact de l’écran de mise en prix d’un pass dans le Creator Hub : non documenté (octobre 2026) ; formulation prudente.

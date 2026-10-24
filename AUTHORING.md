@@ -52,7 +52,7 @@ quiz:
 ---
 ```
 
-## 3. Quiz : les 3 types de questions
+## 3. Quiz : les 4 types de questions
 
 Champs communs : `type`, `question`, `explication` (affichée après la réponse : explique **pourquoi**, pas seulement « c’est B »).
 Dans les textes de quiz, seuls `` `code` `` et `**gras**` sont mis en forme.
@@ -102,13 +102,33 @@ Un extrait Luau (`code`, affiché avec coloration et **numéros de ligne**) + de
     explication: "`FindFirstChild` renvoie `nil` si rien n’est trouvé (une balle, une autre Part…). Il faut tester `if humanoid then` avant d’utiliser `humanoid.Health`."
 ```
 
+### `ameliore-le-prompt` — choisir la meilleure version d’un prompt (phase IA)
+Un prompt vague (`prompt`, affiché tel quel dans un cadre, retours à la ligne conservés) + 2 à 5 versions proposées dans `options` ; **exactement une** option correcte (la plus précise et la plus sûre). Les options peuvent tenir sur plusieurs lignes (bloc `|`) ; les retours à la ligne sont conservés à l’affichage. Les mauvaises options doivent être plausibles (trop vagues, sans contrainte de sécurité, sans critère de vérification…), pas absurdes.
+
+```yaml
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code crée la sauvegarde des pièces. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais une sauvegarde pour mon jeu"
+    options:
+      - texte: "Fais une sauvegarde complète et bien codée pour mon jeu Roblox."
+      - texte: |
+          Dans src/ServerScriptService, crée le ModuleScript DonneesJoueurs.luau qui sauvegarde leaderstats.Pieces avec DataStoreService (DataStore "DonneesJoueurs_v1", clé "Joueur_" .. UserId).
+          Contraintes : UpdateAsync dans un pcall avec 3 nouvelles tentatives, sauvegarde à PlayerRemoving et dans BindToClose.
+          Vérification : en Play Solo avec l’accès aux API activé, les pièces sont retrouvées après avoir quitté et relancé.
+        correct: true
+      - texte: "Utilise SetAsync pour sauvegarder, c’est le plus simple."
+    explication: "La bonne version donne le contexte (fichier, DataStore, clé), les contraintes de fiabilité (pcall, nouvelles tentatives, BindToClose) et un critère de vérification. Les autres laissent l’IA deviner."
+```
+
+Pour « Trouve la faille dans ce code généré par IA », utilise le type `trouve-le-bug` (le bug est alors une faille de sécurité ou de fiabilité).
+
 **Pièges YAML** : indente avec des **espaces** (jamais de tabulation, sauf *à l’intérieur* d’un bloc `code: |`) ; mets entre guillemets `"…"` toute valeur qui commence par `` ` ``, `*`, `[`, `{`, `"`, `'`, `@`, `!`, `&`, `%`, `#`, `>`, `|`, ou qui contient `: ` (deux-points + espace) ou ` #`. Dans une chaîne entre `"…"`, écris `\"` pour un guillemet. Les nombres affichés comme réponses s’écrivent entre guillemets : `texte: "11"`.
 
 ## 4. Examens de module (`src/content/examens/module-XX.yaml`)
 
 ```yaml
-module: "03"            # obligatoire, entre guillemets, identique au nom du fichier
-titre: Examen du module 3   # facultatif
+module: "04"            # obligatoire, entre guillemets, identique au nom du fichier
+titre: Examen du module 4   # facultatif
 description: …           # facultatif (sinon texte automatique)
 seuil: 70                # facultatif, 70 par défaut (50 à 100)
 questions:               # 5 à 30 questions ; vise 10 à 15
@@ -133,6 +153,8 @@ Utilisables directement dans le MDX. Laisse une **ligne vide** après la balise 
 | `<Defi>…</Defi>` | mini-exercice pratique dans Studio | « À toi de jouer » |
 | `<Resume>…</Resume>` | résumé de fin (obligatoire, une fois, liste à puces) | « Ce qu’il faut retenir » |
 | `<Sources>…</Sources>` | sources (obligatoire, en dernier, liste de liens Markdown) | « Sources et pour aller plus loin » |
+| `<AvecClaudeCode>…</AvecClaudeCode>` | encadré « Avec Claude Code » : le prompt précis pour construire le système de la leçon + ce qu’il faut vérifier dans le code produit (phase IA) | « Avec Claude Code » |
+| `<Prompt>…</Prompt>` | prompt prêt à copier, avec un bouton « Copier » ; contient **un bloc ` ```text `** (le prompt, copié tel quel) et éventuellement un court commentaire après le bloc | « Prompt à copier » |
 
 Tous acceptent un titre personnalisé : `<Astuce titre="Raccourci clavier">`.
 
@@ -140,6 +162,26 @@ Tous acceptent un titre personnalisé : `<Astuce titre="Raccourci clavier">`.
 <Erreur titre="Sauvegarder à chaque pièce ramassée">
 Chaque appel à un DataStore compte dans une limite de requêtes. Sauvegarde à la sortie du joueur et périodiquement, pas à chaque changement.
 </Erreur>
+
+<AvecClaudeCode>
+
+Demande ce système à Claude Code avec un prompt précis :
+
+<Prompt titre="Sauvegarde des pièces">
+
+```text
+Contexte : …
+Objectif : …
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- les appels au DataStore sont dans un `pcall` ;
+- …
+
+</AvecClaudeCode>
 
 <Sources>
 - [DataStoreService — documentation Roblox](https://create.roblox.com/docs/reference/engine/classes/DataStoreService)

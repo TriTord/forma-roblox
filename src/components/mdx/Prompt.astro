@@ -1,0 +1,24 @@
+---
+/**
+ * Prompt prêt à copier : contient un bloc de code ```text (le prompt) et, éventuellement, du texte de commentaire.
+ * Le bouton « Copier » copie le contenu du premier bloc <pre> du composant.
+ */
+interface Props { titre?: string }
+const { titre = 'Prompt à copier' } = Astro.props;
+---
+<figure class="prompt" data-prompt data-testid="prompt">
+  <figcaption class="prompt-entete">
+    <span class="prompt-titre"><span aria-hidden="true">💬</span> {titre}</span>
+    <button type="button" class="prompt-copier" data-prompt-copier data-testid="prompt-copier" aria-label={`Copier le prompt « ${titre} »`}>
+      <span data-libelle>Copier</span>
+    </button>
+  </figcaption>
+  <div class="prompt-contenu">
+    <slot />
+  </div>
+  <p class="sr-only" role="status" aria-live="polite" data-prompt-statut></p>
+</figure>
+
+<script>
+  import '~/scripts/prompt';
+</script>

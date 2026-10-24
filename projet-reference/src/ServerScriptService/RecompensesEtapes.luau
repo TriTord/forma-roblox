@@ -1,5 +1,5 @@
 -- ModuleScript « RecompensesEtapes » dans ServerScriptService
--- À appeler depuis le script qui valide les checkpoints (modules 3 et 4), côté serveur uniquement.
+-- À appeler depuis le script qui valide les checkpoints (modules 4 et 5), côté serveur uniquement.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
 
