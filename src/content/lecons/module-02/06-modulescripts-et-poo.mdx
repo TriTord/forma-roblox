@@ -289,6 +289,8 @@ end
 
 Chaque objet a sa propre vitesse et son propre état, mais toutes les pièces partagent les mêmes méthodes, écrites une seule fois.
 
+Pour tester cette version, **désactive** ton Script `PiecesTournantes` (propriété **Enabled** décochée) ou remplace son contenu par ce code : sinon, les deux scripts feraient tourner les mêmes pièces en même temps.
+
 <Erreur titre="Appeler une méthode avec un point">
 `maPiece.arreter()` (avec un point) n’envoie pas l’objet : dans la méthode, `self` vaut `nil` et tu obtiens « attempt to index nil with 'active' ». Règle simple : **méthode déclarée avec `:`, méthode appelée avec `:`**. Le constructeur `new`, lui, se déclare et s’appelle avec un point, car il n’y a pas encore d’objet.
 </Erreur>
@@ -327,8 +329,10 @@ end
 Un commentaire spécial en **première ligne** du script choisit le niveau de vérification :
 
 - `--!nocheck` : pas de vérification des types ;
-- `--!nonstrict` : vérifie surtout ce que tu as annoté (c’est le mode par défaut indiqué par la documentation de Luau) ;
+- `--!nonstrict` : vérifie surtout ce que tu as annoté ; ce qui n’est pas clair est traité comme `any` (« n’importe quoi »). C’est le mode par défaut indiqué par la documentation de Luau ;
 - `--!strict` : vérifie **tout**, en devinant (inférant) les types que tu n’as pas écrits.
+
+Pour choisir le mode par défaut de tous les scripts de ton jeu, la documentation Roblox renvoie à la propriété **`LuauTypeCheckMode`** du Workspace ; le commentaire en première ligne d’un script reste prioritaire.
 
 Voici une version typée et stricte d’un module de niveaux. Le mot-clé `type` crée un **alias de type**, et `export` le rend utilisable dans les scripts qui font `require` du module :
 
@@ -388,6 +392,7 @@ Inutile de tout typer d’un coup. Commence par ajouter `--!strict` à tes **nou
 - [Metatables (__index, classes) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/metatables)
 - [Type checking — documentation Luau de Roblox](https://create.roblox.com/docs/luau/type-checking)
 - [Types et modes d’analyse — luau.org](https://luau.org/types)
+- [Workspace.LuauTypeCheckMode — référence API](https://create.roblox.com/docs/reference/engine/classes/Workspace)
 - [Tables (table.freeze, table.clone) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/tables)
 - [Fil DevForum « How do I fix “Module code did not return exactly one value” »](https://devforum.roblox.com/t/how-do-i-fix-module-code-did-not-return-exactly-one-value/2667034)
 </Sources>

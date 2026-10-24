@@ -132,7 +132,7 @@ Tu reconnais l’astuce du `or` de la leçon 2 : si `player.Character` vaut `nil
 - il se déclenche à cause d’un **mouvement physique** : déplacer une Part en changeant son CFrame pour qu’elle chevauche une autre ne le déclenche pas ;
 - au moins une des deux Parts ne doit **pas** être ancrée (Anchored). Ça tombe bien : le personnage du joueur ne l’est pas ;
 - la propriété **CanTouch** doit être activée (elle l’est par défaut) ;
-- il peut se déclencher **plusieurs fois de suite** pour un seul contact, car plusieurs membres du personnage touchent la Part.
+- il peut se déclencher **plusieurs fois de suite** pour un seul contact, à cause de petites collisions successives (et chaque membre du personnage qui touche la Part compte).
 
 Pour savoir **quel joueur** a touché, on utilise `Players:GetPlayerFromCharacter(autrePart.Parent)`, qui renvoie le joueur à qui appartient ce personnage, ou `nil` si ce n’est pas un personnage de joueur.
 
@@ -173,7 +173,7 @@ end
 ```
 
 <Erreur titre="Oublier les joueurs déjà présents">
-En test solo dans Studio, ton personnage peut être créé **avant** que ton script ait connecté `PlayerAdded`. La documentation Roblox le signale : l’événement ne « marche pas comme prévu » dans ce cas. Résultat : ça marche « une fois sur deux ». La boucle sur `Players:GetPlayers()` après la connexion règle le problème. Prends-en l’habitude dans tous tes scripts.
+En test solo dans Studio, ton joueur (l’objet `Player`) peut être créé **avant** que ton script ait connecté `PlayerAdded`. La documentation Roblox le signale : l’événement ne « marche pas comme prévu » dans ce cas. Résultat : ça marche « une fois sur deux ». La boucle sur `Players:GetPlayers()` après la connexion règle le problème. Prends-en l’habitude dans tous tes scripts.
 </Erreur>
 
 ## `WaitForChild` ou `FindFirstChild` ?
@@ -328,6 +328,9 @@ local function placerAuCheckpoint(player, personnage)
 		personnage.AncestryChanged:Wait()
 	end
 	task.wait()
+	if not personnage:IsDescendantOf(Workspace) then
+		return -- le personnage a déjà disparu pendant l'attente (joueur parti, nouvelle réapparition...)
+	end
 
 	personnage:PivotTo(checkpoint.CFrame + HAUTEUR_REAPPARITION)
 end
@@ -364,7 +367,9 @@ Ce qu’il faut comprendre :
 - `PivotTo` déplace tout le Model du personnage d’un coup, vers une position et une orientation (un CFrame) ; on ajoute 4 studs de hauteur pour ne pas apparaître dans la Part.
 
 <Info titre="Pourquoi attendre avant de déplacer le personnage ?">
-D’après la documentation de `Player`, `CharacterAdded` se déclenche **avant** que le personnage soit placé dans le jeu, et Roblox le positionne ensuite sur un SpawnLocation. Si on le déplace trop tôt, ce placement peut écraser le nôtre. Sur le DevForum, des développeurs qui ont rencontré ce problème conseillent d’attendre un court instant avant de téléporter le personnage : c’est le rôle de `AncestryChanged:Wait()` et du `task.wait()`.
+D’après la documentation de `Player`, `CharacterAdded` se déclenche **avant** que le personnage soit placé dans le Workspace, et l’ordre de chargement se termine par « le personnage est déplacé au point d’apparition ». Si on le déplace trop tôt, ce placement peut écraser le nôtre. D’où les deux attentes : `AncestryChanged:Wait()` jusqu’à ce que le personnage soit dans le Workspace, puis `task.wait()` pour laisser passer une image. Sur le DevForum, des développeurs qui ont rencontré ce problème donnent le même conseil : attendre un court instant avant de téléporter le personnage.
+
+La documentation de `Player.RespawnLocation` cite justement « ta propre logique d’apparition avec `PivotTo` » comme solution possible. L’autre solution officielle consiste à transformer chaque checkpoint en **SpawnLocation** et à le donner à `player.RespawnLocation`. On garde ici de simples Parts : avec plusieurs SpawnLocations actives, Roblox choisit un point d’apparition au hasard parmi celles autorisées, ce qui demande des réglages supplémentaires.
 </Info>
 
 <Attention>
@@ -373,7 +378,7 @@ Ces checkpoints restent **basiques** : la progression est perdue quand le joueur
 
 <Defi>
 1. Mets en place tes checkpoints, teste-les avec une kill brick : tu dois réapparaître sur le dernier checkpoint touché. Sélectionne ton joueur dans Players pendant le test pour voir l’attribut `Etape` changer.
-2. Ajoute un **debounce par joueur** à ta kill brick pour qu’elle n’affiche qu’un seul message « Éliminé ! » par mort.
+2. Dans ton script `KillBricks`, ajoute `print("Éliminé !")` juste après `humanoid.Health = 0`, puis teste : le message ne s’affiche qu’**une fois** par mort. Explique pourquoi le test `humanoid.Health > 0` joue déjà le rôle de debounce.
 3. Bonus, la plateforme fragile : crée un dossier `PlateformesFragiles`. Quand un joueur touche une de ses Parts, elle devient transparente et traversable (`CanCollide = false`) 0,5 seconde plus tard, puis redevient normale 3 secondes après. Utilise `task.delay` et un attribut `EnCours` sur la plateforme comme debounce.
 </Defi>
 
@@ -388,11 +393,13 @@ Ces checkpoints restent **basiques** : la progression est perdue quand le joueur
 <Sources>
 - [Events — documentation Roblox](https://create.roblox.com/docs/scripting/events)
 - [Debounce patterns — documentation Roblox](https://create.roblox.com/docs/scripting/debounce)
-- [Attributes — documentation Roblox](https://create.roblox.com/docs/scripting/attributes)
+- [Properties and attributes — documentation Roblox](https://create.roblox.com/docs/scripting/attributes)
+- [Instance attributes dans la fenêtre Properties (réplication) — documentation Roblox](https://create.roblox.com/docs/studio/properties)
+- [SpawnLocation (choix aléatoire entre plusieurs points d’apparition) — référence API](https://create.roblox.com/docs/reference/engine/classes/SpawnLocation)
 - [Players (PlayerAdded, GetPlayers, GetPlayerFromCharacter) — référence API](https://create.roblox.com/docs/reference/engine/classes/Players)
-- [Player (CharacterAdded, ordre de chargement du personnage) — référence API](https://create.roblox.com/docs/reference/engine/classes/Player)
+- [Player (CharacterAdded, ordre de chargement du personnage, RespawnLocation) — référence API](https://create.roblox.com/docs/reference/engine/classes/Player)
 - [Instance (WaitForChild, FindFirstChild, SetAttribute) — référence API](https://create.roblox.com/docs/reference/engine/classes/Instance)
 - [BasePart (Touched, CanTouch) — référence API](https://create.roblox.com/docs/reference/engine/classes/BasePart)
 - [Bibliothèque task — référence API](https://create.roblox.com/docs/reference/engine/libraries/task)
-- [Fil DevForum « Checkpoint script not working » (attendre avant de replacer le personnage)](https://devforum.roblox.com/t/checkpoint-script-not-working/2030741)
+- [Fil DevForum « Checkpoint script not working » (retour de développeurs : attendre avant de replacer le personnage)](https://devforum.roblox.com/t/checkpoint-script-not-working/2030741)
 </Sources>

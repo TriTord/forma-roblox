@@ -41,7 +41,7 @@ quiz:
       - texte: "`3.4`"
     explication: "Une fonction Luau peut renvoyer **plusieurs valeurs**, séparées par des virgules. Elles sont rangées dans l’ordre : `quotient` reçoit `17 // 5 = 3` et `reste` reçoit `17 % 5 = 2`."
   - type: trouve-le-bug
-    question: "Ce Script doit faire tourner une pièce en continu. Dès le lancement, le jeu se fige puis l’Output affiche « Script timeout ». Où est le bug ?"
+    question: "Ce Script doit faire tourner une pièce en continu. Dès le lancement, le jeu se fige complètement. Où est le bug ?"
     code: |
       -- Script placé dans une Part « Piece »
       local piece = script.Parent
@@ -57,7 +57,7 @@ quiz:
         correct: true
       - texte: "Ligne 7 : `math.rad` attend des radians, pas des degrés"
       - texte: "Ligne 5 : `while true do` est interdit en Luau"
-    explication: "Une boucle infinie doit **toujours** contenir une attente (`task.wait()`). Sans elle, le script ne rend jamais la main au moteur, le jeu se fige, puis Roblox arrête le script. `task.wait()` attend environ une image et renvoie le temps réellement écoulé, idéal pour une rotation fluide. `math.rad` convertit bien des degrés en radians."
+    explication: "Une boucle infinie doit **toujours** contenir une attente (`task.wait()`). Sans elle, le script ne rend jamais la main au moteur et le jeu se fige (la documentation Roblox précise que Studio peut même planter). `task.wait()` attend environ une image et renvoie le temps réellement écoulé, idéal pour une rotation fluide. `math.rad` convertit bien des degrés en radians."
 ---
 
 Dans la leçon précédente, ton code s’exécutait une seule fois, de haut en bas. Mais un jeu passe son temps à **répéter** des actions (faire tourner une pièce, compter un chrono…) et à **réutiliser** des morceaux de code. C’est le rôle des **boucles** et des **fonctions**. À la fin de cette leçon, les pièces de l’Obby des Nuages tourneront sur elles-mêmes.
@@ -109,7 +109,7 @@ print("C'est parti !")
 `while true do` crée une boucle **infinie** : la condition est toujours vraie. C’est utile pour une action qui doit durer toute la partie (une pièce qui tourne, un événement toutes les minutes…). Mais attention : une boucle infinie doit **toujours** contenir une attente.
 
 <Erreur titre="Une boucle infinie sans task.wait">
-Sans `task.wait()` dans une boucle `while true do`, le script ne rend jamais la main au moteur de Roblox. Le jeu se fige, puis Roblox arrête le script avec une erreur « Script timeout: exhausted allowed execution time », un problème très fréquent d’après les fils d’entraide du DevForum. Règle simple : **chaque `while true do` contient un `task.wait()`**.
+Sans `task.wait()` dans une boucle `while true do`, le script ne rend jamais la main au moteur de Roblox. La documentation Roblox est claire : oublier l’attente **fige le jeu et fait planter Studio**. Sur le DevForum, des développeurs rapportent aussi l’erreur « Script timeout: exhausted allowed execution time » dans ce genre de situation. Règle simple : **chaque `while true do` contient un `task.wait()`**.
 </Erreur>
 
 ### `task.wait` plutôt que `wait`
@@ -224,7 +224,7 @@ local min, sec = convertirTemps(135)
 print(`Temps : {min} min {sec} s`) --> Temps : 2 min 15 s
 ```
 
-`return` termine immédiatement la fonction : les lignes suivantes du bloc ne sont pas exécutées. C’est pratique pour **sortir tôt** quand une condition n’est pas remplie (`if not humanoid then return end`).
+`return` termine immédiatement la fonction : la suite de la fonction n’est pas exécutée. Luau exige d’ailleurs que `return` soit la **dernière instruction de son bloc** (écrire du code entre `return` et `end` provoque une erreur). C’est pratique pour **sortir tôt** quand une condition n’est pas remplie (`if not humanoid then return end`).
 
 <Astuce titre="Une fonction = une tâche">
 Une bonne fonction fait **une seule chose** et son nom le dit : `calculerRecompense`, `teleporterAuCheckpoint`, `donnerPiece`. Si tu as du mal à la nommer sans « et », elle en fait sans doute trop : découpe-la en deux.
@@ -342,5 +342,5 @@ Faire tourner des pièces depuis un Script serveur est parfait pour apprendre. A
 - [Scope — documentation Luau de Roblox](https://create.roblox.com/docs/luau/scope)
 - [Bibliothèque task (task.wait, task.delay…) — référence API](https://create.roblox.com/docs/reference/engine/libraries/task)
 - [Syntaxe de Luau (continue, affectations composées) — luau.org](https://luau.org/syntax)
-- [Fil DevForum « Script timeout: exhausted allowed execution time »](https://devforum.roblox.com/t/script-timeout-exhausted-allowed-execution-time/2614735)
+- [Fil DevForum (retours de développeurs) sur l’erreur « Script timeout: exhausted allowed execution time »](https://devforum.roblox.com/t/how-do-i-fix-that-thing-script-timeout-exhausted-allowed-execution-time/1455348)
 </Sources>

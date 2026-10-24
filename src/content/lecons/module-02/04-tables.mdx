@@ -89,6 +89,8 @@ etapes[2] = "Mer de nuages" -- on remplace le 2e élément
 print(etapes[2])  --> Mer de nuages
 ```
 
+Garde tes tableaux **sans trous** : si tu mets `nil` au milieu d’un tableau (`etapes[2] = nil`), `#` peut renvoyer une longueur inattendue et certaines boucles s’arrêtent au trou. Pour retirer un élément, utilise plutôt `table.remove`, qui décale la suite.
+
 ### Ajouter, retirer, chercher
 
 La bibliothèque **`table`** fournit les fonctions essentielles :
@@ -265,7 +267,7 @@ Beaucoup de méthodes Roblox renvoient des tableaux. Par exemple, **`:GetChildre
 
 ### Fil rouge : un seul script pour toutes les kill bricks
 
-À la leçon 2, chaque kill brick contenait sa propre copie du script. Si tu veux changer le comportement, il faut modifier chaque copie : c’est fragile. Remplaçons-les par **un seul** Script.
+À la leçon 2, chaque kill brick contenait sa propre copie du script. Si tu veux changer le comportement, il faut modifier chaque copie : c’est fragile. La documentation Roblox conseille d’ailleurs d’éviter d’attacher des scripts directement aux objets du Workspace. Remplaçons-les par **un seul** Script.
 
 1. **Supprime** les Scripts qui se trouvent dans tes kill bricks (sinon chaque brique réagirait deux fois).
 2. Crée un **Script** nommé `KillBricks` dans **ServerScriptService** :
@@ -358,4 +360,5 @@ Ce script prend la liste des enfants à chaque tour : si une pièce est retirée
 - [Bibliothèque standard Luau (table.find, table.insert, table.remove, table.clone) — luau.org](https://luau.org/library)
 - [Syntaxe de Luau (itération générale) — luau.org](https://luau.org/syntax)
 - [Instance:GetChildren — référence API](https://create.roblox.com/docs/reference/engine/classes/Instance)
+- [Script types and locations (éviter les scripts attachés aux objets du Workspace) — documentation Roblox](https://create.roblox.com/docs/scripting/locations)
 </Sources>

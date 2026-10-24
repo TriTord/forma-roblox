@@ -133,7 +133,7 @@ questions:
     explication: "Le module s’exécute une seule fois par environnement et `require` renvoie ensuite la **même** table à tout le monde. Une modification faite par un script est donc visible des autres. C’est pourquoi on gèle souvent `Config` avec `table.freeze`."
 
   - type: trouve-le-bug
-    question: "Avec cette classe, `Plateforme.new(part):cacher()` provoque « attempt to call a nil value ». Où est le bug ?"
+    question: "Avec cette classe, `Plateforme.new(part):cacher()` provoque l’erreur « attempt to call missing method 'cacher' of table ». Où est le bug ?"
     code: |
       local Plateforme = {}
       Plateforme.__index = Plateforme
@@ -155,7 +155,7 @@ questions:
         correct: true
       - texte: "Ligne 10 : une méthode ne peut pas s’appeler `cacher`"
       - texte: "Ligne 11 : il faut écrire `Plateforme.part` au lieu de `self.part`"
-    explication: "Sans `setmetatable`, l’objet est une table ordinaire : quand on appelle `:cacher()`, la clé `cacher` est absente et Luau ne sait pas qu’il doit la chercher dans `Plateforme`. Le constructeur doit attacher la classe comme métatable."
+    explication: "Sans `setmetatable`, l’objet est une table ordinaire : quand on appelle `:cacher()`, la clé `cacher` est absente et Luau ne sait pas qu’il doit la chercher dans `Plateforme` : il signale alors une « méthode manquante ». Le constructeur doit attacher la classe comme métatable."
 
   - type: qcm
     question: "Dans `local function soigner(humanoid: Humanoid, montant: number?)`, que signifie `number?` ?"

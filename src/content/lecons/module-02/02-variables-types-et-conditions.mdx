@@ -96,6 +96,10 @@ Les règles de Luau :
 
 Dans cette formation, on écrit les noms en **camelCase** (`nombreEtapes`, `vitesseRotation`), en français et **sans accents** (évite `étape` comme nom de variable). Les constantes, des valeurs qu’on ne change jamais, s’écrivent souvent en MAJUSCULES : `VALEUR_PIECE`.
 
+<Info>
+La documentation Roblox présente aussi le mot-clé **`const`** (`const VALEUR_PIECE = 1`) : il crée une variable locale qu’on ne peut plus réaffecter. Dans cette formation, on garde `local` et les MAJUSCULES, que tu retrouveras dans la grande majorité des tutoriels.
+</Info>
+
 <Astuce titre="Un nom qui explique tout">
 Préfère `tempsAvantReapparition` à `t` ou `x`. Un bon nom remplace un commentaire. Tu dois pouvoir comprendre une ligne de code sans relire les vingt précédentes.
 </Astuce>
@@ -176,7 +180,7 @@ print("Longueur du pseudo : " .. #pseudo)         --> Longueur du pseudo : 3
 print("Étape suivante : " .. tostring(etape + 1)) --> Étape suivante : 4
 ```
 
-`..` n’ajoute **pas** d’espace : pense à les mettre dans tes textes. Le `#` devant un texte donne son nombre de caractères. `tostring` convertit une valeur en texte, et `tonumber` fait l’inverse (il renvoie `nil` si le texte n’est pas un nombre) : `tonumber("12")` vaut `12`.
+`..` n’ajoute **pas** d’espace : pense à les mettre dans tes textes. Le `#` devant un texte donne sa longueur en **octets** : c’est le nombre de caractères tant que le texte n’a pas d’accents (`#"Lea"` vaut 3), mais une lettre accentuée compte pour 2 (`#"Étape"` vaut 6). `tostring` convertit une valeur en texte, et `tonumber` fait l’inverse (il renvoie `nil` si le texte n’est pas un nombre) : `tonumber("12")` vaut `12`.
 
 ### L’interpolation avec les accents graves
 
@@ -190,7 +194,7 @@ print(`{pseudo} est à l'étape {etape}`)         --> Lea est à l'étape 3
 print(`Prochaine étape : {etape + 1} sur 10`)   --> Prochaine étape : 4 sur 10
 ```
 
-Tu peux mettre n’importe quel calcul entre les accolades. Seule contrainte : pour passer un texte à accents graves à une fonction, garde toujours les parenthèses, comme ci-dessus.
+Tu peux mettre n’importe quel calcul entre les accolades. Deux contraintes : pour passer un texte à accents graves à une fonction, garde toujours les parenthèses, comme ci-dessus ; et pour afficher une vraie accolade, échappe-la avec une barre oblique inverse (`\{`).
 
 ## Comparer des valeurs
 
@@ -327,7 +331,8 @@ D’après la documentation Roblox, mettre `Health` à `0` fait passer le Humano
 </Resume>
 
 <Sources>
-- [Variables — documentation Luau de Roblox](https://create.roblox.com/docs/luau/variables)
+- [Variables (mots réservés, local, const) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/variables)
+- [Scope (variables locales plus rapides, libérées en fin de bloc) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/scope)
 - [Operators — documentation Luau de Roblox](https://create.roblox.com/docs/luau/operators)
 - [Strings — documentation Luau de Roblox](https://create.roblox.com/docs/luau/strings)
 - [Syntaxe de Luau (interpolation, expressions if, affectations composées) — luau.org](https://luau.org/syntax)
