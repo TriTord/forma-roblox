@@ -67,13 +67,13 @@ Objectif : apprendre à créer un jeu Roblox en pilotant des IA de code (surtout
 ## Suivi
 | Lot | Rédaction | Vérif passe 1 | Vérif passe 2 |
 |---|---|---|---|
-| 02/01-02 (R1) | EN COURS | | |
-| 02/03-04 (R2) | EN COURS | | |
-| 02/05-06 (R3) | EN COURS | | |
+| 02/01-02 (R1) | FAIT | EN COURS | |
+| 02/03-04 (R2) | FAIT | EN COURS | |
+| 02/05-06 (R3) | FAIT | EN COURS | |
 | 02/07-09 (R4) | EN COURS | | |
 | 02/10 (R5) | EN COURS | | |
-| Module 03 (A1) | EN COURS | | |
-| Modules 04-05 (A2) | EN COURS | | |
-| Modules 06-08 (A3) | EN COURS | | |
-| Modules 01, 09-11 (A4) | EN COURS | | |
-| Accueil, FAQ, 00 (A5) | EN COURS | | |
+| Module 03 (A1) | FAIT | EN COURS | |
+| Modules 04-05 (A2) | FAIT | EN COURS | |
+| Modules 06-08 (A3) | FAIT | EN COURS | |
+| Modules 01, 09-11 (A4) | FAIT | EN COURS | |
+| Accueil, FAQ, 00 (A5) | FAIT | EN COURS | |
