@@ -1,0 +1,27 @@
+---
+interface Props {
+  elements: { texte: string; href?: string }[];
+}
+const { elements } = Astro.props;
+---
+
+<nav aria-label="Fil d’Ariane" class="mb-6 text-sm text-slate-600 dark:text-slate-400" data-testid="fil-ariane">
+  <ol class="flex flex-wrap items-center gap-x-2 gap-y-1">
+    {
+      elements.map((e, i) => (
+        <li class="flex items-center gap-2">
+          {i > 0 && <span aria-hidden="true">/</span>}
+          {e.href ? (
+            <a href={e.href} class="hover:text-indigo-700 hover:underline dark:hover:text-indigo-300">
+              {e.texte}
+            </a>
+          ) : (
+            <span aria-current="page" class="text-slate-900 dark:text-slate-200">
+              {e.texte}
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

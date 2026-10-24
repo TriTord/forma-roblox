@@ -1,0 +1,40 @@
+---
+/** Barre de progression mise à jour côté client (scripts/progression-ui.ts). */
+interface Props {
+  portee: 'globale' | 'module';
+  module?: string;
+  libelle: string;
+  /** Affiche le texte « x / y leçons terminées » et le pourcentage. */
+  details?: boolean;
+  class?: string;
+}
+const { portee, module, libelle, details = true, class: classe } = Astro.props;
+const testid = portee === 'globale' ? 'progress-global' : `progress-module-${module}`;
+---
+
+<div
+  class:list={['barre', classe]}
+  role="progressbar"
+  aria-label={libelle}
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-valuenow="0"
+  data-barre-progression
+  data-portee={portee}
+  data-module={module}
+  data-testid={testid}
+>
+  {
+    details && (
+      <div class="mb-1.5 flex items-baseline justify-between gap-3 text-sm" aria-hidden="true">
+        <span class="text-slate-600 dark:text-slate-400" data-progression-texte>
+          Progression enregistrée dans ce navigateur
+        </span>
+        <span class="font-semibold tabular-nums text-slate-900 dark:text-white" data-progression-pct>
+          0 %
+        </span>
+      </div>
+    )
+  }
+  <div class="barre-piste"><div class="barre-remplissage"></div></div>
+</div>

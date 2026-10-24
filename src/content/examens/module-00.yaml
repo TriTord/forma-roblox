@@ -1,0 +1,57 @@
+# Examen du module 00 — GABARIT à réécrire par le rédacteur du module.
+# Format : voir AUTHORING.md, section « Examens ».
+module: "00"
+titre: Examen du module 0
+seuil: 70
+questions:
+  - type: qcm
+    question: Quel est le projet construit au fil de la formation ?
+    options:
+      - texte: Un jeu de course de voitures
+      - texte: Un obby avec pièces et boutique, l’Obby des Nuages
+        correct: true
+      - texte: Un jeu de rôle médiéval
+    explication: Le fil rouge est l’**Obby des Nuages**, un parcours d’obstacles avec des pièces à collecter et une petite boutique.
+
+  - type: vrai-faux
+    question: Il faut avoir déjà programmé pour suivre cette formation.
+    reponse: false
+    explication: La formation part de zéro ; le module 2 introduit Luau pas à pas.
+
+  - type: qcm
+    question: Quels éléments trouve-t-on dans chaque leçon ? (plusieurs réponses possibles)
+    options:
+      - texte: Un résumé de fin de leçon
+        correct: true
+      - texte: Une liste de sources
+        correct: true
+      - texte: Un quiz
+        correct: true
+      - texte: Une vidéo obligatoire
+    explication: Chaque leçon contient des explications, du code commenté, un résumé, des sources et un quiz. Il n’y a pas de vidéo obligatoire.
+
+  - type: vrai-faux
+    question: Réussir l’examen d’un module débloque un badge.
+    reponse: true
+    explication: Chaque examen réussi (au moins 70 %) débloque le badge du module, visible sur la page « Ma progression ».
+
+  - type: trouve-le-bug
+    question: "Ce script doit afficher « Partie lancée ! » dans la sortie. Pourquoi ne fonctionne-t-il pas ?"
+    code: |
+      local message = "Partie lancée !"
+      prnt(message)
+    options:
+      - texte: "Ligne 1 : il manque un point-virgule à la fin"
+      - texte: "Ligne 2 : la fonction s’appelle `print`, pas `prnt`"
+        correct: true
+      - texte: "Ligne 1 : les textes doivent être entre apostrophes `'…'`"
+    explication: "`prnt` n’existe pas : Luau signale une erreur car cette fonction est inconnue. Les points-virgules sont facultatifs en Luau, et les guillemets doubles comme simples sont acceptés."
+
+  - type: qcm
+    question: Où est enregistrée ta progression dans la formation ?
+    options:
+      - texte: Sur ton compte Roblox
+      - texte: Dans le stockage local de ton navigateur
+        correct: true
+      - texte: Sur un serveur de la formation
+    explication: La progression reste dans ton navigateur, sur cet appareil. Aucun compte n’est nécessaire et aucune donnée n’est envoyée.

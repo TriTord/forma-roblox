@@ -1,0 +1,11 @@
+---
+/** Liste des sources en bas de leçon. Contenu attendu : une liste Markdown de liens. */
+interface Props { titre?: string }
+const { titre = 'Sources et pour aller plus loin' } = Astro.props;
+---
+<section class="sources" data-testid="sources" aria-labelledby="sources-titre">
+  <h2 id="sources-titre" class="sources-titre"><span aria-hidden="true">📚</span> {titre}</h2>
+  <div class="sources-liste">
+    <slot />
+  </div>
+</section>

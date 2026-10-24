@@ -1,0 +1,70 @@
+---
+import FilAriane from '~/components/layout/FilAriane.astro';
+import Quiz from '~/components/quiz/Quiz.astro';
+import { lien } from '~/data/site';
+import CoursLayout from '~/layouts/CoursLayout.astro';
+import { getModules, type ModuleAvecLecons } from '~/lib/cours';
+
+// Une page par module, même sans examen (message « en préparation »).
+export async function getStaticPaths() {
+  const modules = await getModules();
+  return modules.map((module) => ({ params: { module: module.numero }, props: { module } }));
+}
+
+interface Props {
+  module: ModuleAvecLecons;
+}
+const { module } = Astro.props;
+const examen = module.examen?.data;
+const titre = examen?.titre ?? `Examen du module ${module.numero}`;
+---
+
+<CoursLayout titre={`${titre} : ${module.titreCourt}`} description={`Examen final du module ${module.numero} : ${module.titre}.`} moduleActif={module.numero} examenActif>
+  <div class="mx-auto max-w-3xl">
+    <FilAriane
+      elements={[
+        { texte: 'Programme', href: lien('/programme/') },
+        { texte: `Module ${module.numero}`, href: module.url },
+        { texte: 'Examen' },
+      ]}
+    />
+    <header>
+      <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+        <span aria-hidden="true">{module.emoji}</span> Module {module.numero} · {module.titreCourt}
+      </p>
+      <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{titre}</h1>
+      {
+        examen ? (
+          <p class="mt-3 text-lg text-slate-600 dark:text-slate-300">
+            {examen.description ??
+              `Réponds aux ${examen.questions.length} questions puis corrige. Il faut au moins ${examen.seuil} % pour réussir et débloquer le badge « ${module.badge.nom} ». Tu peux le repasser autant de fois que tu veux.`}
+          </p>
+        ) : (
+          <p class="mt-3 text-lg text-slate-600 dark:text-slate-300" data-testid="examen-vide">
+            L’examen de ce module est en préparation.
+          </p>
+        )
+      }
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        Ton meilleur résultat : <span data-resultat-examen={module.numero}>Pas encore tenté</span>
+      </p>
+    </header>
+
+    {
+      examen && (
+        <Quiz
+          questions={examen.questions}
+          mode="examen"
+          idQuiz={`examen-${module.numero}`}
+          titre="Questions de l’examen"
+          seuil={examen.seuil}
+          module={module.numero}
+        />
+      )
+    }
+
+    <p class="mt-10">
+      <a href={module.url} class="font-semibold text-indigo-700 hover:underline dark:text-indigo-300">← Retour au module {module.numero}</a>
+    </p>
+  </div>
+</CoursLayout>

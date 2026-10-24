@@ -1,0 +1,62 @@
+---
+import '~/styles/global.css';
+import Footer from '~/components/layout/Footer.astro';
+import Header from '~/components/layout/Header.astro';
+import { SITE, lien } from '~/data/site';
+import { getCatalogueClient } from '~/lib/cours';
+
+interface Props {
+  /** Titre de la page (sans le nom du site). Omettre pour l'accueil. */
+  titre?: string;
+  description?: string;
+  boutonSommaire?: boolean;
+}
+// Recherche : seuls les éléments marqués data-pagefind-body (contenu des leçons et des modules) sont indexés.
+const { titre, description = SITE.description, boutonSommaire = false } = Astro.props;
+const titreComplet = titre ? `${titre} · ${SITE.nom}` : `${SITE.titre} · ${SITE.nom}`;
+const catalogue = await getCatalogueClient();
+const canonique = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titreComplet}</title>
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="icon" type="image/svg+xml" href={lien('/favicon.svg')} />
+    {canonique && <link rel="canonical" href={canonique} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:title" content={titreComplet} />
+    <meta property="og:description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <!-- Thème posé avant le premier rendu pour éviter tout flash. -->
+    <script is:inline>
+      (function () {
+        var sombre;
+        try {
+          var choix = localStorage.getItem('forma-roblox:theme');
+          sombre = choix ? choix === 'sombre' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        } catch (e) {
+          sombre = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        if (sombre) document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body class="flex min-h-dvh flex-col">
+    <Header boutonSommaire={boutonSommaire} />
+    <div id="contenu" class="flex-1" tabindex="-1">
+      <slot />
+    </div>
+    <Footer />
+    <script id="catalogue-formation" type="application/json" set:html={JSON.stringify(catalogue).replace(/</g, '\\u003c')} />
+    <script>
+      import '~/scripts/progression-ui';
+    </script>
+  </body>
+</html>

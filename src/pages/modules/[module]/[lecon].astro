@@ -1,0 +1,115 @@
+---
+import { render } from 'astro:content';
+import BarreProgression from '~/components/layout/BarreProgression.astro';
+import FilAriane from '~/components/layout/FilAriane.astro';
+import PrevNext from '~/components/layout/PrevNext.astro';
+import Toc from '~/components/layout/Toc.astro';
+import { composantsMdx } from '~/components/mdx';
+import Quiz from '~/components/quiz/Quiz.astro';
+import { SEUIL_QUIZ, lien } from '~/data/site';
+import CoursLayout from '~/layouts/CoursLayout.astro';
+import { formaterDuree, getLecons, getModules, getVoisins, type Lecon } from '~/lib/cours';
+
+export async function getStaticPaths() {
+  const lecons = await getLecons();
+  return lecons.map((lecon) => ({ params: { module: lecon.module, lecon: lecon.slug }, props: { lecon } }));
+}
+
+interface Props {
+  lecon: Lecon;
+}
+const { lecon } = Astro.props;
+const { data } = lecon.entry;
+const { Content, headings } = await render(lecon.entry);
+const module = (await getModules()).find((m) => m.numero === lecon.module)!;
+const { precedente, suivante } = await getVoisins(lecon.id);
+const position = module.lecons.findIndex((l) => l.id === lecon.id) + 1;
+const derniereDuModule = position === module.lecons.length;
+const dateMaj = data.miseAJour?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+---
+
+<CoursLayout titre={data.titre} description={data.description} moduleActif={lecon.module} leconActive={lecon.id}>
+  <div class="mx-auto max-w-3xl">
+    <FilAriane
+      elements={[
+        { texte: 'Programme', href: lien('/programme/') },
+        { texte: `Module ${module.numero}`, href: module.url },
+        { texte: data.titre },
+      ]}
+    />
+
+    <article data-pagefind-body data-testid="lecon">
+      <header class="mb-8">
+        <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300" data-pagefind-ignore>
+          <span aria-hidden="true">{module.emoji}</span> Module {module.numero} · Leçon {position} sur {module.lecons.length}
+        </p>
+        <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-balance text-slate-900 sm:text-4xl dark:text-white">
+          {data.titre}
+        </h1>
+        <p class="mt-3 text-lg text-slate-600 dark:text-slate-300">{data.description}</p>
+        <ul class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600 dark:text-slate-400" data-pagefind-ignore>
+          <li>⏱️ {formaterDuree(data.duree)}</li>
+          <li>📝 Quiz de {data.quiz.length} questions</li>
+          {dateMaj && <li>🔄 Vérifié le {dateMaj}</li>}
+          <li class="hidden items-center gap-1.5 font-semibold text-emerald-700 data-[termine=true]:flex dark:text-emerald-400" data-statut-lecon={lecon.id}>
+            <span class="pastille" aria-hidden="true">✓</span>
+            <span class="sr-only" data-statut-texte></span>
+            <span aria-hidden="true">Terminée</span>
+          </li>
+        </ul>
+      </header>
+
+      <div class="mb-8" data-pagefind-ignore>
+        <Toc headings={headings} variante="mobile" />
+      </div>
+
+      <section class="mb-10 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 dark:border-indigo-900 dark:bg-indigo-950/40" aria-labelledby="objectifs-titre" data-testid="objectifs">
+        <h2 id="objectifs-titre" class="font-bold text-slate-900 dark:text-white">🎯 Dans cette leçon, tu vas apprendre à…</h2>
+        <ul class="mt-3 list-disc space-y-1 pl-5 text-slate-700 marker:text-indigo-500 dark:text-slate-300">
+          {data.objectifs.map((o) => <li>{o}</li>)}
+        </ul>
+      </section>
+
+      <div
+        class="prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-headings:tracking-tight prose-a:text-indigo-700 prose-a:underline-offset-2 dark:prose-a:text-indigo-300 prose-pre:bg-transparent prose-pre:p-0"
+      >
+        <Content components={composantsMdx} />
+      </div>
+    </article>
+
+    <div id="quiz" class="scroll-mt-20">
+      <Quiz
+        questions={data.quiz}
+        mode="lecon"
+        idQuiz={`quiz-${lecon.id}`}
+        titre="Quiz : vérifie tes acquis"
+        seuil={SEUIL_QUIZ}
+        leconId={lecon.id}
+      />
+    </div>
+
+    <div class="mt-10 flex flex-col items-start gap-4 rounded-2xl border border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+      <div class="w-full sm:max-w-xs">
+        <BarreProgression portee="module" module={module.numero} libelle={`Progression dans le module ${module.numero}`} />
+      </div>
+      <button type="button" class="bouton bouton-primaire" data-bouton-terminer data-lecon-id={lecon.id} aria-pressed="false" data-testid="lecon-terminer">
+        <span aria-hidden="true">✓</span>
+        <span data-libelle>Marquer comme terminée</span>
+      </button>
+    </div>
+
+    {
+      derniereDuModule && module.examen && (
+        <aside class="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-700 dark:bg-amber-950/30" aria-label="Fin du module">
+          <p class="font-bold text-slate-900 dark:text-white">🏁 Tu as atteint la fin du module {module.numero} !</p>
+          <p class="mt-1 text-slate-700 dark:text-slate-300">Passe l’examen pour valider tes acquis et débloquer le badge « {module.badge.nom} ».</p>
+          <a href={module.urlExamen} class="bouton bouton-primaire mt-4" data-testid="lien-examen">Passer l’examen du module</a>
+        </aside>
+      )
+    }
+
+    <PrevNext precedente={precedente} suivante={suivante} />
+  </div>
+
+  <Toc slot="droite" headings={headings} variante="laterale" />
+</CoursLayout>

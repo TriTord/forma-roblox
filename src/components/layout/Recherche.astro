@@ -1,0 +1,105 @@
+---
+/**
+ * Recherche plein texte Pagefind dans une boîte de dialogue.
+ * L'index est généré après `astro build` (commande `pagefind --site dist`) : la recherche
+ * fonctionne avec `npm run build` puis `npm run preview`, pas avec `npm run dev`.
+ */
+import { lien } from '~/data/site';
+const basePagefind = lien('/pagefind/');
+---
+
+<button
+  type="button"
+  class="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm text-slate-600 hover:border-indigo-500 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-indigo-400 dark:hover:text-white"
+  data-ouvrir-recherche
+  data-testid="search-open"
+  aria-haspopup="dialog"
+  aria-controls="recherche"
+>
+  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+    ><circle cx="11" cy="11" r="7"></circle><path stroke-linecap="round" d="m20 20-3.5-3.5"></path></svg
+  >
+  <span class="max-sm:sr-only">Rechercher</span>
+  <kbd class="hidden rounded border border-slate-300 px-1.5 font-sans text-xs text-slate-500 md:inline dark:border-slate-600 dark:text-slate-400">Ctrl K</kbd>
+</button>
+
+<dialog
+  id="recherche"
+  class="m-auto mt-[8vh] max-h-[80vh] w-[min(42rem,calc(100vw-2rem))] rounded-2xl bg-white p-0 text-slate-800 shadow-2xl dark:bg-slate-900 dark:text-slate-100"
+  aria-labelledby="recherche-titre"
+  data-base={basePagefind}
+  data-testid="search-dialog"
+>
+  <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-800">
+    <h2 id="recherche-titre" class="text-base font-bold">Rechercher dans la formation</h2>
+    <form method="dialog">
+      <button class="rounded-lg px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+        Fermer <kbd class="text-xs" aria-hidden="true">Échap</kbd>
+      </button>
+    </form>
+  </div>
+  <div class="overflow-y-auto p-5" style="max-height: calc(80vh - 3.5rem)">
+    <div id="pagefind-ui" data-testid="search-ui"></div>
+    <p class="text-sm text-slate-600 dark:text-slate-400" data-recherche-indisponible hidden>
+      La recherche n’est disponible que sur le site construit (<code>npm run build</code> puis <code>npm run preview</code>).
+    </p>
+  </div>
+</dialog>
+
+<script>
+  type PagefindUIConstructeur = new (options: Record<string, unknown>) => unknown;
+
+  const dialogue = document.getElementById('recherche') as HTMLDialogElement | null;
+  let chargement: Promise<void> | undefined;
+
+  function chargerPagefind(base: string): Promise<void> {
+    chargement ??= new Promise<void>((resolve, reject) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = `${base}pagefind-ui.css`;
+      document.head.append(css);
+      const script = document.createElement('script');
+      script.src = `${base}pagefind-ui.js`;
+      script.onload = () => {
+        const PagefindUI = (window as unknown as { PagefindUI?: PagefindUIConstructeur }).PagefindUI;
+        if (!PagefindUI) return reject(new Error('PagefindUI absent'));
+        new PagefindUI({ element: '#pagefind-ui', showSubResults: true, showImages: false, autofocus: true });
+        resolve();
+      };
+      script.onerror = () => {
+        chargement = undefined;
+        reject(new Error('Index de recherche introuvable'));
+      };
+      document.head.append(script);
+    });
+    return chargement;
+  }
+
+  async function ouvrir() {
+    if (!dialogue) return;
+    if (!dialogue.open) dialogue.showModal();
+    try {
+      await chargerPagefind(dialogue.dataset.base ?? '/pagefind/');
+      dialogue.querySelector<HTMLInputElement>('#pagefind-ui input')?.focus();
+    } catch {
+      const message = dialogue.querySelector<HTMLElement>('[data-recherche-indisponible]');
+      if (message) message.hidden = false;
+    }
+  }
+
+  document.querySelectorAll('[data-ouvrir-recherche]').forEach((b) => b.addEventListener('click', ouvrir));
+
+  document.addEventListener('keydown', (e) => {
+    const cible = e.target as HTMLElement | null;
+    const enSaisie = Boolean(cible?.closest('input, textarea, select, [contenteditable="true"]'));
+    if ((e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) || (e.key === '/' && !enSaisie)) {
+      e.preventDefault();
+      ouvrir();
+    }
+  });
+
+  // Ferme la boîte de dialogue en cliquant sur le fond.
+  dialogue?.addEventListener('click', (e) => {
+    if (e.target === dialogue) dialogue.close();
+  });
+</script>

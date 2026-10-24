@@ -1,0 +1,18 @@
+---
+import { lien } from '~/data/site';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+---
+
+<BaseLayout titre="Page introuvable">
+  <main class="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6">
+    <p class="text-6xl" aria-hidden="true">🧱</p>
+    <h1 class="mt-6 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">Cette page n’existe pas (encore)</h1>
+    <p class="mt-4 text-lg text-slate-600 dark:text-slate-300">
+      Elle a peut-être été déplacée, ou la leçon est encore en préparation.
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href={lien('/')} class="bouton bouton-primaire">Retour à l’accueil</a>
+      <a href={lien('/programme/')} class="bouton bouton-secondaire">Voir le programme</a>
+    </div>
+  </main>
+</BaseLayout>

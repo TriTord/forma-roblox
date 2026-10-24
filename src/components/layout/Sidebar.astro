@@ -1,0 +1,144 @@
+---
+/**
+ * Sommaire latéral : modules → leçons → examen.
+ * Colonne fixe dès 1024 px ; tiroir ouvert par le bouton « Sommaire » de l'en-tête en dessous.
+ */
+import { getModules } from '~/lib/cours';
+import BarreProgression from './BarreProgression.astro';
+
+interface Props {
+  moduleActif?: string;
+  leconActive?: string;
+  examenActif?: boolean;
+}
+const { moduleActif, leconActive, examenActif = false } = Astro.props;
+const modules = await getModules();
+---
+
+<div
+  class="fixed inset-0 z-40 bg-slate-950/50 opacity-0 transition-opacity data-[ouvert=true]:opacity-100 max-lg:pointer-events-none max-lg:data-[ouvert=true]:pointer-events-auto lg:hidden"
+  data-fond-sommaire
+  aria-hidden="true"
+>
+</div>
+<aside
+  id="sommaire"
+  class="fixed inset-y-0 left-0 z-50 w-[min(20rem,85vw)] overflow-y-auto border-r border-slate-200 bg-white px-4 pb-10 pt-4 transition-transform duration-200 max-lg:invisible max-lg:-translate-x-full max-lg:data-[ouvert=true]:visible max-lg:data-[ouvert=true]:translate-x-0 lg:sticky lg:top-16 lg:z-0 lg:h-[calc(100dvh-4rem)] lg:w-72 lg:shrink-0 lg:bg-transparent lg:pt-8 dark:border-slate-800 dark:bg-slate-950 lg:dark:bg-transparent"
+  aria-label="Sommaire de la formation"
+  data-sommaire
+  data-testid="sidebar"
+>
+  <div class="mb-4 flex items-center justify-between lg:hidden">
+    <p class="font-bold text-slate-900 dark:text-white">Sommaire</p>
+    <button
+      type="button"
+      class="inline-flex size-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+      data-fermer-sommaire
+      aria-label="Fermer le sommaire"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" d="M6 6l12 12M18 6 6 18"></path>
+      </svg>
+    </button>
+  </div>
+
+  <BarreProgression portee="globale" libelle="Progression dans la formation" class="mb-6" />
+
+  <nav aria-label="Modules et leçons">
+    <ul class="space-y-1">
+      {
+        modules.map((m) => (
+          <li>
+            <details class="group" open={m.numero === moduleActif}>
+              <summary class="flex cursor-pointer list-none items-start gap-2 rounded-lg px-2 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800 [&::-webkit-details-marker]:hidden">
+                <span aria-hidden="true">{m.emoji}</span>
+                <span class="flex-1">
+                  <span class="text-slate-500 tabular-nums dark:text-slate-400">{m.numero}</span> {m.titreCourt}
+                </span>
+                <svg class="mt-0.5 size-4 shrink-0 transition-transform group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m9 6 6 6-6 6" />
+                </svg>
+              </summary>
+              <ul class="mb-2 ml-3 mt-1 space-y-0.5 border-l border-slate-200 pl-2 dark:border-slate-800">
+                <li>
+                  <a
+                    href={m.url}
+                    class="block rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200"
+                    aria-current={m.numero === moduleActif && !leconActive && !examenActif ? 'page' : undefined}
+                  >
+                    Présentation du module
+                  </a>
+                </li>
+                {m.lecons.length === 0 && <li class="px-2 py-1.5 text-sm italic text-slate-500 dark:text-slate-400">Leçons en préparation</li>}
+                {m.lecons.map((l) => (
+                  <li>
+                    <a
+                      href={l.url}
+                      class="flex items-start gap-2 rounded-md px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-indigo-50 aria-[current=page]:font-semibold aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200"
+                      aria-current={l.id === leconActive ? 'page' : undefined}
+                      data-statut-lecon={l.id}
+                    >
+                      <span class="pastille mt-0.5" aria-hidden="true">✓</span>
+                      <span>
+                        {l.entry.data.titre}
+                        <span class="sr-only" data-statut-texte />
+                      </span>
+                    </a>
+                  </li>
+                ))}
+                {m.examen && (
+                  <li>
+                    <a
+                      href={m.urlExamen}
+                      class="flex items-start gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-indigo-50 aria-[current=page]:text-indigo-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-indigo-950 dark:aria-[current=page]:text-indigo-200"
+                      aria-current={m.numero === moduleActif && examenActif ? 'page' : undefined}
+                      data-statut-examen={m.numero}
+                    >
+                      <span class="pastille mt-0.5" aria-hidden="true">✓</span>
+                      <span>
+                        Examen du module
+                        <span class="sr-only" data-statut-texte />
+                      </span>
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </details>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</aside>
+
+<script>
+  const sommaire = document.querySelector<HTMLElement>('[data-sommaire]');
+  const fond = document.querySelector<HTMLElement>('[data-fond-sommaire]');
+  const ouvrirBtn = document.querySelector<HTMLButtonElement>('[data-ouvrir-sommaire]');
+  const fermerBtn = document.querySelector<HTMLButtonElement>('[data-fermer-sommaire]');
+
+  function basculer(ouvert: boolean) {
+    if (!sommaire) return;
+    sommaire.dataset.ouvert = String(ouvert);
+    if (fond) fond.dataset.ouvert = String(ouvert);
+    ouvrirBtn?.setAttribute('aria-expanded', String(ouvert));
+    document.body.classList.toggle('max-lg:overflow-hidden', ouvert);
+    if (ouvert) {
+      (sommaire.querySelector<HTMLElement>('[aria-current="page"]') ?? fermerBtn)?.focus();
+    } else {
+      ouvrirBtn?.focus();
+    }
+  }
+
+  ouvrirBtn?.addEventListener('click', () => basculer(true));
+  fermerBtn?.addEventListener('click', () => basculer(false));
+  fond?.addEventListener('click', () => basculer(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sommaire?.dataset.ouvert === 'true') basculer(false);
+  });
+  // Ramène l'élément actif dans la zone visible du sommaire (grand écran).
+  const actif = sommaire?.querySelector<HTMLElement>('[aria-current="page"]');
+  if (sommaire && actif && actif.offsetTop > sommaire.clientHeight * 0.6) {
+    sommaire.scrollTop = actif.offsetTop - sommaire.clientHeight / 2;
+  }
+</script>

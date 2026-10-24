@@ -1,0 +1,6 @@
+---
+import Encadre from './Encadre.astro';
+interface Props { titre?: string }
+const { titre = 'Attention' } = Astro.props;
+---
+<Encadre variante="attention" titre={titre} icone="⚠️"><slot /></Encadre>

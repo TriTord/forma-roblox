@@ -1,0 +1,46 @@
+---
+/** Liens « leçon précédente / suivante » (traversent les modules). */
+import type { Lecon } from '~/lib/cours';
+
+interface Props {
+  precedente?: Lecon;
+  suivante?: Lecon;
+  /** Lien de repli quand il n'y a pas de leçon suivante (ex. examen du module). */
+  suivanteRepli?: { url: string; titre: string; surtitre: string };
+}
+const { precedente, suivante, suivanteRepli } = Astro.props;
+const suite = suivante
+  ? {
+      url: suivante.url,
+      titre: suivante.entry.data.titre,
+      surtitre: `Leçon suivante · module ${suivante.module}`,
+    }
+  : suivanteRepli;
+const carte =
+  'group flex flex-col gap-1 rounded-xl border border-slate-200 p-4 hover:border-indigo-500 hover:bg-indigo-50/50 dark:border-slate-800 dark:hover:border-indigo-400 dark:hover:bg-indigo-950/30';
+---
+
+<nav aria-label="Navigation entre les leçons" class="mt-12 grid gap-4 sm:grid-cols-2" data-testid="prev-next">
+  {
+    precedente ? (
+      <a href={precedente.url} class={carte} rel="prev" data-testid="lecon-precedente">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">← Leçon précédente</span>
+        <span class="font-semibold text-slate-900 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-300">
+          {precedente.entry.data.titre}
+        </span>
+      </a>
+    ) : (
+      <span />
+    )
+  }
+  {
+    suite && (
+      <a href={suite.url} class:list={[carte, 'sm:text-right']} rel="next" data-testid="lecon-suivante">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{suite.surtitre} →</span>
+        <span class="font-semibold text-slate-900 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-300">
+          {suite.titre}
+        </span>
+      </a>
+    )
+  }
+</nav>

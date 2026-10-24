@@ -1,0 +1,36 @@
+---
+/**
+ * Mise en page des pages de cours (module, leçon, examen) :
+ * sommaire latéral + contenu central + colonne optionnelle à droite (slot « droite », ex. table des matières).
+ */
+import Sidebar from '~/components/layout/Sidebar.astro';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  titre: string;
+  description?: string;
+  moduleActif?: string;
+  leconActive?: string;
+  examenActif?: boolean;
+}
+const { titre, description, moduleActif, leconActive, examenActif } = Astro.props;
+const aDroite = Astro.slots.has('droite');
+---
+
+<BaseLayout titre={titre} description={description} boutonSommaire>
+  <div class="mx-auto flex max-w-7xl gap-8 px-4 sm:px-6 lg:px-8">
+    <Sidebar moduleActif={moduleActif} leconActive={leconActive} examenActif={examenActif} />
+    <main class="min-w-0 flex-1 py-8 lg:py-10">
+      <slot />
+    </main>
+    {
+      aDroite && (
+        <div class="hidden w-56 shrink-0 xl:block">
+          <div class="sticky top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto py-10">
+            <slot name="droite" />
+          </div>
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>

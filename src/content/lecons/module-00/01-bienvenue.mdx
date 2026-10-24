@@ -1,0 +1,136 @@
+---
+titre: Bienvenue dans la formation
+description: Comment fonctionne cette formation, ce que tu vas construire, et comment en tirer le maximum, même si tu pars de zéro.
+duree: 10
+objectifs:
+  - Comprendre comment la formation est organisée (modules, leçons, quiz, examens)
+  - Découvrir le projet fil rouge, l’Obby des Nuages
+  - Savoir comment suivre ta progression et gagner des badges
+quiz:
+  - type: qcm
+    question: Combien de modules compte la formation, en comptant le module 0 ?
+    options:
+      - texte: "5"
+      - texte: "10"
+      - texte: "11"
+        correct: true
+      - texte: "20"
+    explication: Les modules vont de 0 à 10, soit **11 modules** au total. Le module 0 pose les bases avant d’ouvrir Roblox Studio.
+  - type: qcm
+    question: Qu’est-ce qui marque automatiquement une leçon comme terminée ? (plusieurs réponses possibles)
+    options:
+      - texte: Réussir le quiz de fin de leçon (au moins 70 %)
+        correct: true
+      - texte: Cliquer sur le bouton « Marquer comme terminée »
+        correct: true
+      - texte: Lire la leçon jusqu’en bas de la page
+      - texte: Ouvrir la leçon suivante
+    explication: Une leçon est terminée quand tu réussis son quiz **ou** quand tu cliques sur le bouton prévu. Faire défiler la page ne suffit pas.
+  - type: vrai-faux
+    question: Ta progression est sauvegardée sur un serveur et te suit sur tous tes appareils.
+    reponse: false
+    explication: La progression est enregistrée uniquement dans ton navigateur (stockage local). Sur un autre appareil ou un autre navigateur, tu repars de zéro.
+  - type: trouve-le-bug
+    question: "Ce script doit afficher un message de bienvenue quand un joueur rejoint la partie. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      local function accueillir(player)
+      	local message = "Bienvenue, " + player.Name
+      	print(message)
+      end
+
+      Players.PlayerAdded:Connect(accueillir)
+    options:
+      - texte: "Ligne 1 : il faut écrire `game.Players`, `GetService` n’existe pas"
+      - texte: "Ligne 4 : en Luau, on colle deux textes avec `..`, pas avec `+`"
+        correct: true
+      - texte: "Ligne 8 : il faut écrire `accueillir()` avec des parenthèses"
+      - texte: Il n’y a aucun bug
+    explication: "En Luau, `+` sert aux additions de nombres. Pour coller (concaténer) deux textes, on utilise `..` : `\"Bienvenue, \" .. player.Name`. À la ligne 8, on passe bien la fonction elle-même, sans parenthèses."
+---
+
+Salut et bienvenue ! 👋 Tu es sur le point d’apprendre à créer un jeu Roblox **complet** : le construire, le programmer, le rendre amusant, le publier et l’améliorer grâce aux statistiques. Pas besoin d’avoir déjà programmé : on part de zéro et on avance une marche à la fois.
+
+## Comment la formation est organisée
+
+La formation compte **11 modules**, numérotés de 0 à 10. Chaque module contient plusieurs leçons courtes et se termine par un **examen**.
+
+Chaque leçon suit toujours la même structure :
+
+1. les **objectifs** de la leçon (l’encadré tout en haut) ;
+2. les **explications**, avec des exemples de code commentés ;
+3. des encadrés **Astuce pro** et **Erreur à éviter** ;
+4. un **résumé** de ce qu’il faut retenir ;
+5. les **sources**, pour vérifier et aller plus loin ;
+6. un **quiz** pour vérifier que tu as compris.
+
+<Info>
+Les quiz ne sont pas des pièges : chaque réponse est suivie d’une explication. Se tromper fait partie de l’apprentissage, et tu peux recommencer autant de fois que tu veux.
+</Info>
+
+## Le projet fil rouge : l’Obby des Nuages
+
+Plutôt que des exercices isolés, tu vas construire **un vrai jeu** au fil des modules : l’*Obby des Nuages*, un parcours d’obstacles dans le ciel avec des pièces à ramasser et une petite boutique.
+
+### Pourquoi un obby ?
+
+Un obby est simple à démarrer (quelques plateformes suffisent), mais il permet d’aborder presque toutes les notions importantes : checkpoints, sauvegarde, interface, sécurité, monétisation, analytics…
+
+Voici un aperçu du genre de script que tu sauras écrire et comprendre à la fin du module 2 :
+
+```luau
+-- Script placé dans une Part « Checkpoint » (côté serveur)
+local Players = game:GetService("Players")
+local checkpoint = script.Parent
+
+-- Cette fonction s'exécute à chaque fois que quelque chose touche la Part
+local function onTouched(hit: BasePart)
+	-- On cherche le joueur à qui appartient la partie du corps qui a touché
+	local player = Players:GetPlayerFromCharacter(hit.Parent)
+	if player == nil then
+		return -- ce n'est pas un joueur (une balle, un objet…) : on ignore
+	end
+	print(player.Name .. " a atteint le checkpoint !")
+end
+
+checkpoint.Touched:Connect(onTouched)
+```
+
+Pas de panique si tout n’est pas clair : chaque ligne sera expliquée en détail plus tard.
+
+<Astuce>
+Garde Roblox Studio ouvert pendant que tu lis. Taper le code toi-même, même en le recopiant, t’aide beaucoup plus à retenir que de simplement le lire.
+</Astuce>
+
+## Suivre ta progression
+
+Ta progression est enregistrée automatiquement :
+
+- une leçon est **terminée** quand tu réussis son quiz (au moins 70 %) ou quand tu cliques sur « Marquer comme terminée » ;
+- chaque examen de module réussi débloque un **badge** ;
+- la page **Ma progression** récapitule tout.
+
+<Attention>
+La progression est stockée **dans ton navigateur**, sur cet appareil uniquement. Si tu effaces les données de navigation ou si tu changes d’appareil, elle repart de zéro.
+</Attention>
+
+<Erreur>
+Vouloir tout lire d’un coup sans pratiquer. On retient très peu en lisant seulement : après chaque leçon, ouvre Studio et refais l’exemple, même s’il te paraît simple.
+</Erreur>
+
+<Defi>
+Avant la prochaine leçon, crée-toi un compte Roblox si ce n’est pas déjà fait, puis note sur une feuille **trois jeux Roblox** auxquels tu as aimé jouer et, pour chacun, une phrase sur ce qui te donne envie d’y revenir.
+</Defi>
+
+<Resume>
+- La formation compte **11 modules** (0 à 10), chacun terminé par un examen.
+- Chaque leçon suit la même structure : objectifs, explications, code, astuces, résumé, sources, quiz.
+- Tu construis un vrai jeu au fil des modules : l’**Obby des Nuages**.
+- Ta progression est sauvegardée **dans ce navigateur** uniquement.
+</Resume>
+
+<Sources>
+- [Documentation officielle de Roblox (Creator Hub)](https://create.roblox.com/docs)
+- [Site officiel du langage Luau](https://luau.org)
+</Sources>

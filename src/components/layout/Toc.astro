@@ -1,0 +1,82 @@
+---
+/** Table des matières de la leçon (titres h2/h3 du MDX + lien vers le quiz). */
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+  variante: 'laterale' | 'mobile';
+  avecQuiz?: boolean;
+}
+const { headings, variante, avecQuiz = true } = Astro.props;
+const titres = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const entrees = [...titres, ...(avecQuiz ? [{ depth: 2, slug: 'quiz', text: 'Quiz de fin de leçon' }] : [])];
+
+const liste = entrees.map((h) => ({
+  ...h,
+  classe:
+    h.depth === 3
+      ? 'pl-4 text-[0.8125rem]'
+      : 'font-medium',
+}));
+---
+
+{
+  entrees.length > 0 && variante === 'laterale' && (
+    <nav aria-labelledby="toc-titre" class="text-sm" data-toc data-testid="toc">
+      <p id="toc-titre" class="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        Sur cette page
+      </p>
+      <ul class="space-y-1.5 border-l border-slate-200 dark:border-slate-800">
+        {liste.map((h) => (
+          <li>
+            <a
+              href={`#${h.slug}`}
+              class:list={[
+                '-ml-px block border-l-2 border-transparent py-0.5 pl-3 text-slate-600 hover:border-slate-400 hover:text-slate-900 data-[actif=true]:border-indigo-600 data-[actif=true]:text-indigo-700 dark:text-slate-400 dark:hover:text-white dark:data-[actif=true]:border-indigo-400 dark:data-[actif=true]:text-indigo-300',
+                h.classe,
+              ]}
+              data-toc-lien={h.slug}
+            >
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+{
+  entrees.length > 0 && variante === 'mobile' && (
+    <details class="rounded-xl border border-slate-200 px-4 py-3 text-sm xl:hidden dark:border-slate-800" data-testid="toc-mobile">
+      <summary class="cursor-pointer font-semibold text-slate-800 dark:text-slate-100">Sur cette page</summary>
+      <ul class="mt-3 space-y-1.5">
+        {liste.map((h) => (
+          <li class={h.depth === 3 ? 'pl-4' : ''}>
+            <a href={`#${h.slug}`} class="text-slate-600 hover:text-indigo-700 hover:underline dark:text-slate-400 dark:hover:text-indigo-300">
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </details>
+  )
+}
+
+<script>
+  // Surligne dans la table des matières latérale la section en cours de lecture.
+  const liens = new Map<string, HTMLElement>();
+  document.querySelectorAll<HTMLElement>('[data-toc-lien]').forEach((a) => liens.set(a.dataset.tocLien!, a));
+  if (liens.size && 'IntersectionObserver' in window) {
+    const cibles = [...liens.keys()].map((id) => document.getElementById(id)).filter((el): el is HTMLElement => Boolean(el));
+    const observateur = new IntersectionObserver(
+      (entrees) => {
+        const visible = entrees.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (!visible) return;
+        liens.forEach((a, id) => (a.dataset.actif = String(id === visible.target.id)));
+      },
+      { rootMargin: '-80px 0px -65% 0px' },
+    );
+    cibles.forEach((c) => observateur.observe(c));
+  }
+</script>

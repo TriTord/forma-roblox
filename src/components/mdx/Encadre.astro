@@ -1,0 +1,16 @@
+---
+/** Encadré générique utilisé par Astuce, Erreur, Info, Attention et Defi. */
+interface Props {
+  variante: 'astuce' | 'erreur' | 'info' | 'attention' | 'defi';
+  titre: string;
+  icone: string;
+}
+const { variante, titre, icone } = Astro.props;
+---
+
+<aside class={`encadre encadre-${variante}`} data-testid={`encadre-${variante}`} aria-label={titre}>
+  <p class="encadre-titre"><span aria-hidden="true">{icone}</span> {titre}</p>
+  <div class="encadre-contenu">
+    <slot />
+  </div>
+</aside>

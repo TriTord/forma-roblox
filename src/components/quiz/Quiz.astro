@@ -1,0 +1,144 @@
+---
+/**
+ * Quiz rendu au build (HTML accessible) + script client de correction.
+ * Utilisé automatiquement en bas des leçons (mode « lecon ») et sur les pages d'examen (mode « examen »).
+ */
+import { Code } from 'astro:components';
+import type { Question } from '~/lib/schemas';
+import { texteEnLigne } from '~/lib/texte';
+import { THEMES_CODE } from '~/data/site';
+
+interface Props {
+  questions: Question[];
+  mode: 'lecon' | 'examen';
+  /** Identifiant unique sur la page (sert aux attributs name/id). */
+  idQuiz: string;
+  titre: string;
+  seuil: number;
+  /** Mode leçon : id de la leçon (clé de progression). */
+  leconId?: string;
+  /** Mode examen : numéro du module. */
+  module?: string;
+}
+
+const { questions, mode, idQuiz, titre, seuil, leconId, module } = Astro.props;
+const base = idQuiz.replace(/[^a-z0-9]+/gi, '-');
+const LIBELLES_TYPE = { qcm: 'QCM', 'vrai-faux': 'Vrai ou faux', 'trouve-le-bug': 'Trouve le bug' } as const;
+
+const preparees = questions.map((q, i) => {
+  const options =
+    q.type === 'vrai-faux'
+      ? [
+          { texte: 'Vrai', correct: q.reponse === true },
+          { texte: 'Faux', correct: q.reponse === false },
+        ]
+      : q.options;
+  const bonnes = options.flatMap((o, j) => (o.correct ? [j] : []));
+  return { q, i, options, bonnes, multiple: q.type === 'qcm' && bonnes.length > 1 };
+});
+---
+
+<section
+  class="quiz"
+  data-quiz
+  data-testid={mode === 'examen' ? 'examen' : 'quiz'}
+  data-mode={mode}
+  data-seuil={seuil}
+  data-lecon-id={leconId}
+  data-module={module}
+  aria-labelledby={`${base}-titre`}
+  data-pagefind-ignore
+>
+  <header class="quiz-entete">
+    <h2 id={`${base}-titre`} class="quiz-titre">{titre}</h2>
+    <p class="quiz-meta">
+      {questions.length} questions · réussite à partir de {seuil} %
+      {mode === 'lecon' ? ' · valide chaque réponse pour voir l’explication' : ' · réponds à tout puis corrige'}
+    </p>
+  </header>
+
+  <ol class="quiz-questions">
+    {
+      preparees.map(({ q, i, options, bonnes, multiple }) => (
+        <li>
+          <fieldset
+            class="question"
+            data-question
+            data-testid="quiz-question"
+            data-type={q.type}
+            data-correct={bonnes.join(',')}
+            aria-describedby={`${base}-q${i}-feedback`}
+          >
+            <legend class="question-enonce">
+              <span class="question-numero">
+                Question {i + 1}
+                <span class="question-type">{LIBELLES_TYPE[q.type]}</span>
+              </span>
+              <span class="question-texte" set:html={texteEnLigne(q.question)} />
+            </legend>
+
+            {q.type === 'trouve-le-bug' && (
+              <div class="code-lignes" data-testid="quiz-code">
+                <Code code={q.code.replace(/\n+$/, '')} lang="luau" themes={THEMES_CODE} defaultColor="light" />
+              </div>
+            )}
+
+            {multiple && <p class="question-aide">Plusieurs réponses possibles : coche toutes les bonnes.</p>}
+
+            <div class="options">
+              {options.map((o, j) => (
+                <label class="option" data-option data-testid="quiz-option">
+                  <input
+                    type={multiple ? 'checkbox' : 'radio'}
+                    name={`${base}-q${i}`}
+                    value={j}
+                    data-option-input
+                  />
+                  <span class="option-texte" set:html={texteEnLigne(o.texte)} />
+                  <span class="option-marque" data-marque aria-live="off" />
+                </label>
+              ))}
+            </div>
+
+            {mode === 'lecon' && (
+              <button type="button" class="bouton bouton-secondaire" data-action="valider" data-testid="quiz-valider">
+                Valider
+              </button>
+            )}
+
+            <div class="feedback" id={`${base}-q${i}-feedback`} data-feedback data-testid="quiz-feedback" role="status" aria-live="polite" hidden>
+              <p class="feedback-verdict" data-verdict />
+              <p class="feedback-explication" data-explication hidden>
+                <span class="sr-only">Explication : </span>
+                <Fragment set:html={texteEnLigne(q.explication)} />
+              </p>
+            </div>
+          </fieldset>
+        </li>
+      ))
+    }
+  </ol>
+
+  {
+    mode === 'examen' && (
+      <div class="quiz-actions">
+        <p class="quiz-alerte" data-alerte role="alert" hidden />
+        <button type="button" class="bouton bouton-primaire" data-action="corriger" data-testid="quiz-valider">
+          Corriger l’examen
+        </button>
+      </div>
+    )
+  }
+
+  <div class="score" data-score data-testid="quiz-score" tabindex="-1" role="status" aria-live="polite" hidden>
+    <p class="score-titre">Ton score : <strong data-score-texte></strong></p>
+    <p class="score-message" data-score-message></p>
+    <button type="button" class="bouton bouton-secondaire" data-action="recommencer" data-testid="quiz-recommencer">
+      Recommencer
+    </button>
+  </div>
+</section>
+
+<script>
+  import '~/scripts/quiz';
+</script>

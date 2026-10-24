@@ -1,0 +1,6 @@
+---
+import Encadre from './Encadre.astro';
+interface Props { titre?: string }
+const { titre = 'Bon à savoir' } = Astro.props;
+---
+<Encadre variante="info" titre={titre} icone="ℹ️"><slot /></Encadre>

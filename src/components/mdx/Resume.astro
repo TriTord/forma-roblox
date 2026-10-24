@@ -1,0 +1,11 @@
+---
+/** Résumé de fin de leçon (avant les sources). */
+interface Props { titre?: string }
+const { titre = 'Ce qu’il faut retenir' } = Astro.props;
+---
+<section class="resume" data-testid="resume" aria-labelledby="resume-titre">
+  <h2 id="resume-titre" class="resume-titre"><span aria-hidden="true">📌</span> {titre}</h2>
+  <div class="resume-contenu">
+    <slot />
+  </div>
+</section>
