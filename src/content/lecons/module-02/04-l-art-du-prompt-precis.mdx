@@ -199,7 +199,7 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 ```
 
-Les défauts : un dossier `leaderstats` en double de celui de ton jeu (avec `Coins` au lieu de `Pieces`) ; l’étape n’est pas sauvegardée ; aucun `pcall` ni nouvelle tentative ; pas de `BindToClose`, donc la progression des joueurs présents est perdue quand le serveur ferme ; et le pire : si le chargement échoue, le joueur démarre à 0 et sa vraie sauvegarde est remplacée par 0 quand il part.
+Les défauts : un dossier `leaderstats` en double de celui de ton jeu (avec `Coins` au lieu de `Pieces`) ; l’étape n’est pas sauvegardée ; aucun `pcall` ni nouvelle tentative ; pas de `BindToClose`, donc la progression des joueurs présents peut être perdue quand le serveur ferme ; et le pire : si le chargement échoue, le joueur démarre à 0 et sa vraie sauvegarde est remplacée par 0 quand il part.
 
 **Le bon prompt :**
 
@@ -210,8 +210,8 @@ Commence par me proposer un plan (mode plan), sans modifier de fichier.
 Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Aujourd'hui, un joueur qui quitte perd sa progression.
 Ce qui existe déjà : src/ServerScriptService/Leaderstats.server.luau crée à l'arrivée du joueur le Folder leaderstats avec IntValue Etape et IntValue Pieces. Aucune donnée n'est sauvegardée.
 Objectif : un joueur qui quitte puis revient retrouve son étape et ses pièces, même si le serveur a fermé entre-temps.
-Fichiers concernés : crée src/ServerScriptService/DonneesJoueurs.luau (ModuleScript avec Charger, Obtenir et Sauvegarder) et modifie Leaderstats.server.luau pour l'utiliser. Ne modifie rien d'autre.
-Contraintes techniques : DataStore "DonneesJoueurs_v1", clé "Joueur_" .. player.UserId ; une table { version = 1, etape, pieces } ; UpdateAsync pour écrire ; chaque appel dans un pcall, 3 tentatives avec une attente croissante (task.wait) ; sauvegarde à PlayerRemoving, toutes les 180 secondes, et dans game:BindToClose.
+Fichiers concernés : crée src/ServerScriptService/DonneesJoueurs.luau (ModuleScript avec Charger, Obtenir et Sauvegarder) et src/ServerScriptService/GestionJoueurs.server.luau, qui remplace Leaderstats.server.luau (supprime-le) et crée les leaderstats à partir des données chargées. Ne modifie rien d'autre.
+Contraintes techniques : DataStore "DonneesJoueurs_v1", clé "Joueur_" .. player.UserId ; une table { version = 1, etape = 0, pieces = 0, inventaire = {}, equipe = "" } (inventaire et equipe serviront à la boutique) ; UpdateAsync pour écrire ; chaque appel dans un pcall, 3 tentatives avec une attente croissante (task.wait) ; sauvegarde à PlayerRemoving, toutes les 180 secondes, et dans game:BindToClose.
 Sécurité : seul le serveur lit et écrit ces données ; aucun RemoteEvent ne permet au client de modifier ses pièces ou son étape.
 Cas limites : si le chargement échoue après 3 tentatives, préviens le joueur et ne remplace JAMAIS sa sauvegarde par des valeurs par défaut ; joueur qui part avant la fin du chargement ; serveur qui ferme avec plusieurs joueurs.
 Vérification : selene et StyLua sans erreur ; explique-moi le test en Play sur une copie de test avec « Enable Studio Access to API Services » activé (gagner des pièces, quitter, relancer, retrouver les mêmes valeurs) et les messages attendus dans l'Output.
@@ -219,7 +219,7 @@ Vérification : selene et StyLua sans erreur ; explique-moi le test en Play sur 
 
 </Prompt>
 
-**Ce que ça change :** Claude réutilise tes leaderstats au lieu d’en créer d’autres, sauvegarde les **deux** valeurs sous le nom et la clé de la formation, protège chaque appel réseau et gère la fermeture du serveur. Surtout, le cas limite « ne jamais écraser une sauvegarde après un chargement raté » est écrit noir sur blanc : c’est la différence entre un bug gênant et des joueurs qui perdent des heures de progression. Le détail de ce système est au [module 5](/modules/05/datastores-fiables/).
+**Ce que ça change :** Claude garde tes leaderstats `Etape` et `Pieces` (mêmes noms, chargées depuis la sauvegarde) au lieu d’en inventer d’autres, sauvegarde les **deux** valeurs sous le nom et la clé de la formation, protège chaque appel réseau et gère la fermeture du serveur. Surtout, le cas limite « ne jamais écraser une sauvegarde après un chargement raté » est écrit noir sur blanc : c’est la différence entre un bug gênant et des joueurs qui perdent des heures de progression. Le détail de ce système est au [module 5](/modules/05/datastores-fiables/).
 
 ## Exemple 2 : la boutique
 
@@ -261,13 +261,13 @@ Les défauts : le serveur **croit le prix envoyé par le client** (prix négatif
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
 Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Les joueurs doivent pouvoir acheter des traînées avec leurs pièces.
-Ce qui existe déjà : ReplicatedStorage.Modules.Catalogue (identifiant → nom, prix, couleurs) ; le RemoteEvent ReplicatedStorage.Remotes.AcheterObjet ; le ModuleScript serveur DonneesJoueurs (champs pieces et inventaire) ; le module serveur Validation (estTexte, creerCooldown).
+Ce qui existe déjà : ReplicatedStorage.Modules.Catalogue (identifiant → nom, prix, couleurs) ; le RemoteEvent ReplicatedStorage.Remotes.AcheterObjet ; les pièces du joueur dans leaderstats.Pieces ; le ModuleScript serveur DonneesJoueurs (Obtenir(player) renvoie sa session, avec le champ inventaire ; les leaderstats y sont recopiées à chaque sauvegarde) ; le module serveur Validation (estTexte, creerCooldown).
 Objectif : le joueur clique sur « Acheter » ; s'il a assez de pièces, elles sont débitées, la traînée apparaît dans son inventaire et reste achetée après reconnexion. Sinon, un message lui dit combien il lui manque.
 Fichiers concernés : crée src/ServerScriptService/Boutique.server.luau ; ne modifie ni Catalogue, ni DonneesJoueurs, ni l'interface.
 Contraintes techniques : Script serveur ; le client envoie UNIQUEMENT l'identifiant de l'objet ; réponse au joueur par le RemoteEvent Remotes.Notification.
 Sécurité : le prix est TOUJOURS lu dans Catalogue côté serveur ; refuser un identifiant qui n'est pas un texte ou qui n'existe pas dans Catalogue ; un achat par seconde maximum par joueur ; refuser un objet déjà possédé.
 Cas limites : pièces insuffisantes, identifiant inconnu ou trop long, double clic, joueur dont les données ne sont pas encore chargées, joueur qui part pendant l'achat.
-Vérification : selene et StyLua sans erreur ; donne-moi un test en Play (achat réussi, achat refusé faute de pièces, deuxième achat du même objet refusé) et une ligne à taper dans la barre de commande de Studio pour simuler un client qui envoie un identifiant inventé.
+Vérification : selene et StyLua sans erreur ; donne-moi un test en Play (achat réussi, achat refusé faute de pièces, deuxième achat du même objet refusé) et une ligne à taper dans la Command Bar de Studio (vue client) pour simuler un client qui envoie un identifiant inventé.
 ```
 
 </Prompt>
@@ -322,18 +322,18 @@ ajoute un inventaire
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
 Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Les traînées achetées doivent être conservées et équipables.
-Ce qui existe déjà : DonneesJoueurs.luau (table version = 1, etape, pieces) ; Boutique.server.luau qui gère l'achat ; ReplicatedStorage.Modules.Catalogue ; le RemoteEvent Remotes.EquiperObjet.
+Ce qui existe déjà : DonneesJoueurs.luau (Obtenir(player) renvoie la session sauvegardée, qui contient déjà inventaire = {} et equipe = "") ; Boutique.server.luau qui gère l'achat, mais range les objets dans une table en mémoire, perdue à la reconnexion ; le module serveur Validation (estTexte, creerCooldown) ; ReplicatedStorage.Modules.Catalogue ; le RemoteEvent Remotes.EquiperObjet.
 Objectif : chaque joueur possède une liste de traînées achetées et peut en équiper une (ou aucune) ; après reconnexion, il retrouve ses traînées et celle qu'il portait.
-Fichiers concernés : modifie DonneesJoueurs.luau (champs inventaire et equipe, version 2) et Boutique.server.luau (ajout à l'inventaire, gestion de EquiperObjet). Ne touche pas à l'interface.
+Fichiers concernés : remplace le contenu de Boutique.server.luau (achat rangé dans donnees.inventaire, gestion de EquiperObjet). Ne modifie ni DonneesJoueurs.luau ni l'interface.
 Contraintes techniques : inventaire = table { [idObjet] = true } ; equipe = idObjet ou "" ; publie l'état pour l'interface avec des attributs du joueur (Possede_<idObjet>, TrailEquipe), que les LocalScripts lisent sans rien modifier.
-Sécurité : EquiperObjet n'équipe qu'un objet du Catalogue que le joueur POSSÈDE ; "" retire la traînée ; types vérifiés côté serveur.
-Cas limites : anciennes sauvegardes sans ces champs (complète-les avec des valeurs par défaut, sans rien perdre) ; objet retiré du Catalogue mais présent dans un inventaire ; équiper l'objet déjà équipé.
-Vérification : selene et StyLua sans erreur ; test en Play : acheter, équiper, quitter, revenir, la traînée est toujours là ; tenter d'équiper un objet non possédé via la barre de commande ne fait rien.
+Sécurité : EquiperObjet n'équipe qu'un objet du Catalogue que le joueur POSSÈDE dans donnees.inventaire (jamais d'après un attribut) ; "" retire la traînée ; types vérifiés côté serveur ; une demande par seconde maximum.
+Cas limites : données du joueur pas encore chargées ; objet retiré du Catalogue mais présent dans un inventaire ; équiper l'objet déjà équipé ; joueur qui part.
+Vérification : selene et StyLua sans erreur ; test en Play sur une copie de test avec l'accès aux API activé : acheter, équiper, quitter, revenir, la traînée est toujours là ; tenter d'équiper un objet non possédé depuis la Command Bar (vue client) ne fait rien.
 ```
 
 </Prompt>
 
-**Ce que ça change :** l’inventaire vit **dans les données sauvegardées**, avec une migration propre pour les anciennes sauvegardes (le champ `version`). La règle « on n’équipe que ce qu’on possède » est explicite : c’est exactement la faille du `trouve-le-bug` de ce quiz. Le périmètre est borné : pas d’interface surprise.
+**Ce que ça change :** l’inventaire vit **dans les données sauvegardées** de `DonneesJoueurs`, que Claude ne doit pas réécrire, au lieu d’une table perdue à la reconnexion. La règle « on n’équipe que ce qu’on possède » est explicite : c’est exactement la faille du `trouve-le-bug` de ce quiz. Le périmètre est borné : pas d’interface surprise.
 
 ## Exemple 5 : l’interface (UI)
 
@@ -413,18 +413,18 @@ ajoute un anti-cheat
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
 Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Je veux empêcher qu'un tricheur saute des étapes en se téléportant.
-Ce qui existe déjà : Progression.server.luau valide un checkpoint quand le joueur touche la Part Workspace.Checkpoints["N"] et met à jour leaderstats.Etape ; Config.
-Objectif : un joueur ne peut valider que l'étape suivante (Etape + 1), à condition d'être réellement arrivé jusqu'au checkpoint ; les joueurs honnêtes ne remarquent rien.
-Fichiers concernés : modifie uniquement Progression.server.luau ; ajoute à Config DISTANCE_MAX_CHECKPOINT = 12 et TEMPS_MIN_ETAPE = 2.
-Contraintes techniques : tout se passe sur le serveur, aucun LocalScript d'anti-triche ; la position est lue sur la HumanoidRootPart côté serveur.
-Sécurité : refuser une étape qui n'est pas Etape + 1, un joueur à plus de DISTANCE_MAX_CHECKPOINT studs du checkpoint, ou une étape validée moins de TEMPS_MIN_ETAPE secondes après la précédente. En cas de refus : ne pas valider et écrire un warn dans l'Output (nom du joueur, étape demandée, raison), sans expulser.
-Cas limites : réapparition légitime au checkpoint après une mort, lag réseau, joueur qui retouche un ancien checkpoint, joueur sans personnage.
-Vérification : selene et StyLua sans erreur ; en Play, un parcours normal valide toutes les étapes sans aucun warn ; déplacer mon personnage à la main jusqu'au checkpoint 6 depuis l'étape 2 (outil Move de Studio pendant le test) est refusé avec un warn.
+Ce qui existe déjà : Progression.server.luau valide un checkpoint dès que le joueur touche la Part Workspace.Checkpoints["N"] et met à jour leaderstats.Etape, sans aucun autre contrôle ; le module serveur Validation (estAPortee).
+Objectif : un joueur ne peut valider que l'étape suivante (Etape + 1), et seulement s'il est réellement près du checkpoint ; un passage anormalement rapide est signalé ; les joueurs honnêtes ne remarquent rien.
+Fichiers concernés : modifie uniquement Progression.server.luau, avec en tête du script les constantes DISTANCE_MAX = 15 (studs) et TEMPS_MIN_ETAPE = 2 (secondes).
+Contraintes techniques : tout se passe sur le serveur, aucun LocalScript d'anti-triche ; la distance est mesurée côté serveur avec Validation.estAPortee(player, checkpoint.Position, DISTANCE_MAX).
+Sécurité : refuser sans rien valider une étape qui n'est pas Etape + 1 ou un joueur à plus de DISTANCE_MAX studs du checkpoint. Une étape atteinte moins de TEMPS_MIN_ETAPE secondes après la précédente est seulement signalée par un warn dans l'Output (nom du joueur, étape, durée) : jamais de refus ni d'expulsion pour ce motif, car un joueur rapide ou du lag peut le provoquer.
+Cas limites : réapparition légitime au checkpoint après une mort, lag réseau, joueur qui retouche un ancien checkpoint, joueur sans personnage, table des derniers passages vidée quand le joueur part.
+Vérification : selene et StyLua sans erreur ; en Play, un parcours normal valide toutes les étapes sans aucun warn ; depuis l'étape 2, déplacer mon personnage à la main jusqu'au checkpoint 6 (outil Move de Studio, en vue client pendant le test) ne valide rien : Etape reste à 2.
 ```
 
 </Prompt>
 
-**Ce que ça change :** la protection est sur le **serveur**, là où le tricheur n’a pas la main, et elle porte sur ce qui compte vraiment dans un obby (l’ordre des étapes, la distance, le temps), avec des seuils chiffrés. La consigne « refuser sans expulser » et les cas limites (réapparition, lag) évitent de punir les joueurs honnêtes. Le test prouve à la fois que le jeu normal passe et que la triche est bloquée.
+**Ce que ça change :** la protection est sur le **serveur**, là où le tricheur n’a pas la main, et elle porte sur ce qui compte vraiment dans un obby (l’ordre des étapes, la distance, le temps), avec des seuils chiffrés. La consigne « signaler sans punir » pour le temps, l’absence d’expulsion et les cas limites (réapparition, lag) évitent de punir les joueurs honnêtes. Le test prouve à la fois que le jeu normal passe et que la triche est bloquée. C’est le système construit au [module 4](/modules/04/securiser-l-obby/).
 
 ## Exemple 8 : le classement mondial (leaderboard)
 
@@ -445,7 +445,7 @@ Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Je veux un panneau dan
 Ce qui existe déjà : les leaderstats Etape et Pieces (à ne pas modifier) ; DonneesJoueurs.luau ; une Part Workspace.Classement avec un SurfaceGui vide nommé Panneau.
 Objectif : le panneau affiche le rang, le nom et la meilleure étape des 10 meilleurs joueurs, mis à jour environ toutes les 60 secondes.
 Fichiers concernés : crée src/ServerScriptService/Classement.server.luau ; ne modifie rien d'autre.
-Contraintes techniques : OrderedDataStore "ClassementEtapes_v1", clé "Joueur_" .. UserId, valeur = meilleure étape (nombre entier) ; écriture à PlayerRemoving et toutes les 5 minutes, seulement si la valeur a augmenté ; lecture avec GetSortedAsync(false, 10) ; noms avec Players:GetNameFromUserIdAsync, mis en cache.
+Contraintes techniques : OrderedDataStore "ClassementEtapes_v1", clé "Joueur_" .. UserId, valeur = meilleure étape (nombre entier) ; écriture à PlayerRemoving et toutes les 5 minutes avec UpdateAsync, qui ne garde que la plus grande valeur (renvoie nil si la nouvelle n'est pas plus grande) ; lecture avec GetSortedAsync(false, 10) ; noms avec Players:GetNameFromUserIdAsync, mis en cache.
 Sécurité : seul le serveur écrit ; la valeur vient de leaderstats.Etape côté serveur.
 Cas limites : chaque appel DataStore et GetNameFromUserIdAsync dans un pcall (en cas d'échec, on garde l'affichage précédent) ; classement vide ; moins de 10 joueurs ; nom introuvable (afficher « Joueur inconnu »).
 Vérification : selene et StyLua sans erreur ; explique-moi le test en Play avec l'accès aux API activé sur une copie de test, et les messages attendus dans l'Output à chaque mise à jour.

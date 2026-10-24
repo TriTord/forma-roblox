@@ -122,7 +122,7 @@ La méthode tient en six étapes. Les deux premières se font une seule fois ; l
 
 **4. Une tâche par prompt.** Chaque prompt suit le gabarit de la [leçon 4](/modules/02/l-art-du-prompt-precis/) (contexte, existant, objectif, fichiers, contraintes, sécurité, cas limites, vérification). Pas besoin d’y répéter les conventions : ton `CLAUDE.md` les donne déjà à chaque session.
 
-**5. Relire et tester.** Lis ce que Claude a modifié (les changements s’affichent dans la conversation, et la commande `git diff` les montre tous), lance `selene` et `StyLua`, puis teste **dans Studio** le critère de réussite de la tâche. La leçon 6 détaille la checklist de relecture.
+**5. Relire et tester.** Lis ce que Claude a modifié : les changements s’affichent dans la conversation ; `git status` liste les fichiers créés ou modifiés, et `git diff` montre le détail des fichiers déjà enregistrés dans Git (un fichier tout neuf n’y apparaît pas : ouvre-le dans ton éditeur). Lance ensuite `selene` et `StyLua`, puis teste **dans Studio** le critère de réussite de la tâche. La leçon 6 détaille la checklist de relecture.
 
 **6. Commiter.** Quand la tâche marche, enregistre-la dans Git. Dans un deuxième terminal ouvert dans le dossier du projet, tape ces deux commandes l’une après l’autre :
 
@@ -154,9 +154,48 @@ C’est un projet séparé de l’Obby des Nuages : tu peux le réaliser comme e
 
 Crée un projet Rojo versionné avec Git ([leçon 2](/modules/02/installer-un-workflow-pro/)), avec les outils `selene` et `StyLua`, et un `CLAUDE.md` (leçon 3). Pour ce mini-jeu, le `CLAUDE.md` reprend le modèle de la leçon 3 en l’adaptant : il précise en plus que tous les réglages chiffrés vont dans le module `Config`, et que le module `ReglesRound` ne contient que des calculs (sans service Roblox), pour pouvoir le tester automatiquement (leçon 6).
 
-Dans `default.project.json`, déclare dans `ReplicatedStorage` un Folder `Remotes` contenant un RemoteEvent `Notification`, et un Folder vide `EtatRound` (le serveur y publiera l’état du round sous forme d’**attributs**, des valeurs attachées à une instance et répliquées aux clients).
+Dans `default.project.json`, déclare dans `ReplicatedStorage` un Folder `Remotes` contenant un RemoteEvent `Notification`, et un Folder vide `EtatRound` (le serveur y publiera l’état du round sous forme d’**attributs**, des valeurs attachées à une instance et répliquées aux clients). Remplace tout le contenu du fichier par celui-ci :
 
-Puis construis le décor **à la main** dans Studio (les modules 1 et 3 t’ont appris à le faire) :
+```json
+{
+  "name": "LaveMontante",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Modules": {
+        "$path": "src/ReplicatedStorage/Modules"
+      },
+      "Remotes": {
+        "$className": "Folder",
+        "Notification": { "$className": "RemoteEvent" }
+      },
+      "EtatRound": {
+        "$className": "Folder"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src/ServerScriptService"
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "$path": "src/StarterGui"
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      }
+    }
+  }
+}
+```
+
+Crée aussi les dossiers vides qu’il cite (`src/ReplicatedStorage/Modules`, `src/ServerScriptService`, `src/StarterGui`, `src/StarterPlayer/StarterPlayerScripts`), sinon Rojo refuse de démarrer. Le `Workspace` n’y figure pas : Rojo ne touche pas au décor que tu construis dans Studio.
+
+Puis construis le décor **à la main** dans Studio (le module 1 t’a appris à le faire) :
 
 - supprime la SpawnLocation du modèle Baseplate ;
 - crée un Folder `Lobby` avec un sol et une **SpawnLocation** nommée `ApparitionLobby` (la seule du jeu, pour que les éliminés réapparaissent au lobby) ;
@@ -176,7 +215,8 @@ et doivent grimper pour échapper à la lave qui monte. Les survivants gagnent d
 ## Boucle de jeu
 1. Attente dans le lobby tant qu'il y a moins de JOUEURS_MIN joueurs.
 2. Intermission : compte à rebours de 15 s dans le lobby.
-3. Round : téléportation dans l'arène ; 5 s de répit ; la lave monte jusqu'à 40 studs en 60 s.
+3. Round de 60 s au maximum : téléportation dans l'arène ; 5 s de répit, puis la lave
+   monte régulièrement pour atteindre 40 studs à la fin des 60 s.
 4. Un joueur touché par la lave est éliminé (il réapparaît dans le lobby).
 5. Fin : chaque survivant gagne 25 pièces (+25 s'il est le dernier survivant d'un round
    à plusieurs) et 1 victoire, puis retour au lobby.
@@ -475,7 +515,7 @@ Ajoute une tâche 10 à `TACHES.md` : la sauvegarde des pièces et des victoires
 
 ## Le code final complet
 
-Voici le code de référence obtenu à la fin des neuf tâches. Le tien sera formulé un peu autrement, mais il doit faire la même chose et passer les mêmes vérifications. Si tu n’utilises pas Rojo, crée chaque script au bon endroit dans Studio (le type et l’emplacement sont indiqués en première ligne), puis crée à la main dans `StarterGui` un ScreenGui `InterfaceLave` (`ResetOnSpawn` décoché) contenant deux TextLabel : `Statut` (bandeau en haut, `TextScaled`) et `Message` (au centre, `Visible` décoché). Dans `ReplicatedStorage`, crée le Folder `EtatRound` et le Folder `Remotes` avec le RemoteEvent `Notification`.
+Voici le code de référence obtenu à la fin des neuf tâches. Le tien sera formulé un peu autrement, mais il doit faire la même chose et passer les mêmes vérifications. Si tu n’utilises pas Rojo, crée chaque script au bon endroit dans Studio (le type et l’emplacement sont indiqués en première ligne), puis crée à la main dans `StarterGui` un ScreenGui `InterfaceLave` (`ResetOnSpawn` décoché) contenant deux TextLabel : `Statut` (bandeau en haut, `TextScaled`) et `Message` (au centre, `Visible` décoché). Dans `ReplicatedStorage`, crée le Folder `Modules` (qui recevra `Config` et `ReglesRound`), le Folder `EtatRound` et le Folder `Remotes` avec le RemoteEvent `Notification`.
 
 ```luau
 -- ModuleScript « Config » dans ReplicatedStorage > Modules (lu par le serveur ET par le client)

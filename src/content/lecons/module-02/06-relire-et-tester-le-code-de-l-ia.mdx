@@ -135,7 +135,7 @@ warning[unused_variable]: inutilisee is assigned a value, but never used
 DeprecatedApi: Function 'wait' is deprecated, use 'task.wait' instead
 ```
 
-Pour qu’il repère aussi les **méthodes inventées** par l’IA, ajoute `--!strict` en première ligne du script (le mode strict, aperçu au module 3, leçon 6). Sur un script qui appelle `magasin:SaveAsync(…)` (qui n’existe pas : la vraie méthode est `SetAsync` ou `UpdateAsync`), luau-lsp répond seulement en mode strict :
+Pour qu’il repère aussi les **méthodes inventées** par l’IA, ajoute `--!strict` en première ligne du script (le mode strict, présenté au module 3, leçon 6). Sur un script qui appelle `magasin:SaveAsync(…)` (qui n’existe pas : la vraie méthode est `SetAsync` ou `UpdateAsync`), luau-lsp répond seulement en mode strict :
 
 ```text
 TypeError: Key 'SaveAsync' not found in external type 'DataStore'
@@ -510,7 +510,7 @@ Claude Code fournit aussi une commande de relecture toute prête : **`/code-revi
 - tu peux viser un dossier ou un fichier : `/code-review src/ServerScriptService` ;
 - elle suit les règles de ton `CLAUDE.md` ;
 - elle tourne en arrière-plan, comme un sous-agent, et ses résultats arrivent dans la conversation quand elle a fini. Sans option, elle rend seulement un rapport ; avec `--fix`, elle applique aussi les corrections (en respectant ton mode de permission) ;
-- un niveau d’effort peut être précisé : `/code-review low` ne rapporte que ce dont elle est le plus sûre (moins de fausses alertes) ; `medium` à `max` élargissent la recherche ;
+- un niveau d’effort peut être précisé : `/code-review low` ne rapporte que ce dont elle est le plus sûre (moins de fausses alertes) ; `medium` à `max` élargissent la recherche. Sans niveau, elle reprend le dernier que tu as tapé (ou, la toute première fois, l’effort de ta session) ;
 - elle consomme ton forfait comme le reste de la session.
 
 Il existe aussi une relecture approfondie dans le cloud (`/code-review ultra`), avec quelques essais gratuits sur les offres Pro et Max, puis des crédits payants : n’en lance pas sans l’accord de l’adulte qui gère l’abonnement. Et `/security-review` analyse les failles de sécurité, mais elle compare ta branche à un dépôt distant `origin` (sur GitHub, par exemple), qu’un projet purement local n’a pas.
@@ -528,7 +528,8 @@ Beaucoup de tutoriels datent : voici l’état vérifié sur les dépôts offici
 | Outil | État | Pour toi ? |
 |---|---|---|
 | **TestEZ** (Roblox) | Dépôt **archivé** par Roblox le 14 septembre 2024 (lecture seule) ; dernière version 0.4.2 (janvier 2022) | Non : encore cité partout, mais plus maintenu |
-| **Jest Lua** (`jsdotlua/jest-lua`) | Adaptation de Jest pour Luau ; dernière version 3.10.0 (décembre 2024). Son README précise : « Jest Lua can currently only run inside of Roblox » | Plus tard : il faut un lanceur dans Studio ou dans le cloud |
+| **Jest Roblox** (`Roblox/jest-roblox`) | Adaptation officielle de Jest par Roblox, maintenue (version 3.20.0 sur Wally, mises à jour en 2026). Son README précise qu’il tourne « within Roblox itself », y compris par Luau Execution d’Open Cloud pour les tests automatiques | Plus tard : il faut l’installer (Wally ou Creator Store) et le lancer dans Studio ou dans le cloud |
+| **Jest Lua** (`jsdotlua/jest-lua`) | Version communautaire du même outil, plus mise à jour ; dernière version 3.10.0 (décembre 2024). Son README précise : « Jest Lua can currently only run inside of Roblox » | Non : préfère la version de Roblox |
 | **run-in-roblox** | Lance un script dans Studio depuis le terminal ; dernière version 0.3.0 (juillet 2020) | Non |
 | **Lune** | Exécute du Luau **en dehors de Roblox**, comme un programme normal ; version 0.11.1 (21 octobre 2026) ; s’installe avec Rokit | **Oui**, pour la logique pure |
 | **Luau Execution** (Open Cloud) | API officielle de Roblox qui exécute du Luau dans une place publiée, présentée « for automated testing » ; demande une clé d’API | Avancé, plus tard (une clé d’API ne se colle jamais dans un prompt) |
@@ -625,6 +626,9 @@ RATÉ  seul dans le round : pas de bonus : attendu 25, obtenu 50
 
 11 réussi(s), 1 raté(s)
 …\tests/ReglesRound.spec:40: Des tests ont échoué
+[Stack Begin]
+…
+[Stack End]
 ```
 
 Grâce au `error()` final, Lune se termine avec un **code de sortie** différent de 0 : Claude Code voit que la commande a échoué, et il peut chercher pourquoi.
@@ -656,7 +660,7 @@ Pour chaque tâche, avant le commit :
 
 1. StyLua et selene sans erreur (le hook s’en charge), luau-lsp sans soulignement.
 2. Tests Lune au vert, s’il y a de la logique pure.
-3. Lecture du changement (`git diff`) avec la checklist ; pour un système important, sous-agent `relecteur-roblox` ou `/code-review`.
+3. Lecture du changement avec la checklist (`git status` pour la liste des fichiers, `git diff` pour le détail, ou `/diff` dans Claude Code) ; pour un système important, sous-agent `relecteur-roblox` ou `/code-review`.
 4. Corrections demandées par des prompts ciblés, puis nouvelle vérification.
 5. Test dans Studio : Play, puis **Server & Clients** dès que plusieurs joueurs sont concernés.
 6. Commit.
@@ -670,7 +674,7 @@ Reprends le code final de Lave Montante (leçon 5) et passe toi-même la checkli
 - Les outils attrapent la forme (variables inutilisées, `wait` obsolète, méthodes inventées en mode strict), jamais l’intention : la checklist en onze points reste indispensable.
 - Les points clés : remotes validés, client jamais cru, `pcall` et tentatives, `UpdateAsync`, `BindToClose`, connexions coupées, `Destroy`, rien de lourd à chaque image, API à jour, `task.wait` dans les boucles, noms conformes au CLAUDE.md.
 - Un sous-agent `relecteur-roblox` en lecture seule et `/code-review` font une première passe ; tu restes le juge.
-- TestEZ est archivé et Jest Lua ne tourne que dans Roblox : pour débuter, isole la logique pure et teste-la avec Lune (`lune run tests/…`).
+- TestEZ est archivé et Jest Roblox (l’outil officiel de Roblox) ne tourne que dans Roblox : pour débuter, isole la logique pure et teste-la avec Lune (`lune run tests/…`).
 </Resume>
 
 <Sources>
@@ -680,7 +684,8 @@ Reprends le code final de Lave Montante (leçon 5) et passe toi-même la checkli
 - [Best practices for Claude Code (« Give Claude a check it can run »)](https://code.claude.com/docs/en/best-practices)
 - [Prompting best practices — documentation Anthropic (tests et solutions codées en dur)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)
 - [Lune — dépôt officiel](https://github.com/lune-org/lune) et [documentation de Lune](https://lune-org.github.io/docs)
-- [Jest Lua — dépôt officiel](https://github.com/jsdotlua/jest-lua)
+- [Jest Roblox — dépôt officiel de Roblox](https://github.com/Roblox/jest-roblox)
+- [Jest Lua — dépôt communautaire](https://github.com/jsdotlua/jest-lua)
 - [TestEZ — dépôt officiel (archivé)](https://github.com/Roblox/testez)
 - [run-in-roblox — dépôt officiel](https://github.com/rojo-rbx/run-in-roblox)
 - [Luau Execution — documentation Open Cloud de Roblox](https://create.roblox.com/docs/cloud/reference/features/luau-execution)
