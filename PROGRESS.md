@@ -22,7 +22,7 @@
 | 03 | FAIT | en cours | |
 | 04 | en cours | | |
 | 05 | FAIT | en cours | |
-| 06 | en cours | | |
+| 06 | FAIT | en cours | |
 | 07 | FAIT | en cours | |
 | 08 | FAIT | en cours | |
 | 09 | en cours | | |
