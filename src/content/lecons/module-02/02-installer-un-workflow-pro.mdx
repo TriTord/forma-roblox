@@ -1,0 +1,631 @@
+---
+titre: "Installer un workflow pro : Rojo, Git, MCP et outils qualité"
+description: Tutoriel pas à pas, Windows et Mac, pour mettre le code de l’Obby des Nuages en fichiers avec Rojo, le versionner avec Git, brancher Studio à Claude Code (MCP) et installer selene, StyLua et luau-lsp.
+duree: 90
+objectifs:
+  - Ouvrir un terminal, y coller une commande et lire le résultat, sous Windows comme sous Mac
+  - Transformer l’Obby des Nuages en projet Rojo versionné avec Git, synchronisé avec Studio
+  - Brancher le serveur MCP de Roblox Studio à Claude Code et en connaître les risques
+  - Installer luau-lsp, selene et StyLua, et savoir ce que chacun détecte
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Tu tapes `rojo serve` et tu obtiens : « Could not start the Rojo server on 127.0.0.1:34872. The address may already be in use or reserved. » Que se passe-t-il ?"
+    options:
+      - texte: Ton fichier `default.project.json` contient une faute de syntaxe
+      - texte: Un autre `rojo serve` (ou un autre programme) utilise déjà ce port ; arrête-le avec `Ctrl+C` dans son terminal, ou lance `rojo serve --port 34873`
+        correct: true
+      - texte: Le plugin Rojo n’est pas installé dans Studio
+      - texte: Il faut lancer le terminal en administrateur
+    explication: "Le message parle d’une **adresse déjà utilisée** : souvent, un `rojo serve` tourne encore dans un autre terminal oublié. Ferme-le, ou choisis un autre port avec `--port` (et indique ce même port dans le plugin). Une faute dans le JSON donne un autre message (« Error parsing Rojo project »)."
+  - type: qcm
+    question: "Avec Rojo et le `default.project.json` de l’Obby, que devient le fichier `src/StarterPlayer/StarterPlayerScripts/MessagesProgression.client.luau` dans Studio ?"
+    options:
+      - texte: Un ModuleScript nommé `MessagesProgression.client`
+      - texte: Un Script serveur nommé `MessagesProgression` dans ServerScriptService
+      - texte: Un LocalScript nommé `MessagesProgression` dans StarterPlayer › StarterPlayerScripts
+        correct: true
+      - texte: Rien, Rojo ignore les fichiers `.client.luau`
+    explication: "Le suffixe `.client.luau` donne un **LocalScript** avec Rojo (réglage par défaut), le nom est celui du fichier sans suffixe, et l’emplacement est celui du dossier. Attention : avec Script Sync de Roblox, le même suffixe donne un Script en RunContext Client, d’où l’importance de ne pas mélanger les deux outils."
+  - type: vrai-faux
+    question: Une fois Rojo connecté, les plateformes et checkpoints que tu as construits à la main dans Workspace sont enregistrés dans les fichiers du dossier `src`.
+    reponse: false
+    explication: "Notre `default.project.json` ne décrit pas Workspace : le niveau construit à la main reste **uniquement dans le fichier de lieu** (ton place). Rojo s’occupe du code, des Remotes et de l’interface. D’où la règle : sauvegarde ton place (Save to Roblox, copie `.rbxl`) avant chaque grosse modification."
+  - type: qcm
+    question: "Après avoir récupéré ton projet sur un autre ordinateur, `rojo serve` affiche : « Rojo project referred to a file using $path that could not be turned into a Roblox Instance… File $path: src/ReplicatedStorage/Modules ». Quelle est la cause la plus probable ?"
+    options:
+      - texte: Le dossier `src/ReplicatedStorage/Modules` n’existe pas (Git ne garde pas les dossiers vides) ou son nom est mal orthographié
+        correct: true
+      - texte: Rojo n’accepte pas les noms de dossiers en français
+      - texte: Il manque une clé d’API dans `default.project.json`
+      - texte: Le plugin Studio est trop récent
+    explication: "Rojo ne trouve pas le dossier indiqué par `$path`. Git n’enregistre pas les dossiers vides : un dossier `Modules` encore vide n’existe donc pas sur l’autre ordinateur. Recrée-le (ou vérifie l’orthographe exacte, majuscules comprises) et relance."
+  - type: qcm
+    question: "Dans VS Code, quel outil souligne `wait(2)` en indiquant qu’il est déprécié et qu’il faut utiliser `task.wait` ?"
+    options:
+      - texte: StyLua, le formateur
+      - texte: L’extension luau-lsp, qui connaît l’API Roblox
+        correct: true
+      - texte: Git
+      - texte: Rokit
+    explication: "luau-lsp charge les définitions de l’API Roblox et signale les fonctions dépréciées (`DeprecatedApi`), les erreurs de type et les variables inutilisées. StyLua ne fait que la mise en forme. Lors de nos tests, selene a signalé la variable inutilisée mais pas `wait` : les outils se complètent, aucun ne voit tout."
+  - type: ameliore-le-prompt
+    question: "Le serveur MCP de Studio est branché. Tu veux que Claude Code vérifie tes checkpoints. Quelle version du prompt est la plus précise et la plus sûre ?"
+    prompt: "regarde mon jeu dans studio et corrige ce qui va pas"
+    options:
+      - texte: "Utilise Studio et répare tout ce qui ne va pas dans mon obby, tu as carte blanche."
+      - texte: |
+          Avec le serveur MCP Roblox_Studio, en lecture seule : ne modifie rien dans le place.
+          Contexte : Obby des Nuages, Folder Workspace.Checkpoints avec des Parts nommées "1", "2", "3"… dans l'ordre du parcours.
+          Objectif : liste les checkpoints trouvés, signale un numéro manquant ou en double, et toute Part non ancrée.
+          Vérification : donne-moi le résultat sous forme de liste ; si tu proposes une correction, attends mon accord avant de l'appliquer.
+        correct: true
+      - texte: "Lance execute_luau pour supprimer et recréer tous les checkpoints proprement."
+      - texte: "Vérifie mes checkpoints."
+    explication: "La bonne version donne le contexte (dossier, noms attendus), un objectif précis, une contrainte de sécurité (lecture seule, accord avant toute modification) et le format du résultat. « Carte blanche » ou une suppression massive sont dangereux : via le MCP, l’IA modifie **directement** ton place, et tout ne s’annule pas."
+---
+
+Jusqu’ici, ton code vivait dans Studio. Pour piloter une IA de code comme un pro, on va le mettre **en fichiers sur ton ordinateur**, dans un dossier où tout est rangé, versionné et vérifié automatiquement. C’est la leçon la plus « technique » du module, mais tu n’as besoin d’aucune connaissance préalable : chaque commande est donnée, avec le résultat attendu et quoi faire si ça échoue. Prévois une bonne heure et avance étape par étape.
+
+## Ce que tu vas installer
+
+| Outil | À quoi il sert |
+|---|---|
+| **VS Code** | L’éditeur de code où tu liras les fichiers, avec un terminal intégré |
+| **Git** | L’historique de ton projet : chaque étape enregistrée, retour arrière possible |
+| **Rokit** | L’installateur des outils Roblox, avec la même version pour tout le projet |
+| **Rojo** | Le pont entre tes fichiers et Studio : il synchronise le code dans ton place |
+| **selene** et **StyLua** | Le correcteur (il repère les erreurs probables) et le formateur (il met le code en forme) |
+| **luau-lsp** | L’extension VS Code qui comprend Luau et l’API Roblox |
+| **Serveur MCP de Studio** | Le branchement qui laisse Claude Code lire, modifier et tester ton place |
+
+Tout est gratuit. Seul Claude Code demande un abonnement (leçon 1) : son installation est dans la leçon 3.
+
+## Étape 0 : le terminal sans peur
+
+Un **terminal** est une fenêtre où l’on tape des commandes au lieu de cliquer. Tu y tapes une ligne, tu appuies sur `Entrée`, l’ordinateur répond par du texte.
+
+### Ouvrir un terminal
+
+- **Windows** : ouvre le menu Démarrer, tape `Terminal` et ouvre **Terminal** (ou **Windows PowerShell**). La ligne commence par `PS C:\Users\TonNom>` : tu es dans **PowerShell**.
+- **Mac** : appuie sur `Cmd`+`Espace`, tape `Terminal` et valide. La ligne se termine par `%` : c’est le terminal de macOS (zsh).
+
+Dans ce tutoriel, tu utiliseras surtout le **terminal intégré de VS Code** (étape 1), qui est le même terminal, déjà placé dans le bon dossier.
+
+### Les cinq gestes à connaître
+
+1. **Le dossier de travail** : chaque terminal « est » dans un dossier. Tape `pwd` puis `Entrée` pour l’afficher. Les commandes de Rojo, Git ou Rokit agissent sur ce dossier : il doit être celui de ton projet.
+2. **Copier une commande** depuis cette page (sélectionne-la ou utilise le bouton de copie du bloc), puis **colle-la** dans le terminal avec `Ctrl`+`V` (Windows) ou `Cmd`+`V` (Mac). Appuie sur `Entrée`.
+3. **Lire la réponse** : compare-la au « résultat attendu » donné ici. Les numéros de version peuvent être plus récents, c’est normal.
+4. **Arrêter une commande** qui tourne en continu (comme `rojo serve`) : `Ctrl`+`C`, sur Windows comme sur Mac.
+5. **Rappeler une commande** : flèche **Haut**.
+
+<Erreur titre="« n’est pas reconnu » ou « command not found »">
+Si le terminal répond `rokit : Le terme « rokit » n’est pas reconnu…` (Windows) ou `zsh: command not found: rokit` (Mac), l’outil n’est pas installé, ou le terminal a été ouvert **avant** l’installation. Ferme complètement VS Code (et les terminaux), rouvre-le, et réessaie. Vérifie aussi l’orthographe : une seule lettre de travers suffit.
+</Erreur>
+
+## Étape 1 : VS Code et le dossier du projet
+
+1. Télécharge VS Code sur **code.visualstudio.com** et installe-le avec les options par défaut.
+2. Lance VS Code, puis **File** › **Open Folder…**.
+3. Va dans ton dossier **Documents**, crée un **nouveau dossier** nommé `ObbyDesNuages` (sans espace ni accent) et ouvre-le. Si VS Code demande si tu fais confiance aux auteurs de ce dossier, réponds oui : c’est le tien.
+4. Ouvre le terminal intégré : menu **Terminal** › **New Terminal** (raccourci `Ctrl`+`` ` ``). Il apparaît en bas de la fenêtre, déjà placé dans `ObbyDesNuages`.
+5. Tape `pwd` : le chemin affiché doit se terminer par `ObbyDesNuages`.
+
+Ce dossier sera la **racine** de ton projet : toutes les commandes qui suivent se tapent ici.
+
+## Étape 2 : Git, l’historique de ton projet
+
+**Git** enregistre des « photos » de ton projet, appelées **commits**. Si l’IA casse quelque chose, tu reviens à la photo d’avant.
+
+**Installer Git**
+
+- **Windows** : télécharge **Git for Windows** sur la page officielle (git-scm.com, rubrique *Install*, *Windows*), lance l’installateur et garde **toutes les options par défaut**. Claude Code s’en sert aussi sous Windows.
+- **Mac** : dans le terminal, tape la commande ci-dessous et accepte l’installation des « outils de ligne de commande » proposée par macOS.
+
+```bash
+xcode-select --install
+```
+
+Ferme puis rouvre VS Code, et vérifie dans le terminal :
+
+```bash
+git --version
+```
+
+Résultat attendu : une ligne comme `git version 2.52.0.windows.1` (Windows) ou `git version 2.xx.x` (Mac).
+
+**Te présenter à Git** (une seule fois par ordinateur). Remplace le pseudo et l’adresse, en gardant les guillemets :
+
+```bash
+git config --global user.name "TonPseudo"
+git config --global user.email "ton.adresse@example.com"
+```
+
+Ces deux informations sont écrites dans chaque commit. Si tu publies un jour ton projet en ligne, elles seront visibles : un **pseudo** suffit, pas besoin de ton nom complet. Tape `git config --global user.name` pour vérifier : ton pseudo s’affiche.
+
+Tu n’as pas encore besoin de `git init` : Rojo va créer le dépôt Git pour toi à l’étape 4.
+
+## Étape 3 : Rokit et les trois outils du projet
+
+**Rokit** installe les outils de l’écosystème Roblox et note leur version dans un fichier `rokit.toml`. Ainsi, toute personne qui récupère ton projet (ou Claude Code) utilise exactement les mêmes versions.
+
+**Installer Rokit** (une fois par ordinateur). Commande officielle du dépôt `rojo-rbx/rokit` :
+
+Windows, dans PowerShell (le terminal de VS Code par défaut) :
+
+```powershell
+Invoke-RestMethod https://raw.githubusercontent.com/rojo-rbx/rokit/main/scripts/install.ps1 | Invoke-Expression
+```
+
+Mac :
+
+```bash
+curl -sSf https://raw.githubusercontent.com/rojo-rbx/rokit/main/scripts/install.sh | bash
+```
+
+Ferme complètement VS Code, rouvre-le (ton dossier se rouvre tout seul), puis :
+
+```bash
+rokit --version
+```
+
+Résultat attendu : `rokit 1.2.0` (ou plus récent).
+
+**Ajouter les outils au projet.** Dans le terminal de VS Code, à la racine de `ObbyDesNuages`, tape ces quatre commandes, une par une :
+
+```bash
+rokit init
+rokit add rojo-rbx/rojo
+rokit add Kampfkarren/selene
+rokit add JohnnyMorganz/StyLua stylua
+```
+
+- `rokit init` crée le fichier `rokit.toml` (message `Initialized new Rokit project successfully!`).
+- Pour chaque outil, Rokit demande `Trust and install … ?` : c’est une sécurité, car il va télécharger un programme. Réponds `y` uniquement pour ces trois outils officiels. Il confirme par `Added version … of tool …`.
+- Le dernier mot de la quatrième ligne (`stylua`) est le nom de la commande à taper ensuite.
+
+Vérifie avec `rokit list`. Résultat attendu (versions d’octobre 2026) :
+
+```text
+./rokit.toml
+• rojo   → rojo-rbx/rojo        @ 7.7.1
+• selene → Kampfkarren/selene   @ 0.32.0
+• stylua → JohnnyMorganz/StyLua @ 2.6.0
+```
+
+<Astuce titre="Un projet récupéré ? Une seule commande">
+Si tu récupères un projet qui contient déjà un `rokit.toml` (sur un autre ordinateur, ou celui d’un ami), tape simplement `rokit install` : Rokit installe tous les outils listés, dans les bonnes versions.
+</Astuce>
+
+## Étape 4 : Rojo, le pont entre tes fichiers et Studio
+
+### Créer le projet
+
+Toujours à la racine du dossier :
+
+```bash
+rojo init
+```
+
+Résultat attendu :
+
+```text
+Creating new Place project 'ObbyDesNuages'
+Initialized empty Git repository in …/ObbyDesNuages/.git/
+Created project successfully.
+```
+
+Rojo a créé un projet d’exemple **et** lancé `git init` : ton dossier est maintenant un dépôt Git (dossier caché `.git`). Si tu ne vois pas la ligne `Initialized empty Git repository`, tape `git init` toi-même.
+
+### L’adapter à l’Obby des Nuages
+
+Le modèle de Rojo contient des dossiers d’exemple et ajoute même une Baseplate dans Workspace : ce n’est pas ce qu’on veut. On le remplace par la structure de l’Obby, la même que celle du corrigé de la formation.
+
+1. Supprime les dossiers d’exemple et crée ceux de l’Obby.
+
+Windows (PowerShell) :
+
+```powershell
+Remove-Item -Recurse src/shared, src/server, src/client
+mkdir src/ServerScriptService, src/ReplicatedStorage/Modules, src/StarterPlayer/StarterPlayerScripts, src/StarterPlayer/StarterCharacterScripts, src/StarterGui
+```
+
+Mac :
+
+```bash
+rm -r src/shared src/server src/client
+mkdir -p src/ServerScriptService src/ReplicatedStorage/Modules src/StarterPlayer/StarterPlayerScripts src/StarterPlayer/StarterCharacterScripts src/StarterGui
+```
+
+2. Dans VS Code, ouvre `default.project.json`, efface tout son contenu et remplace-le par celui-ci, puis enregistre (`Ctrl`+`S` ou `Cmd`+`S`) :
+
+```json
+{
+  "name": "ObbyDesNuages",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Modules": {
+        "$path": "src/ReplicatedStorage/Modules"
+      },
+      "Remotes": {
+        "$className": "Folder",
+        "AcheterObjet": { "$className": "RemoteEvent" },
+        "EquiperObjet": { "$className": "RemoteEvent" },
+        "Notification": { "$className": "RemoteEvent" },
+        "Victoire": { "$className": "RemoteEvent" },
+        "DemanderPasserEtape": { "$className": "RemoteEvent" },
+        "AnnonceRedemarrage": { "$className": "RemoteEvent" }
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src/ServerScriptService"
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "$path": "src/StarterGui"
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      },
+      "StarterCharacterScripts": {
+        "$className": "StarterCharacterScripts",
+        "$path": "src/StarterPlayer/StarterCharacterScripts"
+      }
+    }
+  }
+}
+```
+
+Comment le lire :
+
+- `tree` décrit l’arbre de Studio (l’Explorer). Chaque clé est le nom d’une instance.
+- `$path` relie une instance à un **dossier du disque** : tout ce que contient `src/ServerScriptService` apparaît dans ServerScriptService.
+- `$className` crée une instance d’une classe donnée sans fichier : c’est ainsi que le Folder `Remotes` et ses six **RemoteEvents** sont déclarés directement ici. Pour en ajouter un, une ligne suffit (et Claude Code saura le faire).
+- **Workspace et Lighting n’apparaissent pas** : Rojo n’y touche donc pas. Ton niveau construit à la main reste dans ton place.
+
+### Les suffixes de fichiers
+
+Le **suffixe** du nom de fichier décide du type de script créé dans Studio :
+
+| Fichier sur le disque | Dans Studio (avec Rojo) |
+|---|---|
+| `Pieces.server.luau` | **Script** (serveur) nommé `Pieces` |
+| `MessagesProgression.client.luau` | **LocalScript** nommé `MessagesProgression` |
+| `Config.luau` | **ModuleScript** nommé `Config` |
+| un dossier `Boutique/` | un **Folder** `Boutique` |
+
+L’emplacement dans Studio est celui du dossier : `src/ServerScriptService/Pieces.server.luau` devient le Script `Pieces` dans ServerScriptService.
+
+### Installer le plugin Rojo dans Studio
+
+Rojo a deux moitiés : le programme que tu viens d’installer, et un **plugin** dans Studio. La méthode officielle la plus simple :
+
+```bash
+rojo plugin install
+```
+
+Puis **ferme et rouvre Studio**. Le plugin apparaît dans l’onglet **Plugins** sous le nom **Rojo**. Autre méthode officielle : installer le plugin « Rojo » depuis sa page sur le Creator Store (lien dans les sources). Rojo a un plugin par version majeure : garde le plugin et le programme en version 7.
+
+### Avant la première connexion : protège ton niveau
+
+Quand il se connecte, Rojo **remplace** le contenu des emplacements qu’il gère (ServerScriptService, StarterGui, StarterPlayerScripts, StarterCharacterScripts et `ReplicatedStorage.Modules`) par celui de tes fichiers. Un script créé à la main à ces endroits dans Studio sera **supprimé**. Workspace, lui, n’est pas touché.
+
+<Attention titre="Copie de sauvegarde obligatoire">
+
+Avant de connecter Rojo pour la première fois :
+
+1. ouvre ton place dans Studio et fais **File** › **Save to Roblox** : une version est gardée dans l’historique des versions (module 1, leçon 5) ;
+2. fais aussi **File** › **Save to File As…** pour garder une copie datée, par exemple `ObbyDesNuages-sauvegarde-2026-10-24.rbxl`, **en dehors** du dossier du projet ;
+3. pour ton tout premier essai, connecte Rojo à une **copie** du place plutôt qu’à l’original.
+
+Le niveau (plateformes, checkpoints, SpawnLocation) n’existe **que** dans ce fichier de lieu : Git ne le sauvegarde pas.
+
+</Attention>
+
+### Lancer la synchronisation
+
+1. Dans le terminal de VS Code :
+
+```bash
+rojo serve
+```
+
+Résultat attendu (le terminal reste « occupé », c’est normal) :
+
+```text
+Rojo server listening:
+  Address: localhost
+  Port:    34872
+```
+
+2. Dans Studio, ouvre ton place (ou sa copie), onglet **Plugins**, bouton **Rojo**, puis **Connect**.
+3. Une fenêtre **« Sync changes for project 'ObbyDesNuages' »** liste ce que Rojo va changer. **Lis-la** : si elle annonce la suppression de scripts que tu veux garder, clique sur **Abort** et récupère-les d’abord (section « Migrer un jeu existant » plus bas). Sinon, clique sur **Accept**.
+4. Vérifie dans l’Explorer : `ReplicatedStorage` contient maintenant `Modules` et `Remotes` avec ses six RemoteEvents.
+
+**Premier test.** Dans VS Code, crée le fichier `src/ServerScriptService/Bonjour.server.luau` (clic droit sur le dossier › **New File**) avec ce contenu, puis enregistre :
+
+```luau
+-- Script serveur de test : il prouve que Rojo synchronise bien les fichiers
+print("Rojo fonctionne : bonjour depuis le serveur de l'Obby des Nuages !")
+```
+
+Quelques instants plus tard, un Script `Bonjour` apparaît dans ServerScriptService. Lance **Play** : le message s’affiche dans l’Output. Arrête le test, change le texte dans VS Code, enregistre : le script change aussi dans Studio. Enfin, **supprime** le fichier dans VS Code : le script disparaît de Studio. Tu viens de voir le principe : **les fichiers sont la source de vérité**.
+
+Pour arrêter : bouton **Disconnect** dans le plugin, puis `Ctrl`+`C` dans le terminal.
+
+<Erreur titre="Modifier un script directement dans Studio">
+Avec Rojo connecté, une modification faite dans l’éditeur de scripts de Studio **n’est pas renvoyée** vers tes fichiers (la synchronisation dans l’autre sens est une option désactivée par défaut, à laisser telle quelle). À la prochaine modification du fichier ou à la prochaine connexion, ton changement fait dans Studio sera écrasé. Règle simple : le code se modifie **dans VS Code** (ou par Claude Code), jamais dans Studio.
+</Erreur>
+
+### Ce que Rojo gère, et ce qu’il ne gère pas
+
+| Rojo s’en occupe (depuis tes fichiers) | Reste dans ton place (à sauvegarder toi-même) |
+|---|---|
+| Scripts, LocalScripts, ModuleScripts | Le niveau dans Workspace : plateformes, checkpoints, pièces, kill bricks |
+| Le Folder `Remotes` et ses RemoteEvents | Lighting, le ciel, le terrain |
+| L’interface de StarterGui, quand elle est décrite en fichiers | Les réglages de l’expérience (Game Settings) |
+
+Tu peux aussi fabriquer un fichier de lieu avec `rojo build -o ObbyDesNuages-test.rbxlx`. Attention : ce fichier ne contient **que** ce que décrivent tes fichiers, donc pas ton niveau. Il sert à vérifier le code, pas à remplacer ton place.
+
+## Étape 5 : les outils qualité
+
+### luau-lsp dans VS Code
+
+1. Dans VS Code, ouvre le panneau **Extensions** (`Ctrl`+`Shift`+`X`, ou `Cmd`+`Shift`+`X` sur Mac).
+2. Cherche **Luau Language Server** (identifiant `JohnnyMorganz.luau-lsp`) et installe-le.
+3. C’est tout : l’extension charge par défaut les définitions de l’API Roblox (le « mode Roblox »). Elle repère ton `default.project.json` et génère seule un fichier `sourcemap.json` avec Rojo, pour savoir quel fichier correspond à quelle instance (utile pour les `require`). Ce fichier est déjà exclu de Git par le `.gitignore` de Rojo.
+
+Tu peux aussi installer les extensions **selene** (`Kampfkarren.selene-vscode`) et **StyLua** (`JohnnyMorganz.stylua`) pour voir leurs remarques directement dans l’éditeur.
+
+### selene et StyLua : deux fichiers de configuration
+
+À la racine du projet, crée deux fichiers (clic droit dans l’explorateur de VS Code › **New File**).
+
+`selene.toml` : il dit à selene que le code tourne sur Roblox (sinon `game` ou `Instance` lui seraient inconnus).
+
+```toml
+std = "roblox"
+```
+
+`stylua.toml` : il force StyLua à lire le code comme du Luau.
+
+```toml
+syntax = "Luau"
+```
+
+Par défaut, StyLua indente avec des tabulations et coupe les lignes au-delà de 120 caractères, comme l’éditeur de Studio.
+
+### Les commandes de vérification
+
+```bash
+selene src
+stylua --check src
+```
+
+- `selene src` analyse tout le dossier `src`. Résultat attendu quand tout va bien : `0 errors`, `0 warnings`, `0 parse errors`.
+- `stylua --check src` vérifie la mise en forme **sans rien modifier**. S’il n’affiche rien, tout est bien formaté. Sinon, il montre les différences.
+- `stylua src` **reformate** les fichiers (sans changer ce que fait le code).
+
+Ces deux commandes seront écrites dans ton CLAUDE.md (leçon 3) : Claude Code les lancera lui-même après chaque modification.
+
+### Ce que chaque outil attrape
+
+Voici un script volontairement imparfait, et ce que chaque outil en a dit lors de nos tests :
+
+```luau
+-- Script serveur volontairement imparfait, pour tester les outils qualité
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+Players.PlayerAdded:Connect(function(player)
+	wait(2)
+	print("Bienvenue " ..player.Name)
+end)
+```
+
+| Outil | Ce qu’il a signalé |
+|---|---|
+| **luau-lsp** | `wait` est déprécié, utiliser `task.wait` ; `ReplicatedStorage` n’est jamais utilisé |
+| **selene** | `ReplicatedStorage is assigned a value, but never used` |
+| **StyLua** | L’espace manquant dans `" ..player.Name"` (il proposera `" .. player.Name"`) |
+
+Aucun de ces outils ne vérifie que ton jeu fait ce que tu veux, ni qu’un RemoteEvent est bien protégé : ça, c’est la relecture et le test (leçon 6). Et un outil peut se tromper : lors de nos tests, selene ne connaissait pas encore la fonction récente `math.isfinite`, pourtant valide. Si un avertissement te semble faux, vérifie sur la documentation officielle avant de « corriger ».
+
+## Étape 6 : ton premier commit
+
+Ouvre le fichier `.gitignore` créé par Rojo : il liste ce que Git doit ignorer. Remplace son contenu par celui-ci :
+
+```text
+# Fichiers de lieu : ils ne vont pas dans Git (sauvegarde-les avec Save to Roblox et une copie datée)
+*.rbxl
+*.rbxlx
+
+# Fichiers de verrou de Studio
+*.rbxl.lock
+*.rbxlx.lock
+
+# Généré automatiquement par luau-lsp et Rojo
+sourcemap.json
+```
+
+Puis, dans le terminal :
+
+```bash
+git status
+git add .
+git commit -m "Projet Rojo de l'Obby des Nuages : structure, Rokit, selene, StyLua"
+```
+
+- `git status` liste les fichiers nouveaux ou modifiés.
+- `git add .` les prépare pour la photo (le point veut dire « tout le dossier »).
+- `git commit -m "…"` prend la photo, avec un message qui dit ce qui a changé. Résultat attendu : une ligne comme `[master (root-commit) 7882bbd] Projet Rojo…`, puis le nombre de fichiers.
+
+Sous Windows, des lignes `warning: … LF will be replaced by CRLF` peuvent apparaître : elles concernent les fins de ligne et sont sans gravité. Tape `git log --oneline` pour voir ton historique.
+
+<Erreur titre="Les dossiers vides disparaissent dans Git">
+Git n’enregistre que des fichiers : un dossier encore vide (comme `src/ReplicatedStorage/Modules` au début) n’est pas sauvegardé. Si tu récupères le projet ailleurs, Rojo affichera `Rojo project referred to a file using $path that could not be turned into a Roblox Instance`, suivi du dossier manquant. Il suffit de recréer ce dossier. Le problème disparaîtra dès que chaque dossier contiendra un script.
+</Erreur>
+
+## Étape 7 : brancher le serveur MCP de Studio à Claude Code
+
+Cette étape demande **Claude Code** (réservé aux 18 ans et plus, voir la leçon 1). S’il n’est pas encore installé, fais d’abord la leçon 3, puis reviens ici.
+
+Le serveur MCP est **intégré à Roblox Studio** depuis mars 2026 et tourne sur ton ordinateur. L’ancien dépôt `Roblox/studio-rust-mcp-server`, cité par de vieux tutoriels, est archivé depuis avril 2026 : ne l’installe pas.
+
+### 1. Activer le serveur dans Studio
+
+1. Ouvre ton place, puis l’**Assistant**.
+2. Clique sur **…** › **Manage MCP Servers**.
+3. Active **Enable Studio as MCP server**. Un indicateur vert affiche le nombre de clients connectés.
+
+Selon la version de Studio, le libellé peut légèrement changer : cherche la section **MCP Servers** dans les réglages de l’Assistant.
+
+### 2. Brancher Claude Code : le Quick connect (méthode officielle)
+
+Dans les réglages de l’Assistant, section **MCP Servers**, ouvre la liste **Quick connect** : elle montre les clients installés sur ton ordinateur. Active **Claude Code**. Si Claude Code n’apparaît pas, installe-le, puis redémarre Studio. Ensuite, redémarre Claude Code pour qu’il charge le serveur.
+
+### 2 bis. Ou bien : la configuration manuelle
+
+Si le Quick connect ne fonctionne pas, ajoute toi-même le serveur à Claude Code. La documentation de Roblox donne la commande qui lance le serveur ; la commande `claude mcp add` ci-dessous en est **déduite** (Roblox ne la publie pas). Nous l’avons testée sous Windows (Claude Code 2.1.310) ; la version Mac utilise le chemin officiel de Roblox, sans test de notre part. Ne fais **pas** les deux méthodes à la fois.
+
+Windows (PowerShell, tape la ligne telle quelle, `%LOCALAPPDATA%` compris) :
+
+```powershell
+claude mcp add --transport stdio --scope user Roblox_Studio -- cmd.exe /c %LOCALAPPDATA%\Roblox\mcp.bat
+```
+
+Mac :
+
+```bash
+claude mcp add --transport stdio --scope user Roblox_Studio -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP
+```
+
+`--scope user` rend le serveur disponible dans tous tes projets ; tout ce qui suit `--` est la commande qui lance le serveur. Pour l’enlever : `claude mcp remove Roblox_Studio -s user`.
+
+### 3. Vérifier
+
+Dans le terminal, avec Studio ouvert :
+
+```bash
+claude mcp list
+```
+
+Résultat attendu (sous Windows) : une ligne `Roblox_Studio: cmd.exe /c %LOCALAPPDATA%\Roblox\mcp.bat - ✔ Connected`. Dans une session Claude Code, la commande `/mcp` affiche aussi l’état des serveurs. En cas de problème, la documentation de Roblox conseille de redémarrer Studio **et** Claude Code, puis de vérifier que le chemin existe. Après une mise à jour de Studio, redémarre une fois Claude Code pour qu’il voie les nouveaux outils.
+
+### Ce que l’IA peut alors faire dans Studio
+
+La documentation de Roblox liste les outils du serveur. Les principaux :
+
+| Lire (sans rien changer) | Agir sur ton place |
+|---|---|
+| `script_read`, `script_search`, `script_grep` : lire et chercher dans les scripts | `multi_edit` : modifier ou créer un script |
+| `search_game_tree`, `inspect_instance` : explorer l’Explorer et les propriétés | `execute_luau` : exécuter du code Luau dans Studio |
+| `get_console_output` : lire l’Output | `start_stop_play` : lancer ou arrêter un test |
+| `screen_capture` : capturer la vue | `insert_asset`, `generate_mesh`, `generate_material` : insérer ou générer des objets |
+| `get_studio_state`, `list_roblox_studios` : état de Studio | `character_navigation`, `user_keyboard_input`, `user_mouse_input` : jouer à ta place pendant un test |
+
+Avec Rojo, les scripts se modifient **dans les fichiers** : demande à Claude Code d’utiliser le MCP surtout pour **lire** le place, lancer un test et lire l’Output, pas pour éditer des scripts que Rojo écraserait ensuite.
+
+### Les précautions
+
+<Attention titre="Le MCP modifie ton place pour de vrai">
+
+Roblox prévient : un client MCP peut lire **et modifier** le contenu des places ouverts, et tout ne s’annule pas depuis Studio. Donc :
+
+- sauvegarde ton place (**Save to Roblox** et copie datée) avant de demander un gros changement ;
+- ne branche que des clients de confiance, et désactive **Enable Studio as MCP server** quand tu ne t’en sers pas ;
+- souviens-toi que ce que lisent les outils (scripts, propriétés, console, captures) est envoyé au fournisseur de l’IA ;
+- garde la main sur les outils qui agissent : avec une règle `ask` dans le fichier `.claude/settings.json` du projet, Claude Code te demandera toujours ton accord, même en mode automatique (les permissions sont détaillées en leçon 3).
+
+</Attention>
+
+Exemple de règles à placer dans `.claude/settings.json`, à la racine du projet : Claude Code demandera ton accord avant d’exécuter du Luau, de modifier un script ou d’insérer un asset par le MCP.
+
+```json
+{
+  "permissions": {
+    "ask": [
+      "mcp__Roblox_Studio__execute_luau",
+      "mcp__Roblox_Studio__multi_edit",
+      "mcp__Roblox_Studio__insert_asset"
+    ]
+  }
+}
+```
+
+## Migrer un jeu existant vers Rojo
+
+Tu as déjà un jeu avec des scripts créés dans Studio ? Deux méthodes, toujours sur une **copie** du place.
+
+**Méthode 1, à la main (la plus sûre).** Pour chaque script, crée le fichier correspondant dans `src` (même dossier, bon suffixe, même nom), colle le code, enregistre. Ensuite seulement, connecte Rojo.
+
+**Méthode 2, `rojo syncback` (Rojo 7.7 et plus).** Rojo lit un fichier de lieu et écrit les fichiers à ta place, en suivant ton `default.project.json`. Enregistre une copie du place avec **Save to File As…** (par exemple `AncienJeu.rbxl` à côté du dossier), puis commence **toujours** par une simulation :
+
+```bash
+rojo syncback --input ../AncienJeu.rbxl --dry-run --list
+```
+
+Rojo affiche les fichiers qu’il écrirait (`Writing src/ServerScriptService/…`) sans rien toucher. Si la liste te convient, relance sans `--dry-run --list`, puis vérifie le résultat avec `git status` avant de committer. Lors de nos tests, une interface faite à la main dans StarterGui a été écrite sous forme d’un fichier `.rbxm` (format binaire de Roblox), illisible dans VS Code : c’est normal.
+
+## Et Script Sync, la solution intégrée à Studio ?
+
+Depuis juin 2026, Studio propose en version finale **Script Sync** : clic droit sur un dossier de l’Explorer › **Sync to…**, et ses scripts sont synchronisés avec des fichiers, **dans les deux sens**. C’est plus simple à installer que Rojo, et Roblox le présente dans son guide « Build with a coding harness » avec le serveur MCP et Git. Mais :
+
+- il ne gère que les Scripts, LocalScripts, ModuleScripts et Folders (pas les RemoteEvents ni l’interface) ;
+- les suffixes ne veulent pas dire la même chose : avec Script Sync, `.client.luau` donne un Script en RunContext Client, et il faut `.local.luau` pour un LocalScript. Mélanger Script Sync et Rojo sur le même projet mène tout droit à des scripts du mauvais type ;
+- Roblox lui-même conseille un outil comme Rojo pour versionner **tout** le projet et faire des fichiers la source de vérité.
+
+**Décision de la formation** : nous gardons Rojo, parce que le projet est entièrement décrit en fichiers (y compris les Remotes), et parce que tes fichiers restent compatibles avec le corrigé `projet-reference`. Script Sync reste une alternative honnête si tu préfères rester au plus près de Studio, mais choisis l’un **ou** l’autre.
+
+## Ton poste est prêt ?
+
+- [ ] VS Code est installé et le dossier `ObbyDesNuages` s’ouvre avec un terminal intégré
+- [ ] `git --version` répond, et ton pseudo est configuré dans Git
+- [ ] `rokit list` affiche rojo, selene et stylua
+- [ ] `default.project.json` a la structure de l’Obby et les dossiers de `src` existent
+- [ ] Le plugin Rojo est dans Studio, `rojo serve` + **Connect** fonctionne, le test `Bonjour` est passé
+- [ ] Ton place est sauvegardé (Save to Roblox et copie datée hors du dossier)
+- [ ] L’extension luau-lsp est installée, `selene.toml` et `stylua.toml` sont créés
+- [ ] `selene src` et `stylua --check src` ne signalent rien
+- [ ] Le premier commit apparaît dans `git log --oneline`
+- [ ] (Après la leçon 3) `claude mcp list` affiche `Roblox_Studio … ✔ Connected`
+
+<Defi>
+Ajoute un septième RemoteEvent `DemanderReapparition` dans `Remotes`, directement dans `default.project.json` (copie une ligne existante et n’oublie pas la virgule). Rojo étant connecté, vérifie qu’il apparaît dans l’Explorer (sinon, clique sur **Disconnect** puis **Connect**). Lance `git status`, puis fais un commit avec un message clair. Enfin, tape `git diff HEAD~1` pour voir exactement ce qui a changé.
+</Defi>
+
+<Resume>
+- Le **terminal** se pilote avec cinq gestes : vérifier le dossier (`pwd`), coller, `Entrée`, lire la réponse, `Ctrl`+`C` pour arrêter.
+- **Rokit** installe Rojo, selene et StyLua dans des versions fixées par `rokit.toml` ; **Git** garde l’historique, un commit par étape.
+- **Rojo** synchronise les fichiers de `src` vers Studio selon `default.project.json` ; `.server.luau` = Script, `.client.luau` = LocalScript, `.luau` = ModuleScript. Le niveau de Workspace reste dans ton place : sauvegarde-le.
+- **luau-lsp**, `selene src` et `stylua --check src` attrapent des erreurs différentes ; aucun ne remplace le test.
+- Le **serveur MCP intégré à Studio** se branche à Claude Code par le Quick connect (ou `claude mcp add`) ; il modifie ton place pour de vrai : sauvegarde et garde la main.
+</Resume>
+
+<Sources>
+- [Rojo — installation (Rokit, plugin Studio)](https://rojo.space/docs/v7/getting-started/installation/)
+- [Rojo — format du fichier projet ($path, $className, $ignoreUnknownInstances)](https://rojo.space/docs/v7/project-format/)
+- [Rojo — dépôt officiel et CHANGELOG (syncback, synchronisation bidirectionnelle)](https://github.com/rojo-rbx/rojo)
+- [Rojo — plugin sur le Creator Store](https://create.roblox.com/store/asset/13916111004/Rojo)
+- [Rokit — dépôt officiel (installation et commandes)](https://github.com/rojo-rbx/rokit)
+- [Git — installation sous Windows](https://git-scm.com/install/windows)
+- [Git — installation sous macOS](https://git-scm.com/install/mac)
+- [Git — première configuration (user.name, user.email)](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup)
+- [luau-lsp — dépôt officiel (extension VS Code, sourcemap Rojo)](https://github.com/JohnnyMorganz/luau-lsp)
+- [selene — utilisation avec Roblox](https://kampfkarren.github.io/selene/roblox.html)
+- [StyLua — dépôt officiel (configuration, --check)](https://github.com/JohnnyMorganz/StyLua)
+- [Studio MCP server — documentation Roblox (activation, Quick connect, outils, sécurité)](https://create.roblox.com/docs/studio/mcp)
+- [Roblox/studio-rust-mcp-server — ancien serveur, archivé](https://github.com/Roblox/studio-rust-mcp-server)
+- [Claude Code — connecter des serveurs MCP](https://code.claude.com/docs/en/mcp)
+- [Claude Code — permissions (règles pour les outils MCP)](https://code.claude.com/docs/en/permissions)
+- [Script Sync — documentation Roblox](https://create.roblox.com/docs/scripting/sync)
+- [Full Release: Studio Script Sync — annonce Roblox (17 juin 2026)](https://devforum.roblox.com/t/full-release-studio-script-sync/4688454)
+- [External tools — documentation Roblox (Rojo, Rokit)](https://create.roblox.com/docs/projects/external-tools)
+</Sources>

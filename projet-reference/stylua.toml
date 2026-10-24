@@ -1,0 +1,3 @@
+# StyLua : formateur de code (https://github.com/JohnnyMorganz/StyLua)
+# Par défaut : tabulations et lignes de 120 caractères au maximum.
+syntax = "Luau"

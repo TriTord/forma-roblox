@@ -1,0 +1,506 @@
+---
+titre: L’art du prompt précis
+description: La structure d’un prompt qui donne du bon code Roblox, rubrique par rubrique, et huit exemples « mauvais prompt → bon prompt » sur de vrais systèmes de jeu, avec le résultat expliqué.
+duree: 60
+objectifs:
+  - Structurer un prompt en huit rubriques et comprendre ce que chacune change dans le code produit
+  - Transformer un prompt vague en prompt précis pour un système Roblox réel
+  - Prévoir ce qu’une IA produit avec un prompt vague pour repérer ces défauts dans son code
+miseAJour: 2026-10-24
+quiz:
+  - type: ameliore-le-prompt
+    question: "Tu veux un bouton qui ramène le joueur coincé à son dernier checkpoint. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "ajoute un bouton pour respawn"
+    options:
+      - texte: "Ajoute un bouton de respawn bien designé, rapide et sécurisé, comme dans les meilleurs obbys."
+      - texte: |
+          Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Les joueurs coincés n'ont aucun moyen de revenir au checkpoint.
+          Ce qui existe déjà : le RemoteEvent ReplicatedStorage.Remotes.DemanderReapparition (default.project.json) et le ScreenGui src/StarterGui/InterfaceObby.
+          Objectif : un bouton « Retour au checkpoint » en bas à droite ramène le joueur à son dernier checkpoint validé.
+          Fichiers concernés : crée src/StarterGui/InterfaceObby/BoutonReapparition.client.luau et src/ServerScriptService/Reapparition.server.luau ; ne modifie rien d'autre.
+          Sécurité : le client envoie seulement la demande, sans argument ; le serveur accepte au plus une demande toutes les 5 secondes par joueur.
+          Cas limites : joueur sans personnage, double clic, joueur qui part.
+          Vérification : selene et StyLua sans erreur ; en Play, deux clics rapides ne font qu'une réapparition.
+        correct: true
+      - texte: |
+          Ajoute un bouton respawn.
+          Le client envoie au serveur la position du checkpoint où il veut réapparaître.
+          Vérification : teste-le.
+    explication: "La bonne version dit où sont les objets existants, ce que voit le joueur, quels fichiers créer, ce que le serveur contrôle, les cas limites et comment vérifier. La première ne contient que des adjectifs ; la troisième crée une faille (le client choisit sa position, donc n’importe quel checkpoint) et sa vérification ne dit rien."
+  - type: ameliore-le-prompt
+    question: "Tu veux des pièces à ramasser dans le niveau. Quelle version du prompt est la plus précise et la plus sûre ?"
+    prompt: "fais des pièces à ramasser"
+    options:
+      - texte: |
+          Crée un LocalScript qui détecte quand le joueur touche une pièce, la fait disparaître et ajoute 1 à leaderstats.Pieces.
+          Vérification : les pièces disparaissent bien.
+      - texte: |
+          Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md).
+          Ce qui existe déjà : le Folder Workspace.Pieces (Parts ancrées nommées Piece), les leaderstats Pieces, Config.VALEUR_PIECE dans ReplicatedStorage.Modules.Config.
+          Objectif : quand un joueur touche une pièce, il gagne Config.VALEUR_PIECE pièces et la pièce disparaît pour 10 secondes.
+          Fichiers concernés : crée src/ServerScriptService/Pieces.server.luau (Script serveur) ; ne modifie rien d'autre.
+          Sécurité : tout se passe sur le serveur ; un même toucher ne peut pas rapporter deux fois.
+          Cas limites : un accessoire ou un objet qui touche la pièce, deux joueurs en même temps, joueur sans leaderstats.
+          Vérification : selene et StyLua sans erreur ; en Play, le compteur augmente d'exactement Config.VALEUR_PIECE par pièce.
+        correct: true
+      - texte: "Fais des pièces à ramasser avec un effet de rotation, un son, des particules et un classement."
+    explication: "La bonne version réutilise ce qui existe (Folder, leaderstats, Config), place le code sur le serveur, interdit le double gain et liste les cas limites. La première met le gain dans un LocalScript : le changement ne serait pas répliqué au serveur, et un tricheur pourrait se donner des pièces. La troisième mélange cinq tâches sans aucune contrainte."
+  - type: qcm
+    question: "Claude Code a créé un deuxième dossier leaderstats avec une valeur `Coins`, en double des `Pieces` que ton jeu avait déjà. Quelle rubrique manquait le plus à ton prompt ?"
+    options:
+      - texte: Vérification
+      - texte: Ce qui existe déjà
+        correct: true
+      - texte: Sécurité
+      - texte: Cas limites
+    explication: "Sans la rubrique « Ce qui existe déjà », l’IA ne sait pas que les leaderstats `Etape` et `Pieces` existent (ou ne pense pas à les chercher) : elle recrée sa propre version, avec ses propres noms. Citer les scripts, modules et remotes existants, avec leurs chemins, évite les doublons."
+  - type: vrai-faux
+    question: "Avec un prompt parfaitement structuré en huit rubriques, on peut utiliser le code produit sans le relire."
+    reponse: false
+    explication: "Un excellent prompt réduit fortement les erreurs, mais l’IA peut encore se tromper : API inventée, cas oublié, faille subtile. Il faut toujours lire le code, lancer les vérifications et tester dans Studio. La leçon 6 du module donne une checklist de relecture."
+  - type: qcm
+    question: "Pourquoi la rubrique « Vérification » améliore-t-elle le code, et pas seulement ton test ?"
+    options:
+      - texte: Parce qu’elle oblige Claude à écrire plus de commentaires
+      - texte: "Parce qu’elle donne à Claude un contrôle qu’il peut lancer lui-même (selene, StyLua, test décrit) : il voit ses erreurs et corrige avant de dire que c’est fini"
+        correct: true
+      - texte: Parce que Claude Code refuse de travailler sans elle
+      - texte: Parce qu’elle remplace le test dans Studio
+    explication: "Les bonnes pratiques d’Anthropic le disent : « Give Claude a check it can run ». Sans critère, Claude s’arrête quand le travail « a l’air fini ». Avec un contrôle exécutable, il itère jusqu’à ce que le contrôle passe. Le test dans Studio reste indispensable : c’est toi qui le fais."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur doit équiper la traînée choisie par le joueur."
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local modules = ReplicatedStorage:WaitForChild("Modules")
+      local Catalogue = require(modules:WaitForChild("Catalogue")) :: any
+      local remotes = ReplicatedStorage:WaitForChild("Remotes")
+      local equiperObjet = remotes:WaitForChild("EquiperObjet") :: RemoteEvent
+
+      equiperObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+      	if typeof(idObjet) ~= "string" or Catalogue[idObjet] == nil then
+      		return
+      	end
+      	player:SetAttribute("TrailEquipe", idObjet)
+      end)
+    options:
+      - texte: "Ligne 8 : le premier paramètre devrait être `idObjet`, pas `player`"
+      - texte: "Ligne 9 : `typeof` ne fonctionne pas sur un argument reçu par un RemoteEvent"
+      - texte: "Lignes 9 à 12 : le serveur ne vérifie pas que le joueur **possède** l’objet avant de l’équiper"
+        correct: true
+      - texte: "Ligne 12 : `SetAttribute` n’est pas répliqué aux clients"
+    explication: "Le code vérifie bien le type et l’existence de l’objet dans le Catalogue, mais pas que le joueur l’a **acheté**. N’importe quel joueur peut donc équiper gratuitement la traînée la plus chère en envoyant son identifiant. C’est le défaut typique d’un prompt qui ne précise pas la règle de sécurité « on n’équipe que ce qu’on possède »."
+---
+
+À la leçon précédente, tu as installé Claude Code et écrit le CLAUDE.md de l’Obby des Nuages. Il reste le geste que tu feras des centaines de fois : **écrire un prompt**, c’est-à-dire la demande que tu envoies à l’IA. C’est lui qui décide, plus que tout le reste, de la qualité du code obtenu. Un prompt vague donne du code vague. Dans cette leçon, tu apprends une structure en huit rubriques, puis tu la vois à l’œuvre sur huit systèmes de jeu réels.
+
+## Pourquoi la précision change tout
+
+Une IA de code ne devine pas ce que tu as en tête. Quand une information manque, elle la **remplace par la solution la plus courante** qu’elle connaît : des noms en anglais, un script unique, un système « qui marche » dans le cas simple. Elle produit rarement du code absurde ; elle produit du code **générique**, qui ne s’emboîte pas dans ton jeu et oublie ce que tu n’as pas demandé.
+
+La documentation d’Anthropic le formule ainsi :
+
+- « Claude can infer intent, but it can't read your mind. Reference specific files, mention constraints, and point to example patterns. » (Claude peut déduire une intention, mais il ne lit pas dans les pensées : cite des fichiers précis, mentionne les contraintes, montre des exemples à suivre.)
+- « The more precise your instructions, the fewer corrections you'll need. » (Plus tes instructions sont précises, moins tu auras de corrections à faire.)
+- « Think of Claude as a brilliant but new employee who lacks context on your norms and workflows. » (Vois Claude comme un employé brillant mais nouveau, qui ne connaît ni tes règles ni tes habitudes.)
+
+Et un test très simple, tiré du même guide : « Show your prompt to a colleague with minimal context on the task and ask them to follow it. If they'd be confused, Claude will be too. » Si un ami développeur qui n’a jamais vu ton jeu ne saurait pas quoi faire avec ton prompt, Claude non plus.
+
+<Info titre="Le prompt vague a sa place… pour explorer">
+La même documentation nuance : un prompt vague peut être utile quand tu **explores**, par exemple « qu’est-ce que tu améliorerais dans ce fichier ? ». Tu découvres des pistes auxquelles tu n’avais pas pensé. Mais dès qu’il s’agit de **construire** un système de ton jeu, sois précis.
+</Info>
+
+## Le gabarit en huit rubriques
+
+Tous les prompts complets de cette formation suivent la même structure. Copie-la et garde-la sous la main :
+
+<Prompt titre="Gabarit du prompt précis">
+
+```text
+Contexte : (le jeu, la partie du jeu concernée, ce que fait déjà le projet)
+Ce qui existe déjà : (scripts, modules, remotes, instances à réutiliser — avec leurs chemins)
+Objectif : (le résultat exact attendu, du point de vue du joueur)
+Fichiers concernés : (fichiers à créer / modifier ; « ne modifie rien d'autre »)
+Contraintes techniques : (type de script et emplacement, API à utiliser ou à éviter, style)
+Sécurité : (ce que le serveur doit valider, ce qui ne doit jamais venir du client)
+Cas limites : (joueur qui part, valeurs invalides, double clic, panne du DataStore…)
+Vérification : (comment prouver que ça marche : test dans Studio, messages attendus dans l'Output, selene/StyLua sans erreur)
+```
+
+</Prompt>
+
+Tu peux omettre une rubrique sans objet (pas de « Sécurité » pour un effet purement visuel), mais **jamais** « Objectif » ni « Vérification ». Pour un gros changement, commence le prompt par « Commence par me proposer un plan (mode plan), sans modifier de fichier. », ou active le mode plan avec `Shift+Tab` ([leçon 3](/modules/02/claude-code-de-a-a-z/)).
+
+### Ce que change chaque rubrique
+
+| Rubrique | Sans elle, l’IA… | Avec elle… |
+|---|---|---|
+| **Contexte** | imagine un jeu générique (souvent un « simulator » ou un jeu de combat) | adapte le code à un obby, à ton public mobile, à ton projet Rojo |
+| **Ce qui existe déjà** | recrée ce qui existe : un deuxième leaderstats, un autre DataStore, un RemoteEvent au nom différent | réutilise tes modules, tes remotes et tes noms : le nouveau code s’emboîte dans l’ancien |
+| **Objectif** | choisit elle-même où s’arrêter : trop peu, ou dix fonctionnalités non demandées | vise un résultat observable par le joueur, donc vérifiable |
+| **Fichiers concernés** | range le code où elle veut et « améliore » au passage des fichiers que tu n’as pas demandés | crée exactement les bons fichiers, avec le bon suffixe (`.server.luau`, `.client.luau`, `.luau`), et ne touche à rien d’autre |
+| **Contraintes techniques** | utilise l’API la plus connue, même dépassée (`wait`, `SetAsync` partout) | utilise les API que tu as choisies, dans ton style |
+| **Sécurité** | fait « marcher » le système, souvent en croyant ce que le client envoie | met la décision sur le serveur et valide chaque argument |
+| **Cas limites** | code le cas heureux : un joueur, tout se passe bien | gère le joueur qui part, le double clic, la panne du DataStore |
+| **Vérification** | s’arrête quand le code « a l’air fini » | lance selene et StyLua, te dit comment tester et quoi voir dans l’Output |
+
+Deux principes d’Anthropic expliquent les deux dernières lignes. Pour la sécurité et les cas limites : « If you want Claude to do more than the task strictly requires, explicitly request it » (si tu veux plus que le strict nécessaire, demande-le explicitement). Pour la vérification : « Give Claude a check it can run » (donne à Claude un contrôle qu’il peut lancer), et « Have Claude show evidence rather than asserting success » (demande-lui des preuves plutôt qu’une affirmation).
+
+<Astuce titre="Ton CLAUDE.md fait déjà la moitié du travail">
+Les règles valables pour **tout** le jeu (conventions de nommage, `task.wait`, `pcall` autour des DataStores, commandes selene et StyLua) sont dans ton CLAUDE.md : inutile de les répéter dans chaque prompt. Écris « (voir CLAUDE.md) » dans le Contexte, et réserve le prompt à ce qui est **propre à cette tâche** : les fichiers, les règles de sécurité de ce système, ses cas limites. Le prompt reste lisible, et Claude a les deux.
+</Astuce>
+
+<Astuce titre="Dis pourquoi, pas seulement quoi">
+Le guide d’Anthropic montre qu’une consigne accompagnée de sa raison est mieux suivie : « Providing context or motivation behind your instructions […] can give Claude more information about your goals ». Écris « boutons d’au moins 12 % de la hauteur de l’écran, car la plupart des joueurs sont sur téléphone » plutôt que « gros boutons » : Claude appliquera aussi l’idée aux éléments que tu n’as pas cités.
+</Astuce>
+
+Passons à la pratique. Pour chaque exemple : le mauvais prompt, ce qu’une IA produit typiquement avec lui, le bon prompt, et ce qu’il change. Les défauts décrits ne sont pas inventés pour faire peur : ce sont des choix par défaut fréquents d’une IA à qui on n’a rien précisé (une IA peut aussi faire mieux, ou autrement). Tu apprendras à les repérer dans les modules 3 à 7.
+
+## Exemple 1 : la sauvegarde des joueurs (DataStore)
+
+**Le mauvais prompt :**
+
+```text
+fais une sauvegarde pour mon jeu
+```
+
+**Ce que l’IA produit typiquement.** Un seul Script, avec un DataStore au nom inventé, une clé égale au seul `UserId`, et ses propres leaderstats, comme ceci :
+
+```luau
+-- Script produit par « fais une sauvegarde pour mon jeu » (à NE PAS utiliser)
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+
+local store = DataStoreService:GetDataStore("PlayerData")
+
+Players.PlayerAdded:Connect(function(player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	leaderstats.Parent = player
+
+	local coins = Instance.new("IntValue")
+	coins.Name = "Coins"
+	coins.Parent = leaderstats
+
+	-- Aucun pcall : à la moindre panne du DataStore, erreur et script arrêté pour ce joueur
+	local data = store:GetAsync(tostring(player.UserId))
+	if data then
+		coins.Value = data
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+	if coins and coins:IsA("IntValue") then
+		-- Si le chargement avait échoué, on écrase la vraie sauvegarde avec 0
+		store:SetAsync(tostring(player.UserId), coins.Value)
+	end
+end)
+```
+
+Les défauts : un dossier `leaderstats` en double de celui de ton jeu (avec `Coins` au lieu de `Pieces`) ; l’étape n’est pas sauvegardée ; aucun `pcall` ni nouvelle tentative ; pas de `BindToClose`, donc la progression des joueurs présents est perdue quand le serveur ferme ; et le pire : si le chargement échoue, le joueur démarre à 0 et sa vraie sauvegarde est remplacée par 0 quand il part.
+
+**Le bon prompt :**
+
+<Prompt titre="Sauvegarde des joueurs">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Aujourd'hui, un joueur qui quitte perd sa progression.
+Ce qui existe déjà : src/ServerScriptService/Leaderstats.server.luau crée à l'arrivée du joueur le Folder leaderstats avec IntValue Etape et IntValue Pieces. Aucune donnée n'est sauvegardée.
+Objectif : un joueur qui quitte puis revient retrouve son étape et ses pièces, même si le serveur a fermé entre-temps.
+Fichiers concernés : crée src/ServerScriptService/DonneesJoueurs.luau (ModuleScript avec Charger, Obtenir et Sauvegarder) et modifie Leaderstats.server.luau pour l'utiliser. Ne modifie rien d'autre.
+Contraintes techniques : DataStore "DonneesJoueurs_v1", clé "Joueur_" .. player.UserId ; une table { version = 1, etape, pieces } ; UpdateAsync pour écrire ; chaque appel dans un pcall, 3 tentatives avec une attente croissante (task.wait) ; sauvegarde à PlayerRemoving, toutes les 180 secondes, et dans game:BindToClose.
+Sécurité : seul le serveur lit et écrit ces données ; aucun RemoteEvent ne permet au client de modifier ses pièces ou son étape.
+Cas limites : si le chargement échoue après 3 tentatives, préviens le joueur et ne remplace JAMAIS sa sauvegarde par des valeurs par défaut ; joueur qui part avant la fin du chargement ; serveur qui ferme avec plusieurs joueurs.
+Vérification : selene et StyLua sans erreur ; explique-moi le test en Play sur une copie de test avec « Enable Studio Access to API Services » activé (gagner des pièces, quitter, relancer, retrouver les mêmes valeurs) et les messages attendus dans l'Output.
+```
+
+</Prompt>
+
+**Ce que ça change :** Claude réutilise tes leaderstats au lieu d’en créer d’autres, sauvegarde les **deux** valeurs sous le nom et la clé de la formation, protège chaque appel réseau et gère la fermeture du serveur. Surtout, le cas limite « ne jamais écraser une sauvegarde après un chargement raté » est écrit noir sur blanc : c’est la différence entre un bug gênant et des joueurs qui perdent des heures de progression. Le détail de ce système est au [module 5](/modules/05/datastores-fiables/).
+
+## Exemple 2 : la boutique
+
+**Le mauvais prompt :**
+
+```text
+fais une boutique pour acheter des trails
+```
+
+**Ce que l’IA produit typiquement.** Une interface construite par un LocalScript, qui vérifie elle-même si le joueur a assez de pièces, puis envoie au serveur **le nom de l’objet et son prix**. Côté serveur :
+
+```luau
+-- Script serveur produit par « fais une boutique » (faille : à NE PAS utiliser)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Remote créé par script, avec un nom anglais, au lieu de Remotes.AcheterObjet
+local buyEvent = Instance.new("RemoteEvent")
+buyEvent.Name = "BuyItem"
+buyEvent.Parent = ReplicatedStorage
+
+buyEvent.OnServerEvent:Connect(function(player, itemName, price)
+	local coins = player.leaderstats.Coins
+	if coins.Value >= price then
+		-- Le prix vient du client : un tricheur envoie -1000 et GAGNE des pièces
+		coins.Value -= price
+		local owned = Instance.new("BoolValue")
+		owned.Name = itemName
+		owned.Parent = player
+	end
+end)
+```
+
+Les défauts : le serveur **croit le prix envoyé par le client** (prix négatif, nul, ou objet qui n’existe pas : tout passe) ; aucune vérification du type des arguments ; les prix sont recopiés en dur dans le LocalScript au lieu de venir du `Catalogue` ; l’achat n’est pas sauvegardé ; on peut racheter dix fois le même objet ; un clic frénétique envoie cent demandes.
+
+**Le bon prompt :**
+
+<Prompt titre="Boutique de traînées">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Les joueurs doivent pouvoir acheter des traînées avec leurs pièces.
+Ce qui existe déjà : ReplicatedStorage.Modules.Catalogue (identifiant → nom, prix, couleurs) ; le RemoteEvent ReplicatedStorage.Remotes.AcheterObjet ; le ModuleScript serveur DonneesJoueurs (champs pieces et inventaire) ; le module serveur Validation (estTexte, creerCooldown).
+Objectif : le joueur clique sur « Acheter » ; s'il a assez de pièces, elles sont débitées, la traînée apparaît dans son inventaire et reste achetée après reconnexion. Sinon, un message lui dit combien il lui manque.
+Fichiers concernés : crée src/ServerScriptService/Boutique.server.luau ; ne modifie ni Catalogue, ni DonneesJoueurs, ni l'interface.
+Contraintes techniques : Script serveur ; le client envoie UNIQUEMENT l'identifiant de l'objet ; réponse au joueur par le RemoteEvent Remotes.Notification.
+Sécurité : le prix est TOUJOURS lu dans Catalogue côté serveur ; refuser un identifiant qui n'est pas un texte ou qui n'existe pas dans Catalogue ; un achat par seconde maximum par joueur ; refuser un objet déjà possédé.
+Cas limites : pièces insuffisantes, identifiant inconnu ou trop long, double clic, joueur dont les données ne sont pas encore chargées, joueur qui part pendant l'achat.
+Vérification : selene et StyLua sans erreur ; donne-moi un test en Play (achat réussi, achat refusé faute de pièces, deuxième achat du même objet refusé) et une ligne à taper dans la barre de commande de Studio pour simuler un client qui envoie un identifiant inventé.
+```
+
+</Prompt>
+
+**Ce que ça change :** le client ne fait plus que **demander** ; le serveur décide de tout, avec le prix du Catalogue. Les vérifications de type, d’existence, de possession et de délai sont demandées une par une, donc présentes dans le code et faciles à contrôler. La vérification inclut un test de **triche**, pas seulement le cas qui marche. Ces règles sont détaillées au [module 4](/modules/04/ne-jamais-faire-confiance-au-client/).
+
+## Exemple 3 : le combat (une épée)
+
+L’Obby des Nuages n’a pas de combat, mais c’est l’un des premiers systèmes que les créateurs demandent pour un autre jeu. Il montre bien le piège du « ça marche chez moi ».
+
+**Le mauvais prompt :**
+
+```text
+fais une épée qui fait des dégâts
+```
+
+**Ce que l’IA produit typiquement.** Un Tool avec un Script qui inflige des dégâts à **chaque contact** de la lame (`Touched`) : l’épée blesse même quand on ne frappe pas, et un seul coup touche plusieurs fois. Ou, version « client », un LocalScript détecte la cible et envoie au serveur « inflige 50 dégâts à tel joueur » : le serveur obéit, et un tricheur tue n’importe qui à travers la carte. Souvent aussi une animation chargée avec `Humanoid:LoadAnimation`, une méthode dépréciée, et pas de délai entre deux coups.
+
+**Le bon prompt :**
+
+<Prompt titre="Épée de combat">
+
+```text
+Contexte : jeu de combat Roblox, projet Rojo (voir CLAUDE.md). Je veux une épée simple pour une arène.
+Ce qui existe déjà : le Tool « Epee » dans src/StarterPack (dossier déclaré dans default.project.json ; Handle + modèle), le RemoteEvent ReplicatedStorage.Remotes.Attaquer, ReplicatedStorage.Modules.Config.
+Objectif : un clic déclenche un coup (animation) ; les adversaires placés devant le joueur, à moins de 6 studs, perdent Config.DEGATS_EPEE points de vie, une seule fois par coup.
+Fichiers concernés : crée src/StarterPack/Epee/ClientEpee.client.luau et src/ServerScriptService/Combat.server.luau ; ajoute DEGATS_EPEE = 20 et DELAI_COUP = 0.6 à Config. Ne modifie rien d'autre.
+Contraintes techniques : animation jouée côté client avec Animator:LoadAnimation ; détection des cibles côté serveur avec workspace:GetPartBoundsInBox devant le personnage ; dégâts avec Humanoid:TakeDamage.
+Sécurité : le client envoie seulement « je frappe », jamais de cible ni de dégâts ; le serveur vérifie que l'attaquant est vivant et tient l'épée, applique DELAI_COUP entre deux coups, ne touche jamais l'attaquant lui-même ni un même adversaire deux fois par coup.
+Cas limites : attaquant ou cible morts, cible sans Humanoid, joueur qui part pendant le délai, spam de clics.
+Vérification : selene et StyLua sans erreur ; test en serveur local à 2 joueurs : un coup = 20 dégâts, spam = au plus un coup toutes les 0,6 s, aucun dégât à plus de 6 studs.
+```
+
+</Prompt>
+
+**Ce que ça change :** c’est le **serveur** qui détecte les cibles et calcule les dégâts ; le client ne fait qu’annoncer une attaque. Le délai, la portée et le « une fois par coup » sont des chiffres précis, donc testables. L’API dépréciée est écartée d’office par la contrainte technique.
+
+## Exemple 4 : l’inventaire
+
+**Le mauvais prompt :**
+
+```text
+ajoute un inventaire
+```
+
+**Ce que l’IA produit typiquement.** Un dossier `Inventory` rempli de `BoolValue` sous le joueur, parfois créé par un LocalScript (donc invisible pour le serveur), sans lien avec ta sauvegarde : l’inventaire disparaît à la reconnexion. Pour équiper, un RemoteEvent reçoit le nom de l’objet et l’équipe **sans vérifier que le joueur le possède**. Et souvent une interface complète que tu n’avais pas demandée.
+
+**Le bon prompt :**
+
+<Prompt titre="Inventaire de traînées">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Les traînées achetées doivent être conservées et équipables.
+Ce qui existe déjà : DonneesJoueurs.luau (table version = 1, etape, pieces) ; Boutique.server.luau qui gère l'achat ; ReplicatedStorage.Modules.Catalogue ; le RemoteEvent Remotes.EquiperObjet.
+Objectif : chaque joueur possède une liste de traînées achetées et peut en équiper une (ou aucune) ; après reconnexion, il retrouve ses traînées et celle qu'il portait.
+Fichiers concernés : modifie DonneesJoueurs.luau (champs inventaire et equipe, version 2) et Boutique.server.luau (ajout à l'inventaire, gestion de EquiperObjet). Ne touche pas à l'interface.
+Contraintes techniques : inventaire = table { [idObjet] = true } ; equipe = idObjet ou "" ; publie l'état pour l'interface avec des attributs du joueur (Possede_<idObjet>, TrailEquipe), que les LocalScripts lisent sans rien modifier.
+Sécurité : EquiperObjet n'équipe qu'un objet du Catalogue que le joueur POSSÈDE ; "" retire la traînée ; types vérifiés côté serveur.
+Cas limites : anciennes sauvegardes sans ces champs (complète-les avec des valeurs par défaut, sans rien perdre) ; objet retiré du Catalogue mais présent dans un inventaire ; équiper l'objet déjà équipé.
+Vérification : selene et StyLua sans erreur ; test en Play : acheter, équiper, quitter, revenir, la traînée est toujours là ; tenter d'équiper un objet non possédé via la barre de commande ne fait rien.
+```
+
+</Prompt>
+
+**Ce que ça change :** l’inventaire vit **dans les données sauvegardées**, avec une migration propre pour les anciennes sauvegardes (le champ `version`). La règle « on n’équipe que ce qu’on possède » est explicite : c’est exactement la faille du `trouve-le-bug` de ce quiz. Le périmètre est borné : pas d’interface surprise.
+
+## Exemple 5 : l’interface (UI)
+
+**Le mauvais prompt :**
+
+```text
+fais une belle interface pour la boutique
+```
+
+**Ce que l’IA produit typiquement.** Toute l’interface créée par code dans un LocalScript, avec des tailles **en pixels** (`UDim2.fromOffset(400, 300)`) : parfaite sur ton écran, coupée ou minuscule sur un téléphone. Une interface qui se ferme à chaque mort du personnage (réglage `ResetOnSpawn` par défaut), des boutons trop petits pour un doigt, des textes en anglais, un compteur de pièces relu à chaque image au lieu d’attendre un changement. Parfois même la logique d’achat dans le LocalScript.
+
+**Le bon prompt :**
+
+<Prompt titre="Interface de la boutique">
+
+```text
+Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Une majorité de joueurs sont sur téléphone : l'interface doit être lisible et cliquable au doigt.
+Ce qui existe déjà : le ScreenGui src/StarterGui/InterfaceObby (ResetOnSpawn = false) avec CompteurPieces et BoutonBoutique ; le RemoteEvent Remotes.AcheterObjet ; Catalogue ; les attributs du joueur Possede_<idObjet>.
+Objectif : un clic sur BoutonBoutique ouvre un panneau Boutique centré qui liste chaque traînée du Catalogue (nom, prix, bouton « Acheter » ou « Possédé ») ; un bouton « Fermer » le referme.
+Fichiers concernés : crée le panneau Boutique dans src/StarterGui/InterfaceObby (fichiers .model.json Rojo) et src/StarterGui/InterfaceObby/ScriptBoutique.client.luau. Ne modifie aucun script serveur.
+Contraintes techniques : tailles et positions en Scale uniquement, UIAspectRatioConstraint sur le panneau, UIGridLayout pour la liste ; boutons d'au moins 12 % de la hauteur de l'écran, car on joue au doigt ; textes en français ; mise à jour par GetAttributeChangedSignal, jamais de boucle à chaque image.
+Sécurité : le LocalScript ne fait qu'appeler AcheterObjet:FireServer(idObjet) ; aucun calcul de prix ni de pièces côté client.
+Cas limites : Catalogue de 1 à 12 objets, écran très large ou très étroit, joueur qui meurt avec la boutique ouverte, double clic sur « Acheter ».
+Vérification : selene et StyLua sans erreur ; test dans l'émulateur d'appareils de Studio (un téléphone et une tablette) : rien n'est coupé, tous les boutons sont cliquables.
+```
+
+</Prompt>
+
+**Ce que ça change :** les contraintes « Scale », « taille minimale des boutons » et « émulateur de téléphone » transforment un vague « belle interface » en critères qu’on peut vérifier. L’interface réutilise le ScreenGui existant au lieu d’en créer un second, et reste un simple **affichage** : toute décision reste sur le serveur. L’interface de l’Obby est construite au [module 5](/modules/05/interfaces-ui/).
+
+## Exemple 6 : le système de manches (round system)
+
+Les jeux à manches (une attente, une partie chronométrée, des résultats, et on recommence) sont parmi les plus demandés. Imaginons un mode « course contre la montre » pour l’Obby.
+
+**Le mauvais prompt :**
+
+```text
+fais un système de rounds
+```
+
+**Ce que l’IA produit typiquement.** Une grande boucle `while true do` avec des `wait(10)` (API dépréciée) dans un seul script ; aucun nombre minimum de joueurs ; une téléportation de tous les joueurs, y compris ceux dont le personnage n’est pas encore chargé, ce qui provoque une erreur qui **arrête la boucle pour toujours** ; un joueur qui quitte pendant la manche reste dans la liste des participants ; le gagnant parfois annoncé par le client. Et un affichage du temps qui ne suit pas ce que fait vraiment le serveur.
+
+**Le bon prompt :**
+
+<Prompt titre="Manches chronométrées">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). J'ajoute un mode « course » : tous les joueurs partent ensemble, le premier arrivé gagne.
+Ce qui existe déjà : la SpawnLocation du lobby, le Folder Workspace.Course avec une Part Depart et une Part Arrivee ; le RemoteEvent Remotes.Notification ; Config.
+Objectif : un cycle sans fin Attente → Intermission (15 s) → Course (90 s max) → Résultats (5 s) ; le premier joueur qui touche Arrivee gagne 50 pièces ; tous les joueurs voient l'état et le temps restant.
+Fichiers concernés : crée src/ServerScriptService/Manches.server.luau et src/StarterGui/InterfaceObby/AffichageManche.client.luau ; ajoute les durées et la récompense à Config. Ne modifie rien d'autre.
+Contraintes techniques : un seul Script serveur qui gère l'état ; l'état et le temps restant sont publiés en attributs de ReplicatedStorage (EtatManche, TempsRestant) et le LocalScript ne fait que les afficher ; task.wait, jamais wait.
+Sécurité : seul le serveur décide du gagnant (contact avec Arrivee vérifié côté serveur, participant à la manche en cours, personnage vivant) ; la récompense vient de Config.
+Cas limites : moins de 2 joueurs (on reste en Attente) ; joueur sans personnage au moment du départ (il ne participe pas) ; joueur qui part pendant la course ; personne n'arrive avant la fin du temps ; deux joueurs qui touchent Arrivee presque en même temps ; une erreur pendant une manche ne doit jamais arrêter le cycle.
+Vérification : selene et StyLua sans erreur ; test en serveur local à 3 joueurs : le cycle tourne trois fois de suite, un joueur qui quitte en pleine course ne bloque rien, un seul gagnant est annoncé.
+```
+
+</Prompt>
+
+**Ce que ça change :** les états et leurs durées sont nommés, donc le code suit un schéma clair au lieu d’une boucle fourre-tout. Les cas limites listés sont précisément ceux qui cassent les systèmes de manches en vrai (personnage absent, départ en pleine partie, égalité). La consigne « une erreur ne doit jamais arrêter le cycle » pousse Claude à protéger la boucle principale.
+
+## Exemple 7 : l’anti-triche
+
+**Le mauvais prompt :**
+
+```text
+ajoute un anti-cheat
+```
+
+**Ce que l’IA produit typiquement.** Souvent un **LocalScript** qui surveille la vitesse du joueur et l’expulse s’il va trop vite. C’est inutile : le tricheur contrôle son propre client et supprime ce script. Ou un Script serveur qui vérifie seulement la propriété `WalkSpeed` (les tricheurs déplacent leur personnage autrement) et qui **expulse au premier écart** : un joueur honnête qui a du lag ou qui vient d’être téléporté au checkpoint se fait éjecter.
+
+**Le bon prompt :**
+
+<Prompt titre="Anti-triche des checkpoints">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Je veux empêcher qu'un tricheur saute des étapes en se téléportant.
+Ce qui existe déjà : Progression.server.luau valide un checkpoint quand le joueur touche la Part Workspace.Checkpoints["N"] et met à jour leaderstats.Etape ; Config.
+Objectif : un joueur ne peut valider que l'étape suivante (Etape + 1), à condition d'être réellement arrivé jusqu'au checkpoint ; les joueurs honnêtes ne remarquent rien.
+Fichiers concernés : modifie uniquement Progression.server.luau ; ajoute à Config DISTANCE_MAX_CHECKPOINT = 12 et TEMPS_MIN_ETAPE = 2.
+Contraintes techniques : tout se passe sur le serveur, aucun LocalScript d'anti-triche ; la position est lue sur la HumanoidRootPart côté serveur.
+Sécurité : refuser une étape qui n'est pas Etape + 1, un joueur à plus de DISTANCE_MAX_CHECKPOINT studs du checkpoint, ou une étape validée moins de TEMPS_MIN_ETAPE secondes après la précédente. En cas de refus : ne pas valider et écrire un warn dans l'Output (nom du joueur, étape demandée, raison), sans expulser.
+Cas limites : réapparition légitime au checkpoint après une mort, lag réseau, joueur qui retouche un ancien checkpoint, joueur sans personnage.
+Vérification : selene et StyLua sans erreur ; en Play, un parcours normal valide toutes les étapes sans aucun warn ; déplacer mon personnage à la main jusqu'au checkpoint 6 depuis l'étape 2 (outil Move de Studio pendant le test) est refusé avec un warn.
+```
+
+</Prompt>
+
+**Ce que ça change :** la protection est sur le **serveur**, là où le tricheur n’a pas la main, et elle porte sur ce qui compte vraiment dans un obby (l’ordre des étapes, la distance, le temps), avec des seuils chiffrés. La consigne « refuser sans expulser » et les cas limites (réapparition, lag) évitent de punir les joueurs honnêtes. Le test prouve à la fois que le jeu normal passe et que la triche est bloquée.
+
+## Exemple 8 : le classement mondial (leaderboard)
+
+**Le mauvais prompt :**
+
+```text
+fais un leaderboard
+```
+
+**Ce que l’IA produit typiquement.** Soit elle recrée des **leaderstats**, le petit tableau en haut à droite que ton jeu a déjà ; soit elle fait un classement global avec un `OrderedDataStore` mais lit le classement **toutes les secondes** et écrit à chaque pièce ramassée, ce qui dépasse vite les limites de requêtes des DataStores. Aucun `pcall`, des identifiants (`UserId`) affichés à la place des noms, et une récupération des noms qui peut, elle aussi, échouer sans protection.
+
+**Le bon prompt :**
+
+<Prompt titre="Classement mondial des étapes">
+
+```text
+Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Je veux un panneau dans le lobby qui montre les 10 joueurs les plus avancés de tous les serveurs.
+Ce qui existe déjà : les leaderstats Etape et Pieces (à ne pas modifier) ; DonneesJoueurs.luau ; une Part Workspace.Classement avec un SurfaceGui vide nommé Panneau.
+Objectif : le panneau affiche le rang, le nom et la meilleure étape des 10 meilleurs joueurs, mis à jour environ toutes les 60 secondes.
+Fichiers concernés : crée src/ServerScriptService/Classement.server.luau ; ne modifie rien d'autre.
+Contraintes techniques : OrderedDataStore "ClassementEtapes_v1", clé "Joueur_" .. UserId, valeur = meilleure étape (nombre entier) ; écriture à PlayerRemoving et toutes les 5 minutes, seulement si la valeur a augmenté ; lecture avec GetSortedAsync(false, 10) ; noms avec Players:GetNameFromUserIdAsync, mis en cache.
+Sécurité : seul le serveur écrit ; la valeur vient de leaderstats.Etape côté serveur.
+Cas limites : chaque appel DataStore et GetNameFromUserIdAsync dans un pcall (en cas d'échec, on garde l'affichage précédent) ; classement vide ; moins de 10 joueurs ; nom introuvable (afficher « Joueur inconnu »).
+Vérification : selene et StyLua sans erreur ; explique-moi le test en Play avec l'accès aux API activé sur une copie de test, et les messages attendus dans l'Output à chaque mise à jour.
+```
+
+</Prompt>
+
+**Ce que ça change :** le prompt sépare clairement le **classement mondial** des leaderstats déjà présents, fixe des fréquences raisonnables de lecture et d’écriture, et impose la protection de chaque appel réseau avec un comportement de secours (« on garde l’affichage précédent »). Résultat : un panneau qui reste juste quand le service a un raté, au lieu d’un script qui plante.
+
+## Les erreurs qui sabotent un bon prompt
+
+<Erreur titre="Tout demander d’un coup">
+« Fais la sauvegarde, la boutique, l’inventaire et le classement » : même avec huit rubriques, quatre systèmes dans un prompt, c’est quatre fois plus de code à relire d’un coup, et des erreurs qui se mélangent. Un prompt = une tâche = un test = un commit. La [leçon 5](/modules/02/decouper-un-gros-projet/) montre comment découper un projet entier.
+</Erreur>
+
+D’autres pièges fréquents :
+
+- **Des adjectifs à la place de critères** : « propre », « optimisé », « sécurisé », « professionnel » ne disent rien de vérifiable. Remplace-les par des règles (« un achat par seconde maximum ») et des chiffres.
+- **Des contraintes qui se contredisent** : « ne modifie que Boutique.server.luau » et « sauvegarde l’inventaire » alors que la sauvegarde est dans `DonneesJoueurs.luau`. Claude devra choisir laquelle ignorer. Relis ton prompt avant d’envoyer.
+- **Un secret dans le prompt** : jamais de mot de passe, de cookie `.ROBLOSECURITY` ou de clé d’API, même « pour l’exemple ».
+- **Oublier le contexte du bug** : pour corriger une erreur, colle l’erreur complète de l’Output et dis ce que tu attendais. C’est le sujet de la [leçon 7](/modules/02/deboguer-avec-l-ia/).
+
+## Même un excellent prompt ne dispense pas de relire
+
+Un prompt précis réduit fortement les erreurs ; il ne les supprime pas. L’IA peut encore inventer une API qui n’existe pas, oublier un des cas limites que tu as listés, ou écrire une vérification qui a l’air juste mais ne l’est pas. Les bonnes pratiques d’Anthropic ont une formule pour ça : « If you can't verify it, don't ship it » (si tu ne peux pas le vérifier, ne le publie pas).
+
+Ta méthode : chaque rubrique de ton prompt devient une **question de relecture**. As-tu demandé que le prix vienne du Catalogue ? Cherche dans le code où le prix est lu. As-tu listé « joueur qui part » ? Trouve la ligne qui le gère. C’est exactement ce que tu apprendras à faire, méthodiquement, dans la [leçon 6](/modules/02/relire-et-tester-le-code-de-l-ia/). Et pour ne pas repartir de zéro à chaque système, la [bibliothèque de prompts](/modules/02/bibliotheque-de-prompts/) rassemble des prompts prêts à adapter.
+
+<Defi>
+
+1. Choisis un système qui manque encore à ton Obby (par exemple un panneau qui affiche « Étape X / 12 »).
+2. Écris d’abord le prompt vague que tu aurais envoyé spontanément, puis devine, par écrit, ce que l’IA en ferait.
+3. Réécris-le avec les huit rubriques. Fais le test du collègue : relis-le en te mettant à la place de quelqu’un qui n’a jamais vu ton jeu.
+4. Envoie-le en mode plan, corrige le plan, laisse Claude coder, puis relis le code en transformant chaque rubrique en question. Si tout passe, commit.
+
+</Defi>
+
+<Resume>
+
+- Une IA comble chaque information manquante avec la solution la plus générique : un prompt vague donne du code vague, qui ne s’emboîte pas dans ton jeu.
+- Le gabarit en huit rubriques : Contexte, Ce qui existe déjà, Objectif, Fichiers concernés, Contraintes techniques, Sécurité, Cas limites, Vérification. « Objectif » et « Vérification » sont obligatoires.
+- Les rubriques Sécurité et Cas limites évitent les défauts typiques : prix envoyé par le client, pas de `pcall`, joueur qui part, double clic, triche côté client.
+- La Vérification donne à Claude un contrôle qu’il peut lancer (selene, StyLua, test décrit) et à toi un test précis dans Studio.
+- Le CLAUDE.md porte les règles générales ; le prompt, ce qui est propre à la tâche. Et même un excellent prompt ne dispense jamais de relire le code.
+
+</Resume>
+
+<Sources>
+
+- [Best practices for Claude Code — Provide specific context in your prompts](https://code.claude.com/docs/en/best-practices)
+- [Prompting best practices — Be clear and direct (Claude API Docs)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)
+- [Data stores — guide Roblox](https://create.roblox.com/docs/cloud-services/data-stores)
+- [OrderedDataStore — documentation Roblox](https://create.roblox.com/docs/reference/engine/classes/OrderedDataStore)
+- [Remote events and callbacks — guide Roblox](https://create.roblox.com/docs/scripting/events/remote)
+- [WorldRoot:GetPartBoundsInBox — documentation Roblox](https://create.roblox.com/docs/reference/engine/classes/WorldRoot#GetPartBoundsInBox)
+- [Animator:LoadAnimation — documentation Roblox](https://create.roblox.com/docs/reference/engine/classes/Animator#LoadAnimation)
+
+</Sources>

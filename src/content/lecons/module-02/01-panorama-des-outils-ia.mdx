@@ -1,0 +1,224 @@
+---
+titre: Panorama des outils IA pour Roblox
+description: Claude Code, l’Assistant de Roblox Studio, Cursor, Copilot, Codex, Antigravity… Ce que fait chaque outil, ce qu’il coûte (octobre 2026) et lequel choisir pour chaque tâche.
+duree: 25
+objectifs:
+  - Distinguer un assistant dans l’éditeur d’un agent de code qui lit, modifie et vérifie tes fichiers
+  - Connaître les forces, les limites et les prix datés de Claude Code, de l’Assistant de Studio et des autres IA de code
+  - Choisir l’outil adapté à une tâche et savoir ce que tu envoies à chaque outil
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Qu’est-ce qui distingue un **agent** de code d’un simple assistant de complétion ?
+    options:
+      - texte: Il écrit du code plus vite, mais seulement dans le fichier ouvert
+      - texte: Il peut lire les fichiers du projet, en modifier plusieurs, lancer des commandes et vérifier le résultat
+        correct: true
+      - texte: Il fonctionne sans connexion Internet
+      - texte: Il ne fait jamais d’erreur, car il teste tout seul son code
+    explication: "Un agent comme Claude Code enchaîne des actions : explorer le projet, modifier plusieurs fichiers, lancer `selene` ou Git, relire la sortie. C’est plus puissant qu’une suggestion de complétion, mais il peut toujours se tromper : c’est à toi de relire et de tester."
+  - type: qcm
+    question: "Mise en situation : tu veux changer la couleur de trois plateformes et demander ce que fait un petit script, directement dans Studio, sans projet Rojo. Quel outil est le plus adapté ?"
+    options:
+      - texte: L’Assistant intégré à Roblox Studio
+        correct: true
+      - texte: Claude Code dans un terminal, avec Rojo et Git
+      - texte: La version web de Claude Code, qui travaille dans le cloud
+      - texte: Aucun, une IA ne peut pas agir dans Studio
+    explication: "Pour une petite retouche dans le place ouvert, l’Assistant est déjà là : il voit le data model et agit dans Studio. Claude Code devient intéressant dès que le code est en fichiers (Rojo), versionné (Git) et que la tâche touche plusieurs scripts. La version web travaille dans le cloud : elle ne peut pas atteindre ton Studio local."
+  - type: qcm
+    question: "Mise en situation : tu veux réorganiser la boutique de l’Obby, répartie dans quatre scripts et deux RemoteEvents, puis faire relire le résultat. Quel environnement la formation recommande-t-elle ?"
+    options:
+      - texte: Copier-coller chaque script dans un chat, un par un
+      - texte: Demander à l’Assistant de Studio de « tout refaire proprement »
+      - texte: Claude Code dans le projet Rojo versionné avec Git, en commençant par le mode plan
+        correct: true
+      - texte: La complétion automatique de l’éditeur de scripts
+    explication: "Une refactorisation touche plusieurs fichiers à la fois. Avec Rojo, ils sont sur ton disque ; avec Git, tu peux comparer et revenir en arrière ; avec le mode plan, tu valides la démarche avant toute modification. Copier-coller script par script fait perdre la vue d’ensemble."
+  - type: vrai-faux
+    question: "Au moment de la rédaction (octobre 2026), l’offre gratuite de Claude donne accès à Claude Code."
+    reponse: false
+    explication: "La documentation de Claude Code indique qu’il faut un compte Pro, Max, Team, Enterprise ou Console : l’offre gratuite n’inclut pas Claude Code. La page de prix le confirme. Vérifie-la toujours avant de t’abonner, car les offres changent."
+  - type: vrai-faux
+    question: Roblox publie un prix et des quotas chiffrés pour l’usage de l’Assistant dans Studio.
+    reponse: false
+    explication: "Au moment de la rédaction, aucune page officielle ne donne de prix ni de quota général pour l’Assistant. Le seul chiffre publié concerne les modèles procéduraux (50 par fenêtre glissante de 24 heures). Ne crois pas un chiffre qui circule sans source officielle."
+  - type: ameliore-le-prompt
+    question: "Tu demandes à une IA de code d’ajouter les pièces de l’Obby. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "ajoute des pièces dans mon jeu"
+    options:
+      - texte: "Ajoute plein de pièces dans mon jeu Roblox, fais en sorte que ce soit fun et bien codé."
+      - texte: "Ajoute des pièces. Voici mon cookie .ROBLOSECURITY pour que tu puisses te connecter à mon compte et tester."
+      - texte: |
+          Contexte : Obby des Nuages, les pièces sont des Parts nommées Piece dans le Folder Workspace.Pieces.
+          Objectif : quand un joueur touche une pièce, leaderstats.Pieces augmente de 1 et la pièce disparaît pour 10 secondes.
+          Contraintes : un Script serveur dans ServerScriptService, task.wait et non wait.
+          Sécurité : c’est le serveur qui ajoute les pièces, jamais le client.
+          Vérification : en test, le compteur augmente d’un seul point par pièce, même si je reste dessus.
+        correct: true
+      - texte: "Écris le meilleur système de pièces possible, comme dans les jeux les plus populaires."
+    explication: "La bonne version donne le contexte (noms et emplacements), un objectif mesurable, les contraintes, la règle de sécurité et un critère de vérification. Les autres laissent l’IA deviner, et l’une d’elles livre un secret qui permet de voler ton compte : un cookie ou un mot de passe ne se colle **jamais** dans un prompt."
+---
+
+En 2026, une IA peut écrire en quelques secondes un script qui t’aurait pris une heure. Il en existe beaucoup, et elles ne font pas toutes la même chose. Certaines complètent la ligne que tu tapes, d’autres travaillent seules dans ton projet pendant de longues minutes. Cette leçon fait le tour des outils utiles pour créer l’Obby des Nuages, de ce qu’ils coûtent au moment de la rédaction (octobre 2026) et de ce qu’ils ne feront jamais à ta place.
+
+## Deux familles d’IA de code
+
+On peut ranger les outils en deux grandes familles.
+
+| | Assistant dans l’éditeur | Agent de code |
+|---|---|---|
+| Ce qu’il fait | Propose la suite d’une ligne, répond à une question, écrit un script dans le fichier ouvert | Lit le projet, modifie plusieurs fichiers, lance des commandes (Git, selene…), lit le résultat et corrige |
+| Qui pilote | Toi, ligne par ligne | Toi, tâche par tâche : tu décris le but, il enchaîne les étapes |
+| Exemple | Code Assist dans l’éditeur de scripts de Studio | Claude Code |
+| Risque principal | Accepter une suggestion sans la lire | Le laisser modifier beaucoup de choses sans relire |
+
+Un **agent** est donc un programme qui agit, et pas seulement un programme qui suggère. C’est beaucoup plus puissant, et c’est aussi plus de responsabilité pour toi. Beaucoup d’outils proposent désormais les deux modes, et la frontière bouge vite.
+
+<Info titre="Un mot que tu vas souvent croiser : MCP">
+Le **MCP** (*Model Context Protocol*) est une norme ouverte qui permet de brancher une IA sur un autre logiciel. Roblox Studio intègre un **serveur MCP** : une IA externe, comme Claude Code, peut alors lire ton place, modifier des scripts ou lancer un test. Tu l’installeras dans la leçon 2.
+</Info>
+
+## Claude Code, l’agent choisi par la formation
+
+D’après sa documentation, Claude Code est un outil de code « agentique » d’Anthropic qui lit ton code, modifie des fichiers, lance des commandes et s’intègre à tes outils de développement. Il fonctionne à plusieurs endroits :
+
+- dans un **terminal**, la version la plus complète, que la formation utilise ;
+- dans **VS Code**, avec une extension (elle marche aussi dans Cursor), ou dans les éditeurs **JetBrains** ;
+- dans l’**application de bureau** Claude (onglet **Code**) pour macOS et Windows ;
+- sur le **web** (claude.ai/code) et dans l’application mobile. Ces sessions tournent dans le cloud, sur une copie de ton dépôt : elles ne peuvent pas atteindre le Studio ouvert sur ton ordinateur.
+
+### Offres et prix (octobre 2026)
+
+Claude Code demande un compte payant : la documentation cite les comptes Pro, Max, Team, Enterprise et Console (facturation à l’usage de l’API). L’offre gratuite ne l’inclut pas. Prix relevés sur la page officielle, en dollars américains, hors taxes éventuelles :
+
+| Offre | Prix affiché | Remarque |
+|---|---|---|
+| Free | 0 $ | Pas de Claude Code |
+| Pro | 20 $ par mois, ou 17 $ par mois en payant l’année d’avance (200 $) | Le point de départ pour un projet personnel |
+| Max | « À partir de 100 $ » par mois | Deux niveaux : 5 fois et 20 fois l’usage de Pro |
+| Team | 20 $ (Standard) ou 100 $ (Premium) par siège et par mois en annuel ; 25 $ ou 125 $ en mensuel | Pour une équipe |
+
+Claude Code partage les limites d’usage du reste de ton abonnement. Ces prix changent : **vérifie toujours la page officielle** avant de t’abonner.
+
+<Attention titre="Claude Code : 18 ans et plus">
+
+Claude Code est réservé aux personnes de **18 ans et plus** (conditions d’utilisation d’Anthropic, octobre 2026). Si tu as moins de 18 ans, ne crée pas de compte et n’utilise pas seul celui d’un parent. Tu peux :
+
+- travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ;
+- utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox ;
+- ou suivre la formation en lisant et en tapant toi-même : les prompts et la méthode de relecture restent utiles.
+
+Pour les autres outils de cette page, lis leurs conditions d’utilisation avant de créer un compte.
+
+</Attention>
+
+## L’Assistant intégré à Roblox Studio
+
+L’**Assistant** est l’IA de Roblox, directement dans Studio : on l’ouvre avec le bouton **Assistant**, à droite de la barre d’outils. D’après la documentation (octobre 2026), il peut :
+
+- répondre à tes questions sur le développement Roblox et expliquer le code sélectionné ;
+- **créer et modifier des objets et des scripts** dans le place ouvert, plusieurs à la fois (par exemple un RemoteEvent, un LocalScript et un Script) ;
+- insérer des assets du Creator Store, générer des matériaux, des maillages 3D et des modèles procéduraux ;
+- préparer un plan avant d’agir : choisis **Plan** dans la liste déroulante du champ de saisie, ou tape `/plan`. Le plan est un document modifiable, et rien ne s’exécute tant que tu n’as pas cliqué sur **Build** ;
+- suivre des **skills** : des fiches d’instructions en Markdown (par exemple tes conventions de nommage) que tu gères dans **…** › **Assistant Settings** › **Skills**. Roblox en fournit aussi, comme `rbx-debug` ou `rbx-unit-test` ;
+- utiliser un modèle d’Anthropic, d’OpenAI ou de Google avec ta propre clé d’API (**…** › **Manage API Keys**, puis le menu **Model**). Une clé d’API se paie à l’usage chez son fournisseur.
+
+À côté de l’Assistant, **Code Assist** propose des complétions pendant que tu tapes dans l’éditeur de scripts (`Tab` pour accepter).
+
+**Ce qui n’est pas publié** : au moment de la rédaction, Roblox n’indique ni prix ni quota général pour l’Assistant. Le seul chiffre officiel est une limite de 50 modèles procéduraux par fenêtre glissante de 24 heures. Tout autre chiffre que tu lirais ailleurs est à prendre avec méfiance.
+
+**Ses limites pour un projet comme l’Obby** : le code vit dans le place, pas dans des fichiers versionnés avec Git. Les discussions sont rattachées au place. Et la documentation prévient elle-même que le script généré « peut ne pas fonctionner parfaitement ».
+
+## Les autres IA de code
+
+D’autres outils sérieux existent. Tous évoluent très vite : voici leur situation sur leur page officielle en octobre 2026 (prix mensuels en dollars américains).
+
+| Outil | Ce que c’est | Offres affichées | Bon à savoir |
+|---|---|---|---|
+| **Cursor** | Éditeur de code centré sur l’IA, avec agent | Free 0 $, Plus 8 $, Premium 30 $, Super 100 $, Ultra 200 $ | L’offre Plus est limitée aux modèles Grok ; les modèles tiers sont facturés au prix de leur API à partir de Premium |
+| **GitHub Copilot** | Assistant et agent dans VS Code et d’autres éditeurs, plus un outil en ligne de commande | Free 0 $, Pro 10 $, Pro+ 39 $, Max 100 $ | Usage compté en « AI Credits » (1 crédit = 0,01 $) ; l’offre gratuite est limitée |
+| **OpenAI Codex** | Agent en ligne de commande et application, inclus dans ChatGPT | ChatGPT Free 0 $, Go 8 $, Plus 20 $, Pro à partir de 100 $ | L’offre gratuite sert surtout à découvrir l’outil sur de petites tâches |
+| **Google Antigravity** | Plateforme de développement par agents (éditeur et outil en ligne de commande) | « Sans frais » pour les développeurs individuels | Pour les comptes gratuits et Google One, Antigravity CLI a remplacé Gemini CLI le 18 juin 2026 |
+
+Leur point commun : ce sont des outils généralistes, qui ne connaissent pas Roblox mieux que Claude Code. Ce qui fait la différence, c’est **ton projet** (fichiers, conventions, vérifications) et **la précision de tes prompts**. Bonne nouvelle : le serveur MCP de Studio propose un branchement rapide pour plusieurs d’entre eux (Antigravity, Codex CLI, Claude Code, Claude Desktop, Cursor, Gemini CLI et Visual Studio Code). Ce que tu apprends dans ce module reste donc utile si tu changes d’outil.
+
+<Erreur titre="Croire un prix ou une fonctionnalité lus il y a six mois">
+En 2026, des offres ont été renommées, des outils remplacés (Gemini CLI), des éditeurs ont changé de modèles du jour au lendemain. Un tutoriel ou une vidéo de l’an dernier est souvent faux. Avant de payer ou de suivre une procédure, ouvre la **page officielle** de l’outil et regarde sa date.
+</Erreur>
+
+## Quand utiliser quoi
+
+| Ta tâche | Outil conseillé | Pourquoi |
+|---|---|---|
+| Petite retouche dans le place ouvert (couleur, position, une propriété) | Assistant de Studio | Il voit le place et agit directement |
+| Comprendre un script ou une erreur de l’Output | Assistant de Studio, ou Claude Code | Les deux expliquent bien ; Claude Code voit aussi les autres fichiers du projet |
+| Générer un modèle 3D, une texture, un matériau | Outils IA de Roblox (leçon 9) | Ce sont des outils spécialisés, intégrés à Studio |
+| Nouveau système de jeu (checkpoints, boutique, sauvegarde) | Claude Code + Rojo + Git | Plusieurs fichiers, un plan validé, un commit par étape |
+| Refactorisation, renommage dans tout le projet | Claude Code en mode plan | Il trouve toutes les occurrences, et tu valides le plan avant |
+| Relecture de sécurité ou de performances | Claude Code (sous-agent relecteur, leçon 6) | Il lit tout le code d’un coup, avec ta checklist |
+| Tester le jeu en vrai, lire la console de Studio | Claude Code + serveur MCP de Studio | Il lance le test et lit l’Output lui-même |
+
+<Astuce titre="Combiner plutôt que choisir">
+Les outils ne s’excluent pas. Un bon réflexe : le gros du code avec Claude Code dans le projet Rojo, une retouche rapide d’objets avec l’Assistant, et dans tous les cas **un commit Git avant chaque gros changement**, pour pouvoir revenir en arrière.
+</Astuce>
+
+## Ce que tu envoies à l’outil
+
+Une IA de code envoie ton travail à des serveurs pour le traiter. Avant de l’utiliser, sache ce qui part :
+
+- **Claude Code** tourne sur ton ordinateur, mais envoie à Anthropic tes prompts et les réponses du modèle, donc aussi le contenu des fichiers qu’il lit pour travailler. Pour les comptes grand public (Free, Pro, Max), c’est toi qui choisis si tes données peuvent servir à améliorer les modèles, dans les réglages de confidentialité de claude.ai. La documentation indique une conservation de 5 ans si tu l’acceptes et de 30 jours sinon.
+- **Le serveur MCP de Studio** transmet à l’IA ce que ses outils lisent : scripts, propriétés, console, captures d’écran.
+- **L’Assistant de Studio** stocke les discussions dans le cloud de Roblox. Les conditions d’utilisation de Roblox interdisent d’y soumettre des données personnelles ou confidentielles, et te rendent responsable de tes prompts et de l’usage des résultats.
+
+<Attention titre="Jamais de secret dans un prompt">
+Ne colle **jamais** dans un prompt, un fichier du projet ou une capture : ton mot de passe, ton cookie `.ROBLOSECURITY` (il donne un accès complet à ton compte), une clé d’API, ton adresse ou ton numéro de téléphone. Si un outil ou une personne te le demande « pour tester », c’est une arnaque.
+</Attention>
+
+## Pourquoi la formation choisit Claude Code
+
+C’est une **décision de la formation**, pas un classement objectif. D’autres outils conviennent aussi. Nous avons choisi Claude Code comme outil principal pour cinq raisons :
+
+1. Il travaille sur un projet **entièrement décrit en fichiers** (Rojo), versionné avec Git, comme le corrigé de la formation.
+2. Un fichier **CLAUDE.md** lui rappelle à chaque session l’architecture et les règles de sécurité de l’Obby (leçon 3).
+3. Le **mode plan**, les **permissions** et les **hooks** te gardent aux commandes : il propose, tu valides, et `selene` et StyLua vérifient automatiquement.
+4. Il sait **relire** avec un sous-agent et **tester** dans Studio grâce au serveur MCP, qui prend en charge Claude Code en branchement rapide.
+5. Sa documentation officielle est détaillée et à jour, ce qui nous permet de vérifier chaque commande enseignée.
+
+## Ce que l’IA ne remplace pas
+
+Aucune de ces IA ne connaît ton jeu mieux que toi. Elles peuvent inventer une fonction qui n’existe pas, oublier une vérification côté serveur ou proposer une méthode dépréciée, avec un ton parfaitement assuré. Trois choses restent ton travail :
+
+- **comprendre** assez le code pour le relire (c’est l’objet des modules 3 à 5) ;
+- **tester** : un code qui « a l’air bon » n’a de valeur qu’une fois essayé dans Studio, à plusieurs joueurs si besoin ;
+- **décider** : ce que fait le jeu, ce qui est juste pour les joueurs, ce qui est publié.
+
+Et la règle d’or de tout ce module : **plus ton prompt est précis (contexte, objectif, contraintes, critères de réussite), meilleur est le résultat. Un prompt vague donne du code vague.** On n’apprend plus à tout taper, on apprend à **lire, diriger et vérifier**.
+
+<Resume>
+- Un **assistant** suggère dans l’éditeur ; un **agent** comme Claude Code lit, modifie plusieurs fichiers, lance des commandes et vérifie.
+- **Claude Code** fonctionne dans le terminal, VS Code, l’application de bureau et le web ; il demande un abonnement payant (Pro à 20 $ par mois au moment de la rédaction) et il est réservé aux 18 ans et plus.
+- **L’Assistant de Studio** agit dans le place ouvert (scripts, objets, mode Plan, skills) ; Roblox ne publie ni prix ni quota général.
+- Cursor, Copilot, Codex et Antigravity sont des alternatives sérieuses : leurs offres changent vite, vérifie la page officielle.
+- Petite retouche dans Studio : Assistant. Systèmes, refactorisation, relecture : Claude Code avec Rojo, Git et MCP.
+- Ne mets jamais de secret dans un prompt, et garde pour toi trois tâches : comprendre, tester, décider.
+</Resume>
+
+<Sources>
+- [Claude Code — vue d’ensemble (surfaces : terminal, VS Code, application de bureau, web)](https://code.claude.com/docs/en/overview)
+- [Claude Code — installation et comptes acceptés](https://code.claude.com/docs/en/setup)
+- [Claude — offres et prix](https://claude.com/pricing)
+- [Claude Code — utilisation des données (envoi, entraînement, conservation)](https://code.claude.com/docs/en/data-usage)
+- [Anthropic — conditions d’utilisation grand public (âge minimum)](https://www.anthropic.com/legal/consumer-terms)
+- [Assistant — guide officiel Roblox](https://create.roblox.com/docs/assistant/guide)
+- [Assistant — skills](https://create.roblox.com/docs/assistant/skills)
+- [AI on Roblox — vue d’ensemble des outils IA, clés d’API](https://create.roblox.com/docs/ai/accelerated-workflows)
+- [Script Editor — Code Assist](https://create.roblox.com/docs/studio/script-editor)
+- [Studio MCP server — documentation Roblox (clients pris en charge)](https://create.roblox.com/docs/studio/mcp)
+- [Roblox Terms of Use — section AI Features](https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use)
+- [Cursor — prix](https://cursor.com/pricing)
+- [GitHub Copilot — offres](https://github.com/features/copilot/plans)
+- [OpenAI Codex — offres incluant Codex](https://learn.chatgpt.com/docs/pricing)
+- [Gemini CLI — dépôt officiel (remplacement par Antigravity CLI)](https://github.com/google-gemini/gemini-cli)
+- [Google Antigravity — site officiel](https://antigravity.google/)
+</Sources>

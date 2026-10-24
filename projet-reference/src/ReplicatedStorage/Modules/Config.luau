@@ -4,7 +4,7 @@ local Config = {}
 
 -- Pièces
 Config.VITESSE_ROTATION_PIECES = 90 -- degrés par seconde
-Config.VALEUR_PIECE = 1             -- pièces gagnées par ramassage
+Config.VALEUR_PIECE = 1 -- pièces gagnées par ramassage
 
 -- Checkpoints
 Config.HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0)
@@ -12,9 +12,9 @@ Config.HAUTEUR_REAPPARITION = Vector3.new(0, 4, 0)
 -- Niveaux : chaque niveau regroupe des étapes de difficulté proche
 -- NOUVEAU : le champ piecesParEtape (pièces gagnées par étape de ce niveau)
 Config.Niveaux = {
-	{nom = "Les premiers nuages", etapeDebut = 1, etapeFin = 5, piecesParEtape = 2},
-	{nom = "La tempête", etapeDebut = 6, etapeFin = 10, piecesParEtape = 3},
-	{nom = "Le sommet", etapeDebut = 11, etapeFin = 12, piecesParEtape = 5},
+	{ nom = "Les premiers nuages", etapeDebut = 1, etapeFin = 5, piecesParEtape = 2 },
+	{ nom = "La tempête", etapeDebut = 6, etapeFin = 10, piecesParEtape = 3 },
+	{ nom = "Le sommet", etapeDebut = 11, etapeFin = 12, piecesParEtape = 5 },
 }
 
 -- Renvoie le niveau qui contient l'étape donnée (ou nil)

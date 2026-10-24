@@ -1,0 +1,706 @@
+---
+titre: Claude Code de A à Z
+description: Installe Claude Code sur Windows ou Mac, lance-le dans le projet Rojo de l’Obby des Nuages, écris son CLAUDE.md, règle permissions, skills, sous-agents et hooks, et apprends à revenir en arrière.
+duree: 90
+objectifs:
+  - Installer, vérifier et lancer Claude Code dans le projet Rojo de l’Obby des Nuages
+  - Écrire un CLAUDE.md complet qui transmet à l’IA les règles de ton jeu Roblox
+  - Maîtriser le mode plan, les permissions, les commandes slash, les skills, les sous-agents et les hooks
+  - Gérer le contexte et revenir en arrière avec /rewind et surtout avec Git
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Tu viens d’installer Claude Code sous Windows avec la commande officielle. Tu tapes `claude --version` dans la même fenêtre et PowerShell répond que `claude` n’est pas reconnu. Que fais-tu d’abord ?"
+    options:
+      - texte: Je réinstalle Claude Code avec `npm install -g`, c’est la méthode la plus fiable
+      - texte: "Je ferme le terminal, j’en ouvre un nouveau et je relance `claude --version`"
+        correct: true
+      - texte: Je relance l’installeur en tant qu’administrateur
+      - texte: Je passe directement à `claude doctor`, qui va réparer l’installation
+    explication: "La documentation demande d’**ouvrir un nouveau terminal** après l’installation : une fenêtre déjà ouverte garde l’ancien PATH. Si `claude` reste introuvable, on suit la page « Fix your PATH ». npm n’est plus la méthode recommandée, les droits administrateur ne sont pas nécessaires, et `claude doctor` ne peut pas tourner si `claude` est introuvable."
+  - type: vrai-faux
+    question: "Une règle écrite dans CLAUDE.md, comme « lance toujours selene après chaque modification », est appliquée à 100 % par Claude Code."
+    reponse: false
+    explication: "La documentation le dit : Claude traite CLAUDE.md comme du **contexte**, pas comme une configuration imposée. Pour qu’une action ait lieu **à chaque fois**, on utilise un **hook** (déterministe) ; pour interdire une action, une règle de permission `deny` ou un hook `PreToolUse`."
+  - type: qcm
+    question: "Après 40 messages, Claude Code tourne en rond : tu l’as corrigé trois fois sur le même bug de checkpoint et il repropose les mêmes idées. Quelle est la meilleure réaction ?"
+    options:
+      - texte: Continuer à le corriger, il finira par trouver
+      - texte: Lancer `/compact` sans consigne et reposer la même question
+      - texte: "Noter ce que tu as appris, lancer `/clear`, puis écrire un prompt plus précis qui inclut l’erreur exacte et les pistes déjà écartées"
+        correct: true
+      - texte: Passer en mode `bypassPermissions` pour qu’il travaille plus vite
+    explication: "Les bonnes pratiques officielles sont claires : après deux corrections ratées sur le même problème, le contexte est encombré de mauvaises pistes. On repart d’une conversation vide (`/clear`) avec un meilleur prompt. Ton code reste sur le disque et ton CLAUDE.md est rechargé. `bypassPermissions` ne règle rien et retire tes garde-fous."
+  - type: qcm
+    question: "Claude Code a lancé une commande Bash qui a réécrit `Config.luau`, puis tu veux annuler. Quel outil est le plus sûr ?"
+    options:
+      - texte: "`/rewind`, qui annule toujours tout ce qui s’est passé"
+      - texte: "Git : `git diff` pour voir le changement, puis `git restore src/ReplicatedStorage/Modules/Config.luau`"
+        correct: true
+      - texte: Supprimer le dossier `.claude`
+      - texte: "`/clear`, qui remet les fichiers comme au début de la conversation"
+    explication: "Les checkpoints ne suivent que les fichiers modifiés par les outils d’édition de Claude : un fichier changé **uniquement** par une commande Bash n’est pas suivi par `/rewind`. Git, lui, voit tout ce qui a changé depuis le dernier commit. `/clear` vide la conversation mais ne touche pas aux fichiers."
+  - type: qcm
+    question: "Ton hook `PostToolUse` lance selene après chaque modification. Que se passe-t-il quand selene trouve un avertissement et que le hook se termine avec le code de sortie 2 ?"
+    options:
+      - texte: La modification du fichier est annulée
+      - texte: "Le message d’erreur (stderr) est montré à Claude, qui peut corriger : la modification, elle, a déjà eu lieu"
+        correct: true
+      - texte: Claude Code se ferme
+      - texte: Rien, le code 2 est ignoré
+    explication: "Pour `PostToolUse`, la documentation des hooks indique que le code 2 « Shows stderr to Claude; the tool already ran ». C’est exactement ce qu’on veut : Claude lit le rapport de selene et corrige lui-même son code."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code installe le hook de vérification de ton projet. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais un hook pour formater mon code"
+    options:
+      - texte: "Fais un hook complet et professionnel qui formate et vérifie tout mon code automatiquement."
+      - texte: |
+          Dans .claude/settings.json (garde les permissions existantes), ajoute un hook PostToolUse avec le matcher "Edit|Write" qui, depuis $CLAUDE_PROJECT_DIR, lance stylua src puis selene src et renvoie les erreurs à Claude avec le code de sortie 2.
+          Contraintes : je suis sous Windows avec Git Bash et aussi parfois sur Mac, donc n'utilise pas jq.
+          Vérification : claude doctor ne signale aucune erreur de réglages, et une ligne mal formatée ajoutée dans un script est reformatée automatiquement.
+        correct: true
+      - texte: "Ajoute un hook avec jq et prettier comme dans l’exemple de la documentation."
+      - texte: "Mets dans CLAUDE.md qu’il doit toujours lancer StyLua et selene."
+    explication: "La bonne version nomme le fichier, l’événement, le matcher, les commandes exactes et le code de sortie, signale la contrainte Windows (pas de `jq`) et donne deux critères de vérification. Prettier sert au JavaScript, pas au Luau, et une ligne dans CLAUDE.md n’est qu’un conseil, pas une garantie."
+---
+
+Tu as maintenant un vrai projet : l’Obby des Nuages en fichiers sur ton ordinateur, synchronisé avec Studio par Rojo et suivi par Git ([leçon 2 de ce module](/modules/02/installer-un-workflow-pro/)). Il manque l’essentiel : **l’IA qui va écrire le code avec toi**. Cette leçon est longue, car elle couvre tout Claude Code, de l’installation aux réglages avancés. Prends-la en plusieurs fois : chaque section `##` est une étape que tu peux faire, tester, puis enregistrer avec Git.
+
+## Claude Code en deux minutes
+
+Claude Code est un **agent de code** : un programme qui tourne dans ton **terminal** (la fenêtre où l’on tape des commandes) et qui peut lire les fichiers de ton projet, lancer des commandes et modifier des fichiers. Tu lui écris en français ce que tu veux, il explore, propose, modifie, vérifie. Toi, tu diriges et tu relis.
+
+La différence avec un simple chat : Claude Code **agit** sur ton projet. C’est puissant, donc il faut savoir lui donner des règles (CLAUDE.md), limiter ce qu’il a le droit de faire (permissions), automatiser les vérifications (hooks) et pouvoir annuler (Git). C’est exactement le plan de cette leçon. La comparaison avec les autres outils (Assistant de Roblox Studio, Cursor, Copilot…) est dans la [leçon 1 de ce module](/modules/02/panorama-des-outils-ia/).
+
+## Avant de commencer : âge, compte et offre
+
+Claude Code n’est **pas** inclus dans l’offre gratuite. La documentation officielle l’écrit noir sur blanc : « The free claude.ai plan does not include Claude Code access ». Il faut une offre **Pro**, **Max**, **Team**, **Enterprise**, ou un compte **Console** (paiement à l’usage de l’API).
+
+Prix affichés sur la page officielle au moment de la rédaction (relevés le 24 octobre 2026, en dollars américains, hors conversion et taxes locales) :
+
+| Offre | Prix affiché | Claude Code |
+|---|---|---|
+| Free | 0 $ | Non inclus |
+| Pro | 20 $ par mois en mensuel, ou 17 $ par mois en annuel (200 $ payés d’avance) | Inclus |
+| Max | « From $100 » par mois (deux niveaux : 5x et 20x l’usage de Pro) | Inclus |
+
+Les prix changent : vérifie toujours sur [claude.com/pricing](https://claude.com/pricing) avant de payer. Pour un jeu comme l’Obby des Nuages, l’offre Pro suffit pour commencer. Dans Claude Code, la commande `/usage` montre où tu en es de tes limites d’utilisation.
+
+<Attention titre="Claude Code est réservé aux 18 ans et plus">
+
+**Claude Code est réservé aux personnes de 18 ans et plus** (conditions d’utilisation d’Anthropic, octobre 2026 : « You must be at least 18 years old to use the Services »). Si tu as moins de 18 ans, ne crée pas de compte et n’utilise pas seul celui d’un parent. Tu peux :
+
+- travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ;
+- utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox ([leçon 1](/modules/02/panorama-des-outils-ia/)) ;
+- ou suivre la formation en lisant et en tapant toi-même : les prompts et la méthode de relecture restent utiles.
+
+L’abonnement est payant : c’est l’adulte titulaire du compte qui le choisit, le paie et le gère. Et **quel que soit ton âge** : ne colle jamais de mot de passe, de cookie `.ROBLOSECURITY`, de clé d’API ou de code de carte bancaire dans un prompt ou dans un fichier du projet.
+
+</Attention>
+
+## Installer Claude Code
+
+La méthode recommandée par Anthropic est l’**installeur natif** : une seule commande, sans Node.js, avec mises à jour automatiques. Pas besoin d’être administrateur.
+
+### Sous Windows
+
+1. Ouvre **PowerShell** : clique sur le menu Démarrer, tape `PowerShell`, puis clique sur **Windows PowerShell**. La ligne de commande commence par `PS C:\Users\TonNom>`. Si elle ne commence pas par `PS`, tu es dans l’« Invite de commandes » (CMD) : ferme-la et ouvre PowerShell.
+2. Copie cette commande, colle-la avec un clic droit (ou `Ctrl+V`), puis appuie sur `Entrée` :
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+
+3. Attends : l’installeur n’affiche **aucune barre de progression** pendant le téléchargement. C’est normal.
+4. Quand il a fini, **ferme PowerShell et ouvre une nouvelle fenêtre**. Une fenêtre déjà ouverte ne voit pas encore le nouveau programme.
+
+Git for Windows, que tu as installé à la leçon précédente, est recommandé par Anthropic : il fournit **Git Bash**, que Claude Code utilise pour lancer ses commandes (sinon, il passe par PowerShell). Il servira aussi pour le hook de vérification, plus bas.
+
+### Sous Mac
+
+1. Ouvre le **Terminal** : appuie sur `Cmd+Espace`, tape `Terminal`, puis `Entrée`.
+2. Colle cette commande, puis appuie sur `Entrée` :
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+3. À la fin, ferme le Terminal (`Cmd+Q`) et rouvre-le.
+
+### Vérifier que tout marche
+
+Dans le nouveau terminal (Windows ou Mac), tape :
+
+```bash
+claude --version
+```
+
+Tu dois voir un numéro de version suivi de `(Claude Code)`, par exemple `2.1.310 (Claude Code)`. Le numéro sera sans doute plus grand chez toi : Claude Code se met à jour tout seul en arrière-plan.
+
+Ensuite, lance le diagnostic :
+
+```bash
+claude doctor
+```
+
+Cette commande affiche un bilan **sans démarrer de session** : version, méthode d’installation, mises à jour automatiques, et les éventuelles erreurs dans tes fichiers de réglages. Si tout va bien, la dernière ligne du bilan indique `No installation issues found.` Garde-la en tête : `claude doctor` te resservira pour vérifier tes réglages plus loin.
+
+<Erreur titre="« claude n’est pas reconnu » ou « command not found »">
+
+Le plus souvent, c’est une fenêtre de terminal ouverte **avant** l’installation : ferme-la et ouvre-en une nouvelle (si tu utilises le terminal de VS Code, quitte complètement VS Code et relance-le). Si le problème persiste, le dossier d’installation n’est pas dans ton PATH (la liste des dossiers où le terminal cherche les programmes). La page officielle [Troubleshoot installation](https://code.claude.com/docs/en/troubleshoot-install) donne la commande exacte à copier pour Windows et pour Mac, à la section « Verify your PATH ».
+
+Autres messages fréquents, d’après la documentation : `The token '&&' is not a valid statement separator` veut dire que tu as collé la commande prévue pour CMD dans PowerShell ; `'irm' is not recognized` veut dire l’inverse. Et si un tutoriel te dit d’installer Claude Code avec `npm install -g`, il est ancien : npm fonctionne encore, mais ce n’est plus la méthode recommandée.
+
+</Erreur>
+
+## Premier lancement dans le projet de l’Obby
+
+Claude Code travaille **dans le dossier où tu le lances**. Il faut donc ouvrir un terminal **dans le dossier de ton projet Rojo** (celui qui contient `default.project.json`).
+
+La méthode la plus simple, sur Windows comme sur Mac : ouvre ton projet (le dossier `ObbyDesNuages` créé à la leçon 2) dans **VS Code** (menu **File › Open Folder…**, ou **Fichier › Ouvrir le dossier…**), puis ouvre le terminal intégré avec le menu **Terminal › New Terminal** (**Terminal › Nouveau terminal** si VS Code est en français). Ce terminal s’ouvre directement dans le bon dossier. Vérifie-le en tapant `ls` : tu dois voir `default.project.json` et `src`.
+
+Lance ensuite :
+
+```bash
+claude
+```
+
+Au premier lancement :
+
+1. **Confiance dans le dossier** : Claude Code te demande si tu fais confiance aux fichiers de ce dossier. C’est ton propre projet : accepte. Ne le fais pas pour un projet téléchargé que tu ne connais pas, car ses fichiers de réglages peuvent lancer des commandes.
+2. **Connexion** : ton navigateur s’ouvre sur la page de connexion de Claude. Connecte-toi avec le compte claude.ai qui a l’abonnement (le tien, si tu as 18 ans ou plus). Si le navigateur ne s’ouvre pas, appuie sur `c` pour copier l’adresse et colle-la dans ton navigateur. Si la page affiche un code, colle-le dans le terminal, à la ligne `Paste code here if prompted`. Quand c’est fini, le terminal affiche `Login successful` : appuie sur `Entrée`.
+3. La zone de saisie apparaît, avec la version, le modèle et le dossier de travail au-dessus. La connexion est mémorisée : tu n’auras pas à la refaire.
+
+Pose une première question, sans rien demander de modifier :
+
+```text
+Explique-moi la structure de ce projet Rojo : à quoi sert default.project.json et où ira chaque type de script dans Studio ?
+```
+
+Quelques gestes à connaître tout de suite :
+
+| Geste | Effet |
+|---|---|
+| `Esc` | Arrête Claude en plein travail pour le rediriger (il garde ce qu’il a déjà fait) |
+| `Esc` deux fois (zone de saisie vide) | Ouvre le menu de retour en arrière (`/rewind`, voir plus bas) |
+| `\` puis `Entrée`, ou `Ctrl+J` | Passer à la ligne sans envoyer le message (fonctionne dans tous les terminaux) |
+| `@` puis un début de nom | Mentionner un fichier, par exemple `@src/ReplicatedStorage/Modules/Config.luau` |
+| `!` en début de ligne | Lancer toi-même une commande du terminal sans quitter Claude Code (ex. `!git status`) |
+| Flèche du haut | Retrouver un message précédent |
+| `/exit`, ou `Ctrl+C` deux fois | Quitter Claude Code |
+
+<Astuce titre="Garde Rojo dans un autre terminal">
+`rojo serve` doit tourner pendant que tu travailles, et il occupe son terminal. Ouvre donc **deux** terminaux dans VS Code (le bouton **+** du panneau Terminal) : un pour `rojo serve`, un pour `claude`. Ainsi, chaque fichier modifié par Claude Code arrive dans Studio dès que le plugin Rojo est connecté.
+</Astuce>
+
+## Le fichier CLAUDE.md : la mémoire de ton projet
+
+Chaque session de Claude Code commence **sans souvenir** des précédentes. Pour ne pas réexpliquer ton jeu à chaque fois, tu écris un fichier `CLAUDE.md` à la racine du projet : Claude le lit **au début de chaque conversation**. C’est là que vont l’architecture, les conventions, les règles de sécurité et les commandes de vérification.
+
+Ce qu’en dit la documentation officielle, et qu’il faut retenir :
+
+- **Emplacement** : `./CLAUDE.md` (ou `./.claude/CLAUDE.md`) pour le projet, partagé avec Git. `~/.claude/CLAUDE.md` pour tes préférences sur tous tes projets. `CLAUDE.local.md` pour des notes personnelles du projet, à ajouter à `.gitignore`.
+- **Taille** : « target under 200 lines per CLAUDE.md file ». Un fichier trop long est moins bien suivi.
+- **Ce n’est pas une loi** : Claude traite ce fichier comme du **contexte**, pas comme une configuration imposée. Pour garantir une action, on utilisera un hook ; pour interdire, une permission.
+
+### Commencer avec /init
+
+Dans Claude Code, tape :
+
+```text
+/init
+```
+
+Claude analyse ton projet et propose un premier `CLAUDE.md` (commandes, structure, conventions qu’il a repérées). S’il en existe déjà un, `/init` propose des améliorations au lieu de l’écraser. Lis ce qu’il a écrit : c’est un bon exercice pour voir ce que l’IA comprend de ton projet. Puis **remplace le contenu** par le modèle ci-dessous, conçu pour un jeu Roblox, en gardant ce que `/init` avait trouvé de juste et qui manque au modèle. Pour l’éditer, ouvre `CLAUDE.md` dans VS Code (ou tape `/memory` dans Claude Code).
+
+### Le modèle complet pour l’Obby des Nuages
+
+Copie ce modèle avec le bouton **Copier**, colle-le dans `CLAUDE.md`, puis adapte les passages qui ne correspondent pas encore à ton projet. Au module 2, ton dossier `src` est presque vide : la section « Architecture » décrit ce que le jeu va devenir, et tu la tiendras à jour au fil des modules.
+
+<Prompt titre="Modèle de CLAUDE.md pour un jeu Roblox">
+
+```markdown
+# Obby des Nuages — instructions pour Claude Code
+
+## Le projet
+- Jeu Roblox : un obby (parcours d'obstacles) dans le ciel, avec checkpoints, pièces à ramasser et une boutique de traînées (trails) cosmétiques.
+- Joueurs de tous âges, beaucoup sur téléphone et tablette.
+- Code en Luau, synchronisé avec Roblox Studio par Rojo. Les fichiers de src/ sont la source de vérité : ne crée ni ne modifie jamais de script directement dans Studio (Rojo l'écraserait).
+- Je débute : explique en français, en phrases courtes, ce que tu changes et pourquoi.
+
+## Architecture (Rojo, voir default.project.json)
+- src/ServerScriptService/ : code serveur. Nom.server.luau = Script, Nom.luau = ModuleScript serveur.
+- src/ReplicatedStorage/Modules/ : ModuleScripts partagés client/serveur (Config.luau = réglages du jeu, Catalogue.luau = objets de la boutique). Les clients peuvent les lire : jamais de secret ni de logique de sécurité ici.
+- ReplicatedStorage.Remotes : Folder des RemoteEvents, déclarés dans default.project.json (jamais créés par un script). Un remote = une action, nommée par un verbe : AcheterObjet, EquiperObjet, Notification.
+- src/StarterPlayer/StarterPlayerScripts/ et src/StarterPlayer/StarterCharacterScripts/ : LocalScripts Nom.client.luau.
+- src/StarterGui/InterfaceObby/ : le ScreenGui du jeu et ses LocalScripts.
+- Construits à la main dans Studio, hors de src/ : Workspace.Checkpoints (Parts "1", "2", "3"… dans l'ordre), Workspace.KillBricks, Workspace.Pieces (Parts nommées Piece), les plateformes.
+- Données : DataStore "DonneesJoueurs_v1", clé "Joueur_" .. player.UserId. leaderstats : IntValue Etape et IntValue Pieces.
+- Tiens cette section à jour quand tu ajoutes un script, un module ou un remote.
+
+## Services utilisés
+Players, ReplicatedStorage, ServerScriptService, Workspace, DataStoreService, MarketplaceService, TweenService, RunService, UserInputService, AnalyticsService.
+Toujours game:GetService("Nom"), en haut du script.
+
+## Conventions de nommage
+- Identifiants en français sans accents (nombrePieces, pas nombrePièces). Les textes affichés au joueur gardent leurs accents.
+- PascalCase pour les scripts, modules et instances (DonneesJoueurs, BoutonBoutique) ; camelCase pour les variables et fonctions (etapeActuelle, donnerPieces) ; MAJUSCULES pour les constantes (DELAI_MINIMUM).
+- Commentaires en français. En tête de chaque fichier : type de script, emplacement, rôle en une ligne.
+
+## Règles Luau
+- Toujours task.wait, task.spawn, task.delay. Jamais wait, spawn, delay.
+- Pas d'API dépréciée : Animator:LoadAnimation (pas Humanoid:LoadAnimation), FindFirstChildOfClass("Humanoid"), :Connect (jamais :connect).
+- Côté client, WaitForChild pour les objets répliqués. Teste toujours nil avant d'utiliser le résultat de FindFirstChild.
+- Annotations de type quand elles aident (:: RemoteEvent).
+
+## Sécurité serveur (non négociable)
+- Le client ne fait que DEMANDER, le serveur décide. Ne fais jamais confiance à un argument reçu par un RemoteEvent.
+- Dans chaque OnServerEvent : vérifie le type et la plage de chaque argument (module Validation s'il existe), la distance si une position compte, et un délai minimum entre deux demandes du même joueur.
+- Prix, gains, récompenses et résultats viennent toujours du serveur (Catalogue, Config), jamais du client.
+- Pièces, étapes et achats ne sont modifiés que par des Scripts serveur.
+- Jamais de clé d'API, de mot de passe ou de cookie dans le code ni dans un message.
+
+## Données et achats
+- Chaque appel DataStore (GetAsync, UpdateAsync…) est dans un pcall, avec 3 tentatives et une attente croissante entre elles. Préfère UpdateAsync à SetAsync.
+- Sauvegarde à PlayerRemoving, régulièrement, et dans game:BindToClose. Si le chargement a échoué, n'écrase jamais la sauvegarde avec des valeurs par défaut.
+- Chaque appel MarketplaceService (UserOwnsGamePassAsync, GetProductInfo…) est dans un pcall. ProcessReceipt ne renvoie PurchaseGranted qu'une fois l'achat donné ET enregistré, et, pour un PurchaseId déjà traité, renvoie PurchaseGranted sans redonner l'achat.
+
+## Mémoire et performances (beaucoup de joueurs sur mobile)
+- Toute connexion liée à un joueur ou à un objet temporaire est déconnectée (:Disconnect()) ou détruite avec lui. Les tables indexées par joueur sont vidées à PlayerRemoving.
+- Pas de boucle sans task.wait, pas de calcul lourd à chaque frame (RunService.Heartbeat). Les animations décoratives (pièces qui tournent) se font côté client.
+- Interface : tailles en Scale (UDim2), boutons assez grands pour un doigt.
+
+## Vérification
+- Après chaque modification : stylua src puis selene src, sans erreur ni avertissement (un hook les lance déjà automatiquement).
+- Pour vérifier le formatage sans rien modifier : stylua --check src.
+- Dis-moi précisément comment tester dans Studio (Play, ou serveur + 2 joueurs) et quels messages je dois voir dans l'Output.
+- Ne dis jamais « c'est fait » sans montrer le résultat de ces vérifications.
+
+## Façon de travailler
+- Ne modifie que les fichiers demandés. Si un autre fichier doit changer, demande-moi d'abord.
+- Avant un gros changement (plus de 2 fichiers, nouveau système, changement des données sauvegardées), propose un plan et attends mon accord.
+- Une tâche à la fois. À la fin : liste des fichiers modifiés, ce que je dois tester, et un message de commit proposé.
+- Ne fais un commit que si je te le demande. Jamais de git push.
+- Si tu n'es pas sûr qu'une API Roblox existe ou qu'elle fonctionne ainsi, dis-le au lieu d'inventer.
+```
+
+</Prompt>
+
+Ce modèle fait une centaine de lignes, bien en dessous de la limite conseillée. Chaque règle répond à une erreur que l’IA fait vraiment quand on ne la prévient pas : utiliser `wait`, croire un prix envoyé par le client, oublier le `pcall` d’un DataStore, laisser traîner des connexions. Les modules 3 à 5 t’apprendront à **repérer** ces erreurs dans le code ; le CLAUDE.md sert à les éviter en amont.
+
+### Le faire évoluer
+
+Quand Claude refait une erreur, ajoute une règle courte. Tu peux lui écrire simplement : « Ajoute à CLAUDE.md : les Parts de Workspace.Pieces sont détruites quand on les ramasse, ne les cherche pas par leur nom ». Ou ouvre le fichier avec `/memory`.
+
+<Info titre="Ce qui a changé récemment">
+Beaucoup de tutoriels montrent qu’on tape `#` en début de message pour ajouter une règle à la mémoire. **Ce raccourci a été supprimé** (CHANGELOG officiel, version 2.0.70 : « Removed # shortcut for quick memory entry »). Aujourd’hui, on demande « ajoute ceci à CLAUDE.md » ou on édite via `/memory`. Attention : si tu dis seulement « souviens-toi que… », Claude l’enregistre dans sa **mémoire automatique** (des notes qu’il prend lui-même, rangées hors du projet), pas dans ton CLAUDE.md.
+</Info>
+
+<Erreur titre="Un CLAUDE.md fourre-tout">
+Coller des pages de documentation Roblox ou décrire chaque fichier ligne par ligne rend le CLAUDE.md long… et moins bien suivi. La documentation propose un test pour chaque ligne : « Would removing this cause Claude to make mistakes? » (est-ce que supprimer cette ligne ferait faire des erreurs à Claude ?). Si la réponse est non, supprime-la.
+</Erreur>
+
+## Le mode plan : réfléchir avant de toucher aux fichiers
+
+En **mode plan**, Claude lit et explore ton projet, mais **ne modifie pas tes fichiers**. Il te rend un plan : quels fichiers créer ou changer, dans quel ordre, avec quelles règles. Tu le corriges avant que la moindre ligne soit écrite. C’est le meilleur réflexe pour un nouveau système (sauvegarde, boutique…).
+
+Pour y entrer :
+
+- appuie sur `Shift+Tab` jusqu’à voir `⏸ plan mode on` en bas de l’écran (sous Windows, si `Shift+Tab` ne fait rien, essaie `Alt+M`) ;
+- ou commence ton message par `/plan`, par exemple : `/plan ajoute la sauvegarde des pièces` ;
+- ou lance directement `claude --permission-mode plan`.
+
+Quand le plan est prêt, Claude te propose trois choix (en anglais dans l’interface) : **Yes, and use auto mode** (accepter et le laisser travailler en mode auto), **Yes, manually approve edits** (accepter, mais valider chaque modification toi-même) et **No, keep planning** (continuer à discuter du plan). Au début, choisis la deuxième option. `Ctrl+G` ouvre le plan dans ton éditeur de texte pour le modifier directement.
+
+<Astuce titre="Quand sauter le plan">
+La documentation donne une règle simple : « If you could describe the diff in one sentence, skip the plan » (si tu peux décrire le changement en une phrase, saute le plan). Renommer une variable ou changer une couleur : pas besoin. Un système qui touche plusieurs fichiers : toujours un plan. La [leçon 5](/modules/02/decouper-un-gros-projet/) montre comment enchaîner plan, tâches et commits sur un projet entier.
+</Astuce>
+
+## Les modes de permission : qui décide de quoi
+
+Claude Code demande ta permission avant certaines actions. Le **mode de permission** fixe ce qu’il peut faire sans demander. `Shift+Tab` fait défiler les modes ; le mode actif s’affiche en bas de l’écran.
+
+| Mode (nom dans les réglages) | Ce qui se fait sans te demander | Pour qui ? |
+|---|---|---|
+| `default`, affiché **Manual** | Seulement la lecture | Débutant : tu valides chaque modification et chaque commande |
+| `acceptEdits` | Lecture, modifications de fichiers et commandes de fichiers simples (`mkdir`, `mv`, `cp`…) dans le dossier du projet | Quand tu relis les changements après coup, avec Git |
+| `plan` | Lecture et exploration, aucune modification de tes fichiers | Avant un gros changement |
+| `auto` | Presque tout : un second modèle (un « classifieur ») examine les actions comme les commandes et les accès réseau, et bloque ce qui semble risqué | Quand tu maîtrises ton projet et Git |
+| `dontAsk` | Uniquement les outils pré-autorisés, tout le reste est refusé | Scripts automatiques |
+| `bypassPermissions` | Tout, sans aucune vérification | **Jamais** sur ton ordinateur : la doc le réserve aux conteneurs et machines virtuelles isolés |
+
+<Info titre="Changé récemment : le mode de départ est « auto »">
+Depuis la version 2.1.283 (d’après la [documentation des modes](https://code.claude.com/docs/en/permission-modes)), une session interactive démarre en mode **`auto`** si tu n’as rien configuré. Beaucoup de tutoriels plus anciens disent l’inverse. Pour tes premières semaines, on te conseille de démarrer en **Manual** pour voir chaque action : le fichier de réglages ci-dessous le fait pour toi. Tu peux aussi appuyer une fois sur `Shift+Tab` (depuis `auto`, la première pression passe en Manual).
+</Info>
+
+### Répondre à une demande de permission
+
+En mode Manual, avant une commande, Claude affiche ce qu’il veut faire et te propose notamment **Yes** (oui, une fois), **Yes, and don’t ask again for…** (oui, et ne plus demander pour cette commande) et **No** (non, et tu peux lui dire quoi faire à la place). Lis la commande avant de répondre. « Don’t ask again » enregistre une règle dans `.claude/settings.local.json`.
+
+### Les permissions dans .claude/settings.json
+
+Plutôt que de répondre aux mêmes questions cent fois, on écrit les règles dans un fichier. Il en existe trois niveaux :
+
+| Fichier | Portée | Partagé par Git ? |
+|---|---|---|
+| `~/.claude/settings.json` | Tous tes projets | Non |
+| `.claude/settings.json` (dans le projet) | Ce projet | Oui, à commiter |
+| `.claude/settings.local.json` (dans le projet) | Ce projet, pour toi seul | Non |
+
+Les règles s’écrivent `Outil(motif)`. L’étoile `*` remplace « n’importe quoi », **séparée par une espace** : `Bash(git log *)` autorise toutes les commandes `git log …`. Claude Code les évalue dans l’ordre **deny** (interdit), puis **ask** (toujours demander), puis **allow** (autorisé). Et elles sont appliquées par Claude Code lui-même, pas par le modèle : même si l’IA « veut » faire autre chose, elle ne peut pas passer outre.
+
+Voici un réglage réaliste pour l’Obby des Nuages. Si tu as branché le serveur MCP de Studio à la [leçon 2](/modules/02/installer-un-workflow-pro/), le fichier `.claude/settings.json` existe déjà avec trois règles `ask` pour les outils MCP : remplace son contenu par celui-ci, qui les reprend. Sinon, crée le dossier `.claude` à la racine du projet (dans VS Code : clic droit dans l’explorateur de fichiers › **New Folder**), puis le fichier `settings.json` dedans, et colle :
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(selene *)",
+      "Bash(stylua *)",
+      "Bash(rojo build *)",
+      "Bash(rojo sourcemap *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git restore *)",
+      "Bash(git checkout *)",
+      "Bash(rokit add *)",
+      "mcp__Roblox_Studio__execute_luau",
+      "mcp__Roblox_Studio__multi_edit",
+      "mcp__Roblox_Studio__insert_asset"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Read(./.env)",
+      "Read(./secrets/**)"
+    ]
+  }
+}
+```
+
+Ce que ça donne : les vérifications (selene, StyLua, Rojo) et la lecture de l’historique Git passent sans question ; un commit, une annulation de fichiers, l’ajout d’un outil ou une action du MCP de Studio qui modifie ton place (exécuter du Luau, modifier un script, insérer un asset) te sont toujours demandés ; publier sur Internet (`git push`), effacer l’historique ou lire un fichier de secrets est interdit. `"defaultMode": "default"` fait démarrer chaque session en Manual. La ligne `$schema` est facultative : elle permet à VS Code de te proposer les bons champs pendant que tu tapes.
+
+Enregistre, puis lance `claude doctor` dans le dossier du projet : s’il y a une faute (une virgule en trop, un champ mal nommé), il l’affiche dans une rubrique `Invalid settings`, avec le fichier et le champ concernés. Dans Claude Code, `/permissions` affiche toutes les règles actives et le fichier d’où vient chacune.
+
+<Astuce titre="Sous Windows : doubler les interdictions pour PowerShell">
+Sous Windows, Claude Code peut aussi utiliser un outil PowerShell, et les règles `Bash(…)` ne s’appliquent qu’aux commandes Bash. La documentation décrit des règles `PowerShell(…)` de même forme. Si tu travailles uniquement sous Windows, ajoute dans `deny` les équivalents : `"PowerShell(git push *)"`, `"PowerShell(git reset --hard *)"` et `"PowerShell(git clean *)"`.
+</Astuce>
+
+## Les commandes slash utiles
+
+Une commande slash se tape **au début** d’un message. Tape `/` seul pour voir la liste complète. Celles qui te serviront vraiment (vérifiées sur la documentation au 24 octobre 2026) :
+
+| Commande | À quoi elle sert |
+|---|---|
+| `/init` | Créer ou améliorer le `CLAUDE.md` du projet |
+| `/memory` | Ouvrir et modifier tes fichiers CLAUDE.md |
+| `/plan [tâche]` | Passer en mode plan, éventuellement avec la tâche |
+| `/permissions` | Voir et modifier les règles de permission |
+| `/clear` | Repartir d’une conversation vide (alias `/new`, `/reset`) |
+| `/compact [consigne]` | Résumer la conversation pour libérer de la place |
+| `/context` | Voir l’occupation du contexte sous forme de grille colorée |
+| `/rewind` | Revenir en arrière dans la conversation et/ou le code (alias `/undo`, `/checkpoint`) |
+| `/diff` | Voir les changements du dossier de travail, dont ceux de Claude |
+| `/resume` | Reprendre une conversation précédente |
+| `/usage` | Voir le coût de la session et tes limites d’utilisation (`/cost` en est un alias) |
+| `/model` | Changer de modèle |
+| `/skills` | Lister les skills disponibles |
+| `/hooks` | Consulter les hooks configurés (lecture seule) |
+| `/code-review` | Faire relire le code modifié pour trouver des bugs (alias `/review`) |
+| `/btw [question]` | Poser une question annexe qui n’encombre pas la conversation |
+| `/doctor` | Bilan de configuration dans une session, avec propositions de corrections |
+| `/help` | Aide et liste des commandes |
+| `/exit` | Quitter |
+
+## Les skills : tes propres commandes
+
+Une **skill** est un fichier d’instructions que Claude charge quand il en a besoin, ou que tu déclenches avec `/nom`. Parfait pour une routine que tu répètes : « vérifie tout avant le commit ». Les anciennes « commandes personnalisées » (`.claude/commands/`) fonctionnent encore, mais elles ont été fusionnées dans les skills : on utilise désormais les skills.
+
+Une skill de projet vit dans `.claude/skills/<nom>/SKILL.md`. En haut, un en-tête entre deux lignes `---` (tous ses champs sont facultatifs, `description` est recommandé) ; en dessous, les instructions. Crée `.claude/skills/verifier/SKILL.md` :
+
+```markdown
+---
+name: verifier
+description: Vérifie le code Luau de l'Obby des Nuages (selene, StyLua) et relit les changements non commités selon les règles du CLAUDE.md. À utiliser avant chaque commit.
+disable-model-invocation: true
+allowed-tools: Bash(selene *), Bash(stylua *), Bash(git diff *), Bash(git status *)
+---
+
+Vérifie le travail en cours sur le jeu, sans rien modifier.
+
+1. Lance `stylua --check src` puis `selene src`, et note chaque erreur ou avertissement.
+2. Lance `git status` puis `git diff`, et lis tous les changements non commités.
+3. Pour chaque script modifié, contrôle les règles du CLAUDE.md :
+   - le serveur valide tout ce qui arrive par un RemoteEvent (type, valeur, distance, délai) ;
+   - aucun prix, montant ou résultat ne vient du client ;
+   - les appels DataStore et MarketplaceService sont dans un `pcall` avec nouvelles tentatives ;
+   - `task.wait`, `task.spawn`, `task.delay` (jamais `wait`, `spawn`, `delay`) ;
+   - les connexions liées à un joueur sont nettoyées quand il part.
+4. Rends un rapport court : « OK » ou la liste des problèmes (fichier, ligne, explication, correction proposée).
+
+Ne corrige rien toi-même : attends que je te le demande.
+```
+
+Tape ensuite `/verifier` dans Claude Code. `disable-model-invocation: true` signifie que **seul toi** peux la déclencher (Claude ne la lancera pas de lui-même) ; `allowed-tools` autorise ces commandes sans question pendant la skill. Claude Code surveille le dossier des skills : une skill ajoutée ou modifiée est prise en compte sans redémarrer. Exception : si le dossier `.claude/skills` n’existait pas au lancement, tape `/reload-skills` (ou relance Claude Code).
+
+## Les sous-agents : un relecteur avec un regard neuf
+
+Un **sous-agent** est un assistant spécialisé que Claude peut appeler pour une tâche précise. Il travaille dans **son propre contexte** (sa propre mémoire de conversation), avec ses propres outils, et ne rend qu’un résumé. Deux avantages : ta conversation principale reste légère, et un relecteur qui n’a pas écrit le code le juge sans parti pris.
+
+Un sous-agent de projet est un fichier Markdown dans `.claude/agents/`. Seuls `name` et `description` sont obligatoires ; le texte sous l’en-tête devient ses instructions. Crée `.claude/agents/relecteur-roblox.md` :
+
+```markdown
+---
+name: relecteur-roblox
+description: Relit du code Luau Roblox à la recherche de failles client/serveur, de pertes de données et de fuites mémoire. À utiliser après chaque nouveau système, avant le commit.
+tools: Read, Grep, Glob
+model: sonnet
+---
+
+Tu es un relecteur expert de jeux Roblox. Tu ne modifies jamais de fichier : tu lis et tu rends un rapport.
+
+Pour chaque fichier qu'on te donne (ou, à défaut, chaque fichier de src/ modifié récemment), vérifie :
+
+1. Sécurité client/serveur : chaque OnServerEvent vérifie le type et la valeur de chaque argument ; aucun prix, gain ou résultat n'est fourni par le client ; les actions répétables ont un délai minimum par joueur.
+2. Données : les appels DataStore et MarketplaceService sont dans un pcall, avec nouvelles tentatives ; la sauvegarde se fait à PlayerRemoving et dans game:BindToClose.
+3. Mémoire : les connexions et les tables indexées par joueur sont nettoyées quand le joueur part.
+4. API : pas de wait, spawn, delay ni d'API dépréciée.
+5. Performances mobiles : pas de boucle serrée sans task.wait, pas de travail lourd à chaque frame.
+
+Rapport : une ligne par problème, au format fichier:ligne — gravité (critique / important / mineur) — problème — correction proposée. Termine par « Aucun problème critique » si c'est le cas. Ne signale pas de préférences de style.
+```
+
+`tools: Read, Grep, Glob` ne lui donne que la lecture : il ne peut rien casser. `model: sonnet` lui fait utiliser un modèle plus économique. Pour l’appeler, écris par exemple : « Utilise le sous-agent relecteur-roblox pour relire src/ServerScriptService/Boutique.server.luau ». Tu peux aussi taper `@` et le choisir dans la liste. Comme pour les skills, Claude Code détecte un nouveau fichier en quelques secondes, sauf si le dossier `.claude/agents` n’existait pas au lancement : relance alors Claude Code.
+
+<Info titre="Changé récemment : /agents n’ouvre plus d’assistant">
+Dans les anciennes versions, `/agents` ouvrait un assistant de création. Depuis la version 2.1.198, la commande affiche seulement un rappel : on crée un sous-agent en écrivant le fichier soi-même, ou en le demandant à Claude. La [leçon 6](/modules/02/relire-et-tester-le-code-de-l-ia/) montre comment intégrer ce relecteur à une vraie routine de revue.
+</Info>
+
+## Les hooks : StyLua et selene après chaque modification
+
+Un **hook** est une commande que Claude Code lance **automatiquement** à un moment précis : avant une action, après une modification, à la fin d’une réponse… La documentation le résume : contrairement aux instructions de CLAUDE.md, qui sont des conseils, les hooks sont « deterministic and guarantee the action happens ». Si tu veux que StyLua et selene tournent **à chaque fois**, c’est un hook qu’il faut.
+
+### Comment fonctionne celui-ci
+
+- **Événement** `PostToolUse` : juste après qu’un outil a été utilisé.
+- **Matcher** `"Edit|Write"` : seulement après les outils de modification (`Edit`) et de création (`Write`) de fichiers.
+- **Commande** : se placer à la racine du projet (`$CLAUDE_PROJECT_DIR`, fournie par Claude Code), formater tout `src` avec StyLua, puis analyser `src` avec selene.
+- **Code de sortie 2** : si StyLua rencontre une erreur de syntaxe ou si selene signale un problème, la commande se termine avec le code 2. Pour `PostToolUse`, la documentation précise : « Shows stderr to Claude; the tool already ran » (le message d’erreur est montré à Claude ; la modification a déjà eu lieu). Claude lit donc le rapport de selene et corrige son propre code.
+
+L’exemple officiel de la documentation utilise l’outil `jq` pour lire les informations transmises au hook. `jq` n’est pas installé par défaut sous Windows : notre version s’en passe, en vérifiant tout le dossier `src` plutôt que le seul fichier modifié. Sur un projet de la taille de l’Obby, c’est quasi instantané.
+
+### Avant d’installer le hook
+
+1. StyLua et selene sont installés dans le projet avec Rokit, et `selene.toml` et `stylua.toml` existent à la racine ([leçon 2 de ce module](/modules/02/installer-un-workflow-pro/)). Vérifie dans un terminal du projet : `stylua --version` et `selene --version` doivent afficher un numéro de version.
+2. Formate une première fois tout le projet et enregistre le résultat, pour que le hook ne mélange pas ce reformatage avec les vrais changements de Claude :
+
+```bash
+stylua src
+selene src
+git add -A
+git commit -m "Formatage initial avec StyLua"
+```
+
+### Le fichier complet
+
+Remplace tout le contenu de `.claude/settings.json` par cette version, qui reprend les permissions et ajoute le hook :
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(selene *)",
+      "Bash(stylua *)",
+      "Bash(rojo build *)",
+      "Bash(rojo sourcemap *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git restore *)",
+      "Bash(git checkout *)",
+      "Bash(rokit add *)",
+      "mcp__Roblox_Studio__execute_luau",
+      "mcp__Roblox_Studio__multi_edit",
+      "mcp__Roblox_Studio__insert_asset"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Read(./.env)",
+      "Read(./secrets/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && stylua src && selene --display-style quiet src 1>&2 || exit 2"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Lecture de la commande, morceau par morceau : `cd "$CLAUDE_PROJECT_DIR"` se place à la racine du projet ; `&&` veut dire « et, si ça a marché » ; `stylua src` reformate les scripts ; `selene --display-style quiet src` les analyse avec un rapport compact ; `1>&2` envoie ce rapport sur la sortie d’erreur, la seule que Claude reçoit ; `|| exit 2` veut dire « si une étape a échoué, termine avec le code 2 ».
+
+**Windows et Mac** : sur Mac, Claude Code lance cette commande avec `sh` ; sous Windows, avec **Git Bash** (installé avec Git for Windows). La même ligne fonctionne donc sur les deux systèmes. Seul cas différent : un Windows **sans** Git for Windows, où Claude Code utilise PowerShell. Remplace alors l’objet du hook (les lignes entre `{` et `}` qui contiennent `"type": "command"`) par celui-ci :
+
+```json
+{
+  "type": "command",
+  "shell": "powershell",
+  "command": "Set-Location $env:CLAUDE_PROJECT_DIR; $r = stylua src 2>&1 | ForEach-Object { \"$_\" } | Out-String; if ($LASTEXITCODE -ne 0) { [Console]::Error.WriteLine($r); exit 2 }; $r = selene --display-style quiet src 2>&1 | ForEach-Object { \"$_\" } | Out-String; if ($LASTEXITCODE -ne 0) { [Console]::Error.WriteLine($r); exit 2 }"
+}
+```
+
+### Le tester
+
+1. Lance `claude doctor` dans le dossier du projet : aucune rubrique `Invalid settings` ne doit apparaître.
+2. Démarre (ou redémarre) `claude`, puis tape `/hooks` : ton hook apparaît sous `PostToolUse`, avec la commande complète.
+3. Demande : « Avec l’outil Edit, ajoute la ligne `local inutile=5` tout en haut de src/ServerScriptService/Test.server.luau (crée le fichier s’il n’existe pas), puis dis-moi ce que le hook t’a renvoyé. »
+4. Résultat attendu : la ligne est reformatée en `local inutile = 5` (c’est StyLua), et Claude reçoit un message de selene du type `warning[unused_variable]: inutile is assigned a value, but never used`. Il te propose alors de corriger.
+5. Supprime ce fichier de test (ou demande à Claude de le faire).
+
+<Erreur titre="Le hook échoue avec « stylua: command not found »">
+Le hook utilise le même PATH que le terminal où tu as lancé `claude`. Vérifie d’abord `stylua --version` dans ce terminal : si la commande est introuvable, lance `rokit install` à la racine du projet, ou reprends l’installation de Rokit de la leçon 2. Autre piège : le hook ne se déclenche qu’après les outils `Edit` et `Write`. Si Claude modifie un fichier par une commande du terminal, le hook ne voit rien ; la skill `/verifier` reste utile avant chaque commit.
+</Erreur>
+
+## Gérer le contexte : /context, /compact et /clear
+
+Le **contexte**, c’est tout ce que Claude a « sous les yeux » pendant une conversation : tes messages, ses réponses, les fichiers qu’il a lus, les résultats des commandes, ton CLAUDE.md. Sa taille est limitée et, selon la documentation, il « fills up fast, and performance degrades as it fills » (il se remplit vite et les performances baissent à mesure qu’il se remplit). Une conversation trop longue fait oublier des consignes et commettre plus d’erreurs.
+
+Trois commandes pour le gérer :
+
+- **`/context`** affiche une grille colorée de l’occupation du contexte, avec des suggestions. Tu y vois aussi si ton CLAUDE.md a bien été chargé.
+- **`/compact`** résume la conversation et garde l’essentiel, pour continuer **la même tâche** avec plus de place. Tu peux guider le résumé : `/compact garde la liste des fichiers modifiés et le bug du checkpoint 7`. Claude Code compacte aussi tout seul quand la limite approche.
+- **`/clear`** repart d’une conversation **vide**. Tes fichiers ne bougent pas, ton CLAUDE.md est rechargé. C’est le geste à faire **entre deux tâches sans rapport** (finie la boutique, on passe aux checkpoints). La conversation effacée reste récupérable avec `/resume`.
+
+Et pour une petite question qui ne mérite pas d’encombrer la conversation (« c’est quoi déjà, `UpdateAsync` ? »), utilise `/btw` : la réponse ne s’ajoute pas à l’historique.
+
+<Astuce titre="Quand Claude tourne en rond">
+Les bonnes pratiques officielles donnent un seuil : si tu as corrigé Claude **plus de deux fois** sur le même problème, le contexte est encombré de pistes ratées. Ne t’acharne pas. Note ce que tu as appris (le message d’erreur exact, ce qui a déjà été essayé), fais `/clear`, puis écris un nouveau prompt précis qui inclut ces informations. Une conversation propre avec un meilleur prompt fait presque toujours mieux qu’une longue conversation corrigée dix fois. La [leçon 7](/modules/02/deboguer-avec-l-ia/) détaille cette méthode de débogage.
+</Astuce>
+
+## Revenir en arrière : /rewind et surtout Git
+
+Claude Code va parfois casser quelque chose. Ce n’est pas grave si tu peux revenir en arrière en dix secondes. Tu as deux filets de sécurité.
+
+### Les checkpoints et /rewind
+
+À chaque message que tu envoies, Claude Code prend une photo des fichiers qu’il modifie avec ses outils : un **checkpoint**. Tape `/rewind`, ou appuie deux fois sur `Esc` quand la zone de saisie est vide. Choisis le message où revenir, puis l’action : **Restore code and conversation** (tout remettre comme à ce moment-là), **Restore conversation** (revenir dans la discussion en gardant le code actuel), **Restore code** (remettre le code en gardant la discussion), deux options pour résumer la conversation à partir de ce point (**Summarize from here**, **Summarize up to here**), ou **Never mind** pour annuler.
+
+C’est pratique pour essayer une idée risquée. Mais la documentation est claire sur les limites :
+
+- un fichier modifié **uniquement** par une commande du terminal (Bash) n’est pas suivi ;
+- les modifications faites par la plupart des sous-agents ne sont pas restaurées ;
+- tes propres modifications, faites hors de Claude Code, ne sont pas suivies ;
+- les checkpoints servent à « quick, session-level recovery » (un retour rapide pendant la session). Pour un historique durable, il faut Git.
+
+### Git : un commit après chaque étape validée
+
+La règle d’or de cette formation : **dès qu’une étape fonctionne (testée dans Studio, hook sans erreur), tu fais un commit.** Ainsi, tu as toujours un point de retour qui marche.
+
+```bash
+# 1. Qu'est-ce qui a changé depuis le dernier commit ?
+git status
+git diff
+
+# 2. Ça marche dans Studio ? On enregistre l'étape
+git add -A
+git commit -m "Sauvegarde des pièces avec DataStore et nouvelles tentatives"
+
+# 3. Voir l'historique, un commit par ligne
+git log --oneline
+```
+
+Lis toujours le `git diff` avant de commiter : les lignes qui commencent par `+` (en vert) sont ajoutées, celles qui commencent par `-` (en rouge) sont supprimées. Appuie sur `q` pour quitter l’affichage. C’est l’occasion de repérer un fichier que Claude n’aurait pas dû toucher. Tu peux aussi demander à Claude « propose un message de commit pour ces changements » : il connaît bien Git.
+
+Pour annuler :
+
+| Situation | Commande |
+|---|---|
+| Annuler les changements non commités d’**un** fichier | `git restore src/ServerScriptService/Pieces.server.luau` |
+| Annuler **tous** les changements non commités | `git restore .` (lis `git status` avant : c’est définitif) |
+| Annuler le dernier commit déjà fait, proprement | `git revert HEAD` (crée un nouveau commit qui défait le précédent ; l’historique est conservé) |
+
+`git restore` ne supprime pas les **nouveaux** fichiers que Claude a créés : `git status` les liste sous « Untracked files ». Supprime-les à la main si tu n’en veux pas. Et laisse de côté `git reset --hard`, qui efface sans retour : c’est pour ça que notre `settings.json` l’interdit à Claude.
+
+<Attention titre="Ne laisse pas l’IA publier à ta place">
+Notre réglage interdit `git push` à Claude Code. En mode `auto`, le classifieur autorise par défaut un push vers ton dépôt : l’interdiction dans `deny` garde ce geste entre tes mains. Publier ton code (et plus tard ton jeu) reste une décision humaine, prise après relecture.
+</Attention>
+
+## Une session type, du début à la fin
+
+Voici la routine que tu vas répéter pendant toute la formation :
+
+1. **Point de départ propre** : `git status` ne montre aucun changement en attente (sinon, commite ou annule).
+2. **Deux terminaux** dans le projet : `rojo serve` dans l’un (plugin Rojo connecté dans Studio), `claude` dans l’autre.
+3. **Mode plan** et un **prompt précis** ([leçon suivante](/modules/02/l-art-du-prompt-precis/)) ; tu corriges le plan avant de l’accepter.
+4. **Exécution** : tu valides les modifications ; le hook formate et vérifie chaque fichier.
+5. **Test dans Studio**, exactement comme le prompt l’a prévu (messages attendus dans l’Output).
+6. **`/verifier`**, puis éventuellement le sous-agent relecteur pour un système sensible.
+7. **`git diff`** que tu lis toi-même, puis **commit**.
+8. **`/clear`** avant la tâche suivante.
+
+<Defi>
+
+Prépare ton projet de l’Obby des Nuages pour toute la suite de la formation (si tu as moins de 18 ans, fais-le avec l’adulte qui utilise Claude Code avec son propre compte) :
+
+1. Installe Claude Code, vérifie-le avec `claude --version` et `claude doctor`, puis lance-le dans ton projet Rojo et pose-lui une question sur la structure du projet.
+2. Lance `/init`, compare son résultat au modèle de cette leçon, puis écris ton `CLAUDE.md`.
+3. Crée `.claude/settings.json` (permissions + hook), `.claude/skills/verifier/SKILL.md` et `.claude/agents/relecteur-roblox.md`. Vérifie avec `claude doctor`, `/hooks` et `/skills`.
+4. Fais le test du hook avec `local inutile=5`, puis supprime le fichier de test.
+5. Termine par un commit : `git add -A` puis `git commit -m "Configuration de Claude Code : CLAUDE.md, permissions, skill, sous-agent, hook"`.
+
+</Defi>
+
+<Resume>
+
+- Claude Code s’installe avec l’installeur natif (`irm … | iex` sous Windows, `curl … | bash` sur Mac), se vérifie avec `claude --version` et `claude doctor`, et demande une offre payante ; il est réservé aux 18 ans et plus selon les conditions d’Anthropic.
+- `CLAUDE.md` transmet à chaque session l’architecture Rojo, les conventions et les règles de sécurité du jeu ; il reste un conseil, pas une garantie.
+- Mode plan pour réfléchir avant de modifier ; permissions (`allow`, `ask`, `deny`) dans `.claude/settings.json` pour encadrer ; Manual au début, même si le mode de départ par défaut est maintenant `auto`.
+- Skills (`/verifier`), sous-agents (relecteur) et hooks (StyLua puis selene après chaque `Edit` ou `Write`) automatisent les vérifications.
+- `/clear` entre deux tâches, `/compact` pour une longue tâche, `/context` pour surveiller ; `/rewind` pour un retour rapide, **Git** (un commit par étape validée) pour un vrai filet de sécurité.
+
+</Resume>
+
+<Sources>
+
+- [Advanced setup — installation, vérification, connexion (Claude Code)](https://code.claude.com/docs/en/setup)
+- [Troubleshoot installation and login (Claude Code)](https://code.claude.com/docs/en/troubleshoot-install)
+- [Quickstart (Claude Code)](https://code.claude.com/docs/en/quickstart)
+- [Plans et tarifs Claude](https://claude.com/pricing)
+- [Consumer Terms of Service (Anthropic)](https://www.anthropic.com/legal/consumer-terms)
+- [How Claude remembers your project — CLAUDE.md (Claude Code)](https://code.claude.com/docs/en/memory)
+- [Permission modes (Claude Code)](https://code.claude.com/docs/en/permission-modes)
+- [Configure permissions (Claude Code)](https://code.claude.com/docs/en/permissions)
+- [Commands (Claude Code)](https://code.claude.com/docs/en/commands)
+- [Interactive mode — raccourcis clavier (Claude Code)](https://code.claude.com/docs/en/interactive-mode)
+- [Skills (Claude Code)](https://code.claude.com/docs/en/skills)
+- [Subagents (Claude Code)](https://code.claude.com/docs/en/sub-agents)
+- [Automate actions with hooks (Claude Code)](https://code.claude.com/docs/en/hooks-guide) et [Hooks reference](https://code.claude.com/docs/en/hooks)
+- [Checkpointing (Claude Code)](https://code.claude.com/docs/en/checkpointing)
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices)
+- [CHANGELOG de Claude Code (GitHub)](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)
+- [StyLua (GitHub)](https://github.com/JohnnyMorganz/StyLua) et [selene (GitHub)](https://github.com/Kampfkarren/selene)
+- [git-restore — documentation Git](https://git-scm.com/docs/git-restore) et [git-revert](https://git-scm.com/docs/git-revert)
+
+</Sources>

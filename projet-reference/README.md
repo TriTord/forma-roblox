@@ -51,3 +51,15 @@ luau-lsp analyze --definitions=@roblox=globalTypes.d.luau --sourcemap=sourcemap.
 ```
 
 Le fichier `sourcemap.json` fourni permet à luau-lsp de résoudre les `require(ReplicatedStorage.Modules.X)` ; l’analyse ne renvoie aucun diagnostic.
+
+## Outils qualité (module 2)
+
+Le dossier contient la configuration des outils installés au module 2 : `rokit.toml` (Rojo, selene, StyLua), `selene.toml`, `stylua.toml`. Depuis ce dossier :
+
+```bash
+rokit install          # installe les versions indiquées dans rokit.toml
+selene src             # analyse : 0 erreur, 0 avertissement attendus
+stylua --check src     # mise en forme : aucune différence attendue
+```
+
+`selene.toml` utilise la bibliothèque standard `luau_recent` (fichier `luau_recent.yml`) : c’est la bibliothèque `roblox` de selene, complétée par `math.isfinite`, une fonction récente de Luau (utilisée par `Validation`) que selene 0.32 ne connaît pas encore. Sans ce complément, selene signalerait à tort une erreur.

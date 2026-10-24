@@ -14,7 +14,8 @@ game.ServerRestartScheduled:Connect(function(restartTime, source)
 	local message
 	if source == Enum.CloseReason.DeveloperUpdate then
 		message = "Nouvelle version de l'Obby des Nuages ! Le serveur redémarre dans "
-			.. minutes .. " min. Ta progression est sauvegardée."
+			.. minutes
+			.. " min. Ta progression est sauvegardée."
 	else
 		message = "Maintenance de Roblox : le serveur redémarre dans " .. minutes .. " min."
 	end

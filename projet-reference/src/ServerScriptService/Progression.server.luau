@@ -25,7 +25,6 @@ local function obtenirEtape(player: Player): IntValue?
 	return nil
 end
 
-
 -- Replace le personnage sur le dernier checkpoint validé
 local function placerAuCheckpoint(player: Player, character: Model)
 	-- Les leaderstats viennent maintenant d'un autre script (et, dès la leçon 2,
@@ -88,7 +87,14 @@ local function surContactCheckpoint(checkpoint: BasePart, partieTouchee: BasePar
 	local maintenant = os.clock()
 	local precedent = dernierPassage[player]
 	if precedent and maintenant - precedent < TEMPS_MIN_ETAPE then
-		warn(string.format("[Anti-triche] %s : étape %d atteinte en %.1f s", player.Name, numero, maintenant - precedent))
+		warn(
+			string.format(
+				"[Anti-triche] %s : étape %d atteinte en %.1f s",
+				player.Name,
+				numero,
+				maintenant - precedent
+			)
+		)
 	end
 	dernierPassage[player] = maintenant
 
