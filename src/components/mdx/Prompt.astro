@@ -9,8 +9,12 @@ const { titre = 'Prompt à copier' } = Astro.props;
 <figure class="prompt" data-prompt data-testid="prompt">
   <figcaption class="prompt-entete">
     <span class="prompt-titre"><span aria-hidden="true">💬</span> {titre}</span>
-    <button type="button" class="prompt-copier" data-prompt-copier data-testid="prompt-copier" aria-label={`Copier le prompt « ${titre} »`}>
-      <span data-libelle>Copier</span>
+    {/*
+      Pas d'aria-label : le nom accessible doit contenir le libellé visible, qui change (« Copier » → « Copié ! » / « Échec »),
+      sinon axe signale label-content-name-mismatch (WCAG 2.5.3). Le titre du prompt est ajouté pour les lecteurs d'écran.
+    */}
+    <button type="button" class="prompt-copier" data-prompt-copier data-testid="prompt-copier">
+      <span data-libelle>Copier</span><span class="sr-only"> le prompt « {titre} »</span>
     </button>
   </figcaption>
   <div class="prompt-contenu">

@@ -54,6 +54,16 @@ test('poids des pages (HTML + JS + CSS, hors images et index de recherche charg�
   aucunProbleme(lourdes, 'Pages de plus de 500 Ko');
 });
 
+test('la bibliothèque de prompts (page la plus longue de la phase IA) reste sous 500 Ko', () => {
+  const url = '/modules/02/bibliotheque-de-prompts/';
+  expect(existsSync(fichierDe(url)), `${url} absente de dist/`).toBe(true);
+  const source = html(url);
+  let total = Buffer.byteLength(source);
+  for (const r of ressources(source)) total += statSync(join(DIST, r)).size;
+  test.info().annotations.push({ type: 'poids de la bibliothèque', description: `${Math.round(total / 1024)} Ko (HTML ${Math.round(Buffer.byteLength(source) / 1024)} Ko)` });
+  expect(total, `${url} : ${Math.round(total / 1024)} Ko`).toBeLessThan(LIMITE_OCTETS);
+});
+
 test('chaque page : lang="fr", <title> et meta description présents et uniques, favicon, viewport', () => {
   const problemes: string[] = [];
   const titres = new Map<string, string>();

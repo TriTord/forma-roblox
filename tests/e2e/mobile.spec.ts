@@ -1,6 +1,6 @@
 /** Affichage mobile (390 × 844) : pas de défilement horizontal, sommaire en tiroir. */
-import { expect, test, type Page } from '@playwright/test';
-import { aucunProbleme, lecons, modulesAvecExamen, modulesAvecLecons, urlExamen } from './outils';
+import { expect, test } from '@playwright/test';
+import { aucunProbleme, debordements, lecons, modulesAvecExamen, modulesAvecLecons, urlExamen } from './outils';
 
 test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 
@@ -14,33 +14,6 @@ function echantillon(): string[] {
   for (const m of modulesAvecExamen()) pages.push(urlExamen(m.numero));
   if (!modulesAvecExamen().length) pages.push(urlExamen('00'));
   return [...new Set(pages)];
-}
-
-/** Éléments qui dépassent à droite de l'écran (pour un message d'échec utile). */
-async function debordements(page: Page): Promise<{ largeur: number; vue: number; coupables: string[] }> {
-  return page.evaluate(() => {
-    const vue = document.documentElement.clientWidth;
-    const coupables: string[] = [];
-    for (const el of Array.from(document.querySelectorAll<HTMLElement>('body *'))) {
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.right <= vue + 1) continue;
-      // Ignore les éléments placés dans un conteneur à défilement horizontal (blocs de code) ou hors écran volontairement.
-      let parent = el.parentElement;
-      let dansDefilement = false;
-      while (parent && parent !== document.body) {
-        const s = getComputedStyle(parent);
-        if (/(auto|scroll|hidden|clip)/.test(s.overflowX) || s.visibility === 'hidden' || s.position === 'fixed') {
-          dansDefilement = true;
-          break;
-        }
-        parent = parent.parentElement;
-      }
-      const s = getComputedStyle(el);
-      if (dansDefilement || s.position === 'fixed' || s.visibility === 'hidden') continue;
-      coupables.push(`${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}.${[...el.classList].slice(0, 3).join('.')} (droite ${Math.round(r.right)}px)`);
-    }
-    return { largeur: document.documentElement.scrollWidth, vue, coupables: coupables.slice(0, 5) };
-  });
 }
 
 test('aucun défilement horizontal sur un échantillon de pages', async ({ page }) => {

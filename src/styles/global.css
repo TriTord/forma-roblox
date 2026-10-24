@@ -460,6 +460,14 @@
 .option-longue .option-texte {
   white-space: pre-line;
   font-size: 0.925rem;
+  /* Versions de prompt : chemins et identifiants longs (src/ServerScriptService/…) coupés au lieu d'élargir la page sur mobile. */
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.options > .option {
+  /* Élément de grille : sans min-width 0, un mot insécable élargit l'option au-delà de l'écran. */
+  min-width: 0;
 }
 
 /* Résumé et sources */

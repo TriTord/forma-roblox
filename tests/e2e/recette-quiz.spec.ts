@@ -97,9 +97,27 @@ async function reussirExamen(page: Page, numero: string): Promise<string[]> {
   return p;
 }
 
+test('la recette couvre les 4 types de questions (dont ameliore-le-prompt) en leçon comme en examen', () => {
+  const compter = (sources: QuizSource[]) => {
+    const n: Record<string, number> = { qcm: 0, 'vrai-faux': 0, 'trouve-le-bug': 0, 'ameliore-le-prompt': 0 };
+    for (const s of sources) for (const q of s.questions) n[q.type] = (n[q.type] ?? 0) + 1;
+    return n;
+  };
+  const enLecon = compter([...sourcesLecons.values()]);
+  const enExamen = compter([...sourcesExamens.values()]);
+  test.info().annotations.push({ type: 'questions par type', description: `leçons ${JSON.stringify(enLecon)} ; examens ${JSON.stringify(enExamen)}` });
+  for (const type of ['qcm', 'vrai-faux', 'trouve-le-bug', 'ameliore-le-prompt']) {
+    expect(enLecon[type], `aucune question ${type} dans les leçons`).toBeGreaterThan(0);
+    expect(enExamen[type], `aucune question ${type} dans les examens`).toBeGreaterThan(0);
+  }
+  expect(Object.keys(enLecon).sort()).toEqual(['ameliore-le-prompt', 'qcm', 'trouve-le-bug', 'vrai-faux']);
+});
+
 test.describe('recette : quiz de chaque leçon', () => {
   for (const m of catalogue().filter((x) => x.lecons.length > 0)) {
     test(`module ${m.numero} : toutes les leçons à 100 % et terminées`, async ({ page }) => {
+      // 10 leçons au module 02 : le délai par défaut (60 s) ne suffit plus quand les workers sont chargés.
+      test.setTimeout(30_000 + m.lecons.length * 15_000);
       const problemes: string[] = [];
       for (const l of m.lecons) {
         try {

@@ -160,3 +160,40 @@ export const pct = (n: number, total: number) => (total ? Math.round((n / total)
 export function aucunProbleme(problemes: string[], intitule: string): void {
   expect(problemes, `${intitule} (${problemes.length}) :\n  - ${problemes.join('\n  - ')}`).toEqual([]);
 }
+
+/** Pages de dist/ dont le HTML construit correspond au motif (lecture directe des fichiers, sans navigateur). */
+export function pagesContenant(motif: RegExp): string[] {
+  return pagesHtml().filter((url) => {
+    const fichier = join(DIST, url.endsWith('.html') ? url : join(url, 'index.html'));
+    return motif.test(readFileSync(fichier, 'utf8'));
+  });
+}
+
+/**
+ * Éléments qui dépassent à droite de l'écran (pour un message d'échec utile). Les éléments placés dans un
+ * conteneur à défilement horizontal (blocs de code), masqués ou fixes sont ignorés.
+ */
+export async function debordements(page: Page): Promise<{ largeur: number; vue: number; coupables: string[] }> {
+  return page.evaluate(() => {
+    const vue = document.documentElement.clientWidth;
+    const coupables: string[] = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('body *'))) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.right <= vue + 1) continue;
+      let parent = el.parentElement;
+      let dansDefilement = false;
+      while (parent && parent !== document.body) {
+        const s = getComputedStyle(parent);
+        if (/(auto|scroll|hidden|clip)/.test(s.overflowX) || s.visibility === 'hidden' || s.position === 'fixed') {
+          dansDefilement = true;
+          break;
+        }
+        parent = parent.parentElement;
+      }
+      const s = getComputedStyle(el);
+      if (dansDefilement || s.position === 'fixed' || s.visibility === 'hidden') continue;
+      coupables.push(`${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}.${[...el.classList].slice(0, 3).join('.')} (droite ${Math.round(r.right)}px)`);
+    }
+    return { largeur: document.documentElement.scrollWidth, vue, coupables: coupables.slice(0, 5) };
+  });
+}

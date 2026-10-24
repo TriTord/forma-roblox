@@ -41,6 +41,8 @@ function initialiser(): void {
       minuteur = window.setTimeout(() => {
         delete bouton.dataset.etat;
         if (libelle) libelle.textContent = 'Copier';
+        // Vidé pour qu'une nouvelle copie du même prompt soit de nouveau annoncée (aria-live n'annonce pas un texte inchangé).
+        if (statut) statut.textContent = '';
       }, 2000);
     });
   }
