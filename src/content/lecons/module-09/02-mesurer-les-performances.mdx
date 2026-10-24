@@ -79,7 +79,7 @@ La documentation Roblox distingue trois grandes familles de problèmes.
 
 ### Le nombre d’images par seconde
 
-Le **frame rate** (fréquence d’images) se mesure en images par seconde (FPS). Son inverse est le **frame time** (temps d’image), en millisecondes : 1 000 ms divisées par le nombre d’images.
+Le **frame rate** (fréquence d’images) se mesure en images par seconde (FPS). Son inverse est le **frame time** (temps d’image) : la durée d’une image, en millisecondes (ms, des millièmes de seconde). On le calcule en divisant 1 000 ms par le nombre d’images par seconde.
 
 | Temps moyen d’une image | Images par seconde |
 | :--- | :--- |
@@ -112,7 +112,7 @@ En haut, une barre de raccourcis affiche le nombre d’erreurs et d’avertissem
 Les outils les plus utiles pour toi :
 
 - **Log** : les messages et erreurs des scripts, comme la fenêtre Output de Studio. Tes erreurs en jeu réel apparaissent ici.
-- **Memory** : la mémoire par catégorie. **CoreMemory** regroupe ce que le moteur gère seul ; **PlaceMemory** ce qui dépend de ton jeu. Repère en particulier `LuaHeap` (mémoire des scripts : si elle grandit sans arrêt, suspecte une fuite), `InstanceCount` (nombre d’instances), `PlaceScriptMemory` (mémoire script par script), `GraphicsTexture`, `GraphicsMeshParts` et `Sounds` (images, maillages et sons chargés).
+- **Memory** : la mémoire par catégorie. **CoreMemory** regroupe ce que le moteur gère seul ; **PlaceMemory** ce qui dépend de ton jeu. Repère en particulier `LuaHeap` (mémoire des scripts : si elle grandit sans arrêt, suspecte une fuite), `InstanceCount` (nombre d’instances), `PlaceScriptMemory` (mémoire script par script), `GraphicsTexture`, `GraphicsMeshParts` et `Sounds` (images, maillages 3D — les *meshes* — et sons chargés).
 - **Luau heap** : des « photos » (*snapshots*) de la mémoire des scripts, que tu peux comparer dans le temps.
 - **Network** : les appels web du jeu (`HttpService`, requêtes des DataStores…). Attention, ce ne sont pas les RemoteEvents.
 - **Script Profiler** : le temps processeur de chaque fonction (on y revient plus bas).
@@ -142,7 +142,7 @@ Le **MicroProfiler** est l’outil le plus précis. Il montre, image par image, 
 ### L’ouvrir
 
 - Dans le client sur ordinateur et dans Studio : <kbd>Ctrl</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>F6</kbd> sur Mac), selon la page consacrée au MicroProfiler. Au moment de la rédaction (octobre 2026), d’autres pages de la documentation donnent encore <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F6</kbd> (<kbd>⌘</kbd> + <kbd>⌥</kbd> + <kbd>F6</kbd>) : si un raccourci ne marche pas, essaie l’autre.
-- Sur mobile : dans le menu **Settings**, passe **MicroProfiler** sur **On**. Le téléphone affiche une adresse IP et un port. Depuis un ordinateur **sur le même réseau Wi-Fi**, tape cette adresse dans un navigateur (par exemple `172.18.56.105:1338`) : tu vois les dernières images du téléphone.
+- Sur mobile : dans le menu **Settings**, passe **MicroProfiler** sur **On**. Le téléphone affiche une adresse IP et un port (l’adresse où le joindre sur ton réseau local). Depuis un ordinateur **sur le même réseau Wi-Fi**, tape cette adresse dans un navigateur (par exemple `172.18.56.105:1338`) : tu vois les dernières images du téléphone.
 
 La documentation insiste : le téléphone est souvent le meilleur endroit pour profiler, car un PC puissant masque les problèmes.
 
@@ -155,7 +155,7 @@ Le MicroProfiler a deux parties :
 
 La couleur des barres donne un premier indice :
 
-- **orange** : les fils de travail (scripts, physique, animations) ont pris plus de temps que le rendu ;
+- **orange** : les fils de travail (*worker threads*, les tâches qui préparent l’image : scripts, physique, animations) ont pris plus de temps que le rendu ;
 - **bleu** : le rendu a pris plus de temps (trop d’objets, de lumières…) ;
 - **rouge** : rendu plus long **et** attente de la carte graphique au-delà de 2,5 ms (souvent : objets trop complexes, textures trop grandes, effets visuels).
 
@@ -191,7 +191,7 @@ while true do
 end
 ```
 
-Dans le MicroProfiler (côté serveur pour ce script), l’étiquette `ObbyRotationPieces` apparaît dans la frise : sa largeur te dit combien elle coûte. Spoiler : à la leçon 4, on verra pourquoi ce script coûte surtout… en **réseau**, et comment le réécrire.
+Dans le MicroProfiler (côté serveur pour ce script), l’étiquette `ObbyRotationPieces` apparaît dans la frise : sa largeur te dit combien elle coûte. Petite annonce : à la leçon 4, on verra pourquoi ce script coûte surtout… en **réseau**, et comment le réécrire.
 
 <Astuce titre="Profiler le serveur">
 Depuis le client sur ordinateur, dans un jeu que tu peux modifier, ouvre la Developer Console et choisis l’outil **MicroProfiler**. Dans l’onglet **Server**, indique le nombre d’images à capturer (60 au maximum) puis clique sur **Begin server recording**. La console te donne ensuite le chemin du fichier enregistré.

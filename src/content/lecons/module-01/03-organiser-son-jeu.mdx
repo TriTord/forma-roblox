@@ -65,7 +65,7 @@ Ton niveau commence à se remplir de Parts. Sans rangement, tu auras vite des di
 
 ## Le data model : l’arbre de ton jeu
 
-Tout ce qui compose un place (Parts, scripts, lumières, sons, interfaces) forme un grand arbre appelé le **data model**. C’est exactement ce que montre l’**Explorer**. Chaque élément de cet arbre est une **instance** (un objet) : toutes héritent de la même classe de base, `Instance`, qui leur donne des propriétés communes comme `Name` (le nom) et `Parent` (le parent).
+Tout ce qui compose un place (Parts, scripts, lumières, sons, interfaces) forme un grand arbre appelé le **data model**. C’est exactement ce que montre l’**Explorer**. Chaque élément de cet arbre est une **instance** (un objet) : toutes héritent de la même classe de base (le « modèle » commun à tous les objets), `Instance`, qui leur donne des propriétés communes comme `Name` (le nom) et `Parent` (le parent).
 
 Le moteur de Roblox se sert de ce data model comme **source de vérité** : c’est à partir de lui qu’il simule et affiche le jeu sur l’appareil de chaque joueur.
 

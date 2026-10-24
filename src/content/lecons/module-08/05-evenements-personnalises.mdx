@@ -344,7 +344,12 @@ end
 return AnalytiqueEconomie
 ```
 
-Dans ton Script « Boutique » (leçon Inventaire du module 4), ajoute en haut, sous les autres `require`, la ligne `local AnalytiqueEconomie = require(ServerScriptService:WaitForChild("AnalytiqueEconomie"))` (le script définit déjà `ServerScriptService`), puis, **juste après** avoir retiré les pièces et ajouté la traînée à l’inventaire : `AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value)`. À ce moment-là, `pieces.Value` contient déjà le solde **après** l’achat.
+Dans ton Script « Boutique » (leçon Inventaire du module 4), ajoute deux lignes :
+
+1. en haut, sous les autres `require` : `local AnalytiqueEconomie = require(ServerScriptService:WaitForChild("AnalytiqueEconomie"))` (le script définit déjà `ServerScriptService`) ;
+2. **juste après** avoir retiré les pièces et ajouté la traînée à l’inventaire : `AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value)`.
+
+À ce moment-là, `pieces.Value` contient déjà le solde **après** l’achat.
 
 Les types de transaction proposés par Roblox sont `IAP` (achat en Robux), `TimedReward`, `Onboarding`, `Shop`, `Gameplay` et `ContextualPurchase`. Commence par eux : ils alimentent les graphiques de la page Economy.
 
@@ -364,11 +369,11 @@ Au moment de la rédaction (octobre 2026), la documentation officielle donne ces
 | Noms d’événements personnalisés | 100 |
 | Custom fields | 3, et 8 000 combinaisons de valeurs avant regroupement en « Other » |
 | Types de transaction (économie) | 20, au-delà regroupés en « Other » |
-| SKU d’objets (économie) | 100, au-delà regroupés en « Other » |
+| SKU d’objets (identifiants d’objets, économie) | 100, au-delà regroupés en « Other » |
 | Monnaies (économie) | 5 selon la référence de l’API et la page *Economy events* ; 10 selon le tableau de la page *Event types* (la documentation se contredit) : prévois-en **5 au maximum** |
 | Conservation | un événement disparaît du tableau de bord 90 jours après la dernière donnée reçue |
 
-Exemple **fictif** de débit : avec 10 joueurs simultanés, tu as droit à 120 + 20 × 10 = **320** requêtes par minute pour **tout** ton jeu. Si chaque joueur meurt 6 fois par minute et franchit 2 checkpoints (au-delà du checkpoint 3, un seul événement par checkpoint), cela fait déjà 10 × (6 + 2) = 80 requêtes par minute. Ça passe, mais tu vois pourquoi il ne faut pas envoyer un événement par pièce.
+Exemple **fictif** de débit : avec 10 joueurs simultanés, tu as droit à 120 + 20 × 10 = **320** requêtes par minute pour **tout** ton jeu. Si chaque joueur meurt 6 fois par minute (un obby difficile !) et franchit 2 checkpoints (au-delà du checkpoint 3, un seul événement par checkpoint), cela fait déjà 10 × (6 + 2) = 80 requêtes par minute. Ça passe, mais tu vois pourquoi il ne faut pas envoyer un événement par pièce.
 
 ### Et pour les entonnoirs répétables ?
 

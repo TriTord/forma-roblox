@@ -146,7 +146,9 @@ Players.PlayerRemoving:Connect(function(player: Player)
 end)
 ```
 
-Tu remarques le petit délai minimum ? Sans lui, un joueur (ou un programme de triche) pourrait spammer la demande des centaines de fois par seconde. La référence de `Player` déconseille d’ailleurs de rappeler `LoadCharacterAsync` pour un même joueur avant que son apparence ait fini de se charger. On approfondira ces protections dans la leçon 4.
+Le `:: RemoteEvent` en fin de ligne est une annotation de type, vue dans la leçon 6 du module 2 : elle aide Studio à proposer les bonnes méthodes, sans rien changer à l’exécution.
+
+Tu remarques le petit délai minimum ? Sans lui, un joueur (ou un programme de triche) pourrait envoyer la demande en rafale, des centaines de fois par seconde. La référence de `Player` déconseille d’ailleurs de rappeler `LoadCharacterAsync` pour un même joueur avant que son apparence ait fini de se charger. On approfondira ces protections dans la leçon 4.
 
 <Attention>
 Dans de vieux tutoriels, tu verras `player:LoadCharacter()`. Cette méthode est **dépréciée** : la documentation indique qu’elle est remplacée par `LoadCharacterAsync()`, qui a le même comportement.

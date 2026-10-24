@@ -89,7 +89,7 @@ Quand un téléphone chauffe, il réduit volontairement la vitesse de son proces
 
 ### L’écran et les doigts
 
-Un écran de 5 ou 6 pouces, des pouces qui cachent une partie de l’image, pas de souris ni de clavier : l’interface et les contrôles doivent être pensés pour ça.
+Un petit écran (5 ou 6 pouces de diagonale, soit 13 à 15 cm environ), des doigts qui cachent une partie de l’image, pas de souris ni de clavier : l’interface et les contrôles doivent être pensés pour ça.
 
 <Info>
 Tu verras peut-être circuler des pourcentages précis sur la part de joueurs mobiles. Méfie-toi : la documentation donne quelques statistiques générales sur les appareils, mais sans dire de quand elles datent ni sur quelle période elles portent, et elle précise que la répartition varie selon les pays, les âges et les genres de jeux. On ne les reprend donc pas ici. Pour **ton** jeu, la donnée qui compte est celle de ton Creator Dashboard : la page Performance affiche la répartition par appareil de tes joueurs (on l’utilisera dans la leçon 5).
@@ -120,7 +120,7 @@ Un bouton qui paraît confortable sur ton écran d’ordinateur peut être minus
 Au module 4, tu as construit l’interface de l’obby (compteur de pièces, boutique) avec des tailles en `Scale`. C’est la bonne base. Quelques points à vérifier spécialement pour le mobile :
 
 - **Les zones de sécurité.** Les téléphones récents ont des encoches (*notch*) et des découpes pour la caméra. Roblox ajoute aussi sa barre de boutons en haut de l’écran (menu, chat…). La propriété `ScreenInsets` d’un `ScreenGui` règle la zone de sécurité (*safe area*) de son contenu. Sa valeur par défaut, `CoreUISafeInsets`, garde ton interface à l’écart des encoches **et** de la barre de Roblox. Garde-la pour toute interface avec des boutons.
-- **Le texte.** Un texte lisible à 1440p peut devenir illisible sur un petit écran. Utilise un `UITextSizeConstraint` (contrainte de taille de texte) pour qu’il ne descende jamais sous une taille minimale.
+- **Le texte.** Un texte lisible sur un grand écran d’ordinateur (en 1440p, par exemple) peut devenir illisible sur un petit écran. Utilise un `UITextSizeConstraint` (contrainte de taille de texte) pour qu’il ne descende jamais sous une taille minimale.
 - **Le contraste.** Une interface claire posée sur un ciel clair (c’est le cas de notre obby dans les nuages !) devient vite illisible en plein soleil. Ajoute un fond sombre semi-opaque ou un contour au texte.
 - **La taille de l’écran.** La propriété `GuiService.ViewportDisplaySize` classe l’écran en `Small` (la plupart des téléphones et tablettes), `Medium` (ordinateurs) ou `Large` (télévisions).
 
@@ -171,7 +171,9 @@ Par défaut, un jeu Roblox s’affiche en **paysage** et se retourne quand le jo
 
 ## Tester avec le Device Simulator
 
-Studio contient un simulateur d’appareils. Depuis septembre 2026, il prend la forme d’une **barre d’outils au-dessus de la vue 3D** : le **Device Simulator**. L’annonce officielle de l’équipe Studio sur le DevForum, publiée le 9 septembre 2026 et mise à jour le 16 octobre 2026, indique qu’il est sorti de bêta et disponible pour tout le monde : tu l’ouvres depuis le menu **Test** › **Device Simulator**. Au moment de la rédaction (octobre 2026), la page de documentation affiche encore un avertissement « beta » : si l’outil n’apparaît pas dans ton Studio, active **New Device Simulator** dans **File** › **Beta Features** puis redémarre Studio. L’interface évolue vite : si elle diffère un peu de cette description, fie-toi à la page officielle.
+Studio contient un simulateur d’appareils, le **Device Simulator**. Depuis septembre 2026, il prend la forme d’une **barre d’outils au-dessus de la vue 3D**. Tu l’ouvres depuis le menu **Test** › **Device Simulator**.
+
+L’annonce officielle de l’équipe Studio sur le DevForum (publiée le 9 septembre 2026, mise à jour le 16 octobre 2026) indique qu’il est sorti de bêta et disponible pour tout le monde. Pourtant, en octobre 2026, la page de documentation affiche encore un avertissement « beta ». Si l’outil n’apparaît pas dans ton Studio, active **New Device Simulator** dans **File** › **Beta Features**, puis redémarre Studio. L’interface évolue vite : si elle diffère un peu de cette description, fie-toi à la page officielle.
 
 Ce qu’il permet :
 
@@ -196,7 +198,7 @@ Le simulateur vérifie très bien l’**affichage** et les **contrôles**. Il ne
 Pas besoin d’un laboratoire. Un téléphone Android modeste, même ancien, suffit pour commencer. La documentation recommande de choisir au moins un **appareil de référence** (*baseline*) représentatif de tes joueurs et de tester dessus tout au long du développement.
 
 1. **Publie** ton jeu (même en privé, comme au module 1) et lance-le depuis l’application Roblox du téléphone, connectée à ton compte.
-2. **Affiche les statistiques** : dans le menu Roblox, onglet **Settings**, active **Performance Stats**. Une barre affiche FPS, mémoire et ping.
+2. **Affiche les statistiques** : dans le menu Roblox, onglet **Settings**, active **Performance Stats**. Une barre affiche FPS, mémoire et ping (le temps d’aller-retour d’un message entre ton appareil et le serveur, en millisecondes).
 3. **Joue tout l’obby**, en touchant chaque bouton de l’interface, en pleine lumière si possible.
 4. **Teste la chaleur** : joue **10 à 15 minutes** d’affilée. Une baisse progressive des FPS indique un bridage thermique.
 5. **Note tout** : on construira une vraie fiche de mesure à la leçon 5.

@@ -65,7 +65,7 @@ C’est le moment de tout mettre en pratique. Dans cette leçon, tu vas réalise
 
 ### Fais une sauvegarde
 
-Avant de toucher à quoi que ce soit, garde une copie de ton jeu : **File** › **Save to File As** pour une copie locale, ou consulte l’historique des versions publiées (vu au module 1). Si une optimisation tourne mal, tu pourras revenir en arrière.
+Avant de toucher à quoi que ce soit, garde une copie de ton jeu : **File** › **Save to File As** pour une copie locale, ou appuie-toi sur l’historique des versions publiées (vu au module 1). Si une optimisation tourne mal, tu pourras revenir en arrière.
 
 ### Choisis tes conditions de mesure
 
@@ -138,7 +138,8 @@ Passe chaque catégorie, coche ce qui est bon, note ce qui ne l’est pas. Ne co
 
 ### Interface mobile
 
-- [ ] Aucun bouton dans les coins inférieurs (le `BoutonBoutique` du module 4 est au bord gauche, à mi-hauteur ; vérifie aussi les boutons ajoutés depuis, voir la leçon 1) ; tous restent à portée de pouce, sur téléphone et sur tablette.
+- [ ] Aucun bouton dans les coins inférieurs (voir la leçon 1) : le `BoutonBoutique` du module 4 est au bord gauche, à mi-hauteur ; vérifie aussi les boutons ajoutés depuis.
+- [ ] Tous les boutons restent à portée de pouce, sur téléphone et sur tablette.
 - [ ] Le texte est lisible sur un téléphone d’entrée de gamme (Device Simulator en **Physical size**, puis vrai appareil).
 - [ ] Rien n’est caché par une encoche ou la barre de Roblox (`ScreenInsets` sur `CoreUISafeInsets`).
 
@@ -147,7 +148,8 @@ Passe chaque catégorie, coche ce qui est bon, note ce qui ne l’est pas. Ne co
 Compter à la main les Parts non ancrées ou les lumières avec ombres est fastidieux. Ce script fait l’inventaire pour toi. Il ne modifie **rien** : il compte et affiche.
 
 ```luau
--- À exécuter dans la Command Bar de Studio, en mode édition (pas pendant un test).
+-- À exécuter dans la Command Bar de Studio (vue au module 1), en mode édition (pas pendant un test).
+-- Copie tout le script, colle-le dans la Command Bar, puis appuie sur Entrée.
 -- Ce script ne modifie rien : il compte et affiche le résultat dans l'Output.
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -279,7 +281,7 @@ Tiens un **journal de performance**. Un simple tableau suffit :
 | :--- | :--- | :--- | :--- | :--- |
 | 24/10 | Rotation des pièces passée côté client | … FPS zone 2 (téléphone) | … FPS zone 2 | Gardé |
 | 24/10 | Nuages décoratifs : CanCollide, CanTouch, CanQuery à false | … | … | Gardé |
-| 24/10 | `StreamingTargetRadius` réduit à 512 | … | décor lointain qui « pop » | Annulé, retour à 1024 |
+| 24/10 | `StreamingTargetRadius` réduit à 512 | … | décor lointain qui « pop » (apparaît d’un coup) | Annulé, retour à 1024 |
 
 *(Remplace les « … » par tes propres mesures : chaque jeu et chaque appareil donne des résultats différents.)*
 

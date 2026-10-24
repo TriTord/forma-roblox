@@ -62,7 +62,7 @@ quiz:
     explication: "Avec `== nil`, le bloc ne s’exécute que lorsqu’il n’y a **pas** de Humanoid… et il plante alors en essayant de modifier `nil`. Quand c’est un joueur qui touche, la condition est fausse et rien ne se passe. Il faut tester `if humanoid then`. À la ligne 7, `=` est bien une affectation."
 ---
 
-Dans la leçon précédente, tu as utilisé `local plateforme = script.Parent` sans trop savoir ce que c’était. Il est temps de comprendre les **variables**, les **types** de valeurs et les **conditions**. Avec ces trois briques, ton code pourra se souvenir de choses et prendre des décisions. À la fin, tu programmeras la première vraie mécanique de l’Obby des Nuages : la **kill brick**, la plateforme qui renvoie le joueur au dernier checkpoint.
+Dans la leçon précédente, tu as utilisé `local plateforme = script.Parent` sans trop savoir ce que c’était. Il est temps de comprendre les **variables**, les **types** de valeurs et les **conditions**. Avec ces trois briques, ton code pourra se souvenir de choses et prendre des décisions. À la fin, tu programmeras la première vraie mécanique de l’Obby des Nuages : la **kill brick**, le bloc piégé qui élimine le joueur qui le touche.
 
 ## Les variables
 
@@ -301,7 +301,7 @@ end
 killBrick.Touched:Connect(surContact)
 ```
 
-Lance le jeu et saute sur la Part : ton personnage s’effondre puis réapparaît au SpawnLocation.
+Lance le jeu et saute sur la Part : ton personnage s’effondre puis réapparaît sur la SpawnLocation.
 
 Ce qui compte ici, c’est la **condition** :
 
@@ -317,7 +317,7 @@ D’après la documentation Roblox, mettre `Health` à `0` fait passer le Humano
 
 <Defi>
 1. Crée ta kill brick dans `Workspace.KillBricks` et teste-la.
-2. Duplique-la (Ctrl+D) deux ou trois fois et place les copies dans ton niveau : chaque copie embarque son propre script. (À la leçon 4, on remplacera toutes ces copies de script par un seul script qui gère tout le dossier.)
+2. Duplique-la (`Ctrl`+`D`) deux ou trois fois et place les copies dans ton niveau : chaque copie embarque son propre script. (À la leçon 4, on remplacera toutes ces copies de script par un seul script qui gère tout le dossier.)
 3. Bonus : dans un nouveau Script, déclare une variable `etape`, puis écris un `if / elseif / else` qui affiche « Début », « Milieu » ou « Fin » selon sa valeur (1 à 3 : début, 4 à 7 : milieu, 8 et plus : fin). Teste plusieurs valeurs.
 </Defi>
 

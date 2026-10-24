@@ -421,12 +421,12 @@ end)
 Les étapes 5 et 6 se suivent **sans aucune pause** (pas de `task.wait` ni d’appel réseau entre elles). Deux demandes ne peuvent donc pas « passer entre les gouttes » pour dépenser deux fois les mêmes pièces.
 
 <Attention>
-Ici, la boutique est une interface : pas besoin de vérifier la distance. Si tu crées un **comptoir physique** dans le monde (un PNJ vendeur, par exemple), ajoute `Validation.estAPortee(player, comptoir.Position, 15)` avant l’achat. La documentation cite justement la distance à la boutique parmi les vérifications de contexte.
+Ici, la boutique est une interface : pas besoin de vérifier la distance. Si tu crées un **comptoir physique** dans le monde (un PNJ, personnage non joueur, qui sert de vendeur, par exemple), ajoute `Validation.estAPortee(player, comptoir.Position, 15)` avant l’achat. La documentation cite justement la distance à la boutique parmi les vérifications de contexte.
 </Attention>
 
 ### Le côté client
 
-En attendant l’interface du module 4, un LocalScript de démonstration achète la traînée azur au bout de quelques secondes et affiche la réponse du serveur :
+En attendant l’interface du module 4, un LocalScript de démonstration achète la Traînée Nuage au bout de quelques secondes et affiche la réponse du serveur :
 
 ```luau
 -- LocalScript placé dans StarterPlayer > StarterPlayerScripts (côté client)

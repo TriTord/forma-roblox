@@ -258,7 +258,7 @@ print(#original, #copie) --> 3 4 : cette fois, l'original n'a pas bougé
 ```
 
 <Attention>
-`table.clone` fait une copie **superficielle** : si la table contient d’autres tables (comme `niveaux` plus haut), ces sous-tables restent partagées entre l’original et la copie. Pour tout copier en profondeur, il faut une fonction récursive (la documentation Roblox en donne un exemple).
+`table.clone` fait une copie **superficielle** : si la table contient d’autres tables (comme `niveaux` plus haut), ces sous-tables restent partagées entre l’original et la copie. Pour tout copier en profondeur, il faut une fonction récursive, c’est-à-dire une fonction qui s’appelle elle-même pour chaque sous-table (la documentation Roblox en donne un exemple).
 </Attention>
 
 ## Les objets Roblox renvoient aussi des tables

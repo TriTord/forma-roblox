@@ -314,7 +314,7 @@ end
 Quelques explications :
 
 - Le **CFrame** d’une Part combine sa **position** et son **orientation**. Multiplier le CFrame par `CFrame.Angles(0, angle, 0)` fait tourner la Part autour de son propre axe vertical, sans la déplacer.
-- `math.rad` convertit des degrés en radians, l’unité qu’attend `CFrame.Angles`.
+- `math.rad` convertit des degrés en radians, l’unité qu’attend `CFrame.Angles`. Le radian est une autre façon de mesurer un angle : un tour complet (360°) vaut environ 6,28 radians.
 - Multiplier la vitesse par le temps écoulé donne une rotation **régulière** : si une image dure plus longtemps, la pièce tourne d’un angle plus grand. C’est une bonne habitude pour toute animation dans une boucle.
 
 <Info>

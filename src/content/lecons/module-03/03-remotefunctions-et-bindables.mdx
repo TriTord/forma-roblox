@@ -64,7 +64,7 @@ Avec un RemoteEvent, on envoie un message et on continue sa vie sans attendre de
 Une `RemoteFunction` se range au même endroit que les RemoteEvents, dans `ReplicatedStorage.Remotes`. Elle fonctionne comme un appel téléphonique :
 
 - le client appelle `InvokeServer(...)` et **attend** (son script est mis en pause) ;
-- le serveur exécute la fonction qu’il a assignée à `OnServerInvoke` ;
+- le serveur exécute la fonction qu’il a assignée à `OnServerInvoke` (ce genre de fonction s’appelle un **callback**, ou « fonction de rappel ») ;
 - ce que cette fonction **renvoie** (avec `return`) revient au client, et son script reprend.
 
 Comme pour `OnServerEvent`, le serveur reçoit **le joueur en premier paramètre**, puis les arguments du client. Et les mêmes limites s’appliquent aux arguments **et** aux valeurs renvoyées : tables copiées, fonctions transformées en `nil`, tables mixtes à éviter, etc.
@@ -139,7 +139,7 @@ Tout ce que `OnServerInvoke` renvoie arrive sur l’appareil du joueur, où un t
 
 La RemoteFunction marche aussi dans l’autre sens : le serveur appelle `InvokeClient(player, ...)` et le client répond via `OnClientInvoke`. La documentation déconseille fortement cette direction et liste trois risques :
 
-- si le client lève une erreur, le serveur lève **aussi** l’erreur ;
+- si le client lève une erreur (son code plante), le serveur lève **aussi** l’erreur ;
 - si le client se déconnecte pendant l’appel, `InvokeClient` lève une erreur ;
 - si le client ne répond jamais (son callback ne se termine pas, ou il n’en a défini aucun), le serveur **attend pour toujours**.
 

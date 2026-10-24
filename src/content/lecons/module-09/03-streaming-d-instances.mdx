@@ -66,7 +66,7 @@ Imagine que l’Obby des Nuages grandisse : 50 étapes, des îles flottantes, de
 
 ## Le principe du streaming
 
-Le streaming d’instances (*instance streaming*) charge et décharge dynamiquement le contenu 3D du `Workspace` autour du joueur. Selon la documentation Roblox, il apporte :
+Le streaming d’instances (*instance streaming*, « diffusion » des objets au fil du jeu) charge et décharge dynamiquement le contenu 3D du `Workspace` autour du joueur. Selon la documentation Roblox, il apporte :
 
 - **des arrivées plus rapides** : on joue pendant que le reste du monde se charge ;
 - **moins de mémoire** : le contenu lointain peut être retiré, le jeu tient sur plus d’appareils ;
@@ -101,7 +101,7 @@ Le serveur, lui, voit **toujours** tout le Workspace. Les scripts serveur de l�
 
 ## Les réglages de Workspace
 
-Toutes ces propriétés se règlent **dans Studio**, sur l’objet `Workspace` : aucun script ne peut les modifier. Voici le comportement par défaut et les recommandations de la documentation, au moment de la rédaction (octobre 2026).
+Toutes ces propriétés se règlent **dans Studio**, sur l’objet `Workspace` : aucun script ne peut les modifier. Les rayons sont en **studs**, l’unité de longueur de Roblox vue au module 1. Voici le comportement par défaut et les recommandations de la documentation, au moment de la rédaction (octobre 2026).
 
 | Propriété | Rôle | Comportement par défaut | Recommandation |
 | :--- | :--- | :--- | :--- |
@@ -121,7 +121,7 @@ Quelques explications :
 - **`StreamOutBehavior`.** Avec `LowMemory`, le client ne décharge que s’il manque de mémoire. Avec `Opportunistic`, il peut décharger ce qui dépasse le rayon cible même sans manque de mémoire, ce qui réduit fortement la consommation et aide à éviter les plantages.
 
 <Astuce titre="Voir le streaming en direct">
-Pendant un test dans Studio, appuie sur <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>F3</kbd> (<kbd>Shift</kbd> + <kbd>F3</kbd> dans le vrai jeu) pour ouvrir les statistiques réseau, puis sur <kbd>Shift</kbd> + <kbd>1</kbd> plusieurs fois : le quatrième panneau est celui du **streaming**. Les zones chargées apparaissent en couleur dans la vue 3D. Astuce de la documentation : augmente temporairement `CameraMaxZoomDistance` (par exemple à 1000) pour prendre de la hauteur et tout observer.
+Pendant un test dans Studio, appuie sur <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>F3</kbd> (<kbd>Shift</kbd> + <kbd>F3</kbd> dans le vrai jeu) pour ouvrir les statistiques réseau, puis sur <kbd>Shift</kbd> + <kbd>1</kbd> plusieurs fois : le quatrième panneau est celui du **streaming**. Les zones chargées apparaissent en couleur dans la vue 3D. Astuce de la documentation : augmente temporairement `CameraMaxZoomDistance` (propriété de `StarterPlayer`, par exemple à 1000) pour prendre de la hauteur et tout observer.
 </Astuce>
 
 ## Le mode de streaming des modèles

@@ -76,7 +76,7 @@ Un **exploiteur** (exploiter, en anglais) est un joueur qui utilise un logiciel 
 
 - **lire le code** de tous les LocalScripts et ModuleScripts répliqués (même ceux qui ne s’exécutent jamais sur le client) ;
 - **prendre la propriété réseau** de son personnage et des Parts non ancrées, donc se téléporter, voler, aller plus vite ;
-- **déclencher des contacts** (`Touched`) et des ProximityPrompts à n’importe quelle distance et à n’importe quelle fréquence ;
+- **déclencher des contacts** (`Touched`) et des ProximityPrompts (les invites du type « appuie sur E » qui apparaissent près d’un objet) à n’importe quelle distance et à n’importe quelle fréquence ;
 - **appeler n’importe quel RemoteEvent ou RemoteFunction**, aussi souvent qu’il veut, avec **n’importe quels arguments** ;
 - **modifier tout ce qui existe sur son client**, sans déclencher les événements que tu attendrais.
 
@@ -183,7 +183,7 @@ function Validation.estEntier(valeur: unknown, min: number, max: number): boolea
 	return math.floor(nombre) == nombre
 end
 
--- Vrai si la valeur est un texte non vide, pas trop long et en UTF-8 valide
+-- Vrai si la valeur est un texte non vide, pas trop long et en UTF-8 valide (le codage standard des textes)
 function Validation.estTexte(valeur: unknown, longueurMax: number): boolean
 	if typeof(valeur) ~= "string" then
 		return false
@@ -314,7 +314,7 @@ Pense aussi aux objets qui déclenchent du code serveur **sans** remote. D’apr
 
 Le client contrôle la physique de son personnage : c’est le point le plus délicat. La documentation précise qu’un tricheur peut régler la `WalkSpeed` (vitesse de marche) de son `Humanoid` comme il veut, et que cette propriété ne doit **pas** servir de mécanisme de sécurité. Le serveur peut en revanche observer **où se trouve** le personnage au fil du temps.
 
-La documentation est honnête : il n’existe pas de solution universelle. Les heuristiques simples peuvent signaler des joueurs innocents avec une connexion instable, et il faut prévoir des exceptions pour les téléportations légitimes. Voici un détecteur volontairement prudent : il **journalise** seulement, il ne punit pas.
+La documentation est honnête : il n’existe pas de solution universelle. Les heuristiques simples (des règles approximatives) peuvent signaler des joueurs innocents avec une connexion instable, et il faut prévoir des exceptions pour les téléportations légitimes. Voici un détecteur volontairement prudent : il **journalise** seulement (il note l’alerte dans l’Output), il ne punit pas.
 
 ```luau
 -- Script placé dans ServerScriptService (côté serveur)

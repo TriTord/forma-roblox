@@ -85,7 +85,17 @@ Chaque objet stocke sa donnée dans sa propriété `Value`. On écrit donc `piec
 
 ## Créer les leaderstats de l’Obby des Nuages
 
-Les leaderstats se créent **côté serveur**, au moment où le joueur arrive. Au module 3, c’était la fonction `initialiserJoueur` du Script « Progression » qui s’en chargeait. On leur donne maintenant un script à part, car à la leçon 2 elles seront créées à partir des données sauvegardées. Crée un **Script** (pas un LocalScript) dans **ServerScriptService** et nomme-le `Leaderstats`. On retirera ensuite leur création du Script « Progression » (section « Adapter le Script Progression du module 3 », plus bas).
+Les leaderstats se créent **côté serveur**, au moment où le joueur arrive. Au module 3, c’était la fonction `initialiserJoueur` du Script « Progression » qui s’en chargeait. On leur donne maintenant un script à part, car à la leçon 2 elles seront créées à partir des données sauvegardées.
+
+<Info titre="Le plan de travail, dans l’ordre">
+
+1. Crée le Script `Leaderstats` ci-dessous.
+2. Adapte le Script « Progression » du module 3 pour qu’il ne crée plus les leaderstats (section « Adapter le Script Progression du module 3 », plus bas).
+3. Seulement ensuite, lance un test.
+
+</Info>
+
+Dans l’Explorer, survole **ServerScriptService**, clique sur le bouton ⊕ et choisis **Script** (pas LocalScript), comme au module 1. Renomme-le `Leaderstats` (clic droit › **Rename**), puis remplace son contenu par ce code :
 
 ```luau
 -- Script « Leaderstats » dans ServerScriptService (côté serveur)
@@ -123,7 +133,7 @@ for _, player in Players:GetPlayers() do
 end
 ```
 
-Avant de tester, fais la modification du Script « Progression » décrite plus bas (section « Adapter le Script Progression du module 3 ») : sinon, chaque joueur recevrait **deux** dossiers `leaderstats`, un par script. Lance ensuite un test (**Play**) : ton nom apparaît en haut à droite avec deux colonnes, `Etape` et `Pieces`, toutes deux à 0. Dans tout le projet, `Etape` contient le **numéro du dernier checkpoint validé** : 0 tant que le joueur n’a touché aucun checkpoint.
+Avant de tester, fais la modification du Script « Progression » décrite plus bas (étape 2 du plan) : sinon, chaque joueur recevrait **deux** dossiers `leaderstats`, un par script. Lance ensuite un test (**Play**) : ton nom apparaît en haut à droite avec deux colonnes, `Etape` et `Pieces`, toutes deux à 0. Dans tout le projet, `Etape` contient le **numéro du dernier checkpoint validé** : 0 tant que le joueur n’a touché aucun checkpoint.
 
 <Info titre="Pourquoi pas d’accents ?">
 Le nom de l’objet s’affiche tel quel dans le tableau. Dans cette formation, on garde des noms d’instances **sans accents** (`Etape`, `Pieces`) pour que tous les scripts les retrouvent sans risque de faute de frappe. Tes interfaces (leçon 4) pourront afficher « Étape » et « Pièces » avec leurs accents.
@@ -273,7 +283,7 @@ C’est un réglage d’affichage local : il ne touche pas aux valeurs.
 2. Valide le checkpoint 1, puis laisse-toi tomber : tu dois réapparaître sur le checkpoint 1.
 3. Ajoute le `BoolValue` `IsPrimary` sur `Etape`.
 4. Lance un test à 2 joueurs (mode **Server & Clients**, vu au module 1) et vérifie que chaque joueur a ses propres valeurs.
-5. Bonus : dans la fenêtre **Explorer**, pendant le test côté client, change à la main `Pieces.Value`. Passe ensuite en vue serveur : la valeur n’a pas bougé. Tu viens de constater la règle du serveur autoritaire.
+5. Bonus : pendant un test en vue client, ouvre dans l’Explorer **Players** › ton nom › `leaderstats` › `Pieces` et change sa propriété `Value` dans la fenêtre Properties. Passe ensuite en vue serveur (bouton **Client/Server**) : la valeur n’a pas bougé. Tu viens de constater la règle du serveur autoritaire.
 </Defi>
 
 <Resume>

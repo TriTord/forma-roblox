@@ -86,7 +86,7 @@ D’après la documentation de Roblox sur la promotion, quand un jeu appartient 
 
 La page de communauté propose aussi :
 
-- des **forums**, ouverts à toutes les communautés depuis août 2025. Selon l’annonce officielle, ils sont réservés aux utilisateurs connectés de **13 ans et plus**. Ils remplacent les anciens « murs » (*Walls*), passés en lecture seule en décembre 2025 puis dont Roblox a annoncé la suppression pour début 2026 ;
+- des **forums**, ouverts à toutes les communautés depuis août 2025. Selon l’annonce officielle, ils sont réservés aux utilisateurs connectés de **13 ans et plus**. Ils remplacent les anciens « murs » (*Walls*) : ceux-ci sont passés en lecture seule en décembre 2025, et Roblox a annoncé leur suppression pour début 2026 ;
 - des **annonces** et des **événements** (l’onglet Events vu à la leçon 4) ;
 - un système de **rôles et permissions** pour répartir les tâches.
 
@@ -134,7 +134,7 @@ Au moment de la rédaction, les communautés proposent notamment, d’après la 
 
 - des **rôles** avec des permissions précises : supprimer, verrouiller ou épingler des messages du forum, gérer la modération du contenu, bannir des membres… ;
 - une liste de **mots bloqués** (*Blocked Words*), filtrés automatiquement ;
-- la **vérification à l’entrée** (*Verified Joins*), qui limite l’arrivée de comptes non vérifiés (utile contre les bots) ;
+- la **vérification à l’entrée** (*Verified Joins*), qui limite l’arrivée de comptes non vérifiés (utile contre les bots, ces faux comptes pilotés par des programmes) ;
 - le filtrage de sécurité de Roblox sur tout le contenu publié, et le **signalement** par les membres.
 
 La documentation précise que, pour attribuer certaines permissions sensibles, il faut avoir activé la **validation en deux étapes** sur son compte.
@@ -188,7 +188,9 @@ Tu recevras des critiques, parfois injustes ou mal formulées. Quelques principe
 
 ## Reconnaître sa communauté en jeu
 
-Tu peux donner un petit signe de reconnaissance en jeu aux membres de ta communauté, ou aux rôles **Testeur** et **Modérateur**. La méthode actuelle est `GroupService:GetRolesInGroupAsync()`. Les anciennes méthodes `Player:GetRankInGroupAsync()` et `Player:GetRoleInGroupAsync()` sont dépréciées, car elles ne renvoient que le rôle public le plus élevé alors qu’un membre peut désormais avoir plusieurs rôles. Leurs versions encore plus anciennes, `Player:GetRankInGroup()` et `Player:GetRoleInGroup()`, que tu croiseras dans de vieux tutoriels, sont elles aussi dépréciées.
+Tu peux donner un petit signe de reconnaissance en jeu aux membres de ta communauté, ou aux rôles **Testeur** et **Modérateur**. La méthode actuelle est `GroupService:GetRolesInGroupAsync()`.
+
+Les anciennes méthodes `Player:GetRankInGroupAsync()` et `Player:GetRoleInGroupAsync()` sont **dépréciées** (déconseillées par Roblox et amenées à disparaître), car elles ne renvoient que le rôle public le plus élevé alors qu’un membre peut désormais avoir plusieurs rôles. Leurs versions encore plus anciennes, `Player:GetRankInGroup()` et `Player:GetRoleInGroup()`, que tu croiseras dans de vieux tutoriels, sont elles aussi dépréciées.
 
 ```luau
 -- Script (côté serveur) à placer dans ServerScriptService

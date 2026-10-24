@@ -100,7 +100,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] Aucun prix, aucune récompense, aucun numéro d’étape n’est « cru sur parole » quand il vient du client.
 - [ ] Un checkpoint n’est accepté que s’il suit l’étape actuelle ; les pièces sont validées par le serveur (distance et délai par joueur). ([Sécuriser l’Obby des Nuages](/modules/03/securiser-l-obby/))
 - [ ] Tu as essayé d’envoyer des valeurs absurdes depuis un client de test (prix négatif, mauvais type, spam) : tout est ignoré.
-- [ ] Aucune RemoteFunction n’attend une réponse d’un client (`InvokeClient`). ([RemoteFunctions et BindableEvents](/modules/03/remotefunctions-et-bindables/))
+- [ ] Le serveur n’attend jamais la réponse d’un client avec une RemoteFunction (`InvokeClient`) : un client malveillant pourrait ne jamais répondre. ([RemoteFunctions et BindableEvents](/modules/03/remotefunctions-et-bindables/))
 - [ ] La liste des personnes ayant le droit de modifier le jeu (collaborateurs) ne contient que des personnes de confiance.
 
 ## 4. Sauvegarde
@@ -110,7 +110,7 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] Le DataStore et la clé sont les bons : `"DonneesJoueurs_v1"`, `"Joueur_" .. player.UserId`.
 - [ ] Testé : quitter puis revenir, changer de serveur, quitter pendant le chargement, arrêter le serveur avec des joueurs connectés.
 - [ ] L’inventaire de traînées est sauvegardé et rechargé correctement. ([Un inventaire simple et sécurisé](/modules/04/inventaire/))
-- [ ] Tu sais que Studio utilise les **mêmes** DataStores que le jeu publié quand l’accès aux API est activé : tes tests n’ont pas abîmé de vraies données.
+- [ ] Studio utilise les **mêmes** DataStores que le jeu publié quand l’option « Enable Studio Access to API Services » est activée : vérifie que tes tests n’ont pas abîmé de vraies données (l’idéal est de tester sur une copie du jeu).
 
 ## 5. Mobile et performances
 
@@ -118,16 +118,16 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 - [ ] Boutons assez grands pour un pouce, texte lisible sur petit écran. ([Penser mobile d’abord](/modules/09/penser-mobile-d-abord/))
 - [ ] Testé sur au moins **un vrai téléphone**, si possible modeste.
 - [ ] Mémoire et images par seconde vérifiées avec la Developer Console (F9). ([Mesurer les performances](/modules/09/mesurer-les-performances/))
-- [ ] Le choix du streaming d’instances est fait consciemment, et les scripts clients utilisent `WaitForChild` pour les objets qui peuvent ne pas être chargés. ([Le streaming d’instances](/modules/09/streaming-d-instances/))
+- [ ] Tu as décidé, en connaissance de cause, de garder ou non le streaming d’instances (le chargement progressif de la carte autour du joueur), et tes LocalScripts utilisent `WaitForChild` pour les objets qui ne sont peut-être pas encore chargés. ([Le streaming d’instances](/modules/09/streaming-d-instances/))
 - [ ] L’audit de performance du module 9 est fait. ([Audit de performance](/modules/09/optimiser-l-obby/))
 
 ## 6. Monétisation
 
-- [ ] Le Game Pass de la traînée exclusive est vérifié côté serveur (`UserOwnsGamePassAsync` dans un `pcall`) et l’avantage est appliqué par le serveur. ([Les Game Passes](/modules/06/game-passes/))
-- [ ] Le Developer Product « Passer l’étape » est traité par **un seul** `ProcessReceipt`, qui ne renvoie `PurchaseGranted` qu’une fois l’avantage réellement accordé, sans double attribution. ([Les Developer Products](/modules/06/developer-products/))
+- [ ] C’est le serveur qui vérifie que le joueur possède le Game Pass de la traînée exclusive (`UserOwnsGamePassAsync` dans un `pcall`), et c’est lui qui donne la traînée. ([Les Game Passes](/modules/06/game-passes/))
+- [ ] Le Developer Product « Passer l’étape » est traité par **un seul** `ProcessReceipt` (la fonction serveur qui traite les achats). Elle ne renvoie `PurchaseGranted` qu’après avoir réellement fait passer l’étape, et ne la donne jamais deux fois pour le même achat. ([Les Developer Products](/modules/06/developer-products/))
 - [ ] Les descriptions des produits disent exactement ce que le joueur obtient.
 - [ ] Pas de pay-to-win, pas de pop-up d’achat à l’arrivée, pas de faux compte à rebours. ([Prix et éthique](/modules/06/prix-et-ethique/))
-- [ ] **Si** ton jeu vend des objets aléatoires (œufs, coffres, roues) contre des Robux ou une monnaie achetée avec des Robux : toutes les issues et leurs probabilités sont affichées en pourcentage (total 100 %), et tu respectes `ArePaidRandomItemsRestricted` renvoyé par `PolicyService:GetPolicyInfoForPlayerAsync`. L’Obby des Nuages n’en a pas : garde ça en tête pour plus tard.
+- [ ] **Si** ton jeu vend des objets aléatoires (œufs, coffres, roues) contre des Robux ou une monnaie achetée avec des Robux : toutes les issues et leurs probabilités sont affichées en pourcentage (total 100 %), à l’écran ou dans une fenêtre ouverte par un bouton portant un **mot** comme « Info » (une simple icône (i) ne suffit pas, voir [Prix et éthique](/modules/06/prix-et-ethique/)), et ces achats sont bloqués pour les joueurs des pays qui les interdisent (valeur `ArePaidRandomItemsRestricted` renvoyée par `PolicyService:GetPolicyInfoForPlayerAsync`). L’Obby des Nuages n’en a pas : garde ça en tête pour plus tard.
 
 ## 7. Page du jeu
 
@@ -148,10 +148,11 @@ Après l’avoir passée toi-même, demande à un ami de refaire la partie « Ga
 
 ## 9. Communauté
 
-- [ ] Une communauté Roblox (le nom des « groupes » côté joueurs) existe si tu veux rassembler tes joueurs. ([Construire et animer une communauté](/modules/07/communaute/))
+- [ ] Si tu veux rassembler tes joueurs, tu as créé une communauté Roblox (le nom des « groupes » côté joueurs). ([Construire et animer une communauté](/modules/07/communaute/))
 - [ ] Des règles de conduite claires et, si besoin, des modérateurs de confiance.
 - [ ] Un moyen simple de signaler un bug ou de donner son avis.
-- [ ] Les liens vers des réseaux externes (Discord, YouTube…) passent **uniquement** par la fonctionnalité officielle de liens sociaux (Social Links), affichés sur la **page du jeu** : jamais de lien ni d’adresse dans le jeu lui-même. Dans le jeu, tu peux seulement inviter à consulter les liens de la page du jeu. Au moment de la rédaction, il faut avoir fait vérifier son âge (16 ans ou plus) pour en ajouter, et seuls les utilisateurs de 16 ans et plus à l’âge vérifié les voient.
+- [ ] Les liens vers des réseaux externes (Discord, YouTube…) passent **uniquement** par la fonctionnalité officielle de liens sociaux (Social Links), affichés sur la **page du jeu** : jamais de lien ni d’adresse dans le jeu lui-même. Dans le jeu, tu peux seulement inviter à consulter les liens de la page du jeu.
+- [ ] Tu as vérifié que tu as le droit d’ajouter ces liens : au moment de la rédaction, il faut avoir fait vérifier son âge (16 ans ou plus), et seuls les utilisateurs de 16 ans et plus à l’âge vérifié les voient.
 - [ ] Les notes de la première mise à jour sont prêtes à être publiées. ([Mises à jour et événements](/modules/07/mises-a-jour-et-evenements/))
 
 ## 10. Conformité aux règles de Roblox
@@ -165,16 +166,28 @@ Les conditions de publication ont été profondément revues en 2026 (comptes Ro
 - [ ] Le **Maturity & Compliance Questionnaire** est rempli : Creator Dashboard, page du jeu, **Publish settings › Content rating**. Sans informations de maturité, la jouabilité du jeu est restreinte pour tous les joueurs. ([Préparer la page du jeu](/modules/07/preparer-la-page-du-jeu/))
 - [ ] Les réponses décrivent le contenu **le plus mature** du jeu, honnêtement. Des informations inexactes exposent le jeu et le compte à la modération.
 - [ ] Tu sais que tu devras **soumettre à nouveau** le questionnaire si une mise à jour change tes réponses.
-- [ ] Tu connais le label obtenu (Minimal, Mild, Moderate…) et ce qu’il implique pour l’audience de ton jeu. Attention : si, au moment de publier, tu réponds seulement à la première question (« Non », pas de contenu à accès restreint selon l’âge), ton jeu reçoit le label **Content May Vary** et n’est accessible qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ; pour viser les plus jeunes, il faut remplir le questionnaire **en entier**.
+- [ ] Tu connais le label obtenu (Minimal, Mild, Moderate…) et ce qu’il implique pour l’audience de ton jeu.
+- [ ] Si tu vises les plus jeunes, tu as rempli le questionnaire **en entier**. Attention : si, au moment de publier, tu réponds seulement à la première question (« Non », pas de contenu à accès restreint selon l’âge), ton jeu reçoit le label **Content May Vary** et n’est accessible qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ; pour viser les plus jeunes, il faut remplir le questionnaire **en entier**.
 
 ### Exigences de publication
 
 Au moment de la rédaction, la documentation distingue deux niveaux de publication publique, détaillés dans [Préparer la page du jeu](/modules/07/preparer-la-page-du-jeu/) :
 
-- **Joueurs de 16 ans et plus (et Trusted Friends)** : compte en règle, créé depuis au moins 2 jours, vérification de l’âge (estimation faciale ou pièce d’identité), et réponse à la première question du questionnaire, celle sur le contenu à accès restreint selon l’âge.
-- **Tous les âges** (y compris Roblox Kids et Roblox Select) : en plus, compte vérifié (estimation faciale de l’âge si tu as moins de 18 ans, pièce d’identité si tu as 18 ans ou plus), validation en deux étapes (2FA), abonnement Roblox Plus ou Premium actif depuis deux mois consécutifs **ou** frais de publication remboursables (1 000 Robux par jeu au moment de la rédaction), questionnaire complet avec un label Minimal, Mild ou Moderate, et réussite d’un **processus d’évaluation**.
+- **Joueurs de 16 ans et plus (et « amis de confiance », *Trusted Friends*)** : compte en règle, créé depuis au moins 2 jours, vérification de l’âge (estimation faciale ou pièce d’identité), et réponse à la première question du questionnaire, celle sur le contenu à accès restreint selon l’âge.
+- **Tous les âges** (y compris Roblox Kids et Roblox Select) : les conditions précédentes, **plus** :
+  - un compte vérifié (estimation faciale de l’âge si tu as moins de 18 ans, pièce d’identité si tu as 18 ans ou plus) ;
+  - la validation en deux étapes (2FA) ;
+  - un abonnement Roblox Plus ou Premium actif depuis deux mois consécutifs, **ou** des frais de publication remboursables (1 000 Robux par jeu au moment de la rédaction) ;
+  - le questionnaire complet, avec un label Minimal, Mild ou Moderate ;
+  - la réussite d’un **processus d’évaluation**.
 
-Rappel de ce processus, décrit sur la page officielle « Roblox Kids and Select » : le jeu n’est d’abord proposé qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ; Roblox vérifie que de vrais joueurs « très engagés » (*highly engaged players*) y jouent et fait une revue de sécurité ; le jeu devient éligible aux comptes Roblox Kids et Roblox Select (dans la limite de son label) après **250 parties uniques** de ces joueurs en **60 jours**. Ce seuil était de 500 au lancement mondial (juin 2026), puis Roblox l’a abaissé à 250 le 19 août 2026 : il peut encore changer, tout comme les conditions de remboursement des frais. La progression se suit dans le tableau **Audience Reach** du Creator Hub ; fie-toi à la page officielle « Roblox Kids and Select » au moment où tu t’organises.
+Rappel de ce processus, décrit sur la page officielle « Roblox Kids and Select » :
+
+1. le jeu n’est d’abord proposé qu’aux joueurs de 16 ans et plus dont l’âge a été vérifié ;
+2. Roblox vérifie que de vrais joueurs « très engagés » (*highly engaged players*) y jouent et fait une revue de sécurité ;
+3. le jeu devient éligible aux comptes Roblox Kids et Roblox Select (dans la limite de son label) après **250 parties uniques** de ces joueurs en **60 jours**.
+
+Ce seuil était de 500 au lancement mondial (juin 2026), puis Roblox l’a abaissé à 250 le 19 août 2026 : il peut encore changer, tout comme les conditions de remboursement des frais. La progression se suit dans le tableau **Audience Reach** du Creator Hub ; fie-toi à la page officielle « Roblox Kids and Select » au moment où tu t’organises.
 
 - [ ] Ton compte remplit les conditions du niveau de publication que tu vises. Elles sont vérifiées à **chaque** publication, y compris pour une mise à jour d’un jeu déjà sorti.
 - [ ] La validation en deux étapes est activée sur ton compte (indispensable pour tous les âges, et une bonne protection dans tous les cas).

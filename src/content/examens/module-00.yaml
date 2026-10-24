@@ -10,7 +10,7 @@ questions:
       - texte: "Un ordinateur sous Windows ou macOS pour installer Roblox Studio, et un compte Roblox"
         correct: true
       - texte: Une console de jeu et une manette
-      - texte: Un abonnement Premium obligatoire
+      - texte: Un abonnement payant à Roblox obligatoire
     explication: "Roblox Studio est une application gratuite pour **Windows et Mac**. On peut jouer sur tablette ou console, mais pour créer, il faut un ordinateur. Aucun abonnement n’est nécessaire pour apprendre et construire."
 
   - type: vrai-faux

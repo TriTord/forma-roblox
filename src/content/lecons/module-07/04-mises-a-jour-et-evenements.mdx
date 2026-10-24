@@ -100,7 +100,9 @@ La pire mise à jour, c’est celle qui fait perdre leur progression aux joueurs
 2. **Ajoute** des champs, avec une **valeur par défaut** pour les anciens joueurs.
 3. **Teste** la mise à jour dans Studio avec un compte qui a déjà une ancienne sauvegarde.
 
-Bonne nouvelle : tu as déjà tout ce qu’il faut. Au module 4, le ModuleScript `DonneesJoueurs` contient `donneesParDefaut()` (la structure d’une sauvegarde neuve) et `completer()`, qui remplit les champs absents d’une ancienne sauvegarde à chaque chargement. Pour ajouter un champ, deux gestes suffisent : l’ajouter dans `donneesParDefaut()` **et** augmenter `VERSION_DONNEES` d’une unité (tu l’as déjà fait au module 6 avec le champ `achats`). `completer` remplit alors le nouveau champ des anciennes sauvegardes et met leur `version` à jour. Grâce au test sur `ancienne.version` dans `Sauvegarder` (module 4), un serveur qui fait encore tourner l’ancienne version du jeu refusera ensuite d’écraser ces données plus récentes.
+Bonne nouvelle : tu as déjà tout ce qu’il faut. Au module 4, le ModuleScript `DonneesJoueurs` contient `donneesParDefaut()` (la structure d’une sauvegarde neuve) et `completer()`, qui remplit les champs absents d’une ancienne sauvegarde à chaque chargement. Pour ajouter un champ, deux gestes suffisent : l’ajouter dans `donneesParDefaut()` **et** augmenter `VERSION_DONNEES` d’une unité (tu l’as déjà fait au module 6 avec le champ `achats`).
+
+`completer` remplit alors le nouveau champ des anciennes sauvegardes et met leur `version` à jour. Grâce au test sur `ancienne.version` dans `Sauvegarder` (module 4), un serveur qui fait encore tourner l’ancienne version du jeu refusera ensuite d’écraser ces données plus récentes.
 
 ```luau
 -- Extrait du ModuleScript « DonneesJoueurs » (ServerScriptService), écrit au module 4
@@ -179,7 +181,7 @@ Un redémarrage ferme des serveurs pleins de joueurs. Si ta sauvegarde ne se fai
 
 Quand tu lances un redémarrage **avec délai**, l’événement `game.ServerRestartScheduled` se déclenche sur les serveurs concernés. Il transmet :
 
-- `restartTime` : un `DateTime`, l’heure la plus proche à laquelle le serveur peut s’arrêter ;
+- `restartTime` : un `DateTime` (un objet qui représente une date et une heure), le moment le plus tôt où le serveur peut s’arrêter ;
 - `source` : `Enum.CloseReason.DeveloperUpdate` pour tes mises à jour, ou `Enum.CloseReason.RobloxMaintenance` quand Roblox fait de la maintenance ;
 - `attributes` : une table d’informations facultatives (vide si aucune).
 
@@ -287,7 +289,7 @@ Les joueurs qui cliquent sur **Notify Me** reçoivent une notification au début
 Pour un premier jeu, ces vitrines sont difficiles à atteindre : concentre-toi sur un événement simple, bien annoncé à tes joueurs actuels.
 
 <Defi>
-1. Ajoute le champ `zoneOragesDebloquee` dans `donneesParDefaut()`, augmente `VERSION_DONNEES` d’une unité (3 si tu as suivi le parcours sans le bonus du module 4), et vérifie dans Studio qu’un compte qui a déjà une sauvegarde garde sa progression.
+1. Ajoute le champ `zoneOragesDebloquee` dans `donneesParDefaut()`, augmente `VERSION_DONNEES` d’une unité (elle passe à 3 si tu n’as pas gardé le champ bonus `victoires` du module 4, à 4 si tu l’as gardé), et vérifie dans Studio qu’un compte qui a déjà une sauvegarde garde sa progression.
 2. Crée le RemoteEvent `AnnonceRedemarrage` et les deux scripts de redémarrage.
 3. Publie une petite mise à jour (une nouvelle étape), puis redémarre les serveurs avec **Restart only servers with outdated versions** et un délai de 2 minutes. Rejoins le jeu avant pour voir la notification.
 4. Prépare en privé un événement « Ciel d’automne » de deux semaines avec sa miniature.

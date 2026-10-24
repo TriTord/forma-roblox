@@ -102,7 +102,7 @@ La **réplication**, c’est le mécanisme qui recopie les changements d’un c�
 
 ### Du serveur vers les clients : automatique
 
-Quand un `Script` serveur crée une Part, change une couleur ou supprime un objet dans le `Workspace`, ce changement est **envoyé automatiquement** à tous les clients. C’est pour ça qu’un kill brick ou une pièce gérés côté serveur fonctionnent pour tout le monde.
+Quand un `Script` serveur crée une Part, change une couleur ou supprime un objet dans le `Workspace`, ce changement est **envoyé automatiquement** à tous les clients. C’est pour ça qu’une kill brick ou une pièce gérées côté serveur fonctionnent pour tout le monde.
 
 ### Du client vers le serveur : non, en règle générale
 
@@ -112,7 +112,7 @@ Concrètement, si un `LocalScript` :
 
 - change la couleur d’une plateforme → seul ce joueur la voit changer ;
 - crée une Part → elle n’existe que sur son écran ;
-- modifie une `IntValue` de pièces → le serveur garde l’ancienne valeur.
+- modifie une `IntValue` de pièces (un objet qui stocke un nombre entier, comme le compteur de pièces que tu créeras au module 4) → le serveur garde l’ancienne valeur.
 
 C’est une **protection** essentielle. Imagine le chaos si n’importe quel joueur pouvait supprimer la carte pour tout le monde !
 
