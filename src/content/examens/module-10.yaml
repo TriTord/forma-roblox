@@ -41,9 +41,9 @@ questions:
       		return magasin:GetAsync("Joueur_" .. player.UserId)
       	end)
       	if succes then
-      		donneesJoueurs[player] = donnees or { Etape = 1, Pieces = 0 }
+      		donneesJoueurs[player] = donnees or { etape = 0, pieces = 0 }
       	else
-      		donneesJoueurs[player] = { Etape = 1, Pieces = 0 }
+      		donneesJoueurs[player] = { etape = 0, pieces = 0 }
       	end
       end)
     options:
@@ -138,7 +138,7 @@ questions:
         correct: true
       - texte: Tu peux envoyer le lien en message privé à chaque joueur
       - texte: Tout lien externe est autorisé s’il est dans la description
-    explication: "Les règles communautaires interdisent d’afficher ou de partager des URL externes, sauf avec la fonctionnalité Social Links, réservée aux utilisateurs de 16 ans et plus dont l’âge a été vérifié."
+    explication: "Les règles communautaires interdisent d’afficher ou de partager des URL externes, et toute autre tentative d’envoyer les joueurs hors de Roblox, sauf avec la fonctionnalité Social Links : des liens affichés sur la page du jeu (jamais dans le jeu lui-même), réservés aux utilisateurs de 16 ans et plus dont l’âge a été vérifié."
 
   - type: qcm
     question: "Roblox annonce un changement de règles de publication. Où trouver l’information officielle en premier ?"

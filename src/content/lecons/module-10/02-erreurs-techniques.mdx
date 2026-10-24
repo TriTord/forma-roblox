@@ -44,7 +44,8 @@ quiz:
       		local player = Players:GetPlayerFromCharacter(hit.Parent)
       		if player == nil or enTraitement then return end
       		enTraitement = true
-      		player.leaderstats.Etape.Value = tonumber(checkpoint.Name)
+      		local etape = player.leaderstats.Etape
+      		if tonumber(checkpoint.Name) == etape.Value + 1 then etape.Value += 1 end
       		task.wait(1)
       		enTraitement = false
       	end)
@@ -54,7 +55,7 @@ quiz:
         correct: true
       - texte: "Ligne 5 : on ne peut pas parcourir `GetChildren()` sans `ipairs`"
       - texte: "Ligne 7 : `GetPlayerFromCharacter` ne fonctionne que dans un LocalScript"
-      - texte: "Ligne 11 : `task.wait` est déprécié, il faut utiliser `wait`"
+      - texte: "Ligne 12 : `task.wait` est déprécié, il faut utiliser `wait`"
     explication: "`enTraitement` est commun à tout le serveur : quand un joueur touche un checkpoint, **tous les autres** sont ignorés pendant une seconde. En solo, ce bug est invisible. La correction : une table indexée par joueur. En Luau moderne, on peut parcourir une table directement avec `for … in`, et `task.wait` est justement la version recommandée."
   - type: vrai-faux
     question: "Si `GetAsync` échoue au chargement d’un joueur, le plus sûr est de lui donner des données de départ ; elles seront sauvegardées normalement quand il partira."
@@ -86,7 +87,7 @@ Un jeu bien conçu peut quand même mourir à cause d’un problème technique :
 
 ## Erreur 1 : perdre les données des joueurs
 
-Rien ne fait fuir un joueur plus vite que de revenir et de découvrir que sa progression a disparu. Et la cause la plus fréquente n’est pas une panne de Roblox, mais un script qui **sauvegarde des données qui n’ont jamais été chargées**.
+Revenir dans un jeu et découvrir que sa progression a disparu, c’est l’une des pires expériences pour un joueur. Une cause classique, contre laquelle la documentation de Roblox met en garde, n’est pas une panne de Roblox, mais un script qui **sauvegarde des données qui n’ont jamais été chargées**.
 
 ### Le code fautif
 
@@ -107,7 +108,7 @@ Players.PlayerAdded:Connect(function(player)
 	-- Si GetAsync a échoué, donnees contient le message d'erreur...
 	-- et le joueur repart de zéro sans que personne ne s'en rende compte.
 	if typeof(donnees) ~= "table" then
-		donnees = { Etape = 1, Pieces = 0 }
+		donnees = { etape = 0, pieces = 0, inventaire = {}, equipe = "" }
 	end
 	donneesJoueurs[player] = donnees
 end)
@@ -120,19 +121,24 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 ```
 
-Le scénario catastrophe : le DataStore a un raté au moment où le joueur arrive. Le script lui donne des données de départ. Le joueur, surpris, quitte le jeu. Le script sauvegarde alors « Étape 1, 0 pièce » **par-dessus** sa vraie progression. La documentation Roblox sur les données des joueurs met justement en garde : si tu utilises des données par défaut quand le DataStore est inaccessible, veille à ce qu’elles n’écrasent **jamais** les vraies données plus tard. Des fils d’entraide du DevForum décrivent exactement ce scénario (voir les sources).
+Le scénario catastrophe : le DataStore a un raté au moment où le joueur arrive. Le script lui donne des données de départ. Le joueur, surpris, quitte le jeu. Le script sauvegarde alors « étape 0, 0 pièce » **par-dessus** sa vraie progression. La documentation Roblox sur les données des joueurs met justement en garde : si tu utilises des données par défaut quand le DataStore est inaccessible, veille à ce qu’elles n’écrasent **jamais** les vraies données plus tard. Dans un fil d’entraide du DevForum (voir les sources), la réponse retenue explique ainsi une perte de données : le script sauvegardait des données qui n’avaient pas été chargées correctement (c’est un retour de développeur, pas une explication officielle).
 
 ### Le code corrigé
 
 ```luau
 -- VERSION CORRIGÉE — Script dans ServerScriptService
+-- Version autonome et simplifiée de ce que font DonneesJoueurs et
+-- GestionJoueurs au module 4. Si tu as suivi le module 4, tu as déjà
+-- tout ça : n'ajoute PAS ce script en plus (deux scripts sauvegarderaient
+-- la même clé).
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
 local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
 local NOMBRE_ESSAIS = 3
 
--- Ne contient QUE les joueurs dont le chargement a réussi
+-- Ne contient QUE les joueurs dont le chargement a réussi.
+-- Le reste du jeu modifie ces tables pendant la partie (voir module 4).
 local donneesJoueurs = {}
 -- Nombre de sauvegardes en cours (utile à la fermeture du serveur)
 local sauvegardesEnCours = 0
@@ -149,11 +155,12 @@ local function charger(player: Player)
 		end)
 		if succes then
 			-- nil = nouveau joueur : ce n'est PAS une erreur
-			return true, resultat or { Etape = 1, Pieces = 0 }
+			return true, resultat or { etape = 0, pieces = 0, inventaire = {}, equipe = "" }
 		end
 		warn("Chargement échoué (essai " .. essai .. ") : " .. tostring(resultat))
 		if essai < NOMBRE_ESSAIS then
-			task.wait(2 ^ essai) -- on patiente un peu plus à chaque essai
+			-- on patiente un peu plus à chaque essai, plus un peu de hasard
+			task.wait(2 ^ essai + math.random())
 		end
 	end
 	return false, nil
@@ -177,16 +184,22 @@ local function sauvegarder(player: Player)
 	end
 end
 
-Players.PlayerAdded:Connect(function(player)
+local function surArrivee(player: Player)
 	local succes, donnees = charger(player)
 	if not succes then
 		player:Kick("Impossible de charger ta progression. Réessaie dans un instant.")
 		return
 	end
-	if player.Parent then -- le joueur a pu partir pendant le chargement
+	if player.Parent == Players then -- le joueur a pu partir pendant le chargement
 		donneesJoueurs[player] = donnees
 	end
-end)
+end
+
+Players.PlayerAdded:Connect(surArrivee)
+-- Les joueurs arrivés avant que ce script ne démarre
+for _, player in Players:GetPlayers() do
+	task.spawn(surArrivee, player)
+end
 
 Players.PlayerRemoving:Connect(function(player)
 	sauvegarder(player)
@@ -209,7 +222,7 @@ end)
 Les garde-fous ajoutés :
 
 - on distingue un **échec** (`succes == false`) d’un **nouveau joueur** (`succes == true` mais aucune donnée) ;
-- on réessaie avec une attente croissante, comme le recommande la documentation (*exponential backoff*) ;
+- on réessaie avec une attente croissante et un peu de hasard, comme le recommande la documentation (*exponential backoff* avec *jitter*) ;
 - on ne sauvegarde **jamais** un joueur dont le chargement a échoué ;
 - on sauvegarde aussi à la **fermeture du serveur** avec `game:BindToClose`. D’après la référence de l’API, le serveur attend au maximum **30 secondes** que les fonctions liées à `BindToClose` se terminent, puis s’arrête quand même : c’est pour ça qu’on lance les sauvegardes en parallèle plutôt qu’une par une. Le compteur `sauvegardesEnCours` permet aussi d’attendre les sauvegardes déjà lancées par `PlayerRemoving` quand les joueurs sont déconnectés au moment de la fermeture.
 
@@ -244,21 +257,24 @@ end)
 ### Le code corrigé
 
 ```luau
--- VERSION CORRIGÉE — Script dans ServerScriptService
--- Le ModuleScript Catalogue (module 4) renvoie une table du type
--- { TrailNuage = { nom = "Traînée Nuage", prix = 25, ... }, ... }
+-- VERSION CORRIGÉE — Script « Boutique » dans ServerScriptService
+-- C'est la boutique du module 4 (vérifications de type, prix, possession,
+-- solde), avec en plus le délai anti-spam par joueur vu au module 3.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+-- Catalogue (module 4) : { TrailNuage = { nom = "Traînée Nuage", prix = 25, ... }, ... }
 local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue") :: ModuleScript)
+-- DonneesJoueurs (module 4) : les données en mémoire, dont l'inventaire
+local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs") :: ModuleScript)
 
-local DELAI_MIN = 0.5 -- secondes minimum entre deux achats d'un même joueur
+local DELAI_MIN = 1 -- secondes minimum entre deux achats d'un même joueur
 local dernierAchat = {} -- [player] = os.clock() du dernier achat
-local possessions = {} -- [player] = { [idObjet] = true } (version simplifiée, voir module 4)
 
 acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
-	-- 1. Limiter le spam
+	-- 1. Limiter le spam : un délai PAR joueur
 	local maintenant = os.clock()
 	local precedent = dernierAchat[player]
 	if precedent and maintenant - precedent < DELAI_MIN then
@@ -273,30 +289,32 @@ acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
 
 	-- 3. Le prix vient du catalogue du SERVEUR, jamais du client
 	local objet = Catalogue[idObjet]
-	if objet == nil then
-		return -- objet inexistant
+	local donnees = DonneesJoueurs.Obtenir(player)
+	if objet == nil or donnees == nil then
+		return -- objet inexistant, ou données pas encore chargées
 	end
 
-	-- 4. Vérifier l'état du joueur : solde suffisant, objet pas déjà possédé
+	-- 4. Vérifier l'état du joueur : objet pas déjà possédé, solde suffisant
+	if donnees.inventaire[idObjet] then
+		return
+	end
 	local leaderstats = player:FindFirstChild("leaderstats")
 	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
 	if pieces == nil or not pieces:IsA("IntValue") then
 		return
 	end
-	local inventaire = possessions[player] or {}
-	possessions[player] = inventaire
-	if inventaire[idObjet] or pieces.Value < objet.prix then
+	if pieces.Value < objet.prix then
 		return
 	end
 
 	-- 5. Tout est valide : c'est le serveur qui applique l'achat
 	pieces.Value -= objet.prix
-	inventaire[idObjet] = true
+	donnees.inventaire[idObjet] = true
+	-- (au module 4, la boutique publie aussi l'inventaire avec des attributs)
 end)
 
 Players.PlayerRemoving:Connect(function(player)
 	dernierAchat[player] = nil
-	possessions[player] = nil
 end)
 ```
 
@@ -325,7 +343,7 @@ Un backdoor inséré au début du projet peut se recopier dans d’autres script
 
 ## Erreur 4 : ne jamais tester à plusieurs
 
-Certains bugs n’existent **qu’à plusieurs joueurs**. Le plus courant : un verrou anti-répétition (*debounce*) partagé par tout le serveur au lieu d’un verrou par joueur.
+Certains bugs n’existent **qu’à plusieurs joueurs**. Un exemple classique : un verrou anti-répétition (*debounce*) partagé par tout le serveur au lieu d’un verrou par joueur.
 
 ```luau
 -- VERSION FAUTIVE — Script dans ServerScriptService
@@ -407,7 +425,7 @@ Tout le module 9 est consacré à ce sujet : commence par [Penser mobile d’abo
 
 ## Erreur 6 : ignorer les erreurs de l’Output
 
-Une ligne rouge dans l’Output, c’est un script qui s’est arrêté. Un avertissement orange « Infinite yield possible » signale un `WaitForChild` qui attend un objet qui n’arrive pas. Les ignorer, c’est laisser des fonctionnalités cassées sans le savoir.
+Une ligne rouge dans l’Output signale une erreur : le code qui l’a provoquée s’est arrêté à cet endroit (tout le script si l’erreur survient au démarrage, ou seulement la fonction en cours si elle survient, par exemple, dans un événement `Touched`). Un avertissement orange « Infinite yield possible » signale un `WaitForChild` qui attend un objet qui n’arrive pas. Les ignorer, c’est laisser des fonctionnalités cassées sans le savoir.
 
 Pire : un `pcall` dont on ne regarde jamais le résultat **avale** l’erreur. Le script ne plante pas, mais rien ne se passe et personne ne sait pourquoi. Dans le code corrigé de l’erreur 1, chaque échec est signalé avec `warn`.
 

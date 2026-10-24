@@ -26,7 +26,7 @@
 | 07 | FAIT | FAIT (11 corrections) | FAIT (14 corr.) ✅ |
 | 08 | FAIT | FAIT (11 corrections) | FAIT (9 corr.) ✅ |
 | 09 | FAIT | FAIT (15 corrections) | en cours |
-| 10 | FAIT | FAIT (24 corrections) | en cours |
+| 10 | FAIT | FAIT (24 corrections) | FAIT (21 corr.) ✅ |
 
 ## Outils
 - Briefs : `C:\tmp\BRIEF_REDACTEUR.md`, `C:\tmp\BRIEF_VERIFICATEUR.md`
@@ -39,3 +39,4 @@
 - Cohérence à vérifier aussi : format du Catalogue (module 10 suppose `{ [id] = { prix = … } }`) vs module 04.
 - Cohérence : noms d'UI du module 09 (InterfaceObby, CompteurPieces, BoutonBoutique) à aligner sur le module 04.
 - Désaccord passe1/passe2 module 08 (Daily Engagement Rewards) tranché par le chef d'orchestre sur create.roblox.com/docs/creator-rewards : la passe 2 a raison (ordre de lancement).
+- Cohérence : harmoniser la présentation des seuils Kids & Select entre modules 01, 07, 10 (07 : 500 en juin puis 250 depuis le 19/08/2026).
