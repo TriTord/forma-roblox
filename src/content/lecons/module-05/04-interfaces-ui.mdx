@@ -58,6 +58,19 @@ quiz:
     question: Activer `TextScaled` sur tous les textes, sans contrainte, est la meilleure façon de garantir une interface lisible.
     reponse: false
     explication: "`TextScaled` adapte le texte à son cadre, mais il peut devenir minuscule sur un petit cadre ou énorme sur un grand écran. Combine-le avec un `UITextSizeConstraint` (MinTextSize, MaxTextSize) ; la documentation déconseille une taille minimale inférieure à 9."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code crée l’interface de la boutique. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais-moi une jolie interface de boutique"
+    options:
+      - texte: "Fais une interface de boutique moderne et jolie, qui marche sur tous les écrans."
+      - texte: "Crée la boutique avec des tailles en pixels (Offset) pour qu’elle soit exactement comme sur mon écran, et un LocalScript qui retire les pièces du joueur quand il clique sur Acheter."
+      - texte: |
+          Dans src/StarterGui/InterfaceObby (ScreenGui, ResetOnSpawn = false), crée la Frame Boutique (Visible = false, AnchorPoint 0.5, 0.5, Position et Size en Scale), une Frame Liste avec un UIGridLayout, et le LocalScript ScriptInterface.
+          ScriptInterface crée un TextButton par objet du Catalogue (TextScaled + UITextSizeConstraint, MinTextSize 12), utilise Activated et n’envoie que l’identifiant avec AcheterObjet ou EquiperObjet. Il ne modifie jamais les pièces.
+          Vérification : dans le Device Simulator, en téléphone paysage, tout reste lisible et cliquable.
+        correct: true
+      - texte: "Crée la boutique dans un Script de ServerScriptService qui fabrique l’interface dans le PlayerGui de chaque joueur et gère lui-même les clics sur les boutons."
+    explication: "La bonne version fixe la structure, les règles d’adaptation (Scale, AnchorPoint, contraintes de texte), le rôle limité du LocalScript (afficher et demander) et un test sur petit écran. La deuxième casse l’affichage sur téléphone et laisse le client toucher aux pièces (un changement qui ne serait même pas répliqué). La quatrième met côté serveur une interface qui vit chez le client. La première ne dit rien de ce qui compte."
 ---
 
 Ton Obby des Nuages a des pièces et une boutique… mais pour l’instant, il faut la Command Bar pour acheter ! Dans cette leçon, tu construis une **interface** : un compteur de pièces toujours visible et une fenêtre de boutique. Surtout, tu apprends à la rendre **lisible partout** : sur un grand écran de PC comme sur un petit téléphone.
@@ -139,6 +152,34 @@ Les téléphones modernes ont des **encoches** (caméra) et des bords arrondis, 
 Deux autres propriétés du `ScreenGui` existent : `ClipToDeviceSafeArea` (activée par défaut, elle coupe ce qui déborde de la zone sûre de l’appareil) et `SafeAreaCompatibility`, un mode de compatibilité pour les anciennes interfaces plein écran, que la documentation conseille d’éviter pour un nouveau projet au profit de `ScreenInsets`. Pour notre interface : laisse `CoreUISafeInsets`. On reviendra sur le mobile au module 10.
 
 ## Construire l’interface de l’Obby des Nuages
+
+<Attention titre="Si ton projet utilise Rojo (module 2)">
+
+Dans ton projet Rojo, `default.project.json` synchronise **StarterGui** depuis le dossier `src/StarterGui` (ligne `"$path"`). D’après la documentation de Rojo, pour un dossier synchronisé avec `$path`, l’option `$ignoreUnknownInstances` vaut `false` par défaut : Rojo **supprime** les objets qu’il ne trouve pas dans tes fichiers. Une interface construite à la main dans Studio disparaît donc dès que tu connectes Rojo. Le niveau construit à la main n’est pas concerné : dans ce projet, Rojo ne gère pas le Workspace.
+
+Deux façons de faire. La plus directe : faire écrire les fichiers de l’interface par Claude Code avec le prompt de l’encadré « Avec Claude Code », plus bas dans cette leçon. Celle qui t’apprend le mieux les propriétés, en trois étapes :
+
+1. **Construis et règle l’interface dans Studio, Rojo déconnecté** (dans le plugin Rojo, clique sur **Disconnect**, ou arrête `rojo serve` dans le terminal). Suis la hiérarchie et les réglages ci-dessous, et teste en **Play**. Avant l’étape 3, garde une copie de secours : sélectionne `InterfaceObby` dans l’Explorer, copie-le (`Ctrl`+`C` sur Windows, `⌘`+`C` sur Mac) et colle-le (`Ctrl`+`V` / `⌘`+`V`) dans **ServerStorage**, que Rojo ne gère pas dans ce projet.
+2. **Fais décrire l’interface en fichiers Rojo** : un `init.meta.json` pour un dossier qui devient un ScreenGui ou une Frame avec des enfants, et des fichiers `.model.json` pour les éléments simples. Le plus simple est de demander à Claude Code de lire l’interface dans Studio grâce au serveur MCP de Studio (branché au module 2), avec ce prompt :
+
+<Prompt titre="Décrire l’interface de Studio en fichiers Rojo">
+
+```text
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). J'ai construit et réglé à la main, dans Studio, Rojo déconnecté, le ScreenGui StarterGui.InterfaceObby de la leçon « Créer des interfaces lisibles partout ». default.project.json synchronise StarterGui depuis src/StarterGui avec "$path" : à la connexion, Rojo supprimerait cette interface. Il faut donc la décrire en fichiers.
+Ce qui existe déjà : le serveur MCP de Roblox Studio est branché à Claude Code et Studio est ouvert sur ma place ; une copie de secours d'InterfaceObby est dans ServerStorage (ignore-la). Les conventions sont dans CLAUDE.md.
+Objectif : après reconnexion de Rojo, l'interface dans Studio est identique à celle que j'ai construite : mêmes noms, même hiérarchie, mêmes propriétés.
+Fichiers concernés : crée le dossier src/StarterGui/InterfaceObby avec un init.meta.json (className ScreenGui et ses propriétés), un init.meta.json par Frame qui contient d'autres objets (dans son propre sous-dossier), un fichier Nom.model.json par élément simple, et ScriptInterface.client.luau avec le code actuel du LocalScript. Ne modifie aucun autre fichier.
+Contraintes techniques : commence par list_roblox_studios pour obtenir le studio_id. Utilise uniquement des outils MCP en lecture seule : search_game_tree pour la hiérarchie de StarterGui.InterfaceObby, inspect_instance pour les propriétés de chaque objet, script_read pour le code du LocalScript. N'utilise ni execute_luau, ni multi_edit, ni aucun outil qui modifie la place. Écris les propriétés que j'ai réglées (ResetOnSpawn, Visible, AnchorPoint, Position, Size, Text, TextScaled, BackgroundTransparency, AspectRatio, MinTextSize, CellSize, CellPadding…), pas toutes les valeurs par défaut. Garde exactement les noms des objets : le LocalScript les retrouve par leur nom. Les boutons des traînées sont créés par ScriptInterface pendant le jeu : ne les décris pas.
+Sécurité : lecture seule dans Studio ; ne mets aucun mot de passe, cookie ni clé dans les fichiers.
+Cas limites : une propriété dont tu ne connais pas l'écriture en JSON pour Rojo (dis-le-moi au lieu de deviner) ; deux objets frères portant le même nom (signale-le).
+Vérification : la commande rojo build default.project.json -o test-interface.rbxlx doit réussir (supprime ensuite test-interface.rbxlx) ; donne-moi, objet par objet, la liste des propriétés écrites, pour que je la compare à la fenêtre Properties ; selene et StyLua ne signalent aucune erreur.
+```
+
+</Prompt>
+
+3. **Reconnecte Rojo et vérifie** : relance `rojo serve`, clique sur **Connect** dans le plugin, puis compare l’interface à ta copie de ServerStorage (Explorer, fenêtre Properties) et teste en **Play**. Si tout est identique, supprime la copie de ServerStorage et enregistre ton travail avec un commit Git (`git add` puis `git commit`, comme au module 2). Si quelque chose manque, déconnecte Rojo, recolle ta copie dans StarterGui et demande à Claude Code de corriger les fichiers.
+
+</Attention>
 
 Dans **StarterGui**, crée cette hiérarchie. Pour chaque objet, survole son futur parent dans l’Explorer, clique sur ⊕ (ou clic droit › **Insert Object**) et choisis le type indiqué entre parenthèses. Renomme ensuite l’objet exactement comme dans le schéma : le script les retrouve par leur nom.
 
@@ -276,8 +317,38 @@ Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portra
 - que le texte reste lisible sur le plus petit appareil ;
 - que les boutons sont assez grands pour un pouce.
 
+<AvecClaudeCode>
+
+Dans ton projet Rojo, l’interface aussi peut être décrite dans des fichiers : un `init.meta.json` donne la classe et les propriétés du dossier `InterfaceObby` (le ScreenGui), et des fichiers `.model.json` décrivent les Frames et leurs enfants. Demande-la à Claude Code avec ce prompt, qui reprend les réglages exacts de la leçon. Il est précis parce qu’il donne chaque `AnchorPoint`, `Position` et `Size` en Scale, et limite le LocalScript à afficher et demander.
+
+<Prompt titre="Interface de l’Obby (compteur et boutique)">
+
+```text
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Il faut une interface lisible sur PC comme sur téléphone : un compteur de pièces toujours visible et une boutique de traînées qui s'ouvre avec un bouton.
+Ce qui existe déjà : leaderstats.Pieces (IntValue créée par le serveur) ; src/ReplicatedStorage/Modules/Catalogue.luau (nom, prix, couleurDebut, couleurFin) ; les RemoteEvents AcheterObjet et EquiperObjet ; les attributs Possede_<identifiant> et TrailEquipe posés par le serveur sur le Player ; le LocalScript TestInventaire.client.luau. Les conventions sont dans CLAUDE.md.
+Objectif : en haut à gauche, « Pièces : N » se met à jour à chaque gain ; un bouton « Boutique » au bord gauche, à mi-hauteur, ouvre et ferme une fenêtre centrée ; chaque traînée du Catalogue y a un bouton qui affiche son prix, « Équiper » ou « Équipé » selon l'état publié par le serveur.
+Fichiers concernés : crée le dossier src/StarterGui/InterfaceObby (un init.meta.json pour le ScreenGui, des fichiers .model.json pour CompteurPieces, BoutonBoutique et Boutique) et le LocalScript src/StarterGui/InterfaceObby/ScriptInterface.client.luau ; supprime TestInventaire.client.luau. Ne modifie rien d'autre.
+Contraintes techniques : InterfaceObby : ScreenGui, ResetOnSpawn = false, ScreenInsets laissé à sa valeur par défaut (CoreUISafeInsets). CompteurPieces : Frame, AnchorPoint (0, 0), Position {0.02, 0}, {0.03, 0}, Size {0.2, 0}, {0.08, 0}, avec un UICorner, un UIAspectRatioConstraint (AspectRatio 3) et un TextLabel Texte (Size {1, 0}, {1, 0}, BackgroundTransparency 1, TextScaled, et un UITextSizeConstraint MinTextSize 12). BoutonBoutique : TextButton « Boutique », AnchorPoint (0, 0.5), Position {0.02, 0}, {0.5, 0}, Size {0.15, 0}, {0.08, 0}. Boutique : Frame, Visible = false, AnchorPoint (0.5, 0.5), Position {0.5, 0}, {0.5, 0}, Size {0.6, 0}, {0.6, 0}, avec un UICorner, un UIPadding et une Frame Liste transparente (Size {1, 0}, {1, 0}) qui contient un UIGridLayout (CellSize {0.3, 0}, {0.4, 0}, CellPadding {0.03, 0}, {0.03, 0}). Tailles et positions en Scale, pas en Offset. ScriptInterface fabrique un TextButton par objet du Catalogue (fond couleurDebut, texte foncé, TextScaled avec un UITextSizeConstraint de 12 à 28, un UICorner), réagit avec l'événement Activated et met les textes à jour avec GetAttributeChangedSignal.
+Sécurité : l'interface n'ajoute jamais de pièces et ne donne jamais d'objet : elle affiche ce que le serveur a décidé (leaderstats, attributs) et envoie seulement un identifiant, avec AcheterObjet:FireServer(id) ou EquiperObjet:FireServer(id), ou "" pour retirer l'objet équipé.
+Cas limites : leaderstats pas encore arrivées (WaitForChild) ; joueur qui tombe et réapparaît (la boutique ne se referme pas) ; nouvel objet ajouté au Catalogue (son bouton apparaît sans autre modification).
+Vérification : en Play, le compteur suit mes pièces et la boutique s'ouvre et se ferme ; avec 100 pièces (vue serveur), j'achète puis j'équipe la Traînée Nuage depuis l'interface ; dans le Device Simulator, en téléphone paysage, tout reste lisible et cliquable, et rien ne passe sous la barre de Roblox, le joystick ou le bouton de saut ; selene et StyLua ne signalent aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- dans les fichiers `.model.json`, les `Size` et `Position` principales utilisent le Scale (le second nombre de chaque axe vaut 0) ;
+- `init.meta.json` met bien `ResetOnSpawn` à `false` ;
+- `ScriptInterface` ne modifie jamais `pieces.Value` ni un attribut : il lit, puis appelle `FireServer` avec un identifiant ;
+- le compteur affiche `pieces.Value`, pas l’objet `pieces` (le bug du quiz) ;
+- les boutons réagissent à `Activated`, qui marche à la souris, au toucher et à la manette ;
+- `BoutonBoutique` n’est pas dans un coin inférieur, là où sont le joystick et le bouton de saut sur mobile.
+
+</AvecClaudeCode>
+
 <Defi>
-1. Construis la hiérarchie `InterfaceObby` et colle le LocalScript.
+1. Construis la hiérarchie `InterfaceObby` et colle le LocalScript (ou fais-les créer par Claude Code avec le prompt de l’encadré ci-dessus, puis relis-les).
 2. Teste : le compteur affiche tes pièces, la boutique s’ouvre et se ferme.
 3. Donne-toi 100 pièces (vue serveur, `Value` de `leaderstats` › `Pieces`, comme à la leçon 3), puis achète et équipe la Traînée Nuage depuis l’interface.
 4. Simule un téléphone en mode paysage : tout doit rester lisible et cliquable.

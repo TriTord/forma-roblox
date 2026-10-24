@@ -62,6 +62,20 @@ quiz:
       - texte: "Ligne 8 : il faut tester `input.KeyCode == \"P\"`"
       - texte: "Ligne 7 : il faut utiliser `InputEnded` au lieu de `InputBegan`"
     explication: "Le code « marche » sur l’écran du joueur, mais `pieces.Value += 10` est exécuté par le client. Le serveur et les autres joueurs gardent l’ancienne valeur. Les pièces doivent être modifiées par le serveur (et, on le verra, jamais sur simple demande du client)."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code vérifie que chaque script de ton projet tourne du bon côté (client ou serveur). Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "regarde si mes scripts sont bien"
+    options:
+      - texte: "Corrige tous les problèmes de mon jeu Roblox et optimise le code au passage."
+      - texte: "Déplace tous mes scripts dans ServerScriptService : comme ça, le serveur contrôle tout et le jeu est sécurisé."
+      - texte: |
+          Lecture seule : ne modifie aucun fichier.
+          Contexte : projet Rojo de l’Obby des Nuages ; le serveur est la source de vérité, les changements faits par un client ne sont pas répliqués.
+          Objectif : un tableau, une ligne par fichier de src/ : type (d’après le suffixe .server.luau, .client.luau ou .luau), emplacement, côté où il s’exécute, verdict « OK » ou « À corriger ».
+          Signale tout LocalScript qui modifie Etape, Pieces, l’inventaire ou un achat.
+          Vérification : pour chaque « À corriger », cite la ligne et explique ce que verrait un autre joueur.
+        correct: true
+    explication: "La bonne version fixe le cadre (lecture seule), donne les règles de la leçon comme grille de lecture et dit exactement quel rapport produire. La première laisse l’IA modifier n’importe quoi sans critère. La deuxième applique une fausse règle : un LocalScript placé dans ServerScriptService ne s’exécute plus du tout, et l’interface ou les touches ne fonctionneraient plus."
 ---
 
 Jusqu’ici, tes scripts fonctionnaient… quand tu testais seul. Mais un jeu Roblox est **multijoueur par défaut** : plusieurs personnes jouent ensemble, chacune sur son appareil. Qui décide de ce qui se passe vraiment ? Qui voit quoi ? Ce module répond à ces questions, et il se termine par la sécurisation de l’Obby des Nuages. Cette première leçon pose les fondations : sans elles, impossible de protéger ton jeu.
@@ -224,6 +238,36 @@ D’après la documentation Roblox, la plupart des joueurs ont entre 100 et 300 
 <Info titre="Une nouveauté à connaître">
 Depuis juillet 2026, Roblox propose à tous les jeux un modèle d’« autorité serveur » (server authority). Il ne s’active pas tout seul : il faut régler la propriété `AuthorityMode` du `Workspace` sur `Server`. Le serveur devient alors la seule source de vérité, y compris pour les mouvements des personnages, et le client se contente de **prédire** le résultat de ses actions. Roblox le présente surtout pour les jeux compétitifs (combat, course, sport), et il peut demander d’adapter ses scripts. Dans cette formation, on garde le modèle classique décrit ici, qui reste le comportement par défaut (situation au moment de la rédaction, octobre 2026).
 </Info>
+
+<AvecClaudeCode>
+
+Cette leçon ne construit pas de nouveau système : tu vas plutôt demander à Claude Code un **audit en lecture seule** de ton projet, pour vérifier que chaque script tourne du bon côté. Le prompt est précis parce qu’il donne à l’IA les règles de la leçon comme grille de lecture, le format exact du rapport, et lui interdit de toucher aux fichiers.
+
+<Prompt titre="Audit client/serveur">
+
+```text
+Lecture seule : ne crée, ne modifie et ne supprime aucun fichier.
+
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Je veux vérifier que chaque script s'exécute du bon côté. Rappel des règles : le serveur est la source de vérité ; un changement fait par un client n'est pas répliqué au serveur, sauf la position de son propre personnage, la physique des Parts non ancrées dont il est propriétaire réseau et les animations de son personnage.
+Ce qui existe déjà : les fichiers de src/ et default.project.json. Les conventions sont dans CLAUDE.md.
+Objectif : un rapport sous forme de tableau, une ligne par fichier de src/ : nom, type (Script, LocalScript ou ModuleScript), service où Rojo le place, côté où il s'exécute (serveur, client, ou là où il est requis), verdict « OK » ou « À corriger » avec la raison.
+Fichiers concernés : aucun (lecture seule).
+Contraintes techniques : déduis le type du suffixe (.server.luau = Script, .client.luau = LocalScript, .luau = ModuleScript) et l'emplacement de default.project.json. Un LocalScript ne s'exécute que dans StarterPlayerScripts, StarterCharacterScripts, StarterGui ou StarterPack ; un Script serveur, dans ServerScriptService (ou le Workspace).
+Sécurité : signale tout LocalScript qui modifie une valeur importante (leaderstats Etape ou Pieces, inventaire, achat) ou une Part partagée en croyant que tous les joueurs verront le changement ; signale tout ModuleScript serveur rangé dans ReplicatedStorage (les clients pourraient le lire).
+Cas limites : un ModuleScript de ReplicatedStorage requis des deux côtés est normal ; si le type ou l'emplacement d'un fichier est ambigu, dis-le au lieu de deviner.
+Vérification : pour chaque « À corriger », cite la ligne concernée et explique ce que verraient les autres joueurs ; termine par la liste des corrections que tu proposes, sans les appliquer.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- Claude Code n’a modifié aucun fichier : `git status` ne doit montrer aucun changement ;
+- chaque fichier `.client.luau` du rapport est bien rangé dans StarterPlayerScripts, StarterCharacterScripts ou StarterGui, jamais dans ReplicatedStorage ni ServerScriptService ;
+- tout ce qui modifie `Etape`, `Pieces`, l’inventaire ou un achat est un `.server.luau` de ServerScriptService ;
+- chaque verdict est justifié par une règle de cette leçon : contrôle-le toi-même avec le tableau « Qui exécute quel script ? ». L’IA peut se tromper, c’est toi qui tranches.
+
+</AvecClaudeCode>
 
 <Resume>
 - Une partie Roblox = **un serveur** (l’arbitre, source de vérité) + **un client par joueur**.

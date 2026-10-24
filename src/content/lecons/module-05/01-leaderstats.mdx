@@ -61,6 +61,19 @@ quiz:
         correct: true
       - texte: Mettre `Pieces` dans un second dossier `leaderstats`
     explication: "La documentation propose trois méthodes : l’ordre de création, un `BoolValue` enfant nommé `IsPrimary` (valeur `true`), ou un `NumberValue` enfant nommé `Priority` (plus la valeur est haute, plus la statistique apparaît tôt)."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code déplace la création des leaderstats dans leur propre script. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "mets les leaderstats dans un script à part"
+    options:
+      - texte: "Ajoute un beau tableau des scores avec l’étape et les pièces à mon obby."
+      - texte: "Crée un LocalScript dans StarterPlayerScripts qui crée le dossier leaderstats avec Etape et Pieces pour le joueur local."
+      - texte: "Réécris Progression.server.luau en plus simple, et fais-lui aussi créer les leaderstats dans un nouveau script."
+      - texte: |
+          Crée src/ServerScriptService/Leaderstats.server.luau : à PlayerAdded (et pour les joueurs déjà présents), un Folder « leaderstats » avec les IntValue Etape puis Pieces à 0, et un BoolValue IsPrimary à true dans Etape.
+          Dans Progression.server.luau, remplace UNIQUEMENT la fonction initialiserJoueur pour qu’elle ne crée plus les leaderstats ; ne touche pas à surContactCheckpoint (Etape + 1, Validation.estAPortee).
+          Vérification : un seul dossier leaderstats par joueur, et je réapparais sur mon dernier checkpoint.
+        correct: true
+    explication: "La bonne version délimite exactement ce qui change et protège ce qui ne doit pas bouger : les vérifications anti-triche de `surContactCheckpoint`. La troisième invite l’IA à « simplifier » ce script, au risque de supprimer ces protections sans te le dire. La deuxième crée les leaderstats côté client, invisibles pour le serveur. La première ne précise ni fichier, ni noms, ni vérification."
 ---
 
 Dans un obby, les joueurs adorent voir où en sont les autres : « Il est déjà à l’étape 12 ? ». Roblox propose pour ça un tableau des scores intégré, et il suffit d’un petit dossier bien nommé pour le remplir. Au module 4, ton Script « Progression » a déjà créé des leaderstats minimales (**Étape** et **Pièces**). Dans cette leçon, tu comprends ce dossier en détail et tu lui donnes son propre script. Ces valeurs seront ensuite sauvegardées (leçon suivante) et dépensées en boutique (leçon 3).
@@ -278,8 +291,37 @@ StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 
 C’est un réglage d’affichage local : il ne touche pas aux valeurs.
 
+<AvecClaudeCode>
+
+Demande à Claude Code les deux changements de cette leçon : le nouveau Script `Leaderstats` et la nouvelle fonction `initialiserJoueur` de « Progression ». Le prompt est précis parce qu’il dit exactement quelle fonction remplacer et quelles vérifications anti-triche ne doivent **pas** bouger : une IA à qui l’on demande de « réorganiser » un script peut supprimer des lignes qu’elle juge inutiles.
+
+<Prompt titre="Script Leaderstats">
+
+```text
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Les leaderstats (tableau des scores) doivent avoir leur propre script, car à la leçon suivante elles seront créées à partir de la sauvegarde.
+Ce qui existe déjà : src/ServerScriptService/Progression.server.luau (module 4) : sa fonction initialiserJoueur crée les leaderstats Etape et Pieces et replace le personnage sur son dernier checkpoint ; sa fonction surContactCheckpoint valide les checkpoints (Etape + 1, Validation.estAPortee, journalisation des passages trop rapides) ; obtenirEtape, dossierCheckpoints et Workspace y sont déjà définis. Pieces.server.luau ajoute des pièces après ses vérifications. Les conventions sont dans CLAUDE.md.
+Objectif : chaque joueur voit deux colonnes, Etape (en premier) et Pieces, à 0 au départ, et réapparaît toujours sur son dernier checkpoint validé.
+Fichiers concernés : crée src/ServerScriptService/Leaderstats.server.luau ; dans Progression.server.luau, remplace uniquement la fonction initialiserJoueur. Ne touche ni à surContactCheckpoint, ni à Pieces.server.luau, ni à aucun autre fichier.
+Contraintes techniques : Leaderstats crée, à PlayerAdded et pour les joueurs déjà présents (boucle sur Players:GetPlayers() avec task.spawn), un Folder nommé exactement "leaderstats" (tout en minuscules) contenant l'IntValue Etape puis l'IntValue Pieces, avec dans Etape un BoolValue "IsPrimary" à true ; le Folder est rangé dans le joueur en dernier, une fois rempli. Dans Progression, une fonction placerAuCheckpoint(player, character) attend les leaderstats avec player:WaitForChild("leaderstats", 60), ne fait rien si Etape vaut 0, attend que le personnage soit dans le Workspace puis une image (task.wait()), vérifie que player.Character est toujours ce personnage, puis le place avec PivotTo 4 studs au-dessus du checkpoint ; la nouvelle initialiserJoueur l'appelle à chaque CharacterAdded et pour le personnage déjà présent, et ne crée plus rien.
+Sécurité : les leaderstats ne sont créées et modifiées que par des Scripts serveur ; aucun LocalScript ne les modifie. Les vérifications de surContactCheckpoint restent intactes.
+Cas limites : joueur arrivé avant le démarrage du script ; leaderstats jamais créées (abandon au bout de 60 secondes, sans erreur) ; nouvelle réapparition pendant l'attente ; un seul dossier leaderstats par joueur.
+Vérification : en Play, Etape et Pieces s'affichent une seule fois (un seul dossier leaderstats dans l'Explorer) ; après avoir validé le checkpoint 1 puis être tombé, je réapparais dessus ; en mode Server & Clients à 2 joueurs, chacun a ses propres valeurs ; selene et StyLua ne signalent aucune erreur. Montre-moi le diff de Progression.server.luau.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le Folder s’appelle exactement `leaderstats`, tout en minuscules (l’erreur la plus fréquente de la leçon) ;
+- `Progression.server.luau` ne crée plus aucun `leaderstats` : cherche `Instance.new("Folder")` dans ce fichier ;
+- dans le diff de Progression, `surContactCheckpoint` n’a pas changé : `Etape + 1` et `Validation.estAPortee` sont toujours là ;
+- `IsPrimary` est un `BoolValue` enfant de `Etape`, avec `Value = true` ;
+- le Script Leaderstats se termine par la boucle sur `Players:GetPlayers()`.
+
+</AvecClaudeCode>
+
 <Defi>
-1. Crée le Script `Leaderstats` dans ServerScriptService, remplace `initialiserJoueur` dans « Progression », puis teste : tu dois voir `Etape` et `Pieces`, une seule fois chacune (dans l’Explorer, ton joueur ne contient qu’un dossier `leaderstats`).
+1. Crée le Script `Leaderstats` dans ServerScriptService, remplace `initialiserJoueur` dans « Progression » (toi-même, ou avec Claude Code et le prompt de l’encadré ci-dessus, en relisant le diff), puis teste : tu dois voir `Etape` et `Pieces`, une seule fois chacune (dans l’Explorer, ton joueur ne contient qu’un dossier `leaderstats`).
 2. Valide le checkpoint 1, puis laisse-toi tomber : tu dois réapparaître sur le checkpoint 1.
 3. Ajoute le `BoolValue` `IsPrimary` sur `Etape`.
 4. Lance un test à 2 joueurs (mode **Server & Clients**, vu au module 1) et vérifie que chaque joueur a ses propres valeurs.

@@ -60,6 +60,20 @@ quiz:
       - texte: Uniquement dans ServerStorage
       - texte: Nulle part, une animation jouée par le client n’est jamais vue par les autres
     explication: "D’après la référence d’`Animator:LoadAnimation`, les animations lancées par un joueur sur son propre personnage sont répliquées au serveur et aux autres clients. Pour un objet qui n’est pas un personnage de joueur (un PNJ, par exemple), il faut au contraire les lancer depuis le serveur."
+  - type: ameliore-le-prompt
+    question: "Tu as publié ton animation de victoire. Tu veux maintenant que Claude Code écrive les scripts qui la jouent. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais une animation de victoire"
+    options:
+      - texte: "Crée une super animation de victoire pour mon obby et joue-la quand le joueur gagne."
+      - texte: "Trouve en ligne l’ID d’une belle danse de victoire et joue-la avec Humanoid:LoadAnimation quand le joueur touche le dernier checkpoint."
+      - texte: |
+          Ajoute le RemoteEvent Victoire dans ReplicatedStorage.Remotes (default.project.json).
+          Script src/ServerScriptService/Victoire.server.luau : quand leaderstats.Etape atteint le nombre de checkpoints de Workspace.Checkpoints, victoire:FireClient(player).
+          LocalScript src/StarterPlayer/StarterCharacterScripts/AnimationVictoire.client.luau : Animator:LoadAnimation une seule fois avec mon ID rbxassetid://…, priorité Action, Looped false, Play() sur OnClientEvent.
+          Vérification : en mettant Etape au dernier numéro en vue serveur, l’animation se joue et un second joueur la voit.
+        correct: true
+      - texte: "Crée un Script serveur qui joue l’animation de victoire sur le personnage chaque fois qu’un LocalScript lui envoie « j’ai gagné »."
+    explication: "La bonne version donne l’ID de TON animation, le bon objet (`Animator`, pas `Humanoid:LoadAnimation`, déprécié), la priorité, l’emplacement de chaque script et laisse le serveur décider de la victoire. La deuxième utilise une animation que ton jeu n’a pas la permission de charger. La quatrième laisse le client décider qu’il a gagné. La première demande à l’IA de créer l’animation elle-même, alors que c’est toi qui la crées dans l’Animation Editor."
 ---
 
 Le joueur a enfin atteint le dernier checkpoint de l’Obby des Nuages. Bravo… et ensuite ? Une petite danse de victoire rend ce moment beaucoup plus satisfaisant ! Dans cette leçon, tu découvres les deux types de personnages de Roblox, tu crées ta propre animation, tu comprends les règles de permissions (qui ont changé récemment) et tu la joues depuis un script.
@@ -255,10 +269,39 @@ Quand le personnage réapparaît, une nouvelle copie du script démarre sur le n
 Le RemoteEvent ne transporte aucune donnée sensible : il dit juste « joue l’animation ». Même si un exploiteur le déclenchait chez lui, il ne ferait que danser sur son écran (et chez les autres, puisque c’est son personnage). Aucune récompense ne dépend de ce message : les récompenses restent décidées par le serveur.
 </Info>
 
+<AvecClaudeCode>
+
+La création et la publication de l’animation se font à la main, dans l’Animation Editor : Claude Code ne peut pas le faire pour toi. Il peut en revanche écrire les deux scripts. Le prompt est précis parce qu’il donne l’ID de **ton** animation (ce n’est pas un secret, tu peux le coller), impose `Animator:LoadAnimation` appelé une seule fois et laisse le serveur seul juge de la victoire.
+
+<Prompt titre="Animation de victoire">
+
+```text
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox, avatars R15). Quand un joueur valide le dernier checkpoint, son personnage joue une animation de victoire que tous les joueurs voient. J'ai créé et publié l'animation moi-même, avec le même propriétaire que le jeu : son ID est rbxassetid://REMPLACE_PAR_TON_ID.
+Ce qui existe déjà : leaderstats.Etape (IntValue, numéro du dernier checkpoint validé, créée par GestionJoueurs une fois la sauvegarde chargée) ; dans Studio, Workspace.Checkpoints ne contient que les Parts "1", "2", "3"… ; ReplicatedStorage.Remotes est déclaré dans default.project.json. Les conventions sont dans CLAUDE.md.
+Objectif : au moment où Etape atteint le numéro du dernier checkpoint, le personnage du joueur joue l'animation une fois.
+Fichiers concernés : default.project.json (ajoute le RemoteEvent Victoire dans ReplicatedStorage.Remotes) ; crée src/ServerScriptService/Victoire.server.luau et src/StarterPlayer/StarterCharacterScripts/AnimationVictoire.client.luau. Ne modifie rien d'autre.
+Contraintes techniques : côté serveur, derniereEtape = nombre d'enfants de Workspace.Checkpoints ; à l'arrivée de chaque joueur (et pour ceux déjà présents), attends leaderstats (WaitForChild, 60 secondes) puis Etape ; sur Etape.Changed, si la nouvelle valeur vaut derniereEtape, appelle victoire:FireClient(player). Côté client, script.Parent est le personnage : récupère le Humanoid puis son Animator avec WaitForChild, crée un objet Animation avec l'AnimationId, appelle Animator:LoadAnimation UNE seule fois, au démarrage du script (jamais Humanoid:LoadAnimation, déprécié) ; Priority = Enum.AnimationPriority.Action, Looped = false ; sur OnClientEvent, Play() seulement si la piste ne joue pas déjà.
+Sécurité : le RemoteEvent ne transporte aucune donnée et ne déclenche aucune récompense ; c'est le serveur qui décide de la victoire d'après Etape, jamais le client.
+Cas limites : leaderstats jamais créées (abandon sans erreur) ; réapparition du personnage (une nouvelle copie du LocalScript démarre sur le nouveau personnage) ; nouveau déclenchement pendant que l'animation joue ; ID pas encore remplacé (laisse un commentaire bien visible au-dessus de la ligne).
+Vérification : en vue serveur, je mets Etape au numéro du dernier checkpoint et l'animation se joue ; en mode Server & Clients à 2 joueurs, l'autre joueur la voit ; selene et StyLua ne signalent aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- l’animation est chargée avec `animator:LoadAnimation(animation)`, sur l’`Animator` du `Humanoid`, et jamais avec `Humanoid:LoadAnimation` ;
+- `LoadAnimation` est appelé **une seule fois**, en dehors de la fonction connectée à `OnClientEvent` (sinon une nouvelle piste à chaque victoire) ;
+- la piste a la priorité `Action` et `Looped = false` ;
+- c’est le Script serveur qui compare `Etape` au nombre de checkpoints : aucun LocalScript n’envoie « j’ai gagné » ;
+- le LocalScript est bien dans `StarterCharacterScripts`, pour que `script.Parent` soit toujours le personnage actuel.
+
+</AvecClaudeCode>
+
 <Defi>
 1. Choisis R15 dans **Avatar Settings**, insère un rig R15 avec le Rig Builder.
 2. Crée une animation `Victoire` d’environ une seconde, avec la priorité **Action**, et publie-la.
-3. Crée le RemoteEvent `Victoire`, le Script serveur et le LocalScript, en remplaçant l’ID.
+3. Crée le RemoteEvent `Victoire`, le Script serveur et le LocalScript, en remplaçant l’ID (ou demande-les à Claude Code avec le prompt de l’encadré ci-dessus, puis relis-les).
 4. Teste : atteins le dernier checkpoint (ou, en vue serveur, mets `Etape` au numéro du dernier checkpoint dans l’Explorer) et admire ta danse.
 5. Bonus : lance un test à 2 joueurs et vérifie que l’autre joueur voit bien l’animation.
 </Defi>

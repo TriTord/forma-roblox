@@ -56,6 +56,29 @@ quiz:
         correct: true
       - texte: Le second tween attend la fin du premier
     explication: "La documentation de TweenService précise que si deux tweens modifient la même propriété, le premier est annulé et remplacé par le plus récent. Son événement `Completed` se déclenche alors avec l’état `Cancelled`."
+  - type: trouve-le-bug
+    question: "Trouve le défaut dans ce code généré par IA. Si le joueur rouvre la boutique pendant qu’elle se ferme, la fenêtre disparaît alors qu’elle devrait rester ouverte. Quelle ligne est en cause ?"
+    code: |
+      boutonBoutique.Activated:Connect(function()
+      	ouverte = not ouverte
+      	if ouverte then
+      		fenetreBoutique.Visible = true
+      		TweenService:Create(fenetreBoutique, infosOuverture, { Position = POSITION_OUVERTE }):Play()
+      	else
+      		local fermeture = TweenService:Create(fenetreBoutique, infosFermeture, { Position = POSITION_CACHEE })
+      		fermeture.Completed:Connect(function()
+      			fenetreBoutique.Visible = false
+      		end)
+      		fermeture:Play()
+      	end
+      end)
+    options:
+      - texte: "Ligne 4 : il faut rendre la fenêtre visible après le tween d’ouverture, pas avant"
+      - texte: "Ligne 7 : on ne peut pas tweener la `Position` d’un Frame"
+      - texte: "Ligne 9 : `Completed` se déclenche aussi quand la fermeture est annulée ; il faut vérifier que l’état reçu est `Enum.PlaybackState.Completed` et que la fenêtre n’a pas été rouverte"
+        correct: true
+      - texte: "Ligne 11 : `Play` doit être appelé avant de connecter `Completed`"
+    explication: "Quand le tween d’ouverture remplace celui de fermeture (même propriété `Position`), la fermeture est annulée et `Completed` se déclenche avec l’état `Cancelled`. Ce code masque alors la fenêtre en pleine ouverture. La leçon teste `etat == Enum.PlaybackState.Completed and not ouverte`. Ce bug n’apparaît qu’en cliquant vite : pense à tester les doubles clics sur le code de l’IA."
 ---
 
 Un obby où tout est immobile, c’est un peu triste. Dans cette leçon, tu fais **bouger** l’Obby des Nuages : des plateformes qui montent et descendent, une boutique qui glisse à l’écran, un compteur de pièces qui « rebondit » à chaque gain. L’outil pour ça : **TweenService**, qui anime en douceur presque n’importe quelle propriété.
@@ -219,6 +242,10 @@ Certains développeurs animent aussi les décors côté client pour un rendu plu
 
 Améliorons l’interface de la leçon 4. Crée un **LocalScript** `AnimationsInterface` dans **StarterGui › InterfaceObby**, puis **supprime** le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » de `ScriptInterface` : sinon, les deux scripts se disputeraient la fenêtre. Supprime aussi, en haut de `ScriptInterface`, la ligne `local boutonBoutique = …`, qui ne sert plus (Studio signalerait une variable inutilisée).
 
+<Attention titre="Si ton projet utilise Rojo (module 2)">
+Rojo synchronise StarterGui depuis `src/StarterGui` et supprime ce qu’il ne trouve pas dans tes fichiers (voir la leçon 4). Ne crée donc pas ce LocalScript à la main dans Studio : crée le fichier `src/StarterGui/InterfaceObby/AnimationsInterface.client.luau` (toi-même ou avec le prompt de l’encadré « Avec Claude Code », plus bas), et fais les modifications de `ScriptInterface` dans son fichier `ScriptInterface.client.luau`.
+</Attention>
+
 ```luau
 -- LocalScript « AnimationsInterface » dans StarterGui > InterfaceObby (côté client)
 -- Remplace le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » de ScriptInterface (leçon 4)
@@ -279,10 +306,39 @@ Remarque l’usage de `Completed` : la fenêtre ne devient invisible qu’**apr�
 Les animations d’interface doivent rester **courtes** (souvent moins d’une demi-seconde). Une fenêtre qui met deux secondes à s’ouvrir agace vite, surtout quand on l’ouvre souvent.
 </Attention>
 
+<AvecClaudeCode>
+
+Demande à Claude Code les deux systèmes de cette leçon : les plateformes mobiles (côté serveur) et les animations de l’interface (côté client). Le prompt est précis parce qu’il donne l’ordre exact des paramètres de `TweenInfo.new`, sépare clairement serveur et client, et décrit le cas du double clic pendant la fermeture.
+
+<Prompt titre="Plateformes mobiles et interface animée">
+
+```text
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). J'anime le jeu avec TweenService : des plateformes qui font des allers-retours, une boutique qui glisse à l'écran et un compteur de pièces qui rebondit.
+Ce qui existe déjà : dans Studio, un Folder Workspace.PlateformesMobiles contient les Parts à animer, avec deux attributs facultatifs, Deplacement (Vector3, en studs) et Duree (number, durée d'un aller en secondes) ; src/StarterGui/InterfaceObby contient CompteurPieces, BoutonBoutique, Boutique et ScriptInterface.client.luau, dont le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » ouvre et ferme la fenêtre ; leaderstats.Pieces (IntValue). Les conventions sont dans CLAUDE.md.
+Objectif : chaque plateforme du dossier va et vient sans fin, en douceur ; la boutique arrive du bas de l'écran avec un léger rebond et repart vers le bas ; le compteur grossit puis revient à sa taille à chaque changement de pièces.
+Fichiers concernés : crée src/ServerScriptService/PlateformesMobiles.server.luau et src/StarterGui/InterfaceObby/AnimationsInterface.client.luau ; dans ScriptInterface.client.luau, supprime seulement le bloc 2 et la variable boutonBoutique devenue inutile. Ne modifie rien d'autre.
+Contraintes techniques : TweenService:Create(objet, infos, objectif) puis :Play() ; pas de boucle avec task.wait pour animer. Plateformes (Script serveur) : chaque BasePart du dossier est ancrée ; valeurs par défaut Deplacement = (0, 8, 0) et Duree = 3 si l'attribut est absent ou du mauvais type (vérifie avec typeof) ; TweenInfo.new(duree, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true, 0), dans cet ordre ; on tweene la CFrame (CFrame + deplacement), pas la Position. Interface (LocalScript) : position ouverte UDim2.fromScale(0.5, 0.5), position cachée UDim2.fromScale(0.5, 1.5) ; ouverture en 0,35 s avec Back et Out, fermeture en 0,25 s avec Quad et In ; la fenêtre ne devient invisible qu'à la fin de la fermeture, dans Completed, et seulement si l'état reçu est Enum.PlaybackState.Completed et qu'elle n'a pas été rouverte ; rebond du compteur avec un UIScale (Scale à 1.25, puis tween vers 1 en 0,25 s avec Back et Out). Animations d'interface de moins d'une demi-seconde.
+Sécurité : les plateformes sont animées par le serveur (tout le monde voit la même chose au même endroit) ; l'interface est animée par le client et ne modifie aucune donnée de jeu.
+Cas limites : un objet du dossier qui n'est pas une BasePart (ignoré) ; clic sur le bouton pendant la fermeture (le tween d'ouverture remplace celui de fermeture et la fenêtre reste visible) ; pièces qui changent plusieurs fois de suite.
+Vérification : un ascenseur (Deplacement 0, 10, 0 ; Duree 4) monte et descend en boucle ; la boutique s'ouvre, se ferme et ne disparaît pas en cas de double clic ; le compteur rebondit à chaque pièce ; un seul script gère l'ouverture de la boutique ; selene et StyLua ne signalent aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `TweenInfo.new` reçoit la **durée en premier**, puis le style, la direction, les répétitions (`-1`), l’aller-retour (`true`) et le délai ;
+- les plateformes sont ancrées et animées dans un **Script serveur**, la fenêtre et le compteur dans un **LocalScript** ;
+- le bloc 2 a bien disparu de `ScriptInterface` : sinon deux scripts se disputent la fenêtre ;
+- la fonction connectée à `Completed` teste `Enum.PlaybackState.Completed` **et** `not ouverte` avant de masquer la fenêtre ;
+- aucune plateforme tweenée ne sert à **transporter** le joueur horizontalement (relis « Et le personnage, dans tout ça ? »).
+
+</AvecClaudeCode>
+
 <Defi>
 1. Crée le dossier `PlateformesMobiles` avec deux plateformes : un ascenseur (`Deplacement = 0, 10, 0`, `Duree = 4`) et un mur qui coulisse (`Deplacement = 12, 0, 0`, `Duree = 2`) à éviter.
 2. Teste : monte sur l’ascenseur, puis observe ce qui se passe si tu montes sur le mur qui coulisse.
-3. Ajoute `AnimationsInterface` et vérifie l’ouverture, la fermeture et le rebond du compteur.
+3. Ajoute `AnimationsInterface` (toi-même, ou avec Claude Code et le prompt de l’encadré ci-dessus) et vérifie l’ouverture, la fermeture et le rebond du compteur.
 4. Bonus : essaie `Bounce`, `Elastic` puis `Linear` sur l’ouverture de la fenêtre et garde celui que tu préfères.
 </Defi>
 

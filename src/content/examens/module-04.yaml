@@ -165,3 +165,42 @@ questions:
       - texte: Parce que `Touched` ne fonctionne qu’une seule fois par Part
       - texte: Pour que le client puisse la réactiver lui-même
     explication: "Un personnage touche souvent une Part avec plusieurs parties du corps, et deux joueurs peuvent arriver en même temps. En marquant la pièce indisponible avant de récompenser, le serveur garantit qu’elle ne rapporte qu’une fois."
+
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code crée le remote qui ramène un joueur à un checkpoint qu’il a déjà atteint. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais un remote pour se téléporter aux checkpoints"
+    options:
+      - texte: "Crée le RemoteEvent AllerAuCheckpoint : le client envoie la position du checkpoint choisi et le serveur y téléporte le personnage."
+      - texte: "Fais un système de téléportation aux checkpoints sécurisé, rapide et sans bugs."
+      - texte: |
+          Crée src/ServerScriptService/RetourCheckpoint.server.luau pour le RemoteEvent AllerAuCheckpoint (à déclarer dans default.project.json).
+          Le client envoie seulement le numéro de l’étape. Dans l’ordre : Validation.estEntier(numero, 1, 1000), cooldown de 3 s par joueur, personnage vivant, numero inférieur ou égal à leaderstats.Etape lue sur le serveur, checkpoint existant dans Workspace.Checkpoints.
+          C’est le serveur qui place le personnage avec PivotTo ; une demande invalide se termine par un simple return.
+          Vérification : demander une étape non atteinte, ou envoyer 0/0, ne fait rien.
+        correct: true
+      - texte: "Crée un LocalScript qui vérifie dans le LocalScript que l’étape demandée est atteinte, puis qui déplace lui-même le personnage sur le checkpoint."
+    explication: "La bonne version dit ce que le client envoie (un numéro, jamais une position), les quatre couches de validation dans l’ordre, qui déplace le personnage et comment prouver que les demandes piégées sont refusées. La première laisse le client choisir où aller. La quatrième met la seule vérification côté client, où un tricheur la supprime. La deuxième ne donne aucun critère : l’IA inventera ses propres règles."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Avec ce Script « Progression », un tricheur valide tous les checkpoints, dans l’ordre, sans quitter la zone de départ. Où est la faille ?"
+    code: |
+      local function surContactCheckpoint(checkpoint: BasePart, partieTouchee: BasePart)
+      	local player = Players:GetPlayerFromCharacter(partieTouchee.Parent)
+      	local numero = tonumber(checkpoint.Name)
+      	local etape = player and obtenirEtape(player)
+      	if player == nil or numero == nil or etape == nil then
+      		return
+      	end
+      	if numero ~= etape.Value + 1 then
+      		return
+      	end
+      	etape.Value = numero
+      	notification:FireClient(player, "Étape " .. numero .. " atteinte !")
+      end
+    options:
+      - texte: "Ligne 2 : `GetPlayerFromCharacter` attend la Part touchée, pas son parent"
+      - texte: "Ligne 8 : il faut accepter `numero > etape.Value` pour ne pas bloquer les joueurs rapides"
+      - texte: "Ligne 11 : il manque, juste avant, la vérification de distance avec `Validation.estAPortee` ; un tricheur peut provoquer des contacts à n’importe quelle distance"
+        correct: true
+      - texte: "Ligne 12 : il faut prévenir tous les joueurs avec `FireAllClients`"
+    explication: "Le test `Etape + 1` impose l’ordre, mais un contact `Touched` n’est pas une preuve : le client contrôle la physique de son personnage et peut déclencher des contacts à distance. Sans `Validation.estAPortee(player, checkpoint.Position, DISTANCE_MAX)`, il valide les étapes une par une depuis le départ. L’IA a « simplifié » le script de la leçon : compare toujours le code généré à la liste des règles du serveur."

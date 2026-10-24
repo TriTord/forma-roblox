@@ -55,6 +55,31 @@ quiz:
     question: Dans notre système, si un LocalScript passe l’attribut `TrailEquipe` à `"TrailAurore"`, le joueur obtient la traînée Aurore.
     reponse: false
     explication: "Le changement reste sur le client : il n’est pas répliqué au serveur. Le serveur applique la traînée d’après `donnees.equipe`, qu’il est le seul à modifier, après avoir vérifié que l’objet est bien possédé."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce gestionnaire d’`EquiperObjet` permet à n’importe quel joueur de porter la Traînée Aurore sans l’avoir achetée. Où est la faille ?"
+    code: |
+      equiperObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+      	if typeof(idObjet) ~= "string" or #idObjet > 50 then
+      		return
+      	end
+      	if not peutEquiper(player) then
+      		return
+      	end
+      	local donnees = DonneesJoueurs.Obtenir(player)
+      	if donnees == nil or (idObjet ~= "" and Catalogue[idObjet] == nil) then
+      		return
+      	end
+      	donnees.equipe = idObjet
+      	publierInventaire(player, donnees)
+      	appliquerTrainee(player)
+      end)
+    options:
+      - texte: "Ligne 2 : `#idObjet` ne fonctionne pas sur un texte"
+      - texte: "Ligne 5 : un cooldown est inutile pour équiper un objet"
+      - texte: "Ligne 9 : le serveur vérifie que l’objet existe, pas que le joueur le possède ; il faut tester `donnees.inventaire[idObjet]`"
+        correct: true
+      - texte: "Ligne 12 : il faut modifier l’attribut `TrailEquipe` au lieu de `donnees.equipe`"
+    explication: "Exister dans le catalogue ne veut pas dire être possédé. Il suffit d’envoyer `\"TrailAurore\"` pour la porter gratuitement. Le code de la leçon refuse tout identifiant non vide absent de `donnees.inventaire`. Ce genre d’oubli passe inaperçu en test, car toi, tu n’essaies que les objets que tu as achetés : vérifie chaque condition de la leçon une par une dans le code généré."
 ---
 
 Les pièces de l’Obby des Nuages doivent servir à quelque chose ! Dans cette leçon, tu crées un **inventaire** : la liste des traînées (« trails ») qu’un joueur possède, et celle qu’il porte. Tu réutilises tout ce que tu as construit : la validation côté serveur du module 4, les leaderstats et la sauvegarde des leçons précédentes. L’interface de la boutique viendra à la leçon 4.
@@ -357,8 +382,39 @@ Pour tester un achat sans interface (l’interface arrive à la leçon 4) :
 
 La fenêtre Output affiche alors la ligne « Traînée Nuage | possédé : true | équipé : false », et ta colonne `Pieces` passe de 100 à 75 dans le tableau des scores.
 
+<AvecClaudeCode>
+
+Demande à Claude Code l’inventaire complet de cette leçon : le Catalogue avec les couleurs, le RemoteEvent `EquiperObjet`, le nouveau Script `Boutique` et le LocalScript `TestInventaire`. Le prompt est précis parce qu’il dit où vivent les données (la session de `DonneesJoueurs`), comment l’état est publié (attributs `Possede_…` et `TrailEquipe`) et chaque vérification d’achat et d’équipement. Le LocalScript de démonstration du module 4 s’appelle `DemoAchat` si tu as suivi l’encadré de cette leçon-là.
+
+<Prompt titre="Inventaire de traînées">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Les pièces servent à acheter des traînées (Trail) : le joueur les possède, en équipe une, et tout est sauvegardé. Le serveur est la seule source de vérité.
+Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau (Obtenir(player) renvoie la table de session, qui contient déjà inventaire = {} et equipe = "") ; Validation.luau (estTexte, creerCooldown) ; Boutique.server.luau du module 4 (achat avec une table objetsPossedes en mémoire) ; src/ReplicatedStorage/Modules/Catalogue.luau (TrailNuage 25, TrailSoleil 75, TrailAurore 150) ; le RemoteEvent AcheterObjet ; le LocalScript DemoAchat.client.luau du module 4. Les conventions sont dans CLAUDE.md.
+Objectif : acheter une traînée débite son prix et l'ajoute à l'inventaire ; l'équiper fait apparaître une traînée colorée derrière le personnage, même après une réapparition ou une nouvelle partie ; envoyer "" la retire.
+Fichiers concernés : Catalogue.luau (ajoute couleurDebut et couleurFin, en Color3, à chaque objet ; mêmes identifiants et mêmes prix) ; default.project.json (ajoute le RemoteEvent EquiperObjet dans ReplicatedStorage.Remotes) ; remplace tout le contenu de Boutique.server.luau ; crée src/StarterPlayer/StarterPlayerScripts/TestInventaire.client.luau ; supprime DemoAchat.client.luau. Ne modifie rien d'autre, surtout pas DonneesJoueurs.luau.
+Contraintes techniques : l'inventaire est la table donnees.inventaire (identifiant -> true) et l'objet équipé le texte donnees.equipe, tous deux dans la session de DonneesJoueurs (ils sont donc sauvegardés sans code en plus). Le serveur publie l'état avec des attributs sur le Player : Possede_<identifiant> (booléen) pour chaque objet du Catalogue, et TrailEquipe (texte). La traînée se pose sur la HumanoidRootPart : deux Attachments TraineeHaut (0, 0.8, 0) et TraineeBas (0, -0.8, 0), et un Trail TraineeObby (ColorSequence de couleurDebut à couleurFin, Lifetime 0.6) ; l'ancienne traînée est détruite avant d'en poser une nouvelle ; elle est reposée à chaque CharacterAdded. À l'arrivée d'un joueur, attends les leaderstats (WaitForChild, 60 secondes) et sa session avant de publier quoi que ce soit. TestInventaire affiche l'état de chaque objet dans l'Output à chaque changement d'attribut.
+Sécurité : le client n'envoie que l'identifiant. Achat, dans cet ordre : Validation.estTexte(id, 50), cooldown de 1 seconde, objet présent dans Catalogue et session chargée, objet pas déjà possédé, solde réel leaderstats.Pieces au moins égal à objet.prix ; puis débit de objet.prix (jamais un prix reçu du client) et ajout à l'inventaire, sans aucune pause entre les deux. Équipement : texte de 50 caractères au plus ("" accepté pour retirer), cooldown de 0,5 seconde, objet obligatoirement possédé d'après donnees.inventaire. Le serveur décide toujours d'après donnees.inventaire et donnees.equipe, jamais d'après les attributs (ils servent seulement à l'affichage côté client).
+Cas limites : identifiant inconnu ou objet retiré du Catalogue ; double clic sur Acheter ; équiper un objet non possédé ; personnage absent ou sans HumanoidRootPart ; données pas encore chargées.
+Vérification : en vue serveur, je mets Pieces à 100 ; dans la Command Bar en vue client, AcheterObjet:FireServer("TrailNuage") fait passer Pieces à 75 et l'Output affiche « Traînée Nuage | possédé : true » ; EquiperObjet:FireServer("TrailAurore") sans l'avoir achetée ne fait rien ; après arrêt et relance sur ma copie de test, la traînée est toujours équipée ; selene et StyLua ne signalent aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- l’achat débite `objet.prix`, lu dans le Catalogue du serveur, et `OnServerEvent` ne reçoit que `(player, idObjet)` ;
+- le gestionnaire d’`EquiperObjet` refuse tout identifiant non vide absent de `donnees.inventaire` ;
+- toutes les vérifications passent avant la moindre modification, et rien ne fait de pause entre le débit et l’ajout de l’objet ;
+- `Boutique.server.luau` ne lit jamais d’attribut pour décider : il ne doit y avoir que des `SetAttribute`, aucun `GetAttribute` ;
+- il n’existe qu’un seul Script Boutique, `DemoAchat` a disparu et `DonneesJoueurs.luau` n’a pas changé (vérifie avec `git diff`).
+
+</AvecClaudeCode>
+
 <Defi>
-1. Complète `Catalogue`, crée le RemoteEvent `EquiperObjet`, remplace le contenu du Script `Boutique`, supprime le LocalScript de démonstration du module 4 et crée `TestInventaire`.
+1. Complète `Catalogue`, crée le RemoteEvent `EquiperObjet`, remplace le contenu du Script `Boutique`, supprime le LocalScript de démonstration du module 4 et crée `TestInventaire` (toi-même, ou avec Claude Code et le prompt de l’encadré ci-dessus, puis relis le code avec la liste « À vérifier »).
 2. Achète `TrailNuage` comme indiqué ci-dessus, puis équipe-le avec `game.ReplicatedStorage.Remotes.EquiperObjet:FireServer("TrailNuage")` (Command Bar, vue client). Une traînée blanche doit te suivre.
 3. Essaie d’équiper `TrailAurore` sans l’avoir acheté : rien ne doit se passer.
 4. Arrête le test, relance : la traînée est toujours équipée, grâce à la sauvegarde (sur ta copie de test, avec `SAUVEGARDER_EN_STUDIO` à `true` le temps de l’essai, comme à la leçon 2).

@@ -66,6 +66,31 @@ quiz:
         correct: true
       - texte: "Ligne 6 : `leaderstats` n’est pas accessible depuis le serveur"
     explication: "Le tricheur envoie `prix = 0` (ou un nombre négatif pour gagner des pièces !). Le serveur doit lire le prix dans `Catalogue[idObjet]`, jamais dans les arguments du client. Un ModuleScript de ReplicatedStorage peut tout à fait être requis par le serveur."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Cette fonction doit renvoyer `true` seulement pour un nombre fini compris entre `min` et `max`. Une valeur envoyée par un tricheur passe pourtant le test. Où est la faille ?"
+    code: |
+      -- Fonction générée par une IA, dans le ModuleScript « Validation » (ServerScriptService)
+      local Validation = {}
+
+      -- Doit renvoyer true seulement pour un nombre fini compris entre min et max
+      function Validation.estNombre(valeur: unknown, min: number, max: number): boolean
+      	if typeof(valeur) ~= "number" then
+      		return false
+      	end
+      	if valeur < min or valeur > max then
+      		return false
+      	end
+      	return true
+      end
+
+      return Validation
+    options:
+      - texte: "Ligne 6 : `typeof` renvoie `\"Number\"` avec une majuscule"
+      - texte: "Ligne 9 : NaN fait échouer les deux comparaisons et traverse ce test ; il manque `math.isfinite(valeur)`"
+        correct: true
+      - texte: "Ligne 5 : le paramètre `valeur` doit être typé `number`, pas `unknown`"
+      - texte: "Ligne 12 : la fonction devrait renvoyer `valeur` au lieu de `true`"
+    explication: "Avec NaN (`0 / 0`), `valeur < min` et `valeur > max` sont tous deux faux : la fonction renvoie `true`. C’est exactement le piège de la leçon. Une IA écrit souvent ce test « naturel » : relis chaque validation de nombre en te demandant « et si c’était NaN ? ». Le type `unknown` est voulu, car on ne sait pas ce que le client envoie."
 ---
 
 Tu sais maintenant faire dialoguer le client et le serveur. Il est temps d’apprendre la règle d’or de la programmation multijoueur, celle que la documentation de Roblox place au sommet de ses principes de sécurité : **ne jamais faire confiance au client**. Dans cette leçon, tu vas voir comment pensent les tricheurs, puis construire une boîte à outils de validation que tu réutiliseras dans tout l’Obby des Nuages.
@@ -394,8 +419,40 @@ La documentation propose une **échelle de réponses** : journaliser en silence,
 La documentation décrit une technique astucieuse : un **honeypot** (pot de miel). Tu crées un RemoteEvent au nom alléchant (par exemple `DonnerPiecesAdmin`) qu’**aucun** de tes scripts n’utilise. Un joueur honnête ne peut jamais l’appeler : si le serveur reçoit un message dessus, c’est un signal très fiable de triche.
 </Astuce>
 
+<AvecClaudeCode>
+
+Demande à Claude Code la boîte à outils `Validation` et l’exemple du retour à un checkpoint déjà atteint. Le prompt est précis parce qu’il décrit chaque fonction du module (avec `math.isfinite`), les quatre couches de validation dans l’ordre et les valeurs piégées à tester. C’est un changement en plusieurs fichiers : on commence par un plan.
+
+<Prompt titre="Module Validation et retour au checkpoint">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Je veux une boîte à outils de validation côté serveur, réutilisée par tous les remotes du jeu, puis un premier remote qui l'utilise : revenir à un checkpoint déjà atteint.
+Ce qui existe déjà : ReplicatedStorage.Remotes (déclaré dans default.project.json) ; dans Studio, Workspace.Checkpoints contient des Parts nommées "1", "2", "3"… ; l'étape atteinte est dans leaderstats.Etape (IntValue gérée par le serveur). Les conventions sont dans CLAUDE.md.
+Objectif : un joueur peut demander à être replacé sur le checkpoint N, seulement s'il l'a déjà atteint ; toute demande invalide est ignorée sans erreur.
+Fichiers concernés : crée src/ServerScriptService/Validation.luau (ModuleScript) et src/ServerScriptService/RetourCheckpoint.server.luau ; ajoute le RemoteEvent AllerAuCheckpoint dans ReplicatedStorage.Remotes (default.project.json). Ne modifie rien d'autre.
+Contraintes techniques : Validation expose exactement ces fonctions. estNombre(valeur, min, max) : typeof "number", puis math.isfinite, puis les bornes. estEntier(valeur, min, max) : estNombre puis math.floor(valeur) == valeur. estTexte(valeur, longueurMax) : texte non vide, longueur au plus longueurMax, utf8.len(valeur) ~= nil. racineVivante(player) : la HumanoidRootPart si le Humanoid existe avec Health > 0, sinon nil. estAPortee(player, position, distanceMax). creerCooldown(delai) : renvoie une fonction (player) -> boolean basée sur os.clock, qui oublie le joueur à PlayerRemoving. Les paramètres reçus du client sont typés unknown.
+Sécurité : le client envoie seulement le numéro de l'étape, jamais une position. Dans cet ordre : type et valeur (Validation.estEntier(numero, 1, 1000)), débit (cooldown de 3 secondes par joueur), contexte (personnage vivant, numero inférieur ou égal à Etape lue sur le serveur, checkpoint existant et de classe BasePart). C'est le serveur qui déplace le personnage avec PivotTo, 4 studs au-dessus du checkpoint. Une demande invalide se termine par un simple return : ni error, ni Kick.
+Cas limites : 0/0 (NaN), math.huge, 2.5, "3", nil, une table ; joueur sans personnage ou mort ; leaderstats pas encore créées ; checkpoint absent ; remote appelé en rafale.
+Vérification : un Script de test temporaire affiche Validation.estEntier(x, 1, 10) pour 3, 2.5, 0/0, math.huge, "3" et nil, et seul 3 donne true ; en jeu, demander une étape non atteinte ne fait rien ; selene et StyLua ne signalent aucune erreur. Supprime le Script de test à la fin.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `estNombre` appelle bien `math.isfinite` : sans lui, NaN traverse les tests de bornes (refais l’essai de la section « Le piège de NaN ») ;
+- `Validation.luau` est dans `src/ServerScriptService`, jamais dans ReplicatedStorage : les clients ne doivent pas pouvoir le lire ;
+- le serveur compare `numero` à l’`Etape` **lue sur le serveur**, et le remote ne reçoit aucune position ;
+- le cooldown est vérifié juste après le type, avant tout autre travail, et `creerCooldown` vide sa table à `PlayerRemoving` ;
+- chaque refus se termine par `return`, sans `Kick` ni bannissement (« réagir sans punir les innocents ») ;
+- le Script de test a bien été supprimé.
+
+</AvecClaudeCode>
+
 <Defi>
-Ajoute le ModuleScript `Validation` dans ServerScriptService. Dans un Script de test, appelle `Validation.estEntier` avec `3`, `2.5`, `0 / 0`, `math.huge`, `"3"` et `nil`, et affiche chaque résultat. Seul `3` doit renvoyer `true` (avec min = 1 et max = 10).
+Ajoute le ModuleScript `Validation` dans ServerScriptService (avec le prompt de l’encadré ci-dessus si tu travailles avec Claude Code : relis alors chaque fonction en te demandant « et si c’était NaN ? »). Dans un Script de test, appelle `Validation.estEntier` avec `3`, `2.5`, `0 / 0`, `math.huge`, `"3"` et `nil`, et affiche chaque résultat. Seul `3` doit renvoyer `true` (avec min = 1 et max = 10).
 </Defi>
 
 <Resume>

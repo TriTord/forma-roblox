@@ -156,3 +156,45 @@ questions:
     question: "L’événement `Completed` d’un tween se déclenche aussi quand on appelle `tween:Pause()`."
     reponse: false
     explication: "D’après la référence API, `Completed` se déclenche quand le tween se termine ou est annulé avec `Cancel` (il reçoit alors l’état correspondant), mais pas lors d’une pause."
+
+  - type: ameliore-le-prompt
+    question: "Les sauvegardes de fin de partie se perdent parfois quand un serveur ferme. Tu demandes à Claude Code de corriger ça. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais que la sauvegarde marche quand le serveur ferme"
+    options:
+      - texte: "Dans GestionJoueurs, ajoute game:BindToClose qui sauvegarde chaque joueur de Players:GetPlayers(), l’un après l’autre, avec SetAsync."
+      - texte: "Rends la sauvegarde 100 % fiable à la fermeture du serveur, quoi qu’il arrive."
+      - texte: |
+          Dans src/ServerScriptService/DonneesJoueurs.luau, ajoute SauvegarderTout() : elle lance en parallèle (task.spawn) Sauvegarder pour chaque session en mémoire (pas Players:GetPlayers()), puis attend que le compteur sauvegardesEnCours revienne à 0, pendant 25 secondes au maximum (Roblox n’attend que 30 s).
+          Dans GestionJoueurs.server.luau, game:BindToClose appelle SauvegarderTout, sauf dans Studio si SAUVEGARDER_EN_STUDIO vaut false.
+          Ne modifie ni Charger ni Sauvegarder.
+          Vérification : sur ma copie de test, avec SAUVEGARDER_EN_STUDIO à true, mes pièces sont retrouvées après l’arrêt du test.
+        correct: true
+      - texte: "Ajoute à la fin de BindToClose une boucle while true do task.wait() end pour laisser au serveur tout le temps nécessaire."
+    explication: "La bonne version reprend les trois précautions de la leçon : sauvegardes en parallèle, parcours des sessions en mémoire (les joueurs ont pu quitter la liste) et attente plafonnée sous les 30 secondes. Elle protège aussi le code qui marche déjà. La première sauvegarde lentement, rate des joueurs et utilise `SetAsync`. La quatrième ne sert à rien : Roblox arrête le serveur au bout de 30 secondes quoi qu’il arrive."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Une IA a ajouté un bonus de 100 pièces pour la victoire. Dans la leçon, le RemoteEvent `Victoire` va seulement du serveur vers le client. Où est la faille ?"
+    code: |
+      local Players = game:GetService("Players")
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local victoire = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Victoire") :: RemoteEvent
+      local BONUS_VICTOIRE = 100
+      local recompenses: { [Player]: boolean } = {}
+      victoire.OnServerEvent:Connect(function(player: Player)
+      	local leaderstats = player:FindFirstChild("leaderstats")
+      	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+      	if pieces and pieces:IsA("IntValue") and not recompenses[player] then
+      		recompenses[player] = true
+      		pieces.Value += BONUS_VICTOIRE
+      	end
+      end)
+      Players.PlayerRemoving:Connect(function(player: Player)
+      	recompenses[player] = nil
+      end)
+    options:
+      - texte: "Ligne 6 : le serveur donne le bonus dès que le client dit « j’ai gagné », sans vérifier que son `Etape` vaut le numéro du dernier checkpoint"
+        correct: true
+      - texte: "Ligne 9 : la table `recompenses` empêche les joueurs honnêtes de recevoir leur bonus"
+      - texte: "Ligne 11 : il faut écrire `pieces.Value = BONUS_VICTOIRE`"
+      - texte: "Ligne 15 : vider la table au départ du joueur fait perdre son bonus"
+    explication: "N’importe quel client peut appeler `victoire:FireServer()` dès son arrivée et empocher 100 pièces, sans avoir joué. La victoire doit être décidée par le serveur, d’après `Etape`, comme dans le Script « Victoire » de la leçon. La table `recompenses` limite bien le bonus à une fois par session, et son nettoyage à `PlayerRemoving` évite qu’elle grossisse sans fin."

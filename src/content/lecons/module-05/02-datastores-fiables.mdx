@@ -68,6 +68,31 @@ quiz:
         correct: true
       - texte: Que le DataStore dépasse 4 Mo
     explication: "Si un joueur change vite de serveur pendant que l’ancien serveur n’a pas fini de sauvegarder, le nouveau serveur peut charger des données périmées puis les réécrire. C’est une source classique de pertes et de duplication d’objets. Des bibliothèques comme ProfileStore gèrent ce verrouillage pour toi."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Voici une version simplifiée (sans le test de version) de `Sauvegarder`. Elle doit renvoyer `true` seulement si les données ont vraiment été écrites. Quelle ligne trahit cette promesse ?"
+    code: |
+      function DonneesJoueurs.Sauvegarder(player: Player): boolean
+      	local donnees = sessions[player]
+      	if donnees == nil then
+      		return false
+      	end
+      	local succes, erreur = avecTentatives(function()
+      		return magasin:UpdateAsync("Joueur_" .. player.UserId, function()
+      			return donnees, { player.UserId }
+      		end)
+      	end)
+      	if not succes then
+      		warn("Sauvegarde impossible :", erreur)
+      	end
+      	return true
+      end
+    options:
+      - texte: "Ligne 3 : sans session, il faudrait sauvegarder des données par défaut"
+      - texte: "Ligne 7 : il faut utiliser `SetAsync`, plus rapide"
+      - texte: "Ligne 8 : renvoyer `{ player.UserId }` est inutile"
+      - texte: "Ligne 14 : la fonction renvoie `true` même quand toutes les tentatives ont échoué ; il faut `return false` dans le bloc `if not succes`"
+        correct: true
+    explication: "Le `warn` signale l’échec, mais la fonction annonce quand même une réussite. Au module 7, un achat en Robux serait alors confirmé alors que rien n’est sauvegardé. C’est typique du code généré : il « a l’air » de gérer l’erreur. Suis chaque `return` et demande-toi s’il dit la vérité. Les autres lignes sont correctes : sans session, on n’écrit surtout rien, `UpdateAsync` est le bon choix et les UserIds sont recommandés."
 ---
 
 Rien ne fait fuir un joueur plus vite qu’une progression perdue. Il a passé une heure à grimper jusqu’à l’étape 30 de l’Obby des Nuages, il revient le lendemain… et il est revenu au tout début. Dans cette leçon, tu construis une sauvegarde **fiable** : elle charge les données à l’arrivée, les garde en mémoire, les sauvegarde régulièrement et ne les écrase jamais par erreur.
@@ -178,6 +203,8 @@ Dans l’ordre, dans Studio :
 2. Toujours dans ServerScriptService, crée un **Script** nommé `GestionJoueurs` et colle son code (plus bas).
 3. Supprime le Script `Leaderstats` de la leçon 1 (clic droit › **Delete**).
 4. Active l’accès aux API (section précédente), puis lance un test : ton nom doit apparaître dans le tableau avec `Etape` et `Pieces` (à 0 la première fois). Pour vérifier que la sauvegarde fonctionne vraiment, suis le Défi en fin de leçon.
+
+Avec Claude Code, ces deux fichiers se demandent avec le prompt de l’encadré « Avec Claude Code », plus bas. Relis ensuite le code produit ligne par ligne avec les explications de cette section : c’est le code de ton jeu où une erreur coûte le plus cher.
 
 Le code utilise des **annotations de type**, comme `player: Player` ou `{ [string]: any }` (« une table dont les clés sont des textes et les valeurs n’importe quoi »). Elles sont facultatives en Luau : elles ne changent rien à l’exécution, mais aident Studio à repérer tes fautes de frappe.
 
@@ -486,6 +513,38 @@ Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUV
 <Astuce>
 Pour vérifier ta sauvegarde, ouvre le **Data Stores Manager** : dans le Creator Dashboard, sélectionne ton jeu, puis **Configurations › Data stores manager**. Tu peux y consulter tes DataStores et leurs clés, sans écrire une ligne de code. Pratique pour voir si `Joueur_` suivi de ton UserId contient bien tes pièces.
 </Astuce>
+
+<AvecClaudeCode>
+
+Demande à Claude Code le système de sauvegarde complet de cette leçon. Le prompt est long, et c’est voulu : chaque règle de fiabilité y figure (`UpdateAsync`, `pcall` et nouvelles tentatives, échec ≠ nouveau joueur, `BindToClose` avec la limite de 25 secondes, champ `version`, `Sauvegarder` qui ne renvoie `true` que si l’écriture a eu lieu). Avec un prompt vague comme « fais une sauvegarde », rien n’empêche l’IA d’utiliser `SetAsync` ou de traiter un échec de chargement comme un nouveau joueur, exactement les deux pièges de la leçon.
+
+<Prompt titre="Sauvegarde fiable (DonneesJoueurs)">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Je veux une sauvegarde fiable de l'étape, des pièces et (à la leçon suivante) de l'inventaire : aucun joueur ne doit perdre sa progression, même si le DataStore a un raté ou si le serveur ferme.
+Ce qui existe déjà : src/ServerScriptService/Leaderstats.server.luau crée leaderstats.Etape et leaderstats.Pieces (IntValue), avec IsPrimary sur Etape ; Progression.server.luau attend les leaderstats (WaitForChild("leaderstats", 60)) et ne les crée plus. CLAUDE.md impose un pcall autour de chaque appel au DataStore.
+Objectif : en revenant dans le jeu, le joueur retrouve son étape et ses pièces ; si ses données ne peuvent pas être chargées, il est expulsé avec un message poli et rien n'est jamais écrit par-dessus sa sauvegarde.
+Fichiers concernés : crée src/ServerScriptService/DonneesJoueurs.luau (ModuleScript) et src/ServerScriptService/GestionJoueurs.server.luau ; supprime Leaderstats.server.luau (GestionJoueurs le remplace et crée les leaderstats à partir des données chargées, IsPrimary compris). Ne modifie rien d'autre.
+Contraintes techniques : DataStoreService:GetDataStore("DonneesJoueurs_v1"), clé "Joueur_" .. player.UserId, une seule clé par joueur. Données par défaut : version = 1, etape = 0, pieces = 0, inventaire = {}, equipe = "". Une fonction completer ajoute les champs manquants aux anciennes sauvegardes et monte leur version au numéro actuel, sans jamais la baisser. Chaque requête passe par une fonction avecTentatives : pcall, 3 tentatives au maximum, attente de 2 ^ tentative + math.random() secondes entre deux essais, warn à chaque échec. Le module expose Charger(player), Obtenir(player) (la table en mémoire, pas une copie), Sauvegarder(player), Liberer(player) et SauvegarderTout(). Charger utilise GetAsync : nil lu = nouveau joueur (données par défaut) ; échec = renvoie nil SANS créer de session. Sauvegarder recopie les leaderstats dans la session puis écrit avec UpdateAsync (jamais SetAsync) ; la fonction de transformation n'attend jamais (ni task.wait, ni appel réseau), renvoie nil (écriture annulée) si la sauvegarde stockée a une version plus grande que celle du code, sinon renvoie les données et { player.UserId }. Sauvegarder renvoie true SEULEMENT si l'écriture a réellement eu lieu : false s'il n'y a pas de session, si toutes les tentatives échouent ou si l'écriture est annulée. Un compteur sauvegardesEnCours compte toutes les sauvegardes en cours, quelle que soit leur origine.
+Sécurité : seuls des Scripts serveur touchent au DataStore ; rien de ce qui est sauvegardé ne vient directement d'un RemoteEvent.
+Cas limites : chargement raté (Kick avec un message, pas de session, donc aucune écriture ensuite, ni au départ, ni en sauvegarde automatique, ni à la fermeture) ; joueur parti pendant le chargement (vérifie player.Parent, puis Liberer) ; fermeture du serveur : game:BindToClose appelle SauvegarderTout, qui lance en parallèle (task.spawn) la sauvegarde de toutes les sessions en mémoire (pas Players:GetPlayers()), puis attend que sauvegardesEnCours revienne à 0, pendant 25 secondes au maximum (Roblox n'attend que 30 secondes) ; dans Studio (RunService:IsStudio()), BindToClose ne sauvegarde pas, sauf si une constante SAUVEGARDER_EN_STUDIO vaut true (false par défaut) ; sauvegarde automatique toutes les 180 secondes + math.random(0, 30), chaque joueur dans son propre task.spawn ; joueurs déjà présents au démarrage du script.
+Vérification : sur ma copie de test (Enable Studio Access to API Services activé, SAUVEGARDER_EN_STUDIO temporairement à true), je change mes pièces, j'arrête puis je relance le test : elles sont revenues ; sans accès aux API, je suis expulsé et ma sauvegarde n'a pas changé ; selene et StyLua ne signalent aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- si `GetAsync` échoue, `Charger` renvoie `nil` **sans** remplir `sessions[player]` : un échec n’est jamais traité comme un nouveau joueur (règle 2) ;
+- `Sauvegarder` utilise `UpdateAsync`, pas `SetAsync`, et sa fonction de transformation ne contient ni `task.wait` ni appel réseau ;
+- `Sauvegarder` renvoie `false` dans les trois cas d’échec : suis chacun de ses `return` et vérifie qu’aucun ne dit `true` après un échec ;
+- `SauvegarderTout` parcourt les **sessions** (pas `Players:GetPlayers()`), lance des `task.spawn` et attend `sauvegardesEnCours` avec une limite de 25 secondes ;
+- la fonction de `BindToClose` teste `RunService:IsStudio()` et `SAUVEGARDER_EN_STUDIO` ;
+- le DataStore s’appelle `"DonneesJoueurs_v1"` et la clé utilise `player.UserId`, jamais `player.Name`.
+
+</AvecClaudeCode>
 
 ## Les limites à connaître
 

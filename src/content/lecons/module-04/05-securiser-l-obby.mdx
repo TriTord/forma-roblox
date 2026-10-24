@@ -62,6 +62,21 @@ quiz:
       - texte: "Ligne 8 : il faut écrire `etape = numero`"
       - texte: "Ligne 4 : il faut tester `numero == 0`"
     explication: "Avec `numero > etape.Value`, toucher le checkpoint 20 depuis l’étape 1 est accepté. En exigeant l’étape suivante uniquement, le serveur force le passage par chaque checkpoint, dans l’ordre."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code écrive le Script serveur de la boutique. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais une boutique sécurisée pour mon obby"
+    options:
+      - texte: "Crée une boutique ultra sécurisée et optimisée pour mon obby, avec toutes les protections anti-triche possibles."
+      - texte: "Crée Boutique.server.luau : sur AcheterObjet, le client envoie l’identifiant et le prix de l’objet ; vérifie que le prix est positif, puis retire-le des pièces du joueur."
+      - texte: |
+          Crée src/ServerScriptService/Boutique.server.luau (Script serveur) pour le RemoteEvent AcheterObjet.
+          Le client envoie seulement l’identifiant ; tout autre argument est ignoré.
+          Dans l’ordre : Validation.estTexte(id, 50), cooldown de 1 s par joueur, objet présent dans Catalogue, pas déjà possédé, solde réel de leaderstats.Pieces. Le prix vient toujours du Catalogue ; débit et ajout à l’inventaire sans aucune pause entre les deux.
+          Réponds avec FireClient(player, succes, message).
+          Vérification : avec Pieces mis à 9999 sur le client, l’achat de TrailAurore reste refusé.
+        correct: true
+      - texte: "Crée un LocalScript dans StarterGui qui vérifie le solde affiché et le prix avant d’envoyer l’achat au serveur, comme ça le serveur n’a rien à vérifier."
+    explication: "La bonne version dit où créer le script, ce que le client a le droit d’envoyer, chaque vérification dans l’ordre, d’où vient le prix, et comment prouver que la protection marche. La première est un vœu sans critère : l’IA choisira ses propres règles. La deuxième fait confiance au prix envoyé par le client. La quatrième place la protection côté client, où un tricheur la désactive."
 ---
 
 C’est l’heure de mettre en pratique tout le module. L’Obby des Nuages va gagner des **checkpoints validés par le serveur**, des **pièces impossibles à aspirer à distance** et une **boutique** où l’on ne peut ni choisir son prix ni dépenser des pièces qu’on n’a pas. On terminera par une séance de tests avec deux clients, dont un qui triche volontairement.
@@ -447,6 +462,38 @@ end)
 task.wait(5)
 acheterObjet:FireServer("TrailNuage")
 ```
+
+<AvecClaudeCode>
+
+Cette leçon touche cinq fichiers : demande d’abord un plan, puis fais écrire **un script à la fois** (Progression, puis Pieces, puis le Catalogue et la Boutique), en testant entre chaque. Le prompt est précis parce qu’il reprend chaque règle de sécurité de la leçon, avec ses chiffres, et donne les tests de la section suivante comme critère de réussite. Le LocalScript de démonstration n’a pas de nom dans la leçon : le prompt l’appelle `DemoAchat`.
+
+<Prompt titre="Sécuriser checkpoints, pièces et boutique">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier. Ensuite, on écrira un script à la fois, en testant entre chaque.
+
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Je sécurise la progression, les pièces et la boutique : le client ne fait que demander, le serveur valide tout.
+Ce qui existe déjà : src/ServerScriptService/Validation.luau (estTexte, estAPortee, creerCooldown…) ; dans default.project.json, les RemoteEvents AcheterObjet et Notification dans ReplicatedStorage.Remotes ; dans Studio, Workspace.Checkpoints (Parts ancrées "1", "2", "3"…) et Workspace.Pieces (Parts ancrées nommées "Piece"). Les conventions sont dans CLAUDE.md.
+Objectif : (1) l'étape n'avance que checkpoint par checkpoint, et le joueur réapparaît sur son dernier checkpoint ; (2) une pièce ramassée rapporte 1 pièce, disparaît pour tout le monde et revient 10 secondes plus tard ; (3) un achat de traînée n'aboutit que si le joueur a assez de pièces et ne possède pas déjà l'objet.
+Fichiers concernés : crée dans src/ServerScriptService les Scripts Progression.server.luau, Pieces.server.luau et Boutique.server.luau ; crée src/ReplicatedStorage/Modules/Catalogue.luau (TrailNuage 25, TrailSoleil 75, TrailAurore 150, chacun avec un nom affiché) et le LocalScript de démonstration src/StarterPlayer/StarterPlayerScripts/DemoAchat.client.luau (achète "TrailNuage" au bout de 5 secondes et affiche la réponse). Supprime src/ServerScriptService/Checkpoints.server.luau s'il existe (Progression le remplace). Ne modifie rien d'autre.
+Contraintes techniques : Progression crée les leaderstats (Folder "leaderstats" avec les IntValue Etape = 0 et Pieces = 0) à PlayerAdded et pour les joueurs déjà présents ; à CharacterAdded, il attend que le personnage soit dans le Workspace puis une image (task.wait()) avant de le placer avec PivotTo 4 studs au-dessus de son dernier checkpoint. Un seul script par dossier, qui parcourt ses Parts (pas un script par Part). Boutique répond sur AcheterObjet avec FireClient(player, succes, message).
+Sécurité : checkpoint accepté seulement si numero == Etape + 1 et si Validation.estAPortee(player, checkpoint.Position, 15) ; un passage en moins de 2 secondes est journalisé avec warn, jamais puni. Pièce : distance au plus 12 studs, cooldown de 0,2 seconde par joueur, pièce marquée indisponible AVANT d'ajouter la récompense ; la valeur d'une pièce est décidée par le serveur. Achat : le client envoie seulement l'identifiant ; dans cet ordre, Validation.estTexte(id, 50), cooldown de 1 seconde, objet présent dans Catalogue, objet pas déjà possédé, solde réel lu dans leaderstats.Pieces ; le prix vient TOUJOURS du Catalogue ; le débit et l'ajout à l'inventaire se suivent sans aucune pause (ni task.wait ni appel réseau). Tout argument en trop est ignoré.
+Cas limites : contact d'une Part qui n'appartient pas à un personnage ; joueur qui tombe sur un checkpoint précédent (il ne recule pas) ; deux joueurs sur la même pièce ; leaderstats ou inventaire pas encore prêts (message « Tes données ne sont pas encore prêtes. ») ; arguments piégés (nil, 0/0, une table, un texte de 10 000 caractères, un identifiant inconnu) ; joueur qui part (vide les tables indexées par Player).
+Vérification : en mode Server & Clients avec 2 clients, une pièce n'est ramassée qu'une fois ; mettre Pieces à 9999 dans la fenêtre Properties d'un client ne permet pas d'acheter TrailAurore ; un LocalScript temporaire TestTriche (arguments piégés, 20 achats en rafale, téléportation au checkpoint 3) ne fait gagner ni objet ni étape ; selene et StyLua ne signalent aucune erreur. Supprime TestTriche à la fin.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- dans Progression, la condition est bien `numero ~= etape.Value + 1` → `return`, et non `numero > etape.Value` ;
+- `Validation.estAPortee` est appelé dans Progression **et** dans Pieces : un contact `Touched` n’est pas une preuve ;
+- dans Pieces, la pièce est rendue indisponible (`disponible = false`) **avant** `pieces.Value += VALEUR_PIECE` ;
+- dans Boutique, `OnServerEvent` ne lit que `(player, idObjet)`, et le montant débité est `objet.prix`, lu dans `Catalogue[id]` ;
+- entre la vérification du solde et l’ajout de l’objet, aucune ligne ne fait de pause (`task.wait`, appel `…Async`) ;
+- aucun remote « de debug » ne reste dans le projet, et `TestTriche` a bien été supprimé.
+
+</AvecClaudeCode>
 
 ## Tester ses protections
 

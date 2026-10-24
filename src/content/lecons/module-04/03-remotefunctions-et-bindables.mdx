@@ -55,6 +55,20 @@ quiz:
       - texte: "Ligne 7 : une RemoteFunction ne peut pas renvoyer de table"
       - texte: "Ligne 6 : le paramètre `player` n’existe pas pour une RemoteFunction"
     explication: "On écrit `obtenirInventaire.OnServerInvoke = function(player) ... end`. `:Connect` sert aux événements (comme `OnServerEvent`), pas aux callbacks. Et oui, le premier paramètre est bien le joueur, comme pour `OnServerEvent`."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code crée la RemoteFunction qui donne au client la liste de ses traînées. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais une remotefunction pour l'inventaire"
+    options:
+      - texte: "Fais un système d’inventaire complet et professionnel avec des RemoteFunctions, des BindableEvents et tout ce qu’il faut."
+      - texte: "Crée la RemoteFunction ObtenirInventaire. Le serveur appelle InvokeClient pour demander au client ce qu’il possède, puis l’enregistre."
+      - texte: |
+          Ajoute la RemoteFunction ObtenirInventaire dans ReplicatedStorage.Remotes (default.project.json).
+          Serveur (src/ServerScriptService/Inventaire.server.luau) : un seul callback affecté avec OnServerInvoke = function(player), qui répond tout de suite (aucun task.wait) avec une copie de l’inventaire de CE joueur, et rien d’autre.
+          Client : InvokeServer dans un pcall, puis vérifier que le résultat est une table.
+          Vérification : l’Output affiche « Je possède 0 objet(s) ».
+        correct: true
+      - texte: "Crée la RemoteFunction ObtenirInventaire. Dans OnServerInvoke, attends 2 secondes avec task.wait que les données soient prêtes, puis renvoie la table des inventaires de tous les joueurs."
+    explication: "La bonne version précise l’emplacement, la forme du callback (`=`, un seul), qu’il doit répondre vite et ne renvoyer que l’inventaire du joueur qui demande, et comment vérifier. La première est trop vague. La deuxième met le serveur à la merci du client avec `InvokeClient` et laisse le client décider de son inventaire. La quatrième fait attendre le client et envoie à chacun les données de tout le monde."
 ---
 
 Avec un RemoteEvent, on envoie un message et on continue sa vie sans attendre de réponse. Mais parfois, le client a besoin d’une **réponse** : « quelles traînées est-ce que je possède ? ». C’est le travail de la **RemoteFunction**. Dans cette leçon, tu vas aussi découvrir pourquoi l’inverse (le serveur qui questionne un client) est risqué, et comment des scripts **du même côté** peuvent se parler avec les **Bindables**.
@@ -259,8 +273,37 @@ Les Bindables ne traversent **jamais** la frontière client/serveur. Un `Bindabl
 | Le serveur a besoin d’une réponse du client | Deux `RemoteEvent` (éviter `InvokeClient`) |
 | Deux scripts du même côté | `BindableEvent`, `BindableFunction` ou un ModuleScript |
 
+<AvecClaudeCode>
+
+Demande à Claude Code l’exemple « demander son inventaire ». Le prompt est précis parce qu’il impose les trois règles des RemoteFunctions saines (un seul callback affecté avec `=`, une réponse immédiate, le strict nécessaire renvoyé) et interdit `InvokeClient`. Les deux scripts n’ont pas de nom dans la leçon : le prompt leur en donne un.
+
+<Prompt titre="RemoteFunction ObtenirInventaire">
+
+```text
+Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). La future boutique doit savoir quelles traînées le joueur possède : le client pose la question, le serveur répond. L'inventaire vit sur le serveur (il sera sauvegardé au module 5).
+Ce qui existe déjà : le Folder ReplicatedStorage.Remotes, déclaré dans default.project.json. Les conventions sont dans CLAUDE.md.
+Objectif : au démarrage, le client demande son inventaire au serveur et affiche dans l'Output « Je possède N objet(s) : … ».
+Fichiers concernés : default.project.json (ajoute la RemoteFunction ObtenirInventaire dans ReplicatedStorage.Remotes) ; crée src/ServerScriptService/Inventaire.server.luau et src/StarterPlayer/StarterPlayerScripts/LireInventaire.client.luau. Ne modifie rien d'autre.
+Contraintes techniques : côté serveur, une table inventaires de type { [Player]: { string } }, remplie avec une liste vide à PlayerAdded et vidée à PlayerRemoving ; un seul callback, affecté avec obtenirInventaire.OnServerInvoke = function(player) ... end (jamais :Connect) ; il répond immédiatement (aucun task.wait, aucun appel réseau) et renvoie table.clone de la liste, une liste pure de textes. Côté client, InvokeServer() dans un pcall, puis typeof(resultat) == "table" avant d'utiliser le résultat. N'utilise ni InvokeClient ni OnClientInvoke.
+Sécurité : le serveur ne renvoie que l'inventaire du joueur qui demande (le player reçu en premier paramètre), jamais celui des autres joueurs, et il ignore tout argument envoyé par le client.
+Cas limites : inventaire pas encore créé pour ce joueur (renvoie une liste vide) ; échec de l'appel côté client (warn avec le message d'erreur, sans arrêter le script).
+Vérification : dans Studio, avec Rojo connecté, l'Output affiche « Je possède 0 objet(s) » ; si j'ajoute temporairement "TrailNuage" à l'inventaire de départ, il affiche « Je possède 1 objet(s) : TrailNuage » ; selene et StyLua ne signalent aucune erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `OnServerInvoke` est **affecté** avec `=` (pas `:Connect`), et un seul script du projet l’affecte ;
+- le callback ne contient ni `task.wait` ni appel réseau : le client attend pendant toute sa durée ;
+- la valeur renvoyée est l’inventaire de `player` uniquement, en copie (`table.clone`) ;
+- côté client, l’appel est dans un `pcall` et le résultat est vérifié avec `typeof(resultat) == "table"` ;
+- le mot `InvokeClient` n’apparaît nulle part dans le projet (fais une recherche dans VS Code).
+
+</AvecClaudeCode>
+
 <Defi>
-Crée la RemoteFunction `ObtenirInventaire` et les deux scripts de l’exemple. Côté serveur, ajoute temporairement `"TrailNuage"` dans l’inventaire de chaque nouveau joueur et vérifie que le LocalScript l’affiche. Ensuite, ajoute un `task.wait(3)` dans le callback serveur : observe que le LocalScript attend trois secondes avant d’afficher le résultat.
+Crée la RemoteFunction `ObtenirInventaire` et les deux scripts de l’exemple (toi-même, ou avec Claude Code et le prompt de l’encadré ci-dessus, puis relis-les avec les trois règles de la leçon). Côté serveur, ajoute temporairement `"TrailNuage"` dans l’inventaire de chaque nouveau joueur et vérifie que le LocalScript l’affiche. Ensuite, ajoute un `task.wait(3)` dans le callback serveur : observe que le LocalScript attend trois secondes avant d’afficher le résultat.
 </Defi>
 
 <Resume>
