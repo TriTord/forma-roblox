@@ -1,5 +1,7 @@
 # Module 08 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 08. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 94 affirmations / éléments vérifiés, 11 corrigés ou reformulés (dont 3 compléments : méthode `GetPlayerSegmentsAsync`, effet des anciens joueurs sur l’entonnoir de progression, 2 sources en leçon 02), 0 supprimé.
 Quiz : 25 questions de leçon + 15 questions d’examen vérifiées (bonnes réponses, distracteurs, numéros de ligne des 4 `trouve-le-bug`, calculs) ; 1 question d’examen corrigée (base de calcul de la D1).

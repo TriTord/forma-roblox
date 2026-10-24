@@ -1,5 +1,7 @@
 # Module 09 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 09. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Rédigé le 2026-10-24. Sources principales : la documentation officielle (create.roblox.com/docs), consultée en ligne et via le dépôt officiel `github.com/Roblox/creator-docs` (branche `main`, dernier commit le 2026-10-24, donc à jour), ainsi que le DevForum (annonce officielle de l'équipe Studio).
 
 ## Leçon 01 — Penser mobile d'abord

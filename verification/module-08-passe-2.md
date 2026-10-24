@@ -1,5 +1,7 @@
 # Module 07 — passe 2 (vérificateur indépendant : contre-vérification complète) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 07. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 102 affirmations vérifiées (5 leçons + examen), 14 corrigées ou reformulées, 0 supprimée ; quiz : 25 questions de leçon et 14 questions d'examen revérifiées (3 `trouve-le-bug` de leçon + 2 d'examen, numéros de ligne recomptés), 4 questions ou explications corrigées ; code : `node scripts/verifier-luau.mjs 07` → 10 extraits, 1 seul diagnostic = bug volontaire du quiz 5 de la leçon 03 (`player.GetJoinData()`). Correction de fond sur l'extrait de sauvegarde de la leçon 04 (incohérent avec le module 4). Build `bash scripts/build-verrou.sh` : code de sortie 0.
 

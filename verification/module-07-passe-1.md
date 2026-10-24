@@ -1,5 +1,7 @@
 # Module 06 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 06. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 Environ 150 affirmations vérifiées (6 leçons + examen), 22 corrigées / reformulées / précisées, 0 supprimée ; 6 sources ajoutées, 0 lien mort (32 liens testés : HTTP 200, les 3 pages de référence API qui renvoyaient 502 à curl ont été ouvertes avec succès via WebFetch).
 Quiz : 30 questions de leçon + 14 d’examen relues ; 0 bonne réponse fausse ; 1 question de leçon (L4 Q5) et 1 question d’examen (Q1) reformulées ; les numéros de ligne des 5 `trouve-le-bug` ont été vérifiés (un seul bug chacun).

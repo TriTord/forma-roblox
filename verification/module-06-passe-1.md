@@ -1,5 +1,7 @@
 # Module 05 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 05. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 72 affirmations ou éléments vérifiés sur les sources (27 pages ouvertes le 2026-10-24), dont 49 OK, 21 corrigés ou reformulés et 2 supprimés (remplacés). Quiz : 25 questions de leçon et 13 d'examen relues. 3 explications corrigées, 1 option corrigée, 1 extrait `trouve-le-bug` harmonisé (noms de champs) ; tous les numéros de ligne des 8 `trouve-le-bug` sont justes, avec un seul bug par extrait. Code : `verifier-luau 05` donne 16 extraits et 3 avec diagnostics, tous attendus (`Unknown require` sur des extraits isolés, `FunctionUnused` sur une fonction d'intégration). 3 corrections d'intégration avec les modules 3 et 4. Build `scripts/build-verrou.sh` : code 0.
 

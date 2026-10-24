@@ -1,5 +1,7 @@
 # Module 02 — passe 1 (vérificateur : faits + sources + quiz + code) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 02. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 94 affirmations ou éléments vérifiés, 14 corrigés ou reformulés, 0 supprimé, 7 compléments ajoutés (sources et précisions).
 Quiz : 35 questions de leçon + 14 questions d’examen vérifiées. 1 erreur factuelle corrigée (message d’erreur de l’examen q13). 1 énoncé reformulé (leçon 03, quiz 5 : le message « Script timeout » n’est pas documenté officiellement). Les 9 `trouve-le-bug` contiennent chacun un seul bug, à la ligne indiquée.

@@ -1,5 +1,7 @@
 # Module 10 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 10. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 94 affirmations ou éléments vérifiés (faits, liens, questions de quiz et d’examen, extraits de code), 24 corrigés ou reformulés, 0 supprimé.
 Quiz : 25 questions de leçon et 14 questions d’examen relues. 1 question réécrite (L03 Q3 : les règles « gameplay inexistant / Free UGC! / voix off » ne s’appliquent explicitement qu’aux **vidéos** de la page du jeu). 3 explications précisées (L03 Q1, L04 Q4, L05 Q2). Les 5 `trouve-le-bug` ont un seul bug et les bons numéros de ligne.

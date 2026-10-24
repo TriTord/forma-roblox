@@ -1,5 +1,7 @@
 # Module 04 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 04. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Date de vérification des faits : 2026-10-24. Sources principales : pages create.roblox.com/docs, vérifiées via WebFetch et via le dépôt officiel `github.com/Roblox/creator-docs` (source des pages create.roblox.com ; dernier commit sur error-codes-and-limits.md : 2026-10-06, sur leaderboards.md : 2026-09-23).
 
 Convention fil rouge appliquée (consigne du chef d'orchestre) : `leaderstats.Etape` = numéro du dernier checkpoint validé, 0 au départ ; checkpoint N accepté seulement si N == Etape + 1.

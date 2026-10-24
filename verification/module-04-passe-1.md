@@ -1,5 +1,7 @@
 # Module 03 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 03. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 71 affirmations ou éléments vérifiés (5 leçons, 25 questions de quiz de leçon, 15 questions d'examen, 34 extraits de code) : 8 corrigés ou reformulés, 0 supprimé. Quiz : 40 questions vérifiées, 1 extrait `trouve-le-bug` complété (sans décalage des numéros de ligne), 1 explication reformulée. Code : 1 API dépréciée remplacée (`LoadCharacter` → `LoadCharacterAsync`), 1 condition de course corrigée (réapparition au checkpoint), 1 script de test rendu déterministe. `verifier-luau 03` : 6 extraits avec diagnostics, tous attendus (require de ModuleScripts définis ailleurs, extrait d'examen volontairement partiel). Build : OK (code de sortie 0).
 

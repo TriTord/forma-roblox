@@ -1,5 +1,7 @@
 # Module 05 — passe 2 (vérificateur indépendant : contre-vérification) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 05. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 68 affirmations ou éléments revérifiés sur 24 pages sources rouvertes le 2026-10-24 (create.roblox.com/docs, about.roblox.com, nngroup.com, deceptive.design). 57 OK, 9 corrigés ou reformulés, 0 supprimé. Quiz : 25 questions de leçon et 13 d'examen relues une à une (bonnes réponses, distracteurs, explications, numéros de ligne des 7 `trouve-le-bug`). 3 questions modifiées : leçon 3 Q4 (nouvelle configuration), leçon 5 Q3 (« 5 au plus »), examen Q9 (noms des champs alignés sur le module 2, mêmes numéros de ligne). Code : alignement complet sur `Config` du module 2 (leçon 6) et sur les scripts des modules 3 et 4, plus un conflit de nom corrigé (`Recompenses` → `RecompensesEtapes`). `verifier-luau 05` : 17 extraits, 4 avec diagnostics, tous attendus (`Unknown require` sur des extraits isolés, `ImportUnused` sur l'extrait d'intégration de 2 lignes, `FunctionUnused` sur `verifierObjectifDuJour`, à appeler depuis le script « Pieces »). Le module `Config` complet de la leçon 3 ne produit aucun diagnostic. Build `scripts/build-verrou.sh` : code 0.
 

@@ -1,5 +1,7 @@
 # Module 08 — passe 2 (vérificateur indépendant : contre-vérification) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 08. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 102 affirmations ou éléments vérifiés, 9 corrigés ou reformulés, 0 supprimé.
 Quiz : 25 questions de leçon et 15 questions d’examen revérifiées une par une (bonne réponse, distracteurs, explication, calculs). Les 5 `trouve-le-bug` ont été recomptés ligne par ligne (leçon 04 : ligne 6 ; leçon 05 : ligne 8 ; examen : lignes 5, 7 et 6). Résultat : tous corrects, aucun changement.

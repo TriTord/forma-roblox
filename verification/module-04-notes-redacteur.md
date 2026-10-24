@@ -1,5 +1,7 @@
 # Module 03 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 03. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Toutes les pages ont été consultées le 2026-10-24 au format Markdown (`https://create.roblox.com/docs/en-us/<chemin>.md`, champ `last_updated` du 2026-10-23).
 
 ## Affirmations factuelles et sources

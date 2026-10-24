@@ -1,5 +1,7 @@
 # Module 05 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 05. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Toutes les pages ci-dessous ont été consultées le 2026-10-24.
 
 ## Affirmations factuelles et sources

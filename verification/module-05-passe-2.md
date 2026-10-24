@@ -1,5 +1,7 @@
 # Module 04 — passe 2 (contre-vérification indépendante) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 04. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 Environ 120 éléments vérifiés : affirmations, code, quiz, examen et liens. 16 ont été corrigés ou reformulés, 1 extrait de code a été supprimé (le Script « Checkpoints » affaibli de la leçon 01), et 2 sources ont été ajoutées.
 

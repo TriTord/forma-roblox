@@ -1,5 +1,7 @@
 # Module 09 — passe 2 (vérificateur indépendant : faits, code, cohérence fil rouge, quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 09. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 Environ 120 affirmations vérifiées, 11 éléments modifiés (6 corrigés, 4 reformulés, 1 supprimé). Aucune autre suppression.
 

@@ -1,5 +1,7 @@
 # Module 02 — passe 2 (vérificateur indépendant : sémantique Luau, code Roblox, quiz, progressivité, sources) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 02. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 102 affirmations ou éléments vérifiés. 12 corrigés, reformulés ou précisés, 0 supprimé.
 Quiz : 31 questions de leçon et 14 questions d'examen revérifiées. Elles sont toutes justes. Les 6 `trouve-le-bug` de leçon et les 3 de l'examen contiennent chacun un seul bug, et les numéros de ligne ont été recomptés un par un.

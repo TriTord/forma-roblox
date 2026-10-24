@@ -1,5 +1,7 @@
 # Module 09 — passe 1 (vérificateur : faits + sources + quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 09. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 Environ 110 affirmations vérifiées. 15 modifiées (8 corrigées, 7 reformulées), 0 supprimée, 1 source ajoutée.
 Quiz : 29 questions de leçon et 14 questions d’examen relues. 2 corrigées : une question ambiguë (L3, `ModelStreamingMode`) et un `trouve-le-bug` qui contenait un second bug (L2).

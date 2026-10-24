@@ -1,5 +1,7 @@
 # Module 06 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 06. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Rédaction : 2026-10-24. Sources principales : dépôt officiel `Roblox/creator-docs` (branche main, commit 4e795e6 du 2026-10-24, = source de create.roblox.com/docs), pages create.roblox.com/docs, help center (en.help.roblox.com, récupéré par curl), DevForum.
 
 ## Chiffres et faits (avec source)

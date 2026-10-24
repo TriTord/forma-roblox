@@ -1,5 +1,7 @@
 # Module 10 — passe 2 (vérificateur indépendant : contre-vérification) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 10. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 Environ 105 éléments vérifiés (affirmations factuelles, chiffres, 25 questions de leçon, 14 questions d'examen, 12 extraits Luau, 42 liens internes, 53 liens externes). 21 corrigés ou reformulés, 0 supprimé.
 Quiz : 1 question corrigée (L02 Q2 : l'extrait `trouve-le-bug` contenait un 2e bug), 3 explications précisées (L03 Q3, L04 Q3, examen Q13). Examen : extrait de la Q4 aligné sur la structure de données du module 4 (numéros de ligne inchangés).

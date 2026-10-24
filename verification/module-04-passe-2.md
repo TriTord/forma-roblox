@@ -1,5 +1,7 @@
 # Module 03 — passe 2 (vérificateur indépendant : code à l'exécution, sécurité, cohérence inter-modules) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 03. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 78 affirmations ou éléments vérifiés (5 leçons, 25 questions de quiz, 15 questions d'examen, 34 extraits de code, 24 liens `<Sources>`) : 9 corrigés ou reformulés, 0 supprimé. Quiz : 40 questions revérifiées, 1 option reformulée (ambiguïté sur InvokeClient) ; les 8 `trouve-le-bug` (1 par leçon, plus q6, q9 et q14 de l'examen) ont été recomptés ligne par ligne : tous corrects, aucun décalage introduit par mes modifications. Code : aucun bug d'exécution bloquant trouvé ; identifiants du `Catalogue` alignés sur le module 4 ; 4 indications ajoutées pour un débutant (remotes à créer, téléportations et détecteur). `verifier-luau 03` : 6 extraits avec diagnostics, tous attendus (require de ModuleScripts définis ailleurs ; q14 de l'examen volontairement partielle). Build : OK (code de sortie 0).
 

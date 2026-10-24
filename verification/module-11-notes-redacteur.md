@@ -1,5 +1,7 @@
 # Module 10 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 10. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Date de vérification des sources : 2026-10-24. Toutes les pages ci-dessous ont été consultées (WebFetch) ou leur existence vérifiée (HTTP 200).
 
 ## Affirmations factuelles et sources

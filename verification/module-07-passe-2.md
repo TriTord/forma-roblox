@@ -1,5 +1,7 @@
 # Module 06 — passe 2 (vérificateur indépendant : ProcessReceipt, chiffres, API, quiz) — 2026-10-24
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 06. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 ## Résumé
 Environ 160 affirmations revérifiées (6 leçons + examen), 14 corrigées / reformulées / précisées, 1 supprimée (DataStore séparé `AchatsTraites_v1`, remplacé) ; 1 question de quiz ajoutée (L3), 1 question d’examen réécrite (Q5) ; 32 liens testés (29 en HTTP 200 avec curl ; les 3 pages de référence API qui renvoient 502 à curl ont été confirmées par WebFetch et par leur YAML source).
 Quiz : 31 questions de leçon + 14 d’examen relues ; 0 bonne réponse fausse trouvée ; lignes des `trouve-le-bug` revérifiées (L2 Q4 ligne 6 ; L3 Q6 ligne 9 ; L4 Q4 ligne 9 ; L5 Q4 ligne 8 ; examen Q3 ligne 7 et Q7 ligne 7), un seul bug chacun.

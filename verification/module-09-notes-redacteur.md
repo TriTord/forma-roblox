@@ -1,5 +1,7 @@
 # Module 08 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 08. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Vérifications faites le 2026-10-24 sur la documentation officielle (pages create.roblox.com consultées via WebFetch, et sources Markdown/YAML identiques du dépôt officiel `github.com/Roblox/creator-docs`, branche `main`, derniers commits sur `production/analytics` du 2026-10-14).
 
 ## Affirmations factuelles et sources

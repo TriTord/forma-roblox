@@ -1,5 +1,7 @@
 # Module 02 — Notes du rédacteur pour les vérificateurs
 
+> **Note (phase IA, 2026-10-24)** : ce rapport a été écrit quand ce module portait le numéro 02. Un module 02 « Scripter avec l'IA » a ensuite été inséré : dans le texte ci-dessous, les numéros de modules et les chemins suivent l'**ancienne** numérotation (ancien module N ≥ 2 = nouveau module N + 1).
+
 Rédigé le 2026-10-24. Sources consultées le jour même (WebFetch). Les comportements purement Luau ont en plus été testés avec `C:/tmp/luau-tools/luau.exe` (interpréteur Luau local) : `//`, `%`, `continue`, itération générale, interpolation, `typeof`, `or` comme valeur par défaut, truthiness de `0`/`""`, `table.find/insert/remove/clone`, `#` sur dictionnaire (0), `ipairs` qui s'arrête au premier `nil`, références de tables, messages d'erreur (`attempt to index nil with 'Health'`, `attempt to concatenate string with nil`, `attempt to call a nil value`), coercition `"5" + 1 = 6`.
 
 ## Affirmations factuelles et sources
