@@ -55,10 +55,10 @@ Objectif : apprendre à créer un jeu Roblox en pilotant des IA de code (surtout
 - [x] 1. Renumérotation : module 02 inséré, anciens 02-10 → 03-11 (fichiers, URL, renvois, examens, rapports, migration de la progression v1 → v2)
 - [x] 2. Nouveaux composants : `<AvecClaudeCode>`, `<Prompt>` (bouton Copier), quiz `ameliore-le-prompt` ; PLAN.md et AUTHORING.md à jour
 - [x] 3. Veille factuelle (Claude Code et IA de code ; outils Roblox, MCP, Rojo, tests, règles IA) → `verification/phase-ia/veille-*.md`
-- [ ] 4. RÉDACTEURS module 02 : R1 (leçons 01-02), R2 (03-04), R3 (05-06 + `exemples/lave-montante/`), R4 (07-09), R5 (10 bibliothèque)
-- [ ] 5. ADAPTATEURS : A1 (module 03 réorienté lecture), A2 (04-05), A3 (06-08), A4 (01, 09-11), A5 (accueil, programme, FAQ, module 00, 01/05)
-- [ ] 6. Examen du module 02
-- [ ] 7. VÉRIFICATEURS passe 1 puis passe 2 (indépendants) — module 02 et encadrés « Avec Claude Code »
+- [x] 4. RÉDACTEURS module 02 : R1 (leçons 01-02), R2 (03-04), R3 (05-06 + `exemples/lave-montante/`), R4 (07-09), R5 (10 bibliothèque)
+- [x] 5. ADAPTATEURS : A1 (module 03 réorienté lecture), A2 (04-05), A3 (06-08), A4 (01, 09-11), A5 (accueil, programme, FAQ, module 00, 01/05)
+- [x] 6. Examen du module 02
+- [ ] 7. VÉRIFICATEURS passe 1 (FAIT, 5 lots, ~550 éléments) puis passe 2 (EN COURS, 4 lots) (indépendants) — module 02 et encadrés « Avec Claude Code »
 - [ ] 8. Corrections + re-vérification
 - [ ] 9. QA : build, tests existants + nouveaux (prompts, Copier, quiz, progression, navigation, liens, mobile)
 - [ ] 10. RELECTEUR FINAL (débutant total en IA de code)
@@ -67,13 +67,14 @@ Objectif : apprendre à créer un jeu Roblox en pilotant des IA de code (surtout
 ## Suivi
 | Lot | Rédaction | Vérif passe 1 | Vérif passe 2 |
 |---|---|---|---|
-| 02/01-02 (R1) | FAIT | EN COURS | |
-| 02/03-04 (R2) | FAIT | EN COURS | |
-| 02/05-06 (R3) | FAIT | EN COURS | |
-| 02/07-09 (R4) | EN COURS | | |
-| 02/10 (R5) | EN COURS | | |
-| Module 03 (A1) | FAIT | EN COURS | |
-| Modules 04-05 (A2) | FAIT | EN COURS | |
-| Modules 06-08 (A3) | FAIT | EN COURS | |
-| Modules 01, 09-11 (A4) | FAIT | EN COURS | |
-| Accueil, FAQ, 00 (A5) | FAIT | EN COURS | |
+| 02/01-02 (R1) | FAIT | FAIT | EN COURS |
+| 02/03-04 (R2) | FAIT | FAIT | EN COURS |
+| 02/05-06 (R3) | FAIT | FAIT | EN COURS |
+| 02/07-09 (R4) | FAIT | FAIT | EN COURS |
+| 02/10 (R5) | FAIT | FAIT | EN COURS |
+| Module 03 (A1) | FAIT | FAIT | EN COURS |
+| Modules 04-05 (A2) | FAIT | FAIT | EN COURS |
+| Modules 06-08 (A3) | FAIT | FAIT | EN COURS |
+| Modules 01, 09-11 (A4) | FAIT | FAIT | EN COURS |
+| Accueil, FAQ, 00 (A5) | FAIT | FAIT | EN COURS |
+| Examen 02 | FAIT | (passe 2 directe) | EN COURS |
