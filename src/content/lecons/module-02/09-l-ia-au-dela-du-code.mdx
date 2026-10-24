@@ -1,0 +1,264 @@
+---
+titre: L’IA au-delà du code
+description: Les outils IA officiels de Roblox pour les modèles 3D, textures et matériaux, et l’IA pour les visuels, la traduction et les textes du jeu, avec leurs limites et leurs règles.
+duree: 35
+objectifs:
+  - Connaître les outils IA officiels de Roblox pour les assets (maillages, modèles procéduraux, textures, matériaux, Avatar Setup) et leurs limites
+  - Utiliser l’IA pour les visuels, la traduction et les textes de la page du jeu sans tromper les joueurs
+  - Appliquer les règles d’utilisation (modération, droits, transparence) à tout contenu généré
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Tu veux ajouter à l’Obby des Nuages un PNJ « guide » piloté par un modèle d’IA générative, qui se souvient des conversations d’une session à l’autre. Que demandent les règles officielles de Roblox ? (plusieurs réponses possibles)"
+    options:
+      - texte: Afficher dès le début et pendant l’échange que le joueur parle à une IA, qui n’est pas humaine et peut se tromper
+        correct: true
+      - texte: Déclarer cette interaction dans le questionnaire Content Maturity
+        correct: true
+      - texte: Mettre le jeu en Restricted (18 ans et plus), puisque la mémoire d’une session à l’autre compte comme une interaction prolongée
+        correct: true
+      - texte: Rien de particulier si le PNJ utilise un modèle de Roblox, car il est déjà modéré
+    explication: "La page « Games with Generative AI » et les Creator Terms imposent une mention visible (IA, pas humain, peut se tromper), la déclaration dans le questionnaire de maturité, et le label **Restricted** pour les interactions prolongées, dont la **mémoire entre sessions**. La modération des API de Roblox ne dispense d’aucune de ces règles."
+  - type: qcm
+    question: "Avec un générateur d’images, tu crées une miniature qui montre un château volant et des dragons. Ton obby n’a ni château ni dragon. Que faut-il en penser ?"
+    options:
+      - texte: C’est autorisé, puisque c’est toi qui as écrit le prompt
+      - texte: C’est autorisé si tu précises dans la description que l’image a été générée par IA
+      - texte: C’est un visuel trompeur ; une miniature doit représenter ce que le joueur trouvera vraiment dans le jeu
+        correct: true
+      - texte: C’est interdit seulement si l’image est floue
+    explication: "Les Community Standards interdisent les métadonnées trompeuses (images comprises) utilisées pour gagner en visibilité : une miniature doit montrer ce que le joueur trouvera dans le jeu. Peu importe l’outil : c’est le contenu qui compte. Et un joueur déçu repart vite, ce qui nuit aussi à ta visibilité."
+  - type: vrai-faux
+    question: "Quand tu actives la traduction automatique, Roblox remplace aussi les traductions que tu as écrites toi-même."
+    reponse: false
+    explication: "D’après la documentation, la traduction automatique ne remplit que les entrées **vides** de la table de localisation et ne remplace jamais une traduction manuelle. Les traductions manuelles sont toujours affichées en priorité."
+  - type: qcm
+    question: "Tu veux un sol de « pierre de nuage » qui se répète sur toutes les grandes plateformes de l’obby. Quel outil officiel est le plus adapté ?"
+    options:
+      - texte: "Le Material Generator, qui crée des MaterialVariants qui se répètent (tiling)"
+        correct: true
+      - texte: Le Texture Generator, qui crée une texture adaptée à la forme d’un mesh précis
+      - texte: Avatar Setup
+      - texte: Le générateur de modèles procéduraux
+    explication: "La documentation du Texture Generator le dit elle-même : pour des images répétées sur de grandes surfaces (sol, chemin pavé), le **Material Generator** donne de meilleurs résultats. Le Texture Generator sert à habiller un asset 3D précis, en tenant compte de sa forme."
+  - type: ameliore-le-prompt
+    question: "Tu as sélectionné le mesh d’un coffre au trésor pour l’habiller avec le Texture Generator. Quelle version du prompt suit le mieux les conseils de la documentation ?"
+    prompt: "make it out of wood"
+    options:
+      - texte: "wood, very beautiful, best quality"
+      - texte: "Old pirate treasure chest made of dark weathered oak planks with visible wood grain, rusty iron bands and corner brackets, a golden lock in the center, slightly worn edges."
+        correct: true
+      - texte: "Make it like the wooden texture I generated earlier, but shinier and slightly transparent."
+      - texte: "Wooden chest, and also add a lid that opens and a handle on each side."
+    explication: "La documentation conseille des prompts détaillés (matériaux, couleurs, motifs, détails distinctifs) et prévient que les prompts courts et vagues donnent des résultats incohérents. Elle déconseille aussi de faire référence à une texture générée plus tôt, de décrire la brillance ou la transparence, et de demander à changer la forme du mesh."
+  - type: vrai-faux
+    question: "D’après les conditions d’utilisation de Roblox, tu conserves les droits que tu as sur tes prompts et sur les résultats des outils d’IA de Roblox, mais tu accordes à Roblox une licence pour les utiliser, y compris pour entraîner des modèles."
+    reponse: true
+    explication: "C’est ce que dit la section « AI Features » des Terms of Use. La licence ne modifie pas tes préférences de partage de données (Creator Hub › Settings › Data Sharing). Et tu restes responsable de ce que tu fais des résultats, par exemple s’ils ressemblent trop à l’œuvre de quelqu’un d’autre."
+---
+
+Jusqu’ici, le module parlait de code. Mais un jeu, c’est aussi des modèles 3D, des textures, une icône, des miniatures, une description, parfois des voix et des traductions. Roblox propose ses propres outils d’IA pour une partie de ce travail, et une IA comme Claude peut t’aider pour les textes. Cette leçon fait le point sur **ce qui existe vraiment** au moment de la rédaction (octobre 2026), sur les limites de chaque outil, et sur les règles qui s’appliquent à tout contenu généré.
+
+La règle d’or reste la même que pour le code : **plus ta demande est précise, meilleur est le résultat**, et c’est toi qui vérifies avant de publier.
+
+## Vue d’ensemble des outils officiels
+
+La page « AI on Roblox » de la documentation regroupe les outils d’IA de Roblox. Pour le contenu (hors code), voici ceux qui nous intéressent :
+
+| Outil | Ce qu’il fait | Où le trouver |
+|---|---|---|
+| Génération de maillages | un `MeshPart` texturé à partir d’un texte ou d’une image | Assistant (`/generate_mesh`), MCP (`generate_mesh`) |
+| Modèles procéduraux | un modèle fait de Parts simples, qui s’adapte à des attributs réglables | Assistant (`/generate_procedural_model`), MCP |
+| Texture Generator | une texture adaptée à la forme d’un mesh | onglet **Model › Texture**, Assistant (`/generate_texture`), MCP |
+| Material Generator | un matériau qui se répète (MaterialVariant) | menu **Window › 3D** |
+| Avatar Setup | transforme un modèle 3D en avatar animable (rig R15, cages…) | onglet **Avatar › Avatar Setup** |
+| Traduction automatique | traduit les textes du jeu, son nom et sa description | page **Localization** du Creator Hub |
+| Text-to-speech, speech-to-text, génération de texte | voix, transcription et texte générés **pendant le jeu** | API `AudioTextToSpeech`, `AudioSpeechToText`, `TextGenerator` |
+
+Certaines fonctions sont en bêta : la documentation indique de les activer dans **File › Beta Features**. Celles qui sont sorties officiellement sont disponibles par défaut.
+
+## Modèles 3D
+
+### Générer un maillage
+
+Dans l’Assistant de Studio (présenté en [leçon 1](/modules/02/panorama-des-outils-ia/)), tape `/generate_mesh` suivi d’une description, ou joins une image de référence (l’un ou l’autre, pas les deux dans la même demande). D’après la documentation :
+
+- si tu sélectionnes une Part avant d’écrire ta demande, l’Assistant s’en sert comme **boîte englobante** : le mesh tiendra dans cet espace ;
+- tu peux fixer un **nombre maximal de triangles** (10 000 par défaut) ; moins de triangles donne un style plus « low poly », et un modèle plus léger pour les mobiles ;
+- l’Assistant propose un découpage en parties nommées (jusqu’à huit), puis quatre aperçus avant le modèle final ; tu cliques sur **Add to place** pour l’insérer.
+
+<Prompt titre="Un mesh pour l’Obby des Nuages (Assistant)">
+
+```text
+/generate_mesh a small floating cloud island platform, flat walkable top made of soft white cloud, light blue crystal rocks underneath, stylized cartoon look, no characters, no text
+```
+
+Sélectionne d’abord une Part de la taille voulue pour servir de boîte englobante. Les exemples de la documentation sont en anglais, c’est pourquoi ce prompt l’est aussi (les langues prises en charge par l’Assistant ne sont pas listées officiellement).
+
+</Prompt>
+
+Si Claude Code est connecté au MCP de Studio, il dispose des mêmes générateurs (`generate_mesh`, `generate_material`, `generate_procedural_model`) : tu peux lui demander de générer puis de placer un modèle, avec un prompt aussi précis que pour du code (taille, emplacement dans `Workspace`, nom de l’objet).
+
+### Les modèles procéduraux
+
+Avec `/generate_procedural_model`, l’Assistant construit un objet à partir de Parts simples (blocs, sphères, cylindres, coins), avec des **attributs** que tu règles ensuite sans tout refaire : une pile de livres plus haute, une échelle plus longue. La documentation fixe une limite chiffrée : **50 modèles procéduraux par période glissante de 24 heures**.
+
+### Avatar Setup
+
+**Avatar Setup** prend un modèle 3D importé (par exemple depuis Blender) et ajoute ce qui manque pour en faire un avatar : armature R15, *skinning*, animation faciale, cages pour les vêtements superposés, découpage en 15 parties et points d’attache. Sélectionne le modèle, puis **Avatar › Avatar Setup**. Choisis le préréglage **Development Avatar** pour un PNJ de ton jeu, **Platform Avatar** pour vendre l’objet sur le Marketplace (plus strict). La documentation prévient que tout modèle importé passe en **file de modération**, et que la publication sur le Marketplace demande des frais et une modération.
+
+<Erreur titre="Accepter le premier modèle généré">
+Un modèle généré peut être trop détaillé (lourd sur mobile), mal proportionné, ou avoir une collision mal ajustée. Vérifie sa taille par rapport au personnage, son nombre de triangles et sa collision avant de le dupliquer partout. Tu verras au [module 10](/modules/10/reduire-le-lag/) pourquoi chaque MeshPart compte pour les performances.
+</Erreur>
+
+## Textures et matériaux
+
+### Texture Generator : habiller un objet précis
+
+Sélectionne un mesh, puis **Model › Texture**. Décris la texture voulue (ou ajoute une image de référence, utilisée comme guide de style), clique sur **Preview** : trois aperçus arrivent en une dizaine de secondes. Choisis ensuite un mode :
+
+- **Fast** : une texture 1K en moins de 30 secondes, pour prototyper ;
+- **Quality** : une texture 4K plus détaillée (PBR, via une `SurfaceAppearance`), qui peut prendre quelques minutes.
+
+La documentation est très claire sur les prompts, et c’est le message central de ce module : les prompts **courts et vagues** donnent des résultats incohérents ; décris les matériaux, couleurs, motifs et détails. Elle déconseille aussi de parler de la forme du mesh, d’une texture générée avant, ou de la transparence. Pendant la génération, ne modifie pas l’objet ; si le résultat ne te plaît pas, `Ctrl+Z` (`Cmd+Z` sur Mac) annule.
+
+### Material Generator : une surface qui se répète
+
+Pour un sol, un mur ou un chemin, ouvre **Window › 3D › Material Generator** (ou **Generate** dans le sélecteur de matériaux). Tape quelques mots-clés, clique sur **Generate**, règle **Studs Per Tile**, choisis un **Base Material** (qui donne les propriétés physiques), puis **Save & Apply Variant**. Conseils de la documentation : « top down » et « texture » pour un motif vu de près, « grayscale » pour pouvoir teinter le matériau ensuite.
+
+<Astuce titre="Un matériau pour tout l’obby">
+Pour l’Obby des Nuages, un seul MaterialVariant « pierre de nuage » appliqué à toutes les plateformes donne un style cohérent, et il est plus léger qu’une texture différente par objet. Garde le Texture Generator pour les quelques objets uniques : le coffre de la boutique, la ligne d’arrivée.
+</Astuce>
+
+## Icône et miniatures
+
+Au moment de la rédaction, nous n’avons trouvé **aucun outil officiel** de Roblox qui génère l’**icône** ou les **miniatures** de la page du jeu. Il existe en revanche un outil officiel pour la **publicité** : dans l’**Ads Manager**, l’option **AI generate** crée trois miniatures à partir d’une description, pour une campagne sponsorisée. L’Ads Manager est réservé aux 13 ans et plus avec une adresse e-mail vérifiée, chaque visuel passe en modération (en général sous 48 heures), et la publicité coûte de l’argent : on en parle au [module 8](/modules/08/lancer-et-publicite/).
+
+Tu peux aussi utiliser un générateur d’images externe. Dans tous les cas, les règles sont les mêmes que pour une image faite à la main ([module 8, leçon 2](/modules/08/icone-et-miniatures/)) :
+
+- l’image doit montrer **le vrai jeu** : pas de décor, de mécanique ou de graphismes qui n’existent pas ;
+- les Community Standards interdisent les métadonnées trompeuses (nom, description, **images**) ;
+- toute image envoyée sur Roblox est modérée, et tu es responsable du contenu, même généré.
+
+La méthode la plus sûre : pars de **vraies captures** de ton jeu (la caméra libre de Studio aide beaucoup), et sers-toi de l’IA pour des idées de composition ou de cadrage, pas pour inventer ce que le jeu ne contient pas.
+
+## Traduction
+
+### La traduction automatique de Roblox
+
+Roblox traduit automatiquement les textes de ton jeu. Sur la page **Localization** de ton jeu dans le Creator Hub (**Audience › Localization**) :
+
+1. dans **Settings**, active **Capture text from experience UI while users play** : Roblox collecte les textes de ton interface (seulement les objets dont `AutoLocalize` est activé) ;
+2. active **Use Translated Content** ;
+3. dans **Languages**, active les langues voulues, séparément pour **Experience Information** (le nom et la description du jeu) et **Experience Strings & Products** (les textes dans le jeu).
+
+Les limites, d’après la documentation :
+
+- des **quotas** (un initial, puis un mensuel), comptés par caractère **et** par langue : « hello » traduit en 10 langues compte pour 50 caractères ;
+- la capture peut prendre quelques jours (le **Translator Portal** te les montre ensuite) ; pour aller plus vite, active **Automatic Text Capture** dans Studio (**Window › Localization › Localization Tools**) pendant tes tests ;
+- certains textes ne sont pas capturés : les textes **dans les images**, les objets possédés par le joueur, les noms et descriptions de badges et de passes ;
+- la traduction automatique ne remplit que les entrées **vides** et ne remplace jamais une traduction manuelle. Si tu **verrouilles** une traduction, elle devient manuelle : elle reste soumise à la modération.
+
+Côté joueur, chacun a un réglage **Automatic Translations** dans ses paramètres de compte : s’il est activé, le nom, la description et les textes du jeu peuvent être traduits pour lui, même si tu n’as rien activé.
+
+### Faire relire, et s’aider de Claude
+
+Une traduction automatique peut être maladroite, surtout pour un texte court d’interface ou un jeu de mots. La documentation conseille de travailler avec des **locuteurs natifs** : onglet **Translators** pour inviter des joueurs, ou export de la table en `.csv` pour un traducteur extérieur. Tu peux aussi demander à Claude une **proposition** à partir de ce fichier, avec des contraintes précises :
+
+<Prompt titre="Proposer des traductions">
+
+```text
+Contexte : Obby des Nuages, jeu Roblox pour joueurs de 8 à 16 ans. Fichier joint : @localisation/table.csv (export de la table de localisation, colonne "fr" = langue source).
+Objectif : proposer une traduction anglaise et espagnole de chaque texte, dans les colonnes "en" et "es".
+Contraintes : ne modifie ni les clés ni la colonne source ; ne traduis pas les noms propres (Obby des Nuages, noms des traînées) ; chaque traduction reste au plus 20 % plus longue que l'original (les boutons sont petits) ; ton simple et amical, sans argot.
+Vérification : liste à part les textes ambigus ou les jeux de mots que tu n'as pas pu traduire fidèlement, pour que je les fasse relire par un locuteur natif.
+```
+
+</Prompt>
+
+Tu importes ensuite tes traductions **après les avoir relues** : elles deviennent des traductions manuelles, prioritaires sur la traduction automatique.
+
+## Description et textes de la page du jeu
+
+Roblox ne propose pas, à notre connaissance, d’outil officiel qui écrit la description du jeu. Une IA généraliste peut t’aider à trouver une accroche ou à reformuler, à condition de **relire chaque phrase** :
+
+- **ne promets rien** que le jeu ne contient pas (« 100 niveaux », « mises à jour chaque semaine », « Robux gratuits ») : ce sont des métadonnées trompeuses ;
+- pas de bourrage de mots-clés, qui peut faire rétrograder le jeu ([module 8, leçon 1](/modules/08/preparer-la-page-du-jeu/)) ;
+- vérifie les contrôles et les fonctionnalités annoncés en jouant à ton propre jeu.
+
+<Prompt titre="Brouillon de description">
+
+```text
+Contexte : Obby des Nuages, un parcours d'obstacles dans le ciel pour tous les âges. Contenu réel de la version actuelle : [NOMBRE] étapes avec checkpoints, des pièces à ramasser, une boutique de traînées cosmétiques achetées avec les pièces, des plateformes mobiles. Jouable sur ordinateur, mobile et tablette.
+Objectif : un brouillon de description de page de jeu, en français.
+Contraintes : une accroche de 160 caractères maximum ; puis 3 à 5 lignes sur ce qu'on fait dans le jeu ; puis les contrôles. N'invente aucune fonctionnalité absente de la liste ci-dessus, aucun chiffre, aucune promesse de mise à jour ou de récompense. Pas de répétition de mots-clés.
+Vérification : termine par la liste des affirmations de ton texte, pour que je vérifie chacune dans le jeu.
+```
+
+</Prompt>
+
+## Voix et texte pendant le jeu
+
+Ces outils fonctionnent **pendant la partie**, par du code :
+
+- **Text-to-speech** (`AudioTextToSpeech`) lit un texte à voix haute, par exemple les consignes du premier saut, ce qui aide aussi l’accessibilité. Sa propriété `AutoLocalize` traduit le texte dans la langue du joueur, parmi une liste de langues qui comprend le français. Limite de la référence : `1 + (6 × nombre de joueurs connectés)` requêtes par minute pour l’expérience, et 4 par seconde par joueur côté client ; du volume en plus s’achète via les Extended Services.
+- **Speech-to-text** (`AudioSpeechToText`) transforme la voix d’un joueur en texte (commandes vocales, sous-titres).
+- **La génération de texte** (`TextGenerator`) fait parler un PNJ avec un modèle de langage. La documentation impose de filtrer tout texte généré avec `TextService:FilterStringAsync()`, et les règles de la page « Games with Generative AI » s’appliquent (voir plus bas).
+
+Pour un premier obby, ces outils sont facultatifs. Si tu t’en sers, demande-les à Claude Code avec un prompt précis, et vérifie les limites de débit dans le code produit (un `pcall`, et que se passe-t-il quand la limite est atteinte ?).
+
+## Les règles d’utilisation
+
+### Modération
+
+Tout contenu, généré ou non, doit respecter les **Community Standards**. Avec les API de Roblox (`GenerationService`, `TextGenerator`), entrées et sorties sont modérées automatiquement. Avec un **outil extérieur**, c’est **toi** qui es responsable de ce que voient les joueurs (page « Games with Generative AI »). Les modèles importés, les images et les vidéos passent aussi par la modération de Roblox.
+
+### Droits
+
+La section « AI Features » des conditions d’utilisation de Roblox dit que tu conserves les droits que **tu as** sur tes prompts et sur les résultats, et que tu accordes à Roblox une licence pour les utiliser, y compris pour entraîner des modèles. Ça ne te donne pas de droits sur l’œuvre de quelqu’un d’autre : un modèle qui copie un personnage connu reste un problème de propriété intellectuelle, et les Community Standards prévoient le retrait des contenus contrefaisants signalés à Roblox.
+
+Côté données d’entraînement, la page « AI data sharing » indique que le partage est activé **par défaut** pour ce que tu publies depuis le 10 juillet 2024 ; tu le règles dans **Creator Hub › Settings › Data Sharing**. Les assets **gratuits** du Creator Store sont toujours partagés, sans possibilité de refus.
+
+### Honnêteté envers les joueurs
+
+- Les visuels et la description montrent **le vrai jeu**.
+- Une IA qui discute avec les joueurs doit être **annoncée comme une IA** dès le début et pendant l’échange (exemple officiel : « This is an AI-powered conversation, not human. It may make mistakes. »), avec un renvoi vers une aide qualifiée si un joueur exprime une détresse.
+- Toute interaction avec une IA générative se déclare dans le questionnaire **Content Maturity** ; une conversation sans fin ou une mémoire d’une session à l’autre impose le label **Restricted** (18 ans et plus).
+- Les conditions interdisent de faire croire qu’un résultat généré a été créé par un humain.
+
+<Attention titre="Disponibilité et gratuité, à vérifier avant de compter dessus">
+Au moment de la rédaction (octobre 2026), la documentation ne donne **aucun prix** pour les générateurs de Studio (maillages, modèles procéduraux, textures, matériaux, Avatar Setup). Les seules limites chiffrées trouvées sont les 50 modèles procéduraux par 24 heures, les quotas de traduction et les limites du text-to-speech (dont le volume supplémentaire est payant). Lors de la RDC 2026, Roblox a aussi annoncé pour fin 2026 une génération de scènes et des comportements dynamiques de PNJ : tant qu’ils ne sont pas documentés, ne construis pas ton projet autour. Ces outils changent vite : vérifie la page « AI on Roblox » avant de les utiliser.
+</Attention>
+
+<Defi>
+Ouvre la place de l’Obby des Nuages. Avec le **Material Generator**, crée un matériau « pierre de nuage » (essaie au moins deux prompts : un court, puis un détaillé avec « top down », « texture », des couleurs et un style) et applique la meilleure version à trois plateformes. Note ce qui a changé entre les deux prompts. Ensuite, fais écrire à Claude un brouillon de description avec le prompt ci-dessus, et vérifie chaque affirmation dans le jeu avant de l’utiliser.
+</Defi>
+
+<Resume>
+- Roblox propose des outils IA officiels pour les assets : maillages et modèles procéduraux (Assistant, MCP), Texture Generator (un objet précis), Material Generator (surfaces qui se répètent), Avatar Setup (avatars animables).
+- Comme pour le code, un prompt **détaillé** donne de meilleurs assets ; vérifie taille, poids et collisions de chaque modèle généré.
+- Nous n’avons trouvé aucun outil officiel qui génère l’icône ou les miniatures de la page (l’Ads Manager génère seulement des visuels publicitaires) : quel que soit l’outil, les visuels doivent montrer le vrai jeu.
+- La traduction automatique traduit textes, nom et description, avec des quotas, sans écraser tes traductions manuelles ; fais relire par des locuteurs natifs.
+- Modération, propriété intellectuelle, transparence sur l’IA et questionnaire de maturité s’appliquent à tout contenu généré : c’est toi le responsable.
+</Resume>
+
+<Sources>
+- [AI on Roblox — documentation Roblox (vue d’ensemble des outils)](https://create.roblox.com/docs/ai/accelerated-workflows)
+- [Assistant — guide officiel (maillages, modèles procéduraux, segmentation, limite de 50 par 24 h)](https://create.roblox.com/docs/assistant/guide)
+- [Texture Generator — documentation Roblox](https://create.roblox.com/docs/studio/texture-generator)
+- [Material Generator — documentation Roblox](https://create.roblox.com/docs/studio/material-generator)
+- [Avatar Setup — documentation Roblox](https://create.roblox.com/docs/avatar-setup)
+- [Connect to the Roblox Studio MCP server — documentation Roblox (outils de génération)](https://create.roblox.com/docs/studio/mcp)
+- [Ads Manager — documentation Roblox (AI generate, modération des visuels)](https://create.roblox.com/docs/production/promotion/ads-manager)
+- [Thumbnails — documentation Roblox](https://create.roblox.com/docs/production/publishing/thumbnails)
+- [Automatic translation — documentation Roblox](https://create.roblox.com/docs/production/localization/automatic-translations)
+- [Localization — documentation Roblox (réglage des joueurs, accès à la page Localization)](https://create.roblox.com/docs/production/localization)
+- [Work with translators — documentation Roblox](https://create.roblox.com/docs/production/localization/work-with-translators)
+- [AudioTextToSpeech — référence de l’API (limites, AutoLocalize)](https://create.roblox.com/docs/reference/engine/classes/AudioTextToSpeech)
+- [TextGenerator — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/TextGenerator)
+- [Games with Generative AI — documentation Roblox](https://create.roblox.com/docs/generative-AI)
+- [AI data sharing — documentation Roblox](https://create.roblox.com/docs/ai-data-sharing)
+- [Roblox Terms of Use — section AI Features](https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use)
+- [Community Standards — Roblox](https://about.roblox.com/community-standards)
+- [RDC26: What We Announced — annonce officielle sur le DevForum](https://devforum.roblox.com/t/rdc26-what-we-announced/4865880)
+</Sources>

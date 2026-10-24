@@ -1,0 +1,461 @@
+---
+titre: Déboguer avec l’IA
+description: Lis une erreur de l’Output et sa pile d’appels, donne à Claude Code tout ce qu’il lui faut, et suis une méthode qui évite de tourner en rond.
+duree: 40
+objectifs:
+  - Lire une erreur de l’Output (message, script, ligne, pile d’appels) et retrouver le fichier du projet Rojo
+  - Donner à l’IA un prompt de débogage complet (erreur, script, attendu, obtenu, reproduction, essais)
+  - Appliquer une méthode qui évite de tourner en rond (hypothèses, print ciblés, retour au dernier commit, /clear)
+  - Corriger de bout en bout des bugs Roblox typiques (personnage nil, attente infinie, DataStore en Studio)
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Dans l’Output, une erreur rouge est suivie d’un bloc entre `Stack Begin` et `Stack End`. Que t’indique la **première** ligne de ce bloc ?"
+    options:
+      - texte: Le premier script que le jeu a lancé au démarrage
+      - texte: Le script et la ligne où l’erreur s’est produite ; les lignes suivantes montrent qui a appelé ce code
+        correct: true
+      - texte: La ligne que l’IA a modifiée en dernier
+      - texte: Le plugin de Studio qui a provoqué l’erreur
+    explication: "La pile d’appels se lit de haut en bas : la première ligne est l’endroit exact où le code a planté (script + numéro de ligne, et le nom de la fonction s’il y en a une). Les lignes suivantes remontent vers les fonctions qui l’ont appelée. C’est exactement ce que l’IA a besoin de voir : colle toujours le bloc entier."
+  - type: ameliore-le-prompt
+    question: "Ton Script BonusVitesse affiche une erreur rouge. Quelle version du prompt donnera le meilleur débogage ?"
+    prompt: "mon script marche pas il y a une erreur rouge, corrige"
+    options:
+      - texte: "Corrige toutes les erreurs de mon jeu et réécris les scripts proprement pour qu’il n’y ait plus aucun bug."
+      - texte: |
+          Erreur complète copiée de l’Output :
+          ServerScriptService.BonusVitesse:6: attempt to index nil with 'Humanoid'
+          Stack Begin / Script 'ServerScriptService.BonusVitesse', Line 6 / Stack End
+          Fichier : @src/ServerScriptService/BonusVitesse.server.luau
+          Attendu : chaque joueur court à 20 dès son apparition. Obtenu : vitesse normale.
+          Pour reproduire : Play, l’erreur apparaît au chargement. Déjà essayé : rien.
+          Ne modifie rien : explique l’erreur, propose au plus 3 hypothèses et les print à ajouter pour confirmer la première.
+          Vérification : après correction, plus d’erreur en Play, et vitesse 20 même après une réapparition.
+        correct: true
+      - texte: "Voici l’erreur : attempt to index nil. Corrige vite, c’est urgent."
+      - texte: "Le Script BonusVitesse plante. Ajoute des pcall partout pour que l’erreur disparaisse."
+    explication: "La bonne version donne l’erreur **complète** (message, script, ligne, pile), le fichier, l’attendu et l’obtenu, la façon de reproduire, et demande un **diagnostic avant toute modification**, avec un critère de vérification. Un message tronqué oblige l’IA à deviner, « réécris tout » mélange tous les problèmes, et des `pcall` partout cachent l’erreur sans la corriger."
+  - type: trouve-le-bug
+    question: "Ce Script serveur (version simplifiée, sans les protections du module 4) doit faire monter l’étape. Aucune erreur dans l’Output, mais l’étape ne monte jamais. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+      local Workspace = game:GetService("Workspace")
+
+      for _, checkpoint in Workspace:WaitForChild("Checkpoints"):GetChildren() do
+      	checkpoint.Touched:Connect(function(partie)
+      		local player = Players:GetPlayerFromCharacter(partie.Parent)
+      		local leaderstats = player and player:FindFirstChild("leaderstats")
+      		local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+      		if etape and checkpoint.Name == etape.Value + 1 then
+      			etape.Value = etape.Value + 1
+      		end
+      	end)
+      end
+    options:
+      - texte: "Ligne 4 : `GetChildren` ne fonctionne pas dans une boucle `for`"
+      - texte: "Ligne 6 : `GetPlayerFromCharacter` renvoie toujours `nil` sur le serveur"
+      - texte: "Ligne 9 : `checkpoint.Name` est un texte (`\"2\"`) comparé à un nombre (`2`) : l’égalité est toujours fausse"
+        correct: true
+      - texte: "Ligne 10 : il faut écrire `etape.Value += 1`, sinon la valeur ne change pas"
+    explication: "En Luau, `\"2\" == 2` vaut `false` : un texte n’est jamais égal à un nombre. Il faut convertir avec `tonumber(checkpoint.Name)`. C’est un bug sans erreur rouge : c’est là qu’un `print` ciblé (`print(\"[DEBUG]\", checkpoint.Name, etape.Value + 1)`) fait gagner du temps. `etape.Value = etape.Value + 1` et `+= 1` font la même chose."
+  - type: vrai-faux
+    question: "Après `/clear` dans Claude Code, les fichiers que Claude a modifiés reviennent à leur état d’avant."
+    reponse: false
+    explication: "`/clear` vide seulement la **conversation** (le contexte). Les fichiers restent tels quels. Pour annuler du code, utilise Git (`git restore`, `git stash`) ou le menu de retour en arrière de Claude Code (`Esc` deux fois ou `/rewind`), qui ne suit pas les fichiers modifiés par des commandes du terminal."
+  - type: qcm
+    question: "Claude Code a proposé deux corrections pour le même bug, et l’erreur est toujours là. Que fais-tu ? (plusieurs réponses possibles)"
+    options:
+      - texte: Tu redemandes « corrige encore » jusqu’à ce que ça marche
+      - texte: Tu reviens au dernier état qui marchait (git diff, puis git restore ou git stash)
+        correct: true
+      - texte: Tu fais résumer ce qu’on a appris, tu tapes /clear et tu repars d’un prompt précis complété par ce résumé
+        correct: true
+      - texte: Tu demandes à l’IA d’expliquer le code ligne par ligne, sans rien modifier, pour changer d’angle
+        correct: true
+    explication: "La documentation de Claude Code le dit : après plus de deux corrections ratées sur le même problème, le contexte est encombré de pistes fausses. On revient à un état propre, on repart d’une session neuve avec un meilleur prompt, ou on change d’angle. Répéter « corrige » empile les tentatives ratées."
+  - type: qcm
+    question: "En Studio, le chargement des données échoue avec une erreur `403` (`StudioAccessToApisNotAllowed`). L’IA propose : « j’entoure `GetAsync` d’un `pcall` et, en cas d’échec, je renvoie une table de données vide ». Pourquoi est-ce une mauvaise correction ?"
+    options:
+      - texte: Parce que `pcall` ne fonctionne pas avec les DataStores
+      - texte: Parce que le jeu risque ensuite de sauvegarder ces données vides par-dessus les vraies, et que la vraie cause est un réglage de Studio
+        correct: true
+      - texte: Parce qu’une table vide ne peut pas être sauvegardée dans un DataStore
+      - texte: Parce que l’erreur 403 signifie que le DataStore n’existe pas
+    explication: "Le code 403 indique que l’accès aux API n’est pas activé dans Studio : la solution est un **réglage** (sur une copie de test), pas une modification du code. Le `pcall` est utile, mais en cas d’échec il ne faut **jamais** inventer des données vides : sinon la sauvegarde suivante écrase la progression réelle du joueur (règle vue au module 5)."
+---
+
+Ton prompt était précis, Claude Code a écrit le système, tu lances Play… et une ligne rouge apparaît dans l’Output. C’est normal : même avec l’IA, déboguer fait partie du travail. La bonne nouvelle, c’est qu’une IA de code est très efficace pour trouver une cause, **à condition** de lui donner les bonnes informations et de la diriger avec méthode. Sans méthode, elle tourne en rond : elle propose une correction, puis une autre, puis réécrit tout, et tu ne sais plus ce qui marchait.
+
+Dans cette leçon, tu apprends d’abord à lire une erreur, puis à la transmettre, puis une méthode pas à pas. On termine par trois bugs Roblox très courants, corrigés de bout en bout.
+
+## Lire une erreur dans l’Output
+
+Tu as découvert la fenêtre **Output** au module 1 ([Tester son jeu comme un pro](/modules/01/tester-son-jeu/)). Garde-la ouverte pendant chaque test : c’est là que Roblox écrit les `print`, les avertissements (en jaune ou orange, avec `warn`) et les erreurs (en rouge).
+
+### Les trois informations d’une erreur
+
+Voici une vraie erreur, telle que Studio l’affiche :
+
+```text
+ServerScriptService.BonusVitesse:6: attempt to index nil with 'Humanoid'
+Stack Begin
+Script 'ServerScriptService.BonusVitesse', Line 6
+Stack End
+```
+
+La première ligne contient trois informations :
+
+| Morceau | Signification |
+|---|---|
+| `ServerScriptService.BonusVitesse` | le **script** qui a planté, avec son chemin dans l’Explorer |
+| `:6:` | le **numéro de ligne** dans ce script |
+| `attempt to index nil with 'Humanoid'` | le **message** : on a essayé de lire `.Humanoid` sur quelque chose qui vaut `nil` (rien) |
+
+Quelques messages reviennent souvent. *attempt to index nil with 'X'* : l’objet devant `.X` n’existe pas. *is not a valid member of* : cet enfant ou cette propriété n’existe pas. *Infinite yield possible on* : un `WaitForChild` attend un objet qui n’arrive pas (c’est un avertissement, pas une erreur, mais le script reste bloqué).
+
+### La pile d’appels : Stack Begin, Stack End
+
+Sous le message, le bloc entre `Stack Begin` et `Stack End` s’appelle la **pile d’appels** (*call stack*). Elle se lit de haut en bas :
+
+- la **première ligne** est l’endroit exact où le code a planté. Si le code est dans une fonction nommée, Studio l’indique, par exemple `Script 'ServerScriptService.Progression', Line 3 - function surContact` ;
+- les **lignes suivantes** remontent vers les fonctions qui ont appelé ce code, jusqu’au point de départ.
+
+Quand un ModuleScript plante parce qu’un autre script lui a envoyé une mauvaise valeur, la pile montre les deux. C’est souvent la ligne du **dessous** qui contient la vraie cause.
+
+### Du nom dans l’Output au fichier sur ton PC
+
+Avec Rojo ([leçon 2](/modules/02/installer-un-workflow-pro/)), l’Output parle en noms Studio, et toi tu modifies des fichiers. La correspondance suit `default.project.json` :
+
+| Dans l’Output | Fichier du projet |
+|---|---|
+| `ServerScriptService.BonusVitesse` | `src/ServerScriptService/BonusVitesse.server.luau` |
+| `ServerScriptService.DonneesJoueurs` | `src/ServerScriptService/DonneesJoueurs.luau` (ModuleScript) |
+| `ReplicatedStorage.Modules.Catalogue` | `src/ReplicatedStorage/Modules/Catalogue.luau` |
+| `Players.TonPseudo.PlayerScripts.SurbrillanceCheckpoint` | `src/StarterPlayer/StarterPlayerScripts/SurbrillanceCheckpoint.client.luau` |
+
+Attention à la dernière ligne : pendant un test, Roblox **copie** les LocalScripts de StarterPlayerScripts dans le joueur. L’Output affiche donc `Players.<ton pseudo>.PlayerScripts…`, pas `StarterPlayer…`. Dans VS Code, ouvre le fichier puis va à la ligne indiquée avec `Ctrl+G`.
+
+<Astuce titre="Filtre l’Output">
+La fenêtre Output a un champ de recherche qui filtre les messages par texte, et des filtres par type (**Error**, **Warning**) et par contexte (**Client**, **Server**). Quand tu ajoutes des `print` de diagnostic, commence-les tous par la même étiquette, par exemple `[DEBUG]` : tu n’auras qu’à taper `DEBUG` dans le champ pour ne voir qu’eux.
+</Astuce>
+
+## Ce qu’il faut donner à l’IA
+
+Une IA de code ne voit ni ton écran ni ton Studio (sauf avec le MCP, voir plus bas). Elle ne sait que ce que tu lui écris. Un bon prompt de débogage contient **six informations** :
+
+1. **L’erreur complète copiée de l’Output** : le message ET toute la pile, sans rien couper ni reformuler. Sélectionne le texte dans l’Output et copie-le (`Ctrl+C` sur Windows, `Cmd+C` sur Mac).
+2. **Le script concerné**, ou plutôt son **chemin** dans le projet : `@src/ServerScriptService/BonusVitesse.server.luau`. Le `@` demande à Claude Code de lire le fichier lui-même.
+3. **Ce qui était attendu**, du point de vue du joueur.
+4. **Ce qui se passe vraiment** (y compris « rien, aucune erreur »).
+5. **Comment reproduire** : les étapes exactes (Play, toucher le checkpoint 2…).
+6. **Ce que tu as déjà essayé**, et le résultat. Sans ça, l’IA te repropose la même piste.
+
+Ajoute toujours une consigne qui change tout : **« ne modifie rien tout de suite, explique d’abord »**. Voici un modèle à copier. Il reprend le gabarit des prompts précis de la formation, avec les rubriques propres au débogage ; la [bibliothèque de prompts](/modules/02/bibliotheque-de-prompts/) en contient la même version.
+
+<Prompt titre="Diagnostiquer une erreur">
+
+```text
+Contexte : Obby des Nuages (projet Rojo). Le système [NOM_DU_SYSTEME] ne marche plus depuis [QUAND, ex. mon dernier commit].
+Erreur complète copiée depuis l'Output (le texte rouge ET toutes les lignes entre Stack Begin et Stack End) :
+[COLLE ICI L'ERREUR]
+Fichiers concernés : @[CHEMIN_DU_SCRIPT, ex. src/ServerScriptService/BonusVitesse.server.luau] ; lis aussi les fichiers cités dans la pile.
+Comportement attendu : [CE QUI DEVRAIT SE PASSER pour le joueur].
+Comportement obtenu : [CE QUI SE PASSE VRAIMENT].
+Pour reproduire : [ÉTAPES EXACTES dans Studio].
+Ce que j'ai déjà essayé : [ESSAIS ET RÉSULTATS, ou « rien »].
+Objectif : trouver la cause réelle, puis la corriger avec le plus petit changement possible.
+Contraintes techniques : ne modifie aucun fichier pour l'instant. 1) Explique l'erreur en deux phrases simples. 2) Propose au plus 3 hypothèses, de la plus probable à la moins probable. 3) Pour la première, dis-moi quel print ajouter (fichier, ligne, valeur affichée, préfixe [DEBUG]) pour la confirmer. Une seule hypothèse à la fois.
+Sécurité : la correction ne doit retirer aucune vérification côté serveur ni confier une décision au client.
+Vérification : quand la cause est confirmée et corrigée, retire les print [DEBUG] et dis-moi quoi refaire dans Studio pour prouver que l'erreur a disparu. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+Ton **CLAUDE.md** ([leçon 3](/modules/02/claude-code-de-a-a-z/)) rappelle déjà l’architecture, les conventions et les règles de sécurité : pas besoin de les répéter ici.
+
+<Erreur titre="Résumer l’erreur au lieu de la coller">
+« J’ai une erreur avec Humanoid » ou « ça marche pas » oblige l’IA à deviner. Elle va proposer une correction plausible… pour un autre bug. Le numéro de ligne, le nom exact du script et la pile sont souvent ce qui permet de trouver la cause en une seule réponse. Copie, ne paraphrase pas.
+</Erreur>
+
+## Quand le MCP de Studio est branché
+
+Si tu as connecté le serveur MCP de Studio à Claude Code ([leçon 2](/modules/02/installer-un-workflow-pro/)), Claude Code peut aller chercher certaines informations lui-même. La documentation officielle du serveur MCP liste notamment ces outils :
+
+| Outil | Ce qu’il fait | Modifie la place ? |
+|---|---|---|
+| `get_console_output` | lit la sortie de l’Output de Studio | non |
+| `get_studio_state` | indique si un test est en cours et quels data models sont disponibles (Edit, Client, Server) | non |
+| `start_stop_play` | lance ou arrête un test | oui (démarre un test) |
+| `script_read`, `script_grep` | lit un script, cherche un texte dans tous les scripts | non |
+| `search_game_tree`, `inspect_instance` | explore l’arborescence, affiche les propriétés et attributs d’un objet | non |
+| `execute_luau` | exécute du code Luau dans Studio (Edit, Client ou Server) | oui, potentiellement |
+| `screen_capture` | capture la vue de Studio | non |
+
+Tu peux alors écrire : « Lance un test, attends 5 secondes, lis la console avec `get_console_output`, arrête le test, puis donne-moi ton diagnostic sans rien modifier. » Pour vérifier un nom, plus besoin de deviner : « Avec `search_game_tree`, vérifie le nom exact du dossier des checkpoints dans Workspace. »
+
+<Attention titre="Le MCP agit sur ta place ouverte">
+La documentation de Roblox prévient que les clients MCP peuvent **lire et modifier** le contenu de tes places ouvertes. Des outils comme `execute_luau` ou `start_stop_play` changent quelque chose dans Studio : Claude Code te demandera la permission, lis bien ce qu’il veut exécuter. Enregistre ou publie une version de ta place avant de lui laisser faire de gros changements.
+</Attention>
+
+## La méthode pour ne pas tourner en rond
+
+### 1. Reproduire avant de corriger
+
+Avant de toucher au code, trouve une façon **sûre** de déclencher le bug : « Play, je touche le checkpoint 2, l’erreur apparaît ». Sans reproduction fiable, tu ne pourras jamais prouver qu’une correction marche. Après chaque correction, tu refais **exactement** les mêmes étapes : avant / après.
+
+### 2. Diagnostic d’abord, sans modifier
+
+Demande une explication et des hypothèses **avant** toute modification, comme dans le modèle ci-dessus. Tu peux aussi passer en **mode plan** (`Shift+Tab` jusqu’à `plan mode on`, ou commence ton message par `/plan`) : Claude lit et explore, mais ne modifie pas tes fichiers. Tu valides l’hypothèse avant qu’il corrige.
+
+### 3. Une hypothèse à la fois, avec des print ciblés
+
+Une hypothèse se **confirme** avant d’être corrigée. Le plus simple : un `print` (ou un `warn`, plus visible) au bon endroit, qui affiche la valeur suspecte.
+
+```luau
+-- Script « BonusVitesse » (src/ServerScriptService/BonusVitesse.server.luau)
+-- Ligne de diagnostic TEMPORAIRE, ajoutée avant la ligne qui plante
+local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player: Player)
+	-- Hypothèse : le personnage n'existe pas encore quand PlayerAdded se déclenche
+	print("[DEBUG BonusVitesse] Character au moment de PlayerAdded :", player.Character)
+end)
+```
+
+Si l’Output affiche `[DEBUG BonusVitesse] Character au moment de PlayerAdded : nil`, l’hypothèse est confirmée. Un seul changement à la fois : si tu modifies trois choses et que ça marche, tu ne sais pas laquelle a corrigé le bug (ni si les deux autres en ont créé un nouveau). N’oublie pas de retirer les `print` de diagnostic ensuite.
+
+### 4. Une limite de tentatives
+
+Fixe-toi une règle : **deux corrections ratées, on s’arrête**. La documentation de Claude Code le formule ainsi : si tu as corrigé Claude plus de deux fois sur le même problème dans une session, le contexte est encombré de pistes fausses ; tape `/clear` et repars avec un prompt plus précis qui intègre ce que tu as appris.
+
+### 5. Revenir au dernier état qui marchait
+
+C’est là que Git ([leçon 2](/modules/02/installer-un-workflow-pro/)) te sauve. Ces commandes sont les mêmes sous Windows et Mac, dans le terminal ouvert dans le dossier du projet (dans Claude Code, tu peux les taper précédées de `!`) :
+
+```bash
+git status                 # quels fichiers ont changé depuis le dernier commit ?
+git diff                   # le détail des lignes ajoutées (+) et retirées (-)
+git restore src/ServerScriptService/BonusVitesse.server.luau   # remet CE fichier comme au dernier commit
+git stash                  # met TOUS les changements non commités de côté…
+git stash pop              # … et les ressort plus tard si tu en as besoin
+git log --oneline          # la liste de tes commits
+```
+
+`git restore` efface définitivement les changements non commités du fichier : regarde d’abord `git diff`. `git stash` est plus prudent, puisqu’il garde les changements de côté. Claude Code a aussi son propre retour en arrière : `Esc` arrête une réponse en cours, et `Esc` deux fois (champ vide) ou `/rewind` ouvre un menu pour restaurer le code et/ou la conversation. Mais ces points de restauration ne suivent pas les fichiers modifiés par des commandes du terminal : ils ne remplacent pas Git. D’où la règle de la [leçon 5](/modules/02/decouper-un-gros-projet/) : un commit après chaque étape qui marche.
+
+### 6. `/clear`, puis repartir d’un résumé court
+
+Une longue conversation pleine d’essais ratés pousse l’IA à répéter les mêmes erreurs. Avant de vider le contexte, demande un résumé :
+
+<Prompt titre="Résumé avant /clear">
+
+```text
+Avant que je vide la conversation, résume en 6 lignes maximum : le bug (avec l'erreur exacte), comment le reproduire, les hypothèses écartées et pourquoi, ce qui a été vérifié avec certitude, et la piste la plus probable qui reste. Ne propose aucun code.
+```
+
+</Prompt>
+
+Copie ce résumé, tape `/clear`, puis colle-le au début d’un nouveau prompt de diagnostic. Les fichiers ne bougent pas avec `/clear` : seule la conversation repart de zéro (et la précédente reste récupérable avec `/resume`).
+
+### 7. Changer d’angle
+
+Si l’IA s’obstine, change la question. Demande-lui d’**expliquer le code ligne par ligne**, sans rien modifier, en disant pour chaque ligne ce qu’elle suppose (« ici, je suppose que `leaderstats` existe déjà »). Souvent, c’est en lisant cette explication que **toi** tu repères la supposition fausse. Tu peux aussi faire relire le script par un sous-agent, avec un regard neuf ([leçon 6](/modules/02/relire-et-tester-le-code-de-l-ia/)).
+
+### 8. Quand déboguer soi-même
+
+L’IA n’est pas toujours le chemin le plus court. Débogue toi-même quand :
+
+- le message est clair et la correction tient en un mot (une faute de frappe dans un nom, un objet absent de l’Explorer) ;
+- la cause est un **réglage de Studio**, pas du code (comme le cas 3 ci-dessous) ;
+- l’IA a échoué deux fois et tu as maintenant une idée précise ;
+- tu veux comprendre : corriger soi-même un bug simple est la meilleure façon d’apprendre à **lire** le code qu’on te propose.
+
+<Info>
+Lire une erreur, formuler une hypothèse et la vérifier avec un `print`, c’est exactement ce que fait un développeur expérimenté. L’IA va plus vite que toi pour lire beaucoup de code, mais c’est toi qui décides quelle piste suivre et qui vérifies le résultat dans Studio.
+</Info>
+
+## Cas réel 1 : `attempt to index nil with 'Humanoid'`
+
+**Le prompt de départ** demandait : « Crée un Script serveur qui donne une vitesse de 20 à chaque joueur ». Voici le code obtenu :
+
+```luau
+-- Script « BonusVitesse » (src/ServerScriptService/BonusVitesse.server.luau) : VERSION BOGUÉE
+local Players = game:GetService("Players")
+
+local VITESSE_DEPART = 20
+
+Players.PlayerAdded:Connect(function(player)
+	player.Character.Humanoid.WalkSpeed = VITESSE_DEPART
+end)
+```
+
+**L’erreur** (en Play) : `ServerScriptService.BonusVitesse:6: attempt to index nil with 'Humanoid'`, avec une pile d’une seule ligne (`Line 6`).
+
+**Le diagnostic.** On lit `.Humanoid` sur `player.Character`, et c’est `player.Character` qui vaut `nil`. Le `print` de diagnostic de la méthode le confirme. La cause : `PlayerAdded` se déclenche quand le joueur **rejoint**, avant que son personnage n’apparaisse. De plus, le personnage est recréé à chaque réapparition : même sans l’erreur, la vitesse serait perdue à la première chute.
+
+**Le code corrigé :**
+
+```luau
+-- Script « BonusVitesse » (src/ServerScriptService/BonusVitesse.server.luau) : VERSION CORRIGÉE
+local Players = game:GetService("Players")
+
+local VITESSE_DEPART = 20
+
+-- Applique la vitesse à un personnage qui vient d'apparaître
+local function appliquerVitesse(character: Model)
+	-- On attend le Humanoid (10 s au plus) au lieu de supposer qu'il est déjà là
+	local humanoid = character:WaitForChild("Humanoid", 10)
+	if humanoid and humanoid:IsA("Humanoid") then
+		humanoid.WalkSpeed = VITESSE_DEPART
+	end
+end
+
+local function surArrivee(player: Player)
+	-- CharacterAdded se déclenche à CHAQUE apparition, réapparitions comprises
+	player.CharacterAdded:Connect(appliquerVitesse)
+	-- Le personnage a pu apparaître avant que ce script ne s'occupe du joueur
+	if player.Character then
+		task.spawn(appliquerVitesse, player.Character)
+	end
+end
+
+Players.PlayerAdded:Connect(surArrivee)
+-- Joueurs déjà présents si le script démarre après eux (possible en test)
+for _, player in Players:GetPlayers() do
+	task.spawn(surArrivee, player)
+end
+```
+
+**La vérification.** Play : plus d’erreur, et le personnage court plus vite. Tombe dans le vide : après la réapparition, la vitesse est toujours de 20. Puis commit.
+
+## Cas réel 2 : `Infinite yield possible on 'Workspace:WaitForChild("Checkpoint")'`
+
+**Le prompt de départ** demandait un LocalScript qui met en surbrillance le prochain checkpoint, mais sans donner le nom exact du dossier. L’IA a deviné :
+
+```luau
+-- LocalScript « SurbrillanceCheckpoint »
+-- (src/StarterPlayer/StarterPlayerScripts/SurbrillanceCheckpoint.client.luau) : VERSION BOGUÉE (extrait)
+local Workspace = game:GetService("Workspace")
+
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoint")
+print("Checkpoints trouvés :", #dossierCheckpoints:GetChildren())
+```
+
+**Le symptôme.** Rien ne s’allume, et au bout de 5 secondes l’Output affiche un avertissement (pas une erreur rouge) :
+
+```text
+Infinite yield possible on 'Workspace:WaitForChild("Checkpoint")'
+Stack Begin
+Script 'Players.TonPseudo.PlayerScripts.SurbrillanceCheckpoint', Line 4
+Stack End
+```
+
+**Le diagnostic.** D’après la référence de l’API, `WaitForChild` attend **indéfiniment** l’enfant demandé ; au-delà de 5 secondes sans `timeOut`, il affiche cet avertissement. Le script est bloqué ligne 4 : rien après ne s’exécute. Ici, la cause est une faute de nom : le dossier s’appelle `Checkpoints`, avec un « s ». Avec le MCP, Claude Code peut le vérifier lui-même (`search_game_tree`). Autre cause possible côté client : avec le streaming d’instances, une Part lointaine peut ne pas encore exister chez le joueur ([module 10](/modules/10/streaming-d-instances/)).
+
+**Le code corrigé :**
+
+```luau
+-- LocalScript « SurbrillanceCheckpoint »
+-- (src/StarterPlayer/StarterPlayerScripts/SurbrillanceCheckpoint.client.luau) : VERSION CORRIGÉE
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local joueur = Players.LocalPlayer
+
+-- Nom exact du dossier (convention du projet) + délai maximal : jamais d'attente infinie silencieuse
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints", 10)
+if dossierCheckpoints == nil then
+	warn("[SurbrillanceCheckpoint] Dossier Workspace.Checkpoints introuvable : vérifie son nom dans l'Explorer")
+	return
+end
+
+local leaderstats = joueur:WaitForChild("leaderstats", 30)
+local etape = leaderstats and leaderstats:WaitForChild("Etape", 10)
+if not (etape and etape:IsA("IntValue")) then
+	warn("[SurbrillanceCheckpoint] leaderstats.Etape introuvable")
+	return
+end
+
+-- Un seul Highlight, déplacé sur le prochain checkpoint
+local surbrillance = Instance.new("Highlight")
+surbrillance.FillTransparency = 0.6
+
+local function mettreAJour()
+	-- Les checkpoints s'appellent "1", "2"… : on cherche celui de l'étape suivante
+	local prochain = dossierCheckpoints:FindFirstChild(tostring(etape.Value + 1))
+	surbrillance.Parent = prochain -- nil après le dernier checkpoint : la surbrillance disparaît
+end
+
+etape.Changed:Connect(mettreAJour)
+mettreAJour()
+```
+
+**La leçon pour tes prompts** : donne toujours les noms exacts (ils sont dans ton CLAUDE.md), et demande des `WaitForChild` avec un délai maximal et un `warn` explicite, plutôt qu’une attente infinie silencieuse.
+
+## Cas réel 3 : le DataStore qui échoue en Studio
+
+**Le prompt de départ** demandait « charge les pièces du joueur au démarrage ». L’IA a écrit un appel `GetAsync` direct, sans `pcall`. En Play dans Studio, l’Output affiche une erreur rouge qui contient le code **403**, et le script s’arrête.
+
+**Le diagnostic.** La page officielle des codes d’erreur des DataStores décrit le code `403` comme `StudioAccessToApisNotAllowed` : on ne peut pas utiliser les DataStores depuis Studio quand l’accès aux API n’est pas activé. Ce n’est **pas** un bug de logique : c’est un **réglage**. Si tu dis seulement « corrige l’erreur », l’IA risque de modifier le code au lieu de te parler du réglage.
+
+**La correction a deux parties.**
+
+1. **Le réglage** (vu au [module 5](/modules/05/datastores-fiables/)) : sur une **copie de test** publiée de ton jeu, **File › Experience Settings › Security**, active **Enable Studio Access to API Services**, puis **Save**. Jamais sur un jeu où de vrais joueurs ont des sauvegardes.
+2. **Le code**, qui doit survivre à un échec réseau (un DataStore peut toujours échouer, même en ligne) : `pcall`, message clair, et surtout **pas de données vides inventées**.
+
+```luau
+-- Extrait d'un Script serveur dans ServerScriptService : chargement protégé
+-- (la version complète, avec nouvelles tentatives, est au module 5)
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+
+local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
+
+-- Renvoie (succès, données). Données = nil pour un nouveau joueur.
+local function charger(player: Player): (boolean, any)
+	local succes, resultat = pcall(function()
+		return magasin:GetAsync("Joueur_" .. player.UserId)
+	end)
+	if not succes then
+		-- On affiche la VRAIE erreur (avec son code), on ne la cache pas
+		warn(`[Sauvegarde] Chargement impossible pour {player.Name} : {resultat}`)
+	end
+	return succes, resultat
+end
+
+Players.PlayerAdded:Connect(function(player: Player)
+	local succes, donnees = charger(player)
+	if not succes then
+		-- Surtout pas de données vides : elles écraseraient la vraie progression à la sauvegarde
+		return
+	end
+	print(`[Sauvegarde] Données de {player.Name} :`, donnees)
+end)
+```
+
+**La vérification.** Sans le réglage, l’Output affiche maintenant un avertissement lisible qui contient le code 403, et rien n’est écrasé. Avec le réglage activé sur la copie de test, les données s’affichent (`nil` la première fois : c’est un nouveau joueur).
+
+<Defi>
+Dans ton projet Rojo, crée `src/ServerScriptService/BonusVitesse.server.luau` avec la **version boguée** du cas 1. Fais un commit avant, pour pouvoir revenir en arrière. Lance Play et copie l’erreur complète. Écris ensuite le prompt « Diagnostiquer une erreur » en remplissant **toutes** les rubriques, et vérifie que Claude Code propose une explication et des hypothèses **sans** modifier le fichier. Valide l’hypothèse avec un `print` `[DEBUG]`, laisse-le corriger, puis vérifie la vitesse après une réapparition. Termine par `git diff` pour relire le changement, et commit.
+</Defi>
+
+<Resume>
+- Une erreur de l’Output donne le **script**, la **ligne** et le **message** ; la pile entre `Stack Begin` et `Stack End` commence par l’endroit qui a planté, puis remonte vers les appelants.
+- Avec Rojo, `ServerScriptService.Nom` correspond à `src/ServerScriptService/Nom.server.luau` (ou `Nom.luau`) ; les LocalScripts apparaissent sous `Players.<pseudo>.PlayerScripts`.
+- Donne à l’IA l’erreur **complète copiée**, le chemin du script, l’attendu, l’obtenu, comment reproduire et ce que tu as déjà essayé, et demande un **diagnostic avant toute modification**.
+- Méthode : reproduire, une hypothèse à la fois confirmée par un `print` ciblé, deux corrections ratées au maximum, puis retour au dernier commit (`git diff`, `git restore`, `git stash`) et `/clear` avec un résumé court.
+- Certaines causes ne sont pas du code (accès aux API dans Studio, nom d’objet dans l’Explorer) : lis le message avant de laisser l’IA réécrire quoi que ce soit.
+</Resume>
+
+<Sources>
+- [Output — documentation Roblox (filtres, source et numéro de ligne)](https://create.roblox.com/docs/studio/output)
+- [Debugging — documentation Roblox (pile d’appels, Developer Console)](https://create.roblox.com/docs/studio/debugging)
+- [Instance:WaitForChild — référence de l’API (attente, timeOut, avertissement après 5 s)](https://create.roblox.com/docs/reference/engine/classes/Instance#WaitForChild)
+- [Data store error codes and limits — documentation Roblox (code 403 StudioAccessToApisNotAllowed)](https://create.roblox.com/docs/cloud-services/data-stores/error-codes-and-limits)
+- [Connect to the Roblox Studio MCP server — documentation Roblox (liste des outils)](https://create.roblox.com/docs/studio/mcp)
+- [Best practices for Claude Code — documentation officielle (corriger plus de deux fois, /clear, rewind)](https://code.claude.com/docs/en/best-practices)
+- [Checkpointing — documentation Claude Code (limites du retour en arrière)](https://code.claude.com/docs/en/checkpointing)
+- [git restore — documentation officielle de Git](https://git-scm.com/docs/git-restore)
+- [git stash — documentation officielle de Git](https://git-scm.com/docs/git-stash)
+</Sources>

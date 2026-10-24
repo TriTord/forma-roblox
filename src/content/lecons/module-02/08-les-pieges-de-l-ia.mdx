@@ -1,0 +1,403 @@
+---
+titre: Les pièges de l’IA
+description: Repère les API inventées et le code obsolète, les failles de sécurité typiques du code généré, protège tes secrets et respecte les règles de Roblox et d’Anthropic.
+duree: 40
+objectifs:
+  - Reconnaître une API Roblox inventée ou obsolète et la vérifier avec luau-lsp et la référence officielle
+  - Repérer les failles de sécurité typiques du code généré par IA (confiance au client, prix venant du client, absence de cadence, loadstring, clés dans le code)
+  - Protéger ses secrets (clés d’API, cookie, webhooks, mots de passe) dans les prompts, le code et Git
+  - Connaître les règles officielles de Roblox sur l’IA et l’âge minimal pour utiliser Claude Code
+miseAJour: 2026-10-24
+quiz:
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur gère les achats de la boutique."
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local Catalogue = require(ReplicatedStorage.Modules.Catalogue)
+      local Validation = require(game:GetService("ServerScriptService"):WaitForChild("Validation"))
+      local peutAcheter = Validation.creerCooldown(1) -- 1 achat par seconde maximum
+
+      ReplicatedStorage.Remotes.AcheterObjet.OnServerEvent:Connect(function(player, idObjet, prix)
+      	if typeof(idObjet) ~= "string" or typeof(prix) ~= "number" or not Catalogue[idObjet] or not peutAcheter(player) then
+      		return
+      	end
+      	local pieces = player.leaderstats.Pieces
+      	if pieces.Value >= prix and not player:GetAttribute("Possede_" .. idObjet) then
+      		pieces.Value -= prix
+      		player:SetAttribute("Possede_" .. idObjet, true)
+      	end
+      end)
+    options:
+      - texte: "Ligne 4 : un délai d’une seconde bloque les achats des joueurs honnêtes"
+      - texte: "Ligne 7 : `typeof` n’existe pas en Luau, il faut `type`"
+      - texte: "Ligne 11 : le prix comparé puis retiré (`prix`) est choisi par le client, au lieu de `Catalogue[idObjet].prix`"
+        correct: true
+      - texte: "Ligne 13 : les attributs posés par le serveur ne sont pas visibles par le client"
+    explication: "Le serveur vérifie le type, l’existence de l’objet et la cadence, mais il utilise le prix **envoyé par le client**. Un tricheur envoie `0` (objet gratuit) ou `-1000` (il gagne des pièces). Le prix doit toujours être lu côté serveur, dans `Catalogue`. `typeof` existe bien en Luau, et les attributs posés par le serveur sont répliqués aux clients."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script, placé dans une Part de bonus, doit accélérer le joueur qui la touche. L’Output affiche une erreur dès le premier contact."
+    code: |
+      local Players = game:GetService("Players")
+
+      local plaque = script.Parent
+      local VITESSE_BONUS = 32
+
+      plaque.Touched:Connect(function(partie)
+      	local personnage = partie.Parent
+      	local humanoid = personnage and personnage:FindFirstChildOfClass("Humanoid")
+      	if humanoid and Players:GetPlayerFromCharacter(personnage) then
+      		humanoid:SetWalkSpeed(VITESSE_BONUS)
+      	end
+      end)
+    options:
+      - texte: "Ligne 6 : `Touched` n’existe pas, il faut `Collided`"
+      - texte: "Ligne 8 : `FindFirstChildOfClass` ne trouve pas les Humanoid"
+      - texte: "Ligne 10 : la méthode `SetWalkSpeed` n’existe pas ; on écrit la propriété `humanoid.WalkSpeed = VITESSE_BONUS`"
+        correct: true
+      - texte: "Ligne 9 : `GetPlayerFromCharacter` ne s’utilise que dans un LocalScript"
+    explication: "C’est une **hallucination d’API** typique : le nom semble logique, mais `Humanoid` n’a pas de méthode `SetWalkSpeed`. La vitesse est une propriété, `WalkSpeed`. luau-lsp en mode strict souligne ce genre d’erreur, et la référence de `Humanoid` permet de vérifier en dix secondes. Les autres lignes sont correctes."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce LocalScript (StarterCharacterScripts) joue l’animation de victoire. Quelle ligne utilise une API dépréciée ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local personnage = script.Parent
+      local humanoid = personnage:WaitForChild("Humanoid") :: Humanoid
+      local victoire = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Victoire") :: RemoteEvent
+
+      local animation = Instance.new("Animation")
+      animation.AnimationId = "rbxassetid://0" -- remplace 0 par l'ID de ton animation publiée
+      local piste = humanoid:LoadAnimation(animation)
+
+      victoire.OnClientEvent:Connect(function()
+      	piste:Play()
+      end)
+    options:
+      - texte: "Ligne 4 : `WaitForChild` est déprécié, il faut `FindFirstChild`"
+      - texte: "Ligne 7 : `Instance.new(\"Animation\")` est déprécié"
+      - texte: "Ligne 9 : `Humanoid:LoadAnimation` est déprécié ; il faut passer par l’`Animator` du Humanoid"
+        correct: true
+      - texte: "Ligne 11 : `OnClientEvent` est remplacé par `OnServerEvent` dans un LocalScript"
+    explication: "La référence de `Humanoid` indique que `LoadAnimation` est déprécié au profit de `Animator:LoadAnimation()`. On récupère l’Animator (`humanoid:WaitForChild(\"Animator\")`) et on charge la piste dessus. Le reste est correct : un LocalScript écoute bien `OnClientEvent`."
+  - type: qcm
+    question: "Lesquels de ces éléments ne doivent JAMAIS se retrouver dans un prompt, ni dans le code du projet ? (plusieurs réponses possibles)"
+    options:
+      - texte: Le message d’erreur complet copié de l’Output
+      - texte: La valeur de ton cookie `.ROBLOSECURITY`, « pour que l’IA teste une API »
+        correct: true
+      - texte: Une clé d’API Open Cloud écrite en clair dans un script
+        correct: true
+      - texte: L’URL complète du webhook Discord de ton serveur
+        correct: true
+      - texte: "Le chemin `src/ServerScriptService/Boutique.server.luau`"
+    explication: "Le cookie permet d’agir sur ton compte Roblox sans mot de passe, une clé Open Cloud vaut un mot de passe selon la documentation, et un webhook Discord permet de poster sans authentification : ce sont des **secrets**. Une erreur de l’Output et le chemin d’un fichier, eux, sont exactement ce que l’IA a besoin de connaître."
+  - type: vrai-faux
+    question: "Le global `workspace` (en minuscules) est déprécié : le code généré par IA qui l’utilise est obsolète."
+    reponse: false
+    explication: "D’après la référence officielle, le global `workspace` est simplement une référence au service Workspace et n’est pas déprécié. Ce qui l’est, c’est la propriété `game.workspace` (en minuscules). Les exemples de la documentation préfèrent `game:GetService(\"Workspace\")`, mais `workspace` reste valide. Vérifier avant d’accuser l’IA, c’est aussi ça, ne pas se faire piéger."
+  - type: qcm
+    question: "Claude Code utilise `MarketplaceService:GetProductInfo()`. Tu ne connais pas cette méthode. Quelle est la meilleure réaction ?"
+    options:
+      - texte: Tu lui fais confiance, c’est une IA entraînée sur beaucoup de code Roblox
+      - texte: "Tu cherches la méthode dans la référence officielle (create.roblox.com/docs/reference/engine) : elle y est marquée dépréciée, remplacée par `GetProductInfoAsync`"
+        correct: true
+      - texte: Tu supprimes la ligne, puisque tu ne la comprends pas
+      - texte: Tu demandes à l’IA si elle est sûre, et tu acceptes si elle répond oui
+    explication: "La référence officielle est la seule source qui tranche. Ici, elle indique que `GetProductInfo` est dépréciée et remplacée par `GetProductInfoAsync`. Une IA peut répondre « oui, j’en suis sûre » à tort : demande-lui plutôt le lien vers la page de référence, et ouvre-le."
+---
+
+Une IA de code écrit vite et avec assurance. C’est justement le piège : un code faux est présenté avec le même aplomb qu’un code juste. Dans la [leçon 6](/modules/02/relire-et-tester-le-code-de-l-ia/), tu as appris à relire ; dans la [leçon 7](/modules/02/deboguer-avec-l-ia/), à déboguer. Ici, on fait le tour des pièges qu’on retrouve **le plus souvent** dans du code Roblox généré par IA, puis des règles à respecter pour tes secrets, pour Roblox et pour Anthropic.
+
+## Piège 1 : les API inventées (hallucinations)
+
+Une **hallucination**, c’est quand l’IA invente quelque chose qui n’existe pas, avec un nom qui paraît logique. Pour Roblox, ça donne trois familles d’erreurs :
+
+- **une méthode ou une propriété inventée** : `Players:GetPlayerByName("Bob")`, `humanoid:SetWalkSpeed(32)`… ;
+- **un mélange avec un autre moteur** : des habitudes de Unity (`GetComponent`, `transform.position`) ou d’autres moteurs de jeu ;
+- **un mélange avec le Lua standard** : Luau descend de Lua 5.1, mais Roblox ne fournit pas la bibliothèque `io` (pas d’accès aux fichiers) et `os` y est très réduite (pas de `os.execute`).
+
+```luau
+-- Code VOLONTAIREMENT FAUX, typique d'une hallucination : ne pas copier
+local Players = game:GetService("Players")
+
+local joueur = Players:GetPlayerByName("Bob") -- n'existe pas : Players:FindFirstChild("Bob")
+print(joueur)
+
+Players.PlayerAdded:Connect(function(player: Player)
+	player.CharacterAdded:Connect(function(personnage: Model)
+		local humanoid = personnage:WaitForChild("Humanoid") :: Humanoid
+		humanoid:SetWalkSpeed(32) -- n'existe pas : humanoid.WalkSpeed = 32
+	end)
+end)
+```
+
+### Comment les détecter
+
+**1. luau-lsp, en mode strict.** L’extension luau-lsp ([leçon 2](/modules/02/installer-un-workflow-pro/)) connaît toutes les classes Roblox. Mais attention, nous l’avons testé (luau-lsp 1.70.1, octobre 2026) : sur l’extrait ci-dessus, dans le mode par défaut, elle ne signale **rien**. En mode **strict**, elle souligne les deux méthodes inventées :
+
+```text
+TypeError: Key 'GetPlayerByName' not found in external type 'Players'
+TypeError: Key 'SetWalkSpeed' not found in external type 'Humanoid'
+```
+
+Pour activer le mode strict sur un fichier suspect, ajoute `--!strict` en toute première ligne. Pour tout le projet, crée à la racine un fichier `.luaurc` :
+
+```json
+{
+	"languageMode": "strict"
+}
+```
+
+Le mode strict signale aussi d’autres problèmes de types : c’est un bon filet, à condition de lire les messages au lieu de les faire taire.
+
+**2. La référence officielle.** Toute classe Roblox a sa page sur [create.roblox.com/docs/reference/engine](https://create.roblox.com/docs/reference/engine) : méthodes, propriétés, événements, et une mention **Deprecated** quand c’est obsolète. Si une méthode n’y est pas, elle n’existe pas.
+
+**3. Demander la source.** Demande à l’IA « donne-moi le lien de la page de référence pour chaque API Roblox que tu utilises », puis **ouvre les liens**. Avec le MCP de Studio, Claude Code dispose d’un outil `http_get` qui lit la documentation Roblox : tu peux exiger qu’il vérifie lui-même. Et ton CLAUDE.md peut contenir la règle : « si tu n’es pas sûr qu’une API Roblox existe, dis-le au lieu de l’inventer ».
+
+<Astuce titre="Le test des dix secondes">
+Pour chaque nom d’API que tu ne connais pas dans un code généré, tape-le dans la recherche de la documentation Roblox. Dix secondes par nom, c’est beaucoup moins long que de déboguer une méthode qui n’a jamais existé.
+</Astuce>
+
+## Piège 2 : le code obsolète
+
+Les IA ont appris sur des années de tutoriels, dont beaucoup sont anciens. Elles proposent donc souvent des API **dépréciées** : elles marchent parfois encore, mais Roblox demande de ne plus les utiliser pour du nouveau code. Voici une liste vérifiée sur la référence officielle (octobre 2026) :
+
+| Obsolète (marqué Deprecated) | À utiliser |
+|---|---|
+| `wait()`, `spawn()`, `delay()` | `task.wait()`, `task.spawn()`, `task.delay()` |
+| `Player:LoadCharacter()` | `Player:LoadCharacterAsync()` |
+| `Humanoid:LoadAnimation()` | `Animator:LoadAnimation()` |
+| `BodyVelocity`, `BodyPosition`, `BodyGyro`, `BodyForce`, `BodyAngularVelocity` | `LinearVelocity`, `AlignPosition`, `AlignOrientation`, `VectorForce`, `AngularVelocity` |
+| `BasePart.Velocity` | `BasePart.AssemblyLinearVelocity` |
+| `MarketplaceService:GetProductInfo()` | `MarketplaceService:GetProductInfoAsync()` |
+| `Model:SetPrimaryPartCFrame()` | `PVInstance:PivotTo()` |
+| `Instance:Remove()` | `Instance:Destroy()` |
+| `game.workspace` (propriété en minuscules) | `game:GetService("Workspace")` |
+| service `Chat` | `TextChatService` |
+
+<Erreur titre="Corriger ce qui n’est pas faux">
+Ne transforme pas tout en « obsolète ». Le global `workspace` n’est **pas** déprécié (seul `game.workspace` l’est). `Instance.new("Part", parent)` n’est pas déprécié, seulement **déconseillé** : la documentation recommande de régler `Parent` en dernier. `TeleportService:Teleport()` n’a pas le tag Deprecated, même si la doc renvoie vers `TeleportAsync()`. Et `PromptProductPurchase`, `ProcessReceipt` ou `RunService.Heartbeat` sont parfaitement actuels.
+</Erreur>
+
+Voici à quoi doit ressembler du code moderne :
+
+```luau
+-- LocalScript « AnimationVictoire » dans StarterPlayer > StarterCharacterScripts
+-- Version moderne : Animator:LoadAnimation et task.delay, aucune API dépréciée
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local personnage = script.Parent
+local humanoid = personnage:WaitForChild("Humanoid") :: Humanoid
+-- L'Animator est l'objet qui joue les animations du Humanoid
+local animator = humanoid:WaitForChild("Animator") :: Animator
+local victoire = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Victoire") :: RemoteEvent
+
+local animation = Instance.new("Animation")
+animation.AnimationId = "rbxassetid://0" -- remplace 0 par l'ID de ton animation publiée (module 5)
+local piste = animator:LoadAnimation(animation)
+
+victoire.OnClientEvent:Connect(function()
+	piste:Play()
+	-- task.delay, jamais delay : on arrête l'animation au bout de 3 secondes
+	task.delay(3, function()
+		piste:Stop()
+	end)
+end)
+```
+
+**Ce que les outils détectent, ou pas.** Dans nos tests (octobre 2026), luau-lsp signale `wait`, `spawn`, `delay` et `LoadCharacter` comme dépréciés, même hors mode strict. `Humanoid:LoadAnimation` n’a été signalé qu’en mode **strict**, et rien n’a été signalé pour un `Instance.new("BodyVelocity")` ni pour `GetProductInfo` dans un fichier non strict. selene 0.32.0, lui, a signalé `game.workspace` mais pas `wait`. Conclusion : les outils aident, la liste ci-dessus et la référence restent indispensables. Ton CLAUDE.md ([leçon 3](/modules/02/claude-code-de-a-a-z/)) dit déjà « toujours `task.wait`, jamais `wait` » ; tu peux y ajouter « aucune API marquée Deprecated dans la référence ».
+
+## Piège 3 : les failles de sécurité du code généré
+
+Avec un prompt vague, une IA écrit souvent un code qui **marche** dans Studio… et qui laisse le client décider. Tu as vu au [module 4](/modules/04/ne-jamais-faire-confiance-au-client/) pourquoi c’est grave. Les failles qui reviennent le plus :
+
+- **la confiance au client** : un RemoteEvent `DonnerPieces` qui ajoute la somme que le client envoie, un `ValiderCheckpoint` sans vérifier la distance ni l’ordre des étapes ;
+- **le prix envoyé par le client** : le client dit « j’achète, ça coûte 0 » ;
+- **l’absence de cadence** : aucune limite au nombre de demandes par seconde, donc le spam d’un remote ;
+- **`loadstring`** : cette fonction exécute du texte comme du code. Elle est désactivée par défaut (`ServerScriptService.LoadStringEnabled` vaut `false`) et la documentation recommande de la laisser désactivée, car mal utilisée elle ouvre la porte à l’exécution de code à distance. Si une IA te propose de l’activer, refuse ;
+- **les clés dans le code** : une clé d’API écrite en clair dans un script pour appeler un service web avec `HttpService`.
+
+Compare ces deux versions d’un achat :
+
+```luau
+-- VERSION DANGEREUSE (fréquente avec un prompt vague) : ne pas copier
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+
+acheterObjet.OnServerEvent:Connect(function(player, idObjet, prix)
+	local pieces = player.leaderstats.Pieces
+	if pieces.Value >= prix then -- prix choisi par le CLIENT : un tricheur envoie 0 ou -1000
+		pieces.Value -= prix
+		player:SetAttribute("Possede_" .. idObjet, true) -- n'importe quel texte accepté
+	end
+end)
+```
+
+```luau
+-- Script « Boutique » (src/ServerScriptService/Boutique.server.luau) : extrait SÛR et simplifié
+-- (la version complète, avec l'inventaire sauvegardé, est au module 5)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue"))
+local Validation = require(ServerScriptService:WaitForChild("Validation"))
+local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+
+local peutAcheter = Validation.creerCooldown(1) -- cadence : une demande par seconde et par joueur
+
+-- Le client envoie SEULEMENT l'identifiant de l'objet, jamais un prix
+acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+	if typeof(idObjet) ~= "string" or #idObjet > 50 or not peutAcheter(player) then
+		return
+	end
+	local objet = Catalogue[idObjet] -- l'objet et son prix viennent du catalogue DU SERVEUR
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+	if objet == nil or not (pieces and pieces:IsA("IntValue")) then
+		return
+	end
+	if player:GetAttribute("Possede_" .. idObjet) or pieces.Value < objet.prix then
+		return
+	end
+	pieces.Value -= objet.prix
+	player:SetAttribute("Possede_" .. idObjet, true)
+end)
+```
+
+La rubrique **Sécurité** de tes prompts ([leçon 4](/modules/02/l-art-du-prompt-precis/)) sert exactement à éviter la première version : « le client envoie seulement l’identifiant ; le serveur vérifie le type, la cadence, l’existence dans `Catalogue`, la possession et le solde ; le prix est lu dans `Catalogue` ».
+
+## Piège 4 : dépendre de l’IA sans comprendre
+
+C’est le piège le plus discret. Si tu acceptes chaque proposition sans la lire, tout va bien… jusqu’au jour où un tricheur trouve la faille, où une sauvegarde efface la progression de tes joueurs, ou où l’IA tourne en rond sur un bug que tu ne sais pas décrire.
+
+Le message honnête de cette formation : tu n’as plus besoin de **tout taper**, mais tu dois comprendre **assez** le code pour le relire. Concrètement, pour chaque script produit, tu dois pouvoir dire : où il s’exécute (serveur ou client), ce que le client peut envoyer, ce que le serveur vérifie, et ce qui se passe si un appel réseau échoue. C’est pour ça que le module 3 t’apprend à **lire** Luau. On n’apprend plus à tout écrire : on apprend à **lire, diriger et vérifier**.
+
+<Info>
+Les propres conditions de Roblox vont dans le même sens. Pour ses fonctions d’IA, elles indiquent que les résultats peuvent être peu fiables, incomplets ou contenir des erreurs, et qu’il faut les **évaluer et les vérifier** avant de les utiliser ou de les partager.
+</Info>
+
+## Piège 5 : coller des secrets
+
+Tout ce que tu écris dans un prompt part chez le fournisseur de l’IA. Avec le MCP, les résultats des outils (scripts, console, captures) sont aussi envoyés à l’IA. Et tout ce qui est dans ton dépôt Git peut finir sur GitHub. Règle absolue : **aucun secret dans un prompt, dans le code ou dans Git**.
+
+| Secret | Pourquoi c’est grave |
+|---|---|
+| Clé d’API **Open Cloud** | la documentation Roblox la compare à un **mot de passe** et demande de ne jamais la stocker dans le code, dans un système de versions ou dans un script |
+| Cookie **`.ROBLOSECURITY`** | c’est ta session Roblox : qui l’a peut agir sur ton compte. L’aide Roblox dit de ne jamais partager mot de passe, cookies, codes de vérification en deux étapes ni codes de secours |
+| URL de **webhook Discord** | selon la documentation de Discord, un webhook s’utilise sans authentification : qui a l’URL peut poster dans ton salon |
+| **Mots de passe**, codes 2SV | évident, mais ça arrive : « voici mon compte pour que tu testes » |
+
+### Où ranger une clé, alors ?
+
+**Dans le jeu**, pour appeler un service web externe depuis un Script serveur, Roblox fournit un **magasin de secrets** par expérience : Creator Hub, ton jeu, **Secrets › Create Secret**. Il faut aussi activer **Allow HTTP Requests** (File › Experience Settings › Security). Le code ne contient alors que le **nom** du secret :
+
+```luau
+-- Script serveur (ServerScriptService) : utiliser une clé SANS l'écrire dans le code
+local HttpService = game:GetService("HttpService")
+
+-- "cle_service_stats" est le NOM du secret créé dans le Creator Hub, pas sa valeur
+local cle = HttpService:GetSecret("cle_service_stats")
+print(cle) --> affiche Secret(cle_service_stats) : la valeur n'est jamais imprimable
+
+-- On construit l'URL sans jamais voir la clé ; elle s'utilise ensuite avec HttpService:RequestAsync
+local url = cle:AddPrefix("https://api.exemple.com/stats?cle=")
+print(url)
+```
+
+D’après la documentation, ces secrets ne sont disponibles que sur les serveurs en ligne (et en test collaboratif). En test local, tu définis des **Local Secrets** dans File › Experience Settings › Security. Les secrets ne sont jamais accessibles depuis un script client.
+
+**Sur ton PC**, si un outil en ligne de commande te demande un jour une clé (par exemple une clé Open Cloud pour publier depuis le terminal), mets-la dans un fichier `.env` à la racine du projet, et ajoute ces lignes dans ton `.gitignore` **avant** le premier commit :
+
+```text
+# .gitignore : ne jamais versionner les secrets
+.env
+.env.*
+```
+
+**Pour Claude Code**, tu peux interdire la lecture de ces fichiers avec des règles `deny` dans `.claude/settings.json`. Exemple tiré de la documentation officielle :
+
+```json
+{
+	"permissions": {
+		"deny": [
+			"Read(./.env)",
+			"Read(./.env.*)",
+			"Read(./secrets/**)"
+		]
+	}
+}
+```
+
+La documentation précise ses limites : ces règles bloquent les outils de fichiers de Claude et les commandes qu’il reconnaît (`cat`, `head`…), mais pas un programme qui lirait le fichier lui-même. Un fichier `.claudeignore` n’a **aucun** effet. La meilleure protection reste de ne pas laisser de secret là où il n’a rien à faire.
+
+<Attention titre="Si un secret a fuité">
+Agis tout de suite. Une clé Open Cloud : dans le Creator Hub, désactive-la (interrupteur **Enable Key**) ou supprime-la, puis crée une nouvelle clé. Un mot de passe Roblox ou un cookie : change ton mot de passe, puis, dans les paramètres du compte, onglet **Security**, section **Where you’re logged in**, déconnecte toutes les autres sessions. Un webhook Discord : supprime-le et crée-en un autre. Retirer le secret du dernier commit ne suffit pas : il reste dans l’historique Git.
+</Attention>
+
+## Les règles de Roblox sur l’IA
+
+Voici ce que disent **les textes officiels** au moment de la rédaction (octobre 2026), sans rien ajouter.
+
+### Les conditions d’utilisation (Terms of Use)
+
+La section « AI Features » des conditions d’utilisation (mise à jour le 7 octobre 2026) s’applique aux outils d’IA de Roblox, comme l’Assistant ou les générateurs :
+
+- **tu es responsable** de ton usage des fonctions d’IA, de tes prompts et de l’usage que tu fais des résultats (« You, not Roblox, are responsible… ») ;
+- les résultats peuvent contenir des erreurs : tu dois les **évaluer et les vérifier** ;
+- **les droits** : entre toi et Roblox, tu conserves les droits que tu as sur tes prompts et sur les résultats, mais tu accordes à Roblox une **licence** pour les utiliser, y compris pour entraîner des modèles (sans changer tes préférences de partage de données) ;
+- **interdits**, entre autres : mettre des informations sensibles, confidentielles ou personnelles dans un prompt ; faire croire qu’un résultat a été créé par un humain ; retirer les marqueurs de provenance d’un résultat ; contourner les protections.
+
+Les **Creator Terms** ajoutent, pour l’IA dans un jeu (un PNJ qui discute, par exemple) : informer clairement les joueurs que l’IA **n’est pas humaine**, que ses réponses sont générées et peuvent être fausses, et qu’ils parlent à un chatbot **dès le début** de l’échange. Roblox peut aussi restreindre certains outils d’IA selon l’âge des joueurs.
+
+### La page « Games with Generative AI »
+
+La documentation créateur précise les règles pour l’IA **dans** un jeu :
+
+- tout contenu généré doit respecter les **Community Standards** (règles de la communauté) ;
+- avec les API de Roblox (`GenerationService`, `TextGenerator`), entrées et sorties sont modérées ; avec un **outil tiers**, tu es responsable de ce que voient les joueurs, et le texte doit passer par `TextChatService` ;
+- toute interaction des joueurs avec une IA générative se déclare dans le questionnaire **Content Maturity** ; les interactions **prolongées** (conversation sans fin, mémoire d’une session à l’autre) imposent le label **Restricted**, donc un jeu réservé aux 18 ans et plus ;
+- un avertissement visible est obligatoire, par exemple « This is an AI-powered conversation, not human. It may make mistakes. »
+
+Les Community Standards elles-mêmes ne contiennent pas de section propre à l’IA : leurs règles générales s’appliquent, dont le **respect de la propriété intellectuelle** des autres. Pour les assets (modèles, textures, images) générés par IA, voir la [leçon 9](/modules/02/l-ia-au-dela-du-code/).
+
+<Info titre="Nouvelles conditions au 1er novembre 2026">
+Roblox a annoncé une nouvelle version de ses conditions d’utilisation, applicable au **1er novembre 2026**. Le résumé officiel parle de réorganisation du texte, du rôle de Roblox comme vendeur des achats, des paiements aux créateurs et, pour l’Europe, du droit de rétractation ; il ne mentionne pas l’IA. Relis quand même la section « AI Features » après cette date : les règles résumées ici peuvent changer.
+</Info>
+
+## Claude Code et l’âge minimal
+
+Claude Code est réservé aux personnes de 18 ans et plus (conditions d’utilisation d’Anthropic, octobre 2026). Si tu as moins de 18 ans, ne crée pas de compte et n’utilise pas seul celui d’un parent. Tu peux : travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte ; utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox ; ou suivre la formation en lisant et en tapant toi-même — les prompts et la méthode de relecture restent utiles.
+
+Les conditions grand public d’Anthropic (section 2) indiquent en effet : « You must be at least 18 years old to use the Services », et l’aide officielle de Claude précise que les comptes qui montrent des signes d’activité de mineurs peuvent être désactivés.
+
+<Resume>
+- Les IA inventent des API au nom crédible : vérifie chaque nom inconnu dans la **référence officielle**, active le mode **strict** de luau-lsp (`--!strict` ou `.luaurc`) et demande la source.
+- Le code obsolète est fréquent (`wait`, `Humanoid:LoadAnimation`, `BodyVelocity`, `GetProductInfo`…), mais tout n’est pas déprécié : `workspace` reste valide.
+- Failles typiques : confiance au client, prix envoyé par le client, absence de cadence, `loadstring`, clés dans le code. Le serveur lit le prix dans `Catalogue`, toujours.
+- Aucun secret (clé Open Cloud, cookie `.ROBLOSECURITY`, webhook, mot de passe) dans un prompt, le code ou Git : magasin de secrets de Roblox, `.env` ignoré par Git, règles `deny` de Claude Code.
+- Roblox te rend responsable de ce que tu fais avec l’IA ; une IA dans un jeu doit être annoncée comme telle, déclarée dans le questionnaire de maturité, et Restricted si les échanges sont prolongés.
+- Claude Code est réservé aux 18 ans et plus.
+</Resume>
+
+<Sources>
+- [Engine API reference — documentation Roblox](https://create.roblox.com/docs/reference/engine)
+- [Globals Roblox (wait, spawn, delay dépréciés ; workspace) — référence de l’API](https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals)
+- [Humanoid — référence de l’API (LoadAnimation déprécié)](https://create.roblox.com/docs/reference/engine/classes/Humanoid)
+- [BodyVelocity — référence de l’API (déprécié, remplacé par LinearVelocity)](https://create.roblox.com/docs/reference/engine/classes/BodyVelocity)
+- [MarketplaceService — référence de l’API (GetProductInfo déprécié)](https://create.roblox.com/docs/reference/engine/classes/MarketplaceService)
+- [ServerScriptService — référence de l’API (LoadStringEnabled)](https://create.roblox.com/docs/reference/engine/classes/ServerScriptService)
+- [Secrets stores — documentation Roblox](https://create.roblox.com/docs/cloud-services/secrets)
+- [API keys — documentation Open Cloud (bonnes pratiques de sécurité)](https://create.roblox.com/docs/cloud/auth/api-keys)
+- [Keep Your Account Safe — aide Roblox](https://en.help.roblox.com/hc/en-us/articles/203313380-Keep-Your-Account-Safe)
+- [Session Management — aide Roblox (se déconnecter des autres sessions)](https://en.help.roblox.com/hc/en-us/articles/14482664311060-Session-Management)
+- [Roblox Studio agent plugin — dépôt officiel (résultats des outils MCP envoyés au fournisseur d’IA)](https://github.com/Roblox/roblox-studio-agent-plugin)
+- [Webhook — documentation Discord](https://docs.discord.com/developers/resources/webhook)
+- [Configure permissions — documentation Claude Code (règles Read deny, .claudeignore)](https://code.claude.com/docs/en/permissions)
+- [Settings reference — documentation Claude Code (permissions.deny)](https://code.claude.com/docs/en/settings-reference)
+- [Roblox Terms of Use — section AI Features et Creator Terms](https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use)
+- [Games with Generative AI — documentation Roblox](https://create.roblox.com/docs/generative-AI)
+- [Community Standards — Roblox](https://about.roblox.com/community-standards)
+- [Updates to the Roblox Terms of Use (November 2026) — annonce officielle sur le DevForum](https://devforum.roblox.com/t/updates-to-the-roblox-terms-of-use-november-2026/4907620)
+- [Consumer Terms of Service — Anthropic (section 2, âge minimal)](https://www.anthropic.com/legal/consumer-terms)
+- [Age assurance on Claude — aide officielle de Claude](https://support.claude.com/en/articles/15171100)
+</Sources>
