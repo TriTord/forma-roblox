@@ -75,7 +75,7 @@ Elle conseille aussi d’équilibrer le défi de la core loop pour éviter à la
 
 ### Découper le parcours en paliers
 
-Pour un obby, une méthode simple consiste à regrouper les étapes en **zones** (ou paliers), chacune avec son thème et son niveau de difficulté :
+Pour un obby, une méthode simple (c’est le choix de cette formation) consiste à regrouper les étapes en **zones** (ou paliers), chacune avec son thème et son niveau de difficulté :
 
 | Zone | Étapes | Ce qu’elle enseigne | Difficulté |
 |---|---|---|---|
@@ -87,10 +87,10 @@ Pour un obby, une méthode simple consiste à regrouper les étapes en **zones**
 
 ### Introduire un obstacle à la fois
 
-Quand tu présentes un nouvel obstacle (une plateforme qui bouge, par exemple), propose-le d’abord **seul et sans danger**, puis dans une version plus exigeante, puis combiné à d’autres. C’est le même principe que le tutoriel contextuel de la leçon précédente : on apprend en jouant, un élément à la fois.
+Quand tu présentes un nouvel obstacle (une plateforme qui bouge, par exemple), propose-le d’abord **seul et sans danger**, puis dans une version plus exigeante, puis combiné à d’autres. C’est une pratique courante de level design, pas une règle Roblox, et elle prolonge le principe du tutoriel contextuel de la leçon précédente : on apprend en jouant, un élément à la fois.
 
 <Erreur titre="Le pic de difficulté au début">
-Un premier saut au millimètre, posé « pour montrer que le jeu est dur », fait fuir les nouveaux joueurs avant qu’ils aient compris la boucle. Garde les défis exigeants pour les joueurs qui ont déjà investi un peu de temps, et place un checkpoint juste **avant** chaque passage difficile pour qu’un échec ne coûte pas tout le parcours.
+Un premier saut au millimètre, posé « pour montrer que le jeu est dur », va à l’encontre de ce que recommande Roblox : amener vite au plaisir et garder les premiers paliers de progression bas (leçon 2). Garde les défis exigeants pour les joueurs qui ont déjà investi un peu de temps, et place un checkpoint juste **avant** chaque passage difficile pour qu’un échec ne coûte pas tout le parcours.
 </Erreur>
 
 <Astuce titre="Mesurer où les joueurs décrochent">
@@ -104,7 +104,7 @@ La documentation Roblox propose de mesurer la répartition des joueurs à chaque
 - Une **récompense fixe** est toujours la même : 2 pièces par checkpoint, une traînée en fin de zone. Le joueur sait ce qu’il va gagner, ce qui lui permet de **planifier** (« encore 3 étapes et je peux m’acheter la traînée bleue »).
 - Une **récompense variable** change d’une fois à l’autre : une pièce rare qui apparaît parfois, un coffre au contenu aléatoire. Elle crée de la surprise.
 
-La surprise est un levier puissant, et c’est justement pour cela que Roblox encadre strictement les **objets aléatoires payants** dans ses Community Standards : les probabilités doivent être affichées de façon exacte et chiffrée **avant l’achat**, et chaque résultat possible doit apporter un bénéfice au joueur. Ces objets sont en outre réservés aux utilisateurs éligibles. On étudiera ces règles au module 6.
+Quand ce hasard est **payant**, Roblox l’encadre strictement : ses Community Standards fixent des règles pour les **objets aléatoires payants** : les probabilités doivent être affichées de façon exacte et chiffrée **avant l’achat**, et chaque résultat possible doit apporter un bénéfice au joueur. Le créateur doit en outre en réserver l’accès aux utilisateurs éligibles (attribut `ArePaidRandomItemsRestricted`). On étudiera ces règles au module 6.
 
 Pour l’Obby des Nuages, on reste simple : des récompenses **fixes et lisibles**, et éventuellement un peu de surprise **gratuite** (une pièce dorée cachée qui vaut plus que les autres).
 
@@ -148,7 +148,7 @@ end
 return Config
 ```
 
-Côté serveur, la récompense doit être versée **là où le checkpoint est validé** (module 3), et seulement pour une étape **jamais atteinte**. Sinon, un joueur pourrait toucher le même checkpoint en boucle pour accumuler des pièces. Voici une petite fonction prête à appeler depuis ta validation :
+Côté serveur, la récompense doit être versée **là où le checkpoint est validé** (modules 3 et 4), et seulement pour une étape **jamais atteinte**. Sinon, un joueur pourrait toucher le même checkpoint en boucle pour accumuler des pièces. Voici un petit module qui fait les deux d’un coup : dans ton script de checkpoints, remplace la ligne `etape.Value = numero` par `Recompenses.valider(player, numero)`, après les vérifications de distance déjà en place (charge le module en haut du script avec `local Recompenses = require(ServerScriptService:WaitForChild("Recompenses"))`).
 
 ```luau
 -- ModuleScript « Recompenses » dans ServerScriptService
@@ -193,9 +193,9 @@ Dès qu’une monnaie existe, ton jeu a une **économie**. La documentation Robl
 - les **sources** : tout ce qui crée de la monnaie (pièces ramassées, bonus d’étape, objectifs quotidiens de la leçon suivante) ;
 - les **puits** (*sinks*) : les systèmes qui **retirent** la monnaie de la circulation (achats en boutique, objets à durée limitée).
 
-Si les sources produisent beaucoup plus que ce que les puits absorbent, les joueurs accumulent des réserves énormes. C’est l’**inflation** : la monnaie ne vaut plus rien, plus rien n’est désirable, et la boucle méta s’arrête. Roblox décrit exactement ce scénario dans son exemple : un événement mal estimé crée un **surplus** de monnaie ; les joueurs qui en ont beaucoup dépensent sans compter et n’ont plus guère de raison d’en acheter davantage.
+Si les sources produisent beaucoup plus que ce que les puits absorbent, les joueurs accumulent des réserves énormes. C’est ce qu’on appelle couramment l’**inflation** (terme général d’économie ; la page Roblox parle de « surplus ») : la monnaie ne vaut plus grand-chose, plus rien n’est désirable, et la boucle méta s’arrête. Roblox décrit exactement ce scénario dans son exemple : un événement mal estimé crée un **surplus** de monnaie ; les joueurs qui en ont beaucoup dépensent sans compter et n’ont plus guère de raison d’en acheter davantage.
 
-Roblox recommande de **planifier les puits avant d’ajouter de nouvelles sources**. Pour un événement temporaire, la solution que sa documentation juge la plus sûre est une **monnaie d’événement** séparée, dépensable uniquement dans une boutique d’événement : l’économie principale reste intacte.
+Roblox insiste : quand on conçoit une nouvelle source de monnaie, il est impératif d’avoir **prévu les puits** qui absorberont l’excédent, donc de les planifier avant de lancer la source. Pour un événement temporaire, la solution que sa documentation juge la plus sûre est une **monnaie d’événement** séparée, dépensable uniquement dans une boutique d’événement : l’économie principale reste intacte.
 
 ### Faire le calcul pour l’Obby des Nuages
 
@@ -224,9 +224,9 @@ Dans un tableur ou sur papier, recopie le tableau des zones et ajoute une colonn
 
 ## Éviter la frustration
 
-Quelques garde-fous, tirés des recommandations Roblox citées dans cette leçon :
+Quelques garde-fous :
 
-- **Un échec ne doit jamais coûter trop cher** : checkpoints fréquents avant les passages durs, aucune perte de pièces à la mort.
+- **Un échec ne doit jamais coûter trop cher** : checkpoints fréquents avant les passages durs, aucune perte de pièces à la mort. C’est un choix de la formation pour l’Obby des Nuages, au service du conseil Roblox d’éviter la frustration.
 - **Les objectifs doivent rester atteignables** : la page sur les season passes note que si les joueurs échouent régulièrement à leurs missions, leur intérêt s’éteint.
 - **La récompense doit être visible** : le feedback de la leçon 1 transforme un chiffre qui change en moment de satisfaction.
 

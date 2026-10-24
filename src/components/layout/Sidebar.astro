@@ -117,16 +117,36 @@ const modules = await getModules();
   const ouvrirBtn = document.querySelector<HTMLButtonElement>('[data-ouvrir-sommaire]');
   const fermerBtn = document.querySelector<HTMLButtonElement>('[data-fermer-sommaire]');
 
+  let inertes: HTMLElement[] = [];
+
+  /** Rend inerte (ni focus, ni lecteur d'écran) tout ce qui n'est pas le tiroir ni son fond. */
+  function isolerTiroir(actif: boolean) {
+    for (const el of inertes) el.inert = false;
+    inertes = [];
+    if (!actif || !sommaire) return;
+    let noeud: HTMLElement = sommaire;
+    while (noeud.parentElement && noeud !== document.body) {
+      for (const frere of Array.from(noeud.parentElement.children) as HTMLElement[]) {
+        if (frere === noeud || frere === fond || frere.inert || /^(SCRIPT|STYLE|TEMPLATE)$/.test(frere.tagName)) continue;
+        frere.inert = true;
+        inertes.push(frere);
+      }
+      noeud = noeud.parentElement;
+    }
+  }
+
   function basculer(ouvert: boolean) {
     if (!sommaire) return;
+    const etaitOuvert = sommaire.dataset.ouvert === 'true';
     sommaire.dataset.ouvert = String(ouvert);
     if (fond) fond.dataset.ouvert = String(ouvert);
     ouvrirBtn?.setAttribute('aria-expanded', String(ouvert));
     document.body.classList.toggle('max-lg:overflow-hidden', ouvert);
+    isolerTiroir(ouvert);
     if (ouvert) {
       (sommaire.querySelector<HTMLElement>('[aria-current="page"]') ?? fermerBtn)?.focus();
     } else {
-      ouvrirBtn?.focus();
+      if (etaitOuvert) ouvrirBtn?.focus();
     }
   }
 
@@ -134,7 +154,30 @@ const modules = await getModules();
   fermerBtn?.addEventListener('click', () => basculer(false));
   fond?.addEventListener('click', () => basculer(false));
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && sommaire?.dataset.ouvert === 'true') basculer(false);
+    if (sommaire?.dataset.ouvert !== 'true') return;
+    if (e.key === 'Escape') basculer(false);
+    // Piège à focus : Tab / Maj+Tab bouclent dans le tiroir (sinon le focus partirait vers la barre du navigateur).
+    if (e.key === 'Tab') {
+      const focusables = Array.from(sommaire.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), summary, input, [tabindex]:not([tabindex="-1"])')).filter(
+        // checkVisibility exclut aussi le contenu des <details> fermés (content-visibility: hidden).
+        (el) => (typeof el.checkVisibility === 'function' ? el.checkVisibility() : el.getClientRects().length > 0),
+      );
+      if (!focusables.length) return;
+      const premier = focusables[0];
+      const dernier = focusables[focusables.length - 1];
+      const actif = document.activeElement;
+      if (e.shiftKey && (actif === premier || !sommaire.contains(actif))) {
+        e.preventDefault();
+        dernier.focus();
+      } else if (!e.shiftKey && (actif === dernier || !sommaire.contains(actif))) {
+        e.preventDefault();
+        premier.focus();
+      }
+    }
+  });
+  // Passage en grand écran (tiroir devenu colonne fixe) : on referme proprement.
+  window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+    if (e.matches && sommaire?.dataset.ouvert === 'true') basculer(false);
   });
   // Ramène l'élément actif dans la zone visible du sommaire (grand écran).
   const actif = sommaire?.querySelector<HTMLElement>('[aria-current="page"]');

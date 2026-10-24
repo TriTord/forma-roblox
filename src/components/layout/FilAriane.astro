@@ -12,7 +12,7 @@ const { elements } = Astro.props;
         <li class="flex items-center gap-2">
           {i > 0 && <span aria-hidden="true">/</span>}
           {e.href ? (
-            <a href={e.href} class="hover:text-indigo-700 hover:underline dark:hover:text-indigo-300">
+            <a href={e.href} class="hover:text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:hover:text-indigo-300">
               {e.texte}
             </a>
           ) : (

@@ -75,7 +75,7 @@ Construire, c’est bien. Vérifier que ça marche, c’est indispensable. Un ob
 Les commandes de test se trouvent sur la **gauche du mezzanine**, en haut de Studio : un **menu déroulant** pour choisir le mode, et le bouton **Play** juste à droite pour lancer le test.
 
 <Info titre="Des noms qui ont changé">
-Dans les anciens tutoriels, tu verras souvent les modes « Play » et « Play Here », dans un onglet « Test ». Dans la version actuelle décrite par la documentation officielle, les modes s’appellent **Test** et **Test Here**, et **Play** est le bouton qui lance le mode choisi. Le fonctionnement est le même.
+Dans les anciens tutoriels, réalisés avec l’interface d’avant la refonte annoncée par Roblox en 2024, tu verras souvent les modes « Play » et « Play Here », dans un onglet « Test ». Dans la version actuelle décrite par la documentation officielle, les commandes de test sont toujours visibles en haut à gauche, les modes s’appellent **Test** et **Test Here**, et **Play** est le bouton qui lance le mode choisi. Le principe est le même.
 </Info>
 
 ### Les trois modes de base
@@ -102,7 +102,7 @@ Quand le test tourne, de nouveaux boutons apparaissent dans le mezzanine :
 - **Run** : pour observer ton monde en mouvement sans personnage, par exemple vérifier que rien ne tombe.
 
 <Astuce titre="Garder une modification faite pendant un test">
-Tu as trouvé la position parfaite d’une plateforme pendant un test ? Sélectionne-la et copie-la (`Ctrl`+`C`) **avant** d’arrêter le test. Après **Stop**, colle-la : un clic droit sur son futur parent dans l’Explorer, puis **Paste Options** › **Paste Into At Original Location**, la colle exactement à la même position. Supprime ensuite l’ancienne version.
+Tu as trouvé la position parfaite d’une plateforme pendant un test ? Beaucoup de développeurs utilisent cette astuce, que la documentation ne décrit pas en tant que telle : sélectionne la plateforme et copie-la (`Ctrl`+`C`) **avant** d’arrêter le test. Après **Stop**, colle-la : un clic droit sur son futur parent dans l’Explorer, puis **Paste Options** › **Paste Into At Original Location** (une option, elle, documentée), la colle à sa position d’origine. Supprime ensuite l’ancienne version. Si le collage ne donne rien, note simplement la position affichée dans Properties avant d’arrêter le test.
 </Astuce>
 
 <Erreur titre="Construire pendant un test">
@@ -216,7 +216,7 @@ La Command Bar agit **pour de vrai** sur ton place : supprimer, déplacer ou mod
 
 ## Émulation d’appareils : un aperçu
 
-Ton jeu sera joué sur ordinateur, mais aussi sur téléphone, tablette ou console. Studio propose un **Device Simulator** qui reproduit la taille d’écran, la densité de pixels, le clavier virtuel et le tactile de différents appareils (téléphones, consoles, casques VR…). Au moment de la rédaction, sa nouvelle version, une barre au-dessus du viewport, est en **bêta** : elle s’active dans **File** › **Beta Features** › **New Device Simulator**. Comme cet outil évolue, réfère-toi à la page officielle ; tu l’utiliseras en détail au module 9.
+Ton jeu sera joué sur ordinateur, mais aussi sur téléphone, tablette ou console. Studio propose un **Device Simulator** qui reproduit la taille d’écran, la densité de pixels, le clavier virtuel et le tactile de différents appareils (téléphones, ordinateurs, consoles, casques VR). Au moment de la rédaction, la page officielle décrit une barre d’outils au-dessus du viewport, en **bêta** : elle s’active dans **File** › **Beta Features** › **New Device Simulator**, puis il faut redémarrer Studio. Comme cet outil évolue, réfère-toi à la page officielle ; tu l’utiliseras en détail au module 9.
 
 <Defi>
 
@@ -239,6 +239,7 @@ Ton jeu sera joué sur ordinateur, mais aussi sur téléphone, tablette ou conso
 
 <Sources>
 - [Studio testing modes — modes, raccourcis, client/serveur, multi-clients](https://create.roblox.com/docs/studio/testing-modes)
+- [Next Gen Studio UI Preview — annonce officielle de la nouvelle interface (DevForum, 2024)](https://devforum.roblox.com/t/next-gen-studio-ui-preview-is-here-beta/3075390)
 - [Output — filtres, options et raccourci](https://create.roblox.com/docs/studio/output)
 - [Studio interface — Command Bar](https://create.roblox.com/docs/studio/overview)
 - [Explorer window — Paste Into At Original Location](https://create.roblox.com/docs/studio/explorer)

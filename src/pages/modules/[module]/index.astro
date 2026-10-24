@@ -104,8 +104,8 @@ const suivant = modules[index + 1];
     </section>
 
     <nav aria-label="Modules voisins" class="mt-12 flex flex-wrap justify-between gap-4 text-sm font-semibold">
-      {precedent ? <a class="text-indigo-700 hover:underline dark:text-indigo-300" href={precedent.url}>← Module {precedent.numero} : {precedent.titreCourt}</a> : <span />}
-      {suivant && <a class="text-indigo-700 hover:underline dark:text-indigo-300" href={suivant.url}>Module {suivant.numero} : {suivant.titreCourt} →</a>}
+      {precedent ? <a class="text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300" href={precedent.url}>← Module {precedent.numero} : {precedent.titreCourt}</a> : <span />}
+      {suivant && <a class="text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300" href={suivant.url}>Module {suivant.numero} : {suivant.titreCourt} →</a>}
     </nav>
   </div>
 </CoursLayout>

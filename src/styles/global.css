@@ -102,6 +102,159 @@
   margin: 1.5rem 0;
 }
 
+/* Débordements sur petit écran : le texte long (URL, `code` inline) passe à la ligne,
+   les blocs de code et les tableaux défilent DANS leur cadre, jamais la page. */
+.prose {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.prose :where(code):not(:where(pre code)),
+.question code,
+.option-texte code,
+.feedback code,
+.score code {
+  overflow-wrap: anywhere;
+}
+.prose :where(pre),
+.question pre,
+.astro-code {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.tableau-defilement {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+.tableau-defilement > table {
+  margin: 0;
+}
+.prose :where(table):not(:where(.tableau-defilement > table, .not-prose *)) {
+  /* Filet de sécurité si un tableau échappe au plugin (HTML brut dans le MDX). */
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Liens dans du texte : soulignés (pas seulement la couleur, WCAG 1.4.1). */
+.prose :where(a):not(:where(.not-prose *, .bouton)) {
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+}
+:where(p, li, dd, td, blockquote, .feedback-explication, .question-texte, .option-texte) > a:not([class]) {
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+}
+.lien-texte {
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+}
+.lien-texte:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Listes de tâches interactives (plugins/rehype-taches.mjs + src/scripts/taches.ts) */
+.prose ul.contains-task-list,
+.prose ol.contains-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+.prose .contains-task-list .contains-task-list {
+  padding-left: 1.75rem;
+}
+.prose li.task-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 0.65rem;
+  padding-left: 0;
+}
+.prose li.task-list-item > p {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  flex: 1 1 100%;
+  margin: 0.25rem 0;
+}
+.prose li.task-list-item > .contains-task-list {
+  flex: 1 1 100%;
+}
+.tache-case {
+  flex: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin: 0.25em 0 0 !important;
+  accent-color: var(--color-indigo-600);
+  cursor: pointer;
+}
+.dark .tache-case {
+  accent-color: var(--color-indigo-400);
+}
+.tache-texte {
+  flex: 1 1 0;
+  min-width: 0;
+  cursor: pointer;
+}
+.tache-case:checked + .tache-texte {
+  color: var(--color-slate-600);
+}
+.dark .tache-case:checked + .tache-texte {
+  color: var(--color-slate-400);
+}
+.taches-barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 -0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-slate-200);
+  background: var(--color-slate-50);
+  font-size: 0.9rem;
+}
+.dark .taches-barre {
+  border-color: var(--color-slate-800);
+  background: var(--color-slate-900);
+}
+.taches-compteur {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-slate-700);
+}
+.dark .taches-compteur {
+  color: var(--color-slate-300);
+}
+.taches-reset {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-slate-300);
+  background: white;
+  color: var(--color-slate-800);
+  font-weight: 600;
+  cursor: pointer;
+}
+.taches-reset:hover:not(:disabled) {
+  border-color: var(--color-indigo-500);
+  color: var(--color-indigo-700);
+}
+.taches-reset:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.dark .taches-reset {
+  border-color: var(--color-slate-700);
+  background: var(--color-slate-950);
+  color: var(--color-slate-100);
+}
+.dark .taches-reset:hover:not(:disabled) {
+  border-color: var(--color-indigo-400);
+  color: var(--color-indigo-200);
+}
+
 /* ------------------------------------------------------------------ */
 /* Encadrés MDX (Astuce, Erreur, Info, Attention, Defi)                */
 /* ------------------------------------------------------------------ */

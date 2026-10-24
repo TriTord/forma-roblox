@@ -86,7 +86,7 @@ D’après la documentation de Roblox sur la promotion, quand un jeu appartient 
 
 La page de communauté propose aussi :
 
-- des **forums**, ouverts à toutes les communautés depuis août 2025 (réservés, selon l’annonce de lancement, aux utilisateurs connectés de 13 ans et plus). Les anciens « murs » (*Walls*) ont été passés en lecture seule en décembre 2025, et Roblox a annoncé leur suppression ;
+- des **forums**, ouverts à toutes les communautés depuis août 2025 (réservés, selon l’annonce de lancement, aux utilisateurs connectés de 13 ans et plus). Les anciens « murs » (*Walls*) ont été passés en lecture seule en décembre 2025, et Roblox a annoncé leur suppression complète pour début 2026 (les messages des murs ne sont pas transférés vers les forums) ;
 - des **annonces** et des **événements** (l’onglet Events vu à la leçon 4) ;
 - un système de **rôles et permissions** pour répartir les tâches.
 
@@ -188,7 +188,7 @@ Tu recevras des critiques, parfois injustes ou mal formulées. Quelques principe
 
 ## Reconnaître sa communauté en jeu
 
-Tu peux donner un petit signe de reconnaissance en jeu aux membres de ta communauté, ou aux rôles **Testeur** et **Modérateur**. La méthode actuelle est `GroupService:GetRolesInGroupAsync()`. Les anciennes méthodes `Player:GetRankInGroupAsync()` et `Player:GetRoleInGroupAsync()` sont dépréciées, car elles ne renvoient que le rôle le plus élevé alors qu’un membre peut désormais avoir plusieurs rôles.
+Tu peux donner un petit signe de reconnaissance en jeu aux membres de ta communauté, ou aux rôles **Testeur** et **Modérateur**. La méthode actuelle est `GroupService:GetRolesInGroupAsync()`. Les anciennes méthodes `Player:GetRankInGroupAsync()` et `Player:GetRoleInGroupAsync()` sont dépréciées, car elles ne renvoient que le rôle public le plus élevé alors qu’un membre peut désormais avoir plusieurs rôles. Leurs versions encore plus anciennes, `Player:GetRankInGroup()` et `Player:GetRoleInGroup()`, que tu croiseras dans de vieux tutoriels, sont elles aussi dépréciées.
 
 ```luau
 -- Script (côté serveur) à placer dans ServerScriptService
@@ -242,7 +242,7 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Un script d’interface pourra ensuite lire l’attribut `RoleCommunaute` pour afficher un badge « Testeur » au-dessus du personnage ou dans le classement.
 
 <Info>
-La documentation précise que ces résultats sont **mis en cache** : si un joueur rejoint ou quitte la communauté pendant sa partie, le changement peut n’être visible qu’à sa prochaine connexion. Elle conseille aussi d’identifier un rôle par son identifiant (`Id`, stable) plutôt que par son nom : si tu renommes un rôle, pense à mettre à jour `ROLES_SPECIAUX`. Enfin, n’utilise ces rôles que pour des **signes de reconnaissance**, jamais pour donner des pouvoirs de modération en jeu sans vérifications supplémentaires.
+La documentation précise que ces résultats sont **mis en cache** par utilisateur et par communauté : si un joueur rejoint ou quitte la communauté pendant sa partie, un nouvel appel peut renvoyer l’ancien résultat tant que le cache n’a pas expiré. Ici, on ne lit les rôles qu’à l’arrivée du joueur, donc le changement ne sera pris en compte qu’à sa prochaine connexion. Seuls les rôles **publics** sont renvoyés. Elle conseille aussi d’identifier un rôle par son identifiant (`Id`, stable) plutôt que par son nom : si tu renommes un rôle, pense à mettre à jour `ROLES_SPECIAUX`. Enfin, n’utilise ces rôles que pour des **signes de reconnaissance**, jamais pour donner des pouvoirs de modération en jeu sans vérifications supplémentaires.
 </Info>
 
 <Defi>

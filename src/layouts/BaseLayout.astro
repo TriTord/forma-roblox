@@ -33,6 +33,10 @@ const canonique = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:title" content={titreComplet} />
     <meta property="og:description" content={description} />
+    <meta property="og:site_name" content={SITE.nom} />
+    {canonique && <meta property="og:url" content={canonique} />}
+    <meta name="twitter:card" content="summary" />
+    {Astro.site && <link rel="sitemap" href={lien('/sitemap-index.xml')} />}
     <meta name="generator" content={Astro.generator} />
     <!-- Thème posé avant le premier rendu pour éviter tout flash. -->
     <script is:inline>
@@ -57,6 +61,7 @@ const canonique = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <script id="catalogue-formation" type="application/json" set:html={JSON.stringify(catalogue).replace(/</g, '\\u003c')} />
     <script>
       import '~/scripts/progression-ui';
+      import '~/scripts/taches';
     </script>
   </body>
 </html>

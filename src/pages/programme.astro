@@ -28,7 +28,7 @@ const dureeTotale = modules.reduce((t, m) => t + m.duree, 0);
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-bold text-indigo-700 dark:text-indigo-300">Module {m.numero}</p>
                 <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-                  <a href={m.url} class="hover:text-indigo-700 hover:underline dark:hover:text-indigo-300">{m.titre}</a>
+                  <a href={m.url} class="hover:text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:hover:text-indigo-300">{m.titre}</a>
                 </h2>
                 <p class="mt-1 text-slate-600 dark:text-slate-400">{m.description}</p>
               </div>
@@ -57,9 +57,9 @@ const dureeTotale = modules.reduce((t, m) => t + m.duree, 0);
               <p class="mt-5 border-t border-slate-200 pt-4 text-sm italic text-slate-600 dark:border-slate-800 dark:text-slate-400">Leçons en préparation.</p>
             )}
             <p class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold">
-              <a href={m.url} class="text-indigo-700 hover:underline dark:text-indigo-300">Voir le module →</a>
+              <a href={m.url} class="text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">Voir le module →</a>
               {m.examen && (
-                <a href={m.urlExamen} class="text-indigo-700 hover:underline dark:text-indigo-300">
+                <a href={m.urlExamen} class="text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">
                   🏁 Examen ({m.examen.data.questions.length} questions)
                 </a>
               )}

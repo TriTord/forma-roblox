@@ -99,7 +99,7 @@ Quelques gestes utiles, tous indiqués dans la documentation :
 
 - Après un déplacement avec **Move**, un **indicateur de distance** reste affiché : clique dedans pour taper une valeur exacte.
 - Tu peux aussi **attraper une Part directement** avec la souris et la faire glisser. Pendant le glissement, `R` la fait pivoter de 90° et `T` la bascule de 90° vers la caméra.
-- `Ctrl`+`R` fait tourner la sélection de 90° autour de l’axe vertical (Y), `Ctrl`+`T` de 90° autour de l’axe X (`⌘` au lieu de `Ctrl` sur Mac).
+- `Ctrl`+`R` fait tourner la sélection de 90° autour de son axe Y (vertical pour une Part posée à plat), `Ctrl`+`T` de 90° autour de son axe X (`⌘` au lieu de `Ctrl` sur Mac).
 - `Ctrl`+`L` (`⌘`+`L`) bascule entre l’orientation **monde** (les axes du monde) et l’orientation **locale** (les axes de la Part elle-même). Un petit **L** s’affiche en mode local.
 
 ### La grille d’accrochage (snapping)
@@ -133,7 +133,7 @@ Quelques précisions :
 - **Color** : le bouton **Color** de l’onglet Home applique une couleur à toute la sélection. Dans Properties, tu peux aussi taper une valeur RVB précise.
 - **Material** change l’apparence **et** le comportement physique : une Part en béton (`Concrete`) est plus dense qu’une Part en plastique (`Plastic`). Le matériau `Neon` donne un effet lumineux.
 - **Transparency** : beaucoup de Parts semi-transparentes peuvent ralentir le jeu, selon la documentation. Utilise-les avec modération.
-- **Size**, **Position** et **Orientation** se trouvent dans la section **Transform**. Selon ta version de Studio, la position et l’orientation peuvent être regroupées sous une propriété **CFrame** : ce sont les mêmes valeurs.
+- **Size**, la position et l’orientation se trouvent dans la section **Transform**. D’après la documentation actuelle, cette section affiche **Size** et **CFrame** : la propriété CFrame regroupe la position et l’orientation de la Part.
 
 Pour trouver vite une propriété, utilise le champ **Filter Properties** en haut de la fenêtre (`Ctrl`+`Shift`+`P`) et tape les premières lettres, par exemple `anch`.
 
@@ -184,10 +184,10 @@ Un modèle peut contenir des **scripts**, et un script peut faire n’importe qu
 <Attention titre="Inspecte chaque modèle avant de l’utiliser">
 
 - Après l’insertion, déplie le modèle dans l’Explorer et regarde ce qu’il contient.
-- Tape `is:LuaSourceContainer` dans la recherche de l’Explorer (`Ctrl`+`Shift`+`X`) pour lister tous les scripts du place, quel que soit leur nom.
+- Tape `is:LuaSourceContainer` dans la recherche de l’Explorer (`Ctrl`+`Shift`+`X`) pour lister tous les scripts du place, quel que soit leur nom. La documentation indique que `is:` trouve aussi les sous-classes, et Script, LocalScript et ModuleScript sont tous des `LuaSourceContainer`. Si cette recherche ne donne rien chez toi, essaie `is:Script`, puis `is:LocalScript` et `is:ModuleScript`.
 - Un décor (arbre, nuage, rocher) n’a **aucune** raison de contenir un script : supprime-le.
 - Si tu veux garder un modèle sans exécuter ses scripts, fais un clic droit dessus dans l’Explorer et choisis **Disable Scripts**.
-- Un script illisible, très long ou qui fait `require` avec un numéro : supprime le modèle et signale-le sur le Creator Store.
+- Un script illisible, très long ou qui fait `require` avec un numéro : supprime le modèle et signale-le avec l’option **Report Item** de sa page de détails sur le Creator Store.
 
 </Attention>
 
@@ -215,6 +215,7 @@ Un modèle peut contenir des **scripts**, et un script peut faire n’importe qu
 - [Work with parts — tutoriel officiel (insertion, outils, ancrage)](https://create.roblox.com/docs/tutorials/curriculums/building/work-with-parts)
 - [Properties window — sections et filtre des propriétés](https://create.roblox.com/docs/studio/properties)
 - [Explorer window — duplication, collage, recherche](https://create.roblox.com/docs/studio/explorer)
+- [Data model — les scripts sont des LuaSourceContainer](https://create.roblox.com/docs/projects/data-model)
 - [Solid modeling — Union, Negate, Intersect, Separate](https://create.roblox.com/docs/parts/solid-modeling)
 - [Toolbox — onglets et insertion de ressources](https://create.roblox.com/docs/projects/assets/toolbox)
 - [Creator Store — règles de sécurité des ressources](https://create.roblox.com/docs/production/creator-store)

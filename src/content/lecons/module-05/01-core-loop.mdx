@@ -30,7 +30,7 @@ quiz:
       - texte: Économiser des pièces sur plusieurs parties pour acheter une traînée
         correct: true
       - texte: Éviter une kill brick
-    explication: Sauter, éviter un obstacle ou atteindre un checkpoint se répète toutes les quelques secondes. Économiser pour une traînée se joue sur plusieurs étapes, voire plusieurs sessions, c’est donc une boucle plus longue.
+    explication: "Sauter ou éviter une kill brick se répète toutes les quelques secondes (boucle courte), et atteindre le checkpoint suivant prend une à quelques minutes (boucle principale). Économiser pour une traînée se joue sur plusieurs étapes, voire plusieurs sessions : c’est la boucle longue."
   - type: qcm
     question: Pourquoi est-il utile d’afficher un petit message quand le joueur gagne des pièces ou passe une étape ?
     options:
@@ -62,7 +62,7 @@ quiz:
     explication: "`afficher(\"+1 pièce\")` exécute la fonction immédiatement et passe son résultat (`nil`) à `Connect`, ce qui provoque une erreur. Il faut passer une fonction : `pieces.Changed:Connect(function() afficher(\"+1 pièce\") end)`."
 ---
 
-Pourquoi certains jeux te donnent envie de « faire encore une partie » alors que d’autres te lassent en deux minutes ? Très souvent, la réponse tient dans leur **boucle de jeu**, en anglais *core loop*. C’est le premier outil du game designer, et c’est par lui que commence ce module. Tu as maintenant un Obby des Nuages qui fonctionne (modules 1 à 4) : il est temps de le rendre **amusant à rejouer**.
+Pourquoi certains jeux te donnent envie de « faire encore une partie » alors que d’autres te lassent en deux minutes ? Une grande partie de la réponse tient dans leur **boucle de jeu**, en anglais *core loop*. C’est le premier outil du game designer, et c’est par lui que commence ce module. Tu as maintenant un Obby des Nuages qui fonctionne (modules 1 à 4) : il est temps de le rendre **amusant à rejouer**.
 
 ## Qu’est-ce qu’une core loop ?
 
@@ -80,7 +80,7 @@ Le mot important est **boucle** : la dernière étape doit ramener à la premiè
 
 ### Une formule simple à retenir
 
-Pour un débutant, on peut résumer la boucle en trois mots : **action → récompense → progression**.
+Pour un débutant, on peut résumer la boucle en trois mots : **action → récompense → progression**. C’est une simplification proposée par cette formation, pas le vocabulaire officiel de Roblox, mais elle recoupe ses trois parties.
 
 - **Action** : le joueur fait quelque chose (sauter, récolter, combattre).
 - **Récompense** : le jeu répond tout de suite (une pièce, un son, un message, un effet visuel).
@@ -196,8 +196,9 @@ local function afficher(texte: string)
 	fondu:Play()
 end
 
--- Au chargement de la sauvegarde, les valeurs « sautent » (ex. de 0 à 120 pièces).
--- On attend un peu avant d'afficher quoi que ce soit pour ne pas célébrer ce saut.
+-- Sécurité : le script de sauvegarde du module 4 crée les leaderstats directement avec
+-- les valeurs chargées. Mais si ton propre script les met à jour APRÈS les avoir créées
+-- (ex. de 0 à 120 pièces), on ne veut pas célébrer ce saut : on attend un peu.
 local pret = false
 task.delay(3, function()
 	pret = true
@@ -229,7 +230,7 @@ Quelques points à remarquer :
 - Le texte apparaît puis disparaît en fondu grâce à TweenService (module 4) : le feedback doit être **bref**, pas envahissant.
 
 <Astuce titre="Le feedback se joue aussi avec le son">
-Un son court et joyeux au ramassage d’une pièce renforce énormément la sensation de récompense. Dans ses exemples de feedback, la documentation Roblox montre un jeu où des pièces jaillissent à l’écran quand le joueur remporte un combat : le même gain, mais bien plus satisfaisant. Ajoute un objet `Sound` et appelle `:Play()` dans la fonction `afficher` pour essayer.
+Un son court et joyeux au ramassage d’une pièce peut renforcer la sensation de récompense : à toi de le vérifier en playtest (leçon 5). Dans ses exemples de feedback, la documentation Roblox montre un jeu où des pièces jaillissent à l’écran quand le joueur remporte un combat : le même gain, mais bien plus satisfaisant. Ajoute un objet `Sound` et appelle `:Play()` dans la fonction `afficher` pour essayer.
 </Astuce>
 
 <Defi>
@@ -262,4 +263,5 @@ Une boucle efficace n’est pas une boucle **interminable**. Le but n’est pas 
 - [Onboarding techniques — importance du feedback (Roblox)](https://create.roblox.com/docs/production/game-design/onboarding-techniques)
 - [LiveOps essentials — relier les nouveautés à la core loop (Roblox)](https://create.roblox.com/docs/production/game-design/liveops-essentials)
 - [Core curriculum — tutoriel officiel de jeu de plateforme (Roblox)](https://create.roblox.com/docs/tutorials/curriculums/core)
+- [Prototyping — examiner la core loop dès le prototype (Roblox)](https://create.roblox.com/docs/production/game-design/prototyping)
 </Sources>

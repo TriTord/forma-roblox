@@ -121,7 +121,7 @@ const faq = [
             <a href={urlDepart} class="bouton bouton-primaire text-lg" data-testid="cta-commencer">Commencer la formation</a>
             <a href={lien('/programme/')} class="bouton bouton-secondaire text-lg">Voir le programme</a>
           </div>
-          <a href="#" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:underline dark:text-indigo-300" data-reprendre hidden data-testid="cta-reprendre">
+          <a href="#" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300" data-reprendre hidden data-testid="cta-reprendre">
             ↻ Reprendre là où tu t’es arrêté : <span data-reprendre-titre></span>
           </a>
         </div>
@@ -182,7 +182,7 @@ const faq = [
               {modules.length} modules progressifs, du premier clic dans Studio à la checklist de lancement.
             </p>
           </div>
-          <a href={lien('/programme/')} class="font-semibold text-indigo-700 hover:underline dark:text-indigo-300">Programme détaillé →</a>
+          <a href={lien('/programme/')} class="font-semibold text-indigo-700 underline underline-offset-2 hover:decoration-2 dark:text-indigo-300">Programme détaillé →</a>
         </div>
         <ol class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="accueil-modules">
           {

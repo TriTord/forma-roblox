@@ -16,7 +16,7 @@ questions:
   - type: vrai-faux
     question: Avant d’ajouter une fonctionnalité, il est conseillé de vérifier à quelle partie de la core loop elle se rattache.
     reponse: true
-    explication: La documentation LiveOps de Roblox demande que toute fonctionnalité ajoutée soit reliée à la core loop. Une fonctionnalité isolée complique le jeu sans le rendre plus amusant.
+    explication: La documentation LiveOps de Roblox demande que toute fonctionnalité ajoutée soit reliée à la core loop. Une fonctionnalité sans lien avec la boucle risque de compliquer le jeu sans le rendre plus amusant.
 
   - type: qcm
     question: Un nouveau joueur rejoint l’Obby des Nuages. Quelle arrivée suit le mieux les recommandations Roblox sur l’onboarding ?
@@ -75,7 +75,7 @@ questions:
         correct: true
       - texte: Un manque de sources ; doubler les pièces gagnées par étape
       - texte: Aucun problème, des joueurs riches sont des joueurs heureux
-    explication: Quand la monnaie s’accumule sans rien de désirable à acheter, elle perd sa valeur et la boucle méta s’arrête. Roblox recommande de planifier les puits avant d’ajouter de nouvelles sources.
+    explication: Quand la monnaie s’accumule sans rien de désirable à acheter, elle perd sa valeur et la boucle méta s’arrête. Roblox demande de prévoir les puits qui absorberont l’excédent avant de lancer de nouvelles sources (la page parle de « surplus » ; « inflation » est le terme général).
 
   - type: qcm
     question: Quelle règle s’applique sur Roblox aux objets aléatoires payants ?

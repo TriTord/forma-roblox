@@ -109,7 +109,7 @@ questions:
     explication: "ServerScriptService n’est jamais envoyé aux clients. En vue **Client** (bordure bleue), l’Explorer montre ce que voit le joueur ; pour inspecter les objets du serveur, bascule en vue **Server** (bordure verte)."
 
   - type: trouve-le-bug
-    question: "Avec la Command Bar, tu veux rendre toutes tes plateformes **à moitié transparentes**. Après exécution, elles sont devenues totalement invisibles. Où est le bug ?"
+    question: "Avec la Command Bar, tu veux rendre toutes tes plateformes **à moitié transparentes**. Après exécution, le résultat n’est pas du tout celui attendu. Où est le bug ?"
     code: |
       local dossier = game:GetService("Workspace"):FindFirstChild("Plateformes")
       if dossier then
@@ -125,7 +125,7 @@ questions:
       - texte: "Ligne 4 : `IsA(\"BasePart\")` exclut les Parts de forme Block"
       - texte: "Ligne 5 : Transparency va de 0 à 1, « à moitié » s’écrit `0.5`"
         correct: true
-    explication: "**Transparency** va de 0 (totalement visible) à 1 (invisible). Ce n’est pas un pourcentage : pour une transparence de moitié, il faut `0.5`. `IsA(\"BasePart\")` accepte toutes les Parts, quelle que soit leur forme, et `GetDescendants` parcourt tous les descendants."
+    explication: "**Transparency** va de 0 (totalement visible) à 1 (invisible). Ce n’est pas un pourcentage : 50 sort complètement de la plage prévue, et pour une transparence de moitié, il faut `0.5`. `IsA(\"BasePart\")` accepte toutes les Parts, quelle que soit leur forme, et `GetDescendants` parcourt tous les descendants."
 
   - type: qcm
     question: Quelle est la différence entre **Save to Roblox** et **Publish** pour un jeu déjà publié ?

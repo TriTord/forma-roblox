@@ -4,7 +4,7 @@
 - [x] 0. Initialisation (git, PROGRESS, DECISIONS)
 - [x] 1. ARCHITECTE : stack, structure, composants (quiz, progression, badges, recherche), plan des leçons
 - [x] 2. Validation du plan par le chef d'orchestre (58 leçons, fil rouge « Obby des Nuages »)
-- [x] 3. RÉDACTEURS : modules 0 à 10 (59 leçons + 11 examens)
+- [x] 3. RÉDACTEURS : modules 0 à 10 (58 leçons + 11 examens)
 - [ ] 4. VÉRIFICATEURS passe 1 (faits + sources) — lancée module par module dès qu'un rédacteur finit
 - [ ] 5. VÉRIFICATEURS passe 2 (indépendants : code Luau + quiz + re-vérif faits)
 - [ ] 6. Consolidation VERIFICATION.md

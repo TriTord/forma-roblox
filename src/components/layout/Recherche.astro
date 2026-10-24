@@ -50,6 +50,27 @@ const basePagefind = lien('/pagefind/');
   type PagefindUIConstructeur = new (options: Record<string, unknown>) => unknown;
 
   const dialogue = document.getElementById('recherche') as HTMLDialogElement | null;
+  const LIBELLE = 'Rechercher dans la formation';
+
+  /** Interface Pagefind en français (le champ n'a pas d'étiquette visible : on lui donne un aria-label). */
+  const TRADUCTIONS = {
+    placeholder: LIBELLE,
+    search_label: LIBELLE,
+    clear_search: 'Effacer',
+    load_more: 'Afficher plus de résultats',
+    filters_label: 'Filtres',
+    zero_results: 'Aucun résultat pour « [SEARCH_TERM] »',
+    many_results: '[COUNT] résultats pour « [SEARCH_TERM] »',
+    one_result: '[COUNT] résultat pour « [SEARCH_TERM] »',
+    alt_search: 'Aucun résultat pour « [SEARCH_TERM] ». Résultats pour « [DIFFERENT_TERM] » à la place',
+    search_suggestion: 'Aucun résultat pour « [SEARCH_TERM] ». Essaie l’une de ces recherches :',
+    searching: 'Recherche de « [SEARCH_TERM] »…',
+  };
+
+  function etiqueterChamp() {
+    const champ = dialogue?.querySelector<HTMLInputElement>('#pagefind-ui input[type="text"], #pagefind-ui input:not([type])');
+    if (champ && !champ.hasAttribute('aria-label')) champ.setAttribute('aria-label', LIBELLE);
+  }
   let chargement: Promise<void> | undefined;
 
   function chargerPagefind(base: string): Promise<void> {
@@ -63,7 +84,14 @@ const basePagefind = lien('/pagefind/');
       script.onload = () => {
         const PagefindUI = (window as unknown as { PagefindUI?: PagefindUIConstructeur }).PagefindUI;
         if (!PagefindUI) return reject(new Error('PagefindUI absent'));
-        new PagefindUI({ element: '#pagefind-ui', showSubResults: true, showImages: false, autofocus: true });
+        new PagefindUI({
+          element: '#pagefind-ui',
+          showSubResults: true,
+          showImages: false,
+          autofocus: true,
+          translations: TRADUCTIONS,
+        });
+        etiqueterChamp();
         resolve();
       };
       script.onerror = () => {
@@ -80,6 +108,7 @@ const basePagefind = lien('/pagefind/');
     if (!dialogue.open) dialogue.showModal();
     try {
       await chargerPagefind(dialogue.dataset.base ?? '/pagefind/');
+      etiqueterChamp();
       dialogue.querySelector<HTMLInputElement>('#pagefind-ui input')?.focus();
     } catch {
       const message = dialogue.querySelector<HTMLElement>('[data-recherche-indisponible]');

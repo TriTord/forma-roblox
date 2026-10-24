@@ -94,7 +94,7 @@ Si plusieurs SpawnLocation sont valables pour un joueur, Roblox en choisit **une
 
 Pour un vrai obby dans les nuages, supprime la **Baseplate** (sélectionne-la dans l’Explorer, puis appuie sur la touche `Suppr`, *Delete* en anglais) et monte ta zone de départ en altitude. Un joueur qui rate un saut tombe alors dans le vide.
 
-Que devient-il ? Le Workspace possède une propriété `FallenPartsDestroyHeight` : sous cette altitude, le moteur retire automatiquement du jeu les Parts qui tombent. Le personnage du joueur est ainsi détruit, et le joueur réapparaît sur la SpawnLocation. C’est la « chute » classique d’un obby, sans aucun script.
+Que devient-il ? Le Workspace possède une propriété `FallenPartsDestroyHeight` : sous cette altitude, le moteur retire automatiquement les Parts qui tombent, ainsi que le Model qui les contient quand sa dernière Part disparaît. Le personnage du joueur, qui est un Model, est donc retiré. Comme la réapparition automatique est activée par défaut (propriété `CharacterAutoLoads` du service `Players`), le joueur réapparaît sur la SpawnLocation après un court délai (`RespawnTime`, 5 secondes par défaut). C’est la « chute » classique d’un obby, sans aucun script.
 
 <Erreur titre="Supprimer la Baseplate avant d’avoir tout ancré">
 Tant que la Baseplate était là, une plateforme non ancrée posée dessus semblait tenir en place. Sans elle, cette plateforme tombe dans le vide dès le premier test, puis disparaît en passant sous `FallenPartsDestroyHeight`. Vérifie l’ancrage de toutes tes plateformes (la commande de vérification est plus bas dans cette leçon) **avant** de supprimer la Baseplate.
@@ -179,7 +179,7 @@ Ton jeu apparaît maintenant dans le **Creator Dashboard** (create.roblox.com, r
 
 ### Privé par défaut
 
-Un jeu publié est **privé par défaut** : seuls toi et les personnes ayant un accès en modification peuvent y entrer. Pour recueillir de premiers avis, le menu **File** › **Invite early testers** permet d’inviter jusqu’à **10 amis** d’une tranche d’âge compatible avec la tienne (les règles exactes dépendent de ton âge et sont détaillées sur la page officielle). Ces testeurs voient un filigrane qui leur rappelle qu’il s’agit d’un aperçu, et les règles de la communauté s’appliquent toujours.
+Un jeu publié est **privé par défaut** : seuls toi et les personnes ayant un accès en modification peuvent y entrer. Pour recueillir de premiers avis, le menu **File** › **Invite early testers** permet d’inviter jusqu’à **10 amis** d’une tranche d’âge compatible avec la tienne (les règles exactes dépendent de ton âge et sont détaillées sur la page officielle). Si tu n’as pas encore fait de vérification d’âge (age check), Roblox te la demande à ce moment-là. Ces testeurs voient un filigrane qui leur rappelle qu’il s’agit d’un aperçu, et les règles de la communauté s’appliquent toujours.
 
 <Attention titre="La sortie publique, c’est pour plus tard">
 Rendre un jeu public est une étape à part, avec des conditions qui évoluent : au moment de la rédaction, il faut notamment un compte en règle, une vérification d’âge (age check) et répondre au questionnaire de maturité du contenu. Pour qu’un jeu soit accessible aux joueurs de moins de 16 ans, il doit en plus répondre aux exigences du cadre officiel **Roblox Kids and Select** (compte créateur vérifié, double authentification, évaluation du jeu…). Ne fais rien de tout cela maintenant : l’Obby des Nuages n’est pas prêt. Tu prépareras le lancement au module 7, en suivant la page officielle à jour.
@@ -190,7 +190,9 @@ Rendre un jeu public est une étape à part, avec des conditions qui évoluent :
 Une fois ton jeu publié, deux commandes du menu **File** envoient ton travail dans le cloud :
 
 - **Save to Roblox** enregistre une nouvelle version du place, **sans** la rendre disponible aux joueurs ;
-- **Publish** enregistre une version **et** en fait la version que les joueurs chargent. Studio te demande alors un nom de version et des notes.
+- **Publish** enregistre une version **et** la livre aux joueurs : c’est elle que chargent les nouveaux serveurs (les serveurs déjà ouverts gardent l’ancienne version jusqu’à leur fermeture ou leur redémarrage). Studio te demande alors un nom de version et des notes.
+
+La documentation ne présente pas cette différence en une seule phrase, mais elle en découle : les notes de version sont obligatoires à la publication « pour suivre ce qui a été livré aux joueurs », et une version restaurée n’atteint les joueurs qu’après une publication.
 
 Pour sauvegarder ton travail en cours, **Save to Roblox** suffit. Pour livrer une version aux joueurs (même à tes seuls testeurs), utilise **Publish**.
 
@@ -214,7 +216,7 @@ Dans trois semaines, « Version 47 » ne te dira rien. Une note de dix mots (« 
 - Le bouton **Collaborate**, à droite du mezzanine, ouvre la fenêtre de gestion des collaborateurs.
 - Pour un jeu qui t’appartient, tu peux donner l’accès **Play** à n’importe qui, mais la permission **Edit** seulement à tes **amis** Roblox.
 - Au moment de la rédaction, collaborer avec d’autres créateurs demande une **vérification d’âge**, et la collaboration est limitée par défaut aux tranches d’âge compatibles. Tu peux utiliser Team Create seul sans cette vérification.
-- Pendant une session collaborative, Studio enregistre automatiquement le projet dans le cloud à intervalles réguliers, et chaque collaborateur a une couleur qui montre ce qu’il sélectionne.
+- Pendant une session collaborative, Studio enregistre automatiquement le projet dans le cloud (toutes les quatre minutes selon la documentation, au moment de la rédaction), et chaque collaborateur a une couleur qui montre ce qu’il sélectionne.
 - Les **commentaires** (bouton **Comment** à droite du mezzanine, raccourci `C`) permettent d’épingler une remarque sur un objet du niveau.
 - Le mode de test **Team Test** permet de tester ensemble.
 
@@ -233,7 +235,7 @@ Les conditions d’âge et de permissions évoluent : vérifie toujours la page 
 
 <Resume>
 - La **SpawnLocation** est le point d’apparition : neutre, ancrée, une seule au départ.
-- Supprime la Baseplate pour un obby dans le ciel : sous `FallenPartsDestroyHeight`, le personnage est retiré et le joueur réapparaît.
+- Supprime la Baseplate pour un obby dans le ciel : sous `FallenPartsDestroyHeight`, le personnage est retiré et le joueur réapparaît automatiquement.
 - Construis les sauts par la méthode **placer, tester (Test Here), ajuster**, une difficulté à la fois, avec un code couleur lisible.
 - **File** › **Publish** (`Alt`+`P`) lie le jeu à ton compte ; il reste **privé** par défaut.
 - **Save to Roblox** sauvegarde, **Publish** livre aux joueurs ; **Version History** garde et restaure les versions (restaurer ne publie pas).
@@ -247,6 +249,9 @@ Les conditions d’âge et de permissions évoluent : vérifie toujours la page 
 - [Collaboration — Team Create, permissions, conditions d’âge](https://create.roblox.com/docs/projects/collaboration)
 - [SpawnLocation — référence API (Neutral, Duration, Enabled)](https://create.roblox.com/docs/reference/engine/classes/SpawnLocation)
 - [Workspace — FallenPartsDestroyHeight (référence API)](https://create.roblox.com/docs/reference/engine/classes/Workspace)
+- [Models — destruction des Parts tombées sous FallenPartsDestroyHeight](https://create.roblox.com/docs/parts/models)
+- [Players — CharacterAutoLoads et RespawnTime (référence API)](https://create.roblox.com/docs/reference/engine/classes/Players)
+- [Release game updates — anciens serveurs et redémarrage après publication](https://create.roblox.com/docs/projects/update-games)
 - [StarterPlayer — vitesse et saut des personnages (référence API)](https://create.roblox.com/docs/reference/engine/classes/StarterPlayer)
 - [Work with parts — conseils sur la distance des sauts d’un obby](https://create.roblox.com/docs/tutorials/curriculums/building/work-with-parts)
 - [Test and save — publier depuis Studio](https://create.roblox.com/docs/tutorials/curriculums/building/test-and-save)

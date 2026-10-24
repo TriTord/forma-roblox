@@ -36,7 +36,7 @@ quiz:
         correct: true
       - texte: "`T` et `Y`"
       - texte: "`F5` et `F8`"
-    explication: "Selon la documentation (clavier QWERTY), `W` `A` `S` `D` déplacent la caméra vers l’avant, la gauche, l’arrière et la droite, et `Q` `E` la font descendre et monter. Sur un clavier AZERTY, ce sont en principe les touches situées au même endroit (`Z` `Q` `S` `D`). `F5` et `F8` lancent des modes de test, ils ne déplacent pas la caméra."
+    explication: "Selon la documentation (clavier QWERTY), `W` `A` `S` `D` déplacent la caméra vers l’avant, la gauche, l’arrière et la droite, et `Q` `E` la font descendre et monter. La documentation ne dit rien des claviers AZERTY : ce sont probablement les touches situées au même endroit (`Z` `Q` `S` `D`), mais vérifie sur ton propre clavier. `F5` et `F8` lancent des modes de test, ils ne déplacent pas la caméra."
   - type: vrai-faux
     question: Sélectionner une Part puis appuyer sur `F` centre la caméra sur cette Part.
     reponse: true
@@ -100,11 +100,11 @@ Le modèle **Classic Obby** contient déjà des checkpoints, des tremplins et de
 
 Quand tu ouvres un modèle, Studio crée un **place**. Un place est un « niveau » complet : son décor, ses objets et ses scripts. Un **jeu** peut contenir un ou plusieurs places (par exemple un lobby et plusieurs mondes). L’Obby des Nuages tiendra dans un seul place.
 
-Roblox a longtemps appelé les jeux des **experiences** (« expériences »). Tu croiseras les deux mots dans Studio, sur le Creator Hub et dans la documentation : ils désignent la même chose.
+Pendant plusieurs années, Roblox a appelé les jeux des **experiences** (« expériences »). La documentation actuelle dit surtout **game**, mais le mot « Experience » reste dans certains menus et pages (par exemple **File** › **Experience Settings** dans Studio, ou **My Experiences** sur le Creator Dashboard). Les deux mots désignent la même chose.
 
 ## Faire le tour de l’interface
 
-L’interface de Studio a été profondément remaniée ces dernières années. Cette leçon décrit la version actuelle, telle que la présente la documentation officielle au moment de la rédaction. Si tu suis un ancien tutoriel vidéo, tu verras peut-être des onglets ou des boutons placés autrement : le principe reste le même, seuls les emplacements changent.
+L’interface de Studio a été profondément remaniée : Roblox a présenté en 2024 une nouvelle interface (« Next Gen Studio UI »), d’abord en bêta, qui place notamment les commandes de test en haut à gauche. Cette leçon décrit la version actuelle, telle que la présente la documentation officielle au moment de la rédaction. Si tu suis un ancien tutoriel vidéo, tu verras peut-être des onglets ou des boutons placés autrement : le principe reste le même, seuls les emplacements changent.
 
 ### Le mezzanine et la barre d’outils
 
@@ -116,7 +116,7 @@ Tout en haut de la fenêtre se trouve le **mezzanine**, une bande qui contient :
 
 Juste en dessous, la **barre d’outils** (*toolbar*) affiche les outils de l’onglet actif. Par exemple, l’onglet **Home** contient les outils de transformation (déplacer, redimensionner, tourner), le bouton pour insérer une **Part**, les réglages de couleur et de matériau, et le bouton **Anchor**. L’onglet **Script** contient les outils pour écrire et tester des scripts.
 
-Studio possède aussi des menus classiques, en haut à gauche : **File** (fichier), **Edit** (édition), **Window** (fenêtres)…
+Studio possède aussi des menus classiques, en haut à gauche : **File** (fichier), **Edit** (édition), **Window** (fenêtres)… Sur Mac, ces menus apparaissent dans la barre de menus du système, tout en haut de l’écran.
 
 ### La vue 3D (viewport)
 
@@ -160,7 +160,7 @@ Beaucoup de débutants ferment ces deux fenêtres pour « gagner de la place »,
 
 ## Te déplacer dans la vue 3D
 
-Clique d’abord une fois dans le viewport pour lui donner le « focus » clavier, sinon la caméra ne bougera pas. Voici les commandes de caméra indiquées par la documentation :
+Clique d’abord une fois dans le viewport : le tutoriel officiel précise que si la caméra ne bouge pas, il suffit de cliquer dans le viewport puis de réessayer. Voici les commandes de caméra indiquées par la documentation :
 
 | Commande | Action |
 |---|---|
@@ -172,7 +172,7 @@ Clique d’abord une fois dans le viewport pour lui donner le « focus » clavie
 | Clic molette maintenu + souris | Faire glisser la caméra (panoramique) |
 | `F` | Centrer la caméra sur l’objet sélectionné |
 
-La documentation décrit un clavier **QWERTY**. Un membre de l’équipe Roblox a expliqué sur le DevForum que Roblox repère les touches selon leur **position** sur un clavier QWERTY. Sur un clavier français (AZERTY), les touches de déplacement devraient donc être `Z` `Q` `S` `D`, avec `A` et `E` pour descendre et monter. Vérifie sur ton propre clavier : quelques secondes d’essai suffisent.
+La documentation décrit un clavier **QWERTY** et ne dit rien des claviers français (AZERTY). À propos des touches dans les jeux, un membre de l’équipe Roblox a expliqué sur le DevForum que Roblox désigne les touches selon leur **position** sur un clavier QWERTY. Si la caméra de Studio suit la même logique (ce que la documentation ne confirme pas), les touches de déplacement sur AZERTY sont `Z` `Q` `S` `D`, avec `A` et `E` pour descendre et monter. Vérifie sur ton propre clavier : quelques secondes d’essai suffisent.
 
 <Astuce titre="Une souris, pas un pavé tactile">
 La documentation officielle recommande **fortement** une souris à deux boutons avec molette. Naviguer en 3D avec un pavé tactile est possible, mais beaucoup plus lent et fatigant.
@@ -238,7 +238,8 @@ Un place tout neuf qui n’a jamais été publié ni enregistré n’existe null
 - [Roblox Studio setup — installation et configuration requise](https://create.roblox.com/docs/studio/setup)
 - [Studio interface — mezzanine, barre d’outils, caméra, fenêtres](https://create.roblox.com/docs/studio/overview)
 - [Explore Studio UI — tutoriel officiel pour débutants](https://create.roblox.com/docs/tutorials/curriculums/studio/explore-ui)
-- [AZERTY keyboard binding issue — explication sur la position des touches (DevForum)](https://devforum.roblox.com/t/azerty-keyboard-binding-issue/4070475)
+- [AZERTY keyboard binding issue — explication d’un membre du staff sur la position des touches (DevForum)](https://devforum.roblox.com/t/azerty-keyboard-binding-issue/4070475)
+- [Next Gen Studio UI Preview — annonce officielle de la nouvelle interface (DevForum, 2024)](https://devforum.roblox.com/t/next-gen-studio-ui-preview-is-here-beta/3075390)
 - [Templates — liste des modèles de départ](https://create.roblox.com/docs/resources/templates)
 - [Create your first game — projet, Baseplate et studs](https://create.roblox.com/docs/tutorials/first-experience)
 - [Place files — Save to File et formats .rbxl / .rbxlx](https://create.roblox.com/docs/projects/place-files)

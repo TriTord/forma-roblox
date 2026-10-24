@@ -77,14 +77,17 @@ test('sommaire mobile : ouverture, fermeture (bouton, fond, Échap), focus', asy
   await expect(bouton).toHaveAttribute('aria-expanded', 'true');
   // Le focus va dans le tiroir (élément courant ou bouton Fermer).
   await expect.poll(() => page.evaluate(() => Boolean(document.activeElement?.closest('[data-testid="sidebar"]')))).toBe(true);
-  // Le contenu derrière ne défile plus.
+  // Le contenu derrière ne défile plus et n'est plus atteignable (inert : ni focus, ni lecteur d'écran).
   await expect(page.locator('body')).toHaveClass(/overflow-hidden/);
+  await expect(page.locator('header').first()).toHaveAttribute('inert', '');
+  await expect(sommaire).not.toHaveAttribute('inert', '');
 
   await sommaire.getByRole('button', { name: 'Fermer le sommaire' }).click();
   await expect(sommaire).toBeHidden();
   await expect(bouton).toHaveAttribute('aria-expanded', 'false');
   await expect(bouton).toBeFocused();
   await expect(page.locator('body')).not.toHaveClass(/overflow-hidden/);
+  await expect(page.locator('[inert]')).toHaveCount(0);
 
   await bouton.click();
   await expect(sommaire).toBeVisible();
@@ -155,5 +158,16 @@ test('sommaire mobile ouvert : la touche Tab reste dans le tiroir (contenu masqu
       break;
     }
   }
+  for (let i = 0; i < nbFocusables + 3 && !sorties.length; i++) {
+    await page.keyboard.press('Shift+Tab');
+    const hors = await page.evaluate(() => {
+      const el = document.activeElement;
+      return el && el !== document.body && !el.closest('[data-testid="sidebar"]') ? `${el.tagName.toLowerCase()} (Maj+Tab)` : null;
+    });
+    if (hors) sorties.push(hors);
+  }
   aucunProbleme(sorties, 'Le focus clavier sort du tiroir ouvert vers la page masquée');
+  // Fermeture au clavier : retour du focus sur le bouton d'ouverture.
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('sidebar-toggle')).toBeFocused();
 });
