@@ -24,7 +24,7 @@
 | 05 | FAIT | FAIT (21 corr., 2 suppr.) | en cours |
 | 06 | FAIT | en cours | |
 | 07 | FAIT | FAIT (11 corrections) | en cours |
-| 08 | FAIT | FAIT (11 corrections) | en cours |
+| 08 | FAIT | FAIT (11 corrections) | FAIT (9 corr.) ✅ |
 | 09 | FAIT | en cours | |
 | 10 | FAIT | en cours | |
 
@@ -38,3 +38,4 @@
 - À FAIRE en passe de cohérence inter-modules : contenu du ModuleScript `Config` (module 02 vs `Config.Zones` du module 05), structure des données joueur (module 04 vs 05/06/08), convention `Etape`.
 - Cohérence à vérifier aussi : format du Catalogue (module 10 suppose `{ [id] = { prix = … } }`) vs module 04.
 - Cohérence : noms d'UI du module 09 (InterfaceObby, CompteurPieces, BoutonBoutique) à aligner sur le module 04.
+- Désaccord passe1/passe2 module 08 (Daily Engagement Rewards) tranché par le chef d'orchestre sur create.roblox.com/docs/creator-rewards : la passe 2 a raison (ordre de lancement).

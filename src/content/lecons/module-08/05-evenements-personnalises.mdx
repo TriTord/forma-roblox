@@ -204,7 +204,7 @@ local function suivreEtape(player: Player, etape: IntValue, heureArrivee: number
 
 	etape.Changed:Connect(function(nouvelleValeur: number)
 		-- Seule une hausse d'exactement 1 est une vraie progression
-		-- (le chargement d'une sauvegarde fait sauter la valeur : on l'ignore)
+		-- (un saut de plusieurs étapes, par exemple au chargement d'une sauvegarde, est ignoré)
 		local estUneProgression = nouvelleValeur == ancienneValeur + 1
 		ancienneValeur = nouvelleValeur
 		if not estUneProgression then
@@ -269,10 +269,10 @@ local function onPlayerAdded(player: Player)
 		task.spawn(onCharacterAdded, player.Character)
 	end
 
-	-- Attend les leaderstats créées par le script du module 4
-	-- (30 s : le chargement de la sauvegarde peut faire plusieurs tentatives)
-	local leaderstats = player:WaitForChild("leaderstats", 30)
-	local etape = if leaderstats then leaderstats:WaitForChild("Etape", 30) else nil
+	-- Attend les leaderstats créées par le script du module 4 (60 s, comme au module 4 :
+	-- le chargement de la sauvegarde peut faire plusieurs tentatives)
+	local leaderstats = player:WaitForChild("leaderstats", 60)
+	local etape = if leaderstats then leaderstats:WaitForChild("Etape", 10) else nil
 	if etape and etape:IsA("IntValue") then
 		suivreEtape(player, etape, heureArrivee)
 	else
@@ -317,7 +317,7 @@ Pour suivre ta monnaie, on utilise `LogEconomyEvent`. Les pièces qui **entrent*
 
 ```luau
 -- ModuleScript « AnalytiqueEconomie » placé dans ServerScriptService
--- À appeler depuis le script serveur d'achat (module 3), APRÈS un achat réussi.
+-- À appeler depuis le script serveur d'achat (modules 3 et 4), APRÈS un achat réussi.
 local AnalyticsService = game:GetService("AnalyticsService")
 
 local AnalytiqueEconomie = {}
@@ -344,7 +344,7 @@ end
 return AnalytiqueEconomie
 ```
 
-Dans ton script d’achat, ajoute en haut `local AnalytiqueEconomie = require(game:GetService("ServerScriptService"):WaitForChild("AnalytiqueEconomie"))`, puis, **juste après** avoir retiré les pièces et ajouté la traînée à l’inventaire : `AnalytiqueEconomie.achat(player, idObjet, prix, pieces.Value)` (avec les noms de variables de ton script).
+Dans ton script d’achat (celui de la leçon Inventaire du module 4), ajoute en haut `local AnalytiqueEconomie = require(game:GetService("ServerScriptService"):WaitForChild("AnalytiqueEconomie"))`, puis, **juste après** avoir retiré les pièces et ajouté la traînée à l’inventaire : `AnalytiqueEconomie.achat(player, idObjet, objet.prix, pieces.Value)`. À ce moment-là, `pieces.Value` contient déjà le solde **après** l’achat.
 
 Les types de transaction proposés par Roblox sont `IAP` (achat en Robux), `TimedReward`, `Onboarding`, `Shop`, `Gameplay` et `ContextualPurchase`. Commence par eux : ils alimentent les graphiques de la page Economy.
 
@@ -354,7 +354,7 @@ Un obby distribue beaucoup de pièces. Envoyer un événement par pièce consomm
 
 ## Les limites à respecter
 
-Au moment de la rédaction (octobre 2026), la documentation officielle donne ces limites. Elles se réinitialisent chaque jour ; vérifie la page officielle, elles peuvent changer.
+Au moment de la rédaction (octobre 2026), la documentation officielle donne ces limites. Plusieurs portent sur la **cardinalité**, c’est-à-dire le nombre de valeurs **différentes** que tu utilises (par exemple, combien de noms d’événements distincts), et non sur le nombre d’envois. Les limites se réinitialisent chaque jour ; vérifie la page officielle, elles peuvent changer.
 
 | Limite | Valeur |
 |---|---|
@@ -372,14 +372,14 @@ Exemple **fictif** de débit : avec 10 joueurs simultanés, tu as droit à 120 +
 
 ### Et pour les entonnoirs répétables ?
 
-Un entonnoir de **boutique** (ouvrir la boutique → voir un objet → acheter) peut être parcouru plusieurs fois par le même joueur. On passe alors un `funnelSessionId` différent à chaque parcours ; la documentation recommande `HttpService:GenerateGUID()`. Attention : Roblox ne garde en mémoire que les **10 identifiants de session les plus récents** par joueur et par entonnoir. Et si l’information vient de l’interface (le joueur ouvre la boutique dans un LocalScript), le client prévient le serveur via un RemoteEvent de `ReplicatedStorage.Remotes`, et le **serveur vérifie** la demande (numéro d’étape valide, pas de spam) avant d’enregistrer, comme au module 3.
+Un entonnoir de **boutique** (ouvrir la boutique → voir un objet → acheter) peut être parcouru plusieurs fois par le même joueur. On passe alors un `funnelSessionId` différent à chaque parcours ; la documentation recommande `HttpService:GenerateGUID()`, qui fabrique un identifiant unique au hasard (un *GUID*). Attention : Roblox ne garde en mémoire que les **10 identifiants de session les plus récents** par joueur et par entonnoir. Et si l’information vient de l’interface (le joueur ouvre la boutique dans un LocalScript), le client prévient le serveur via un RemoteEvent de `ReplicatedStorage.Remotes`, et le **serveur vérifie** la demande (numéro d’étape valide, pas de spam) avant d’enregistrer, comme au module 3.
 
 ## Vérifier, lire, décider
 
 ### Vérifier que les événements arrivent
 
 1. Publie le jeu et joue quelques minutes (les événements ne partent pas depuis Studio).
-2. Dans le tableau de bord, ouvre la page **Funnel**, **Economy** ou **Custom**, puis clique sur **View Events** : une liste quasi en temps réel des derniers événements s’affiche.
+2. Dans le tableau de bord, ouvre la page **Funnel**, **Economy** ou **Custom** (selon le type d’événement ; pour les événements personnalisés, la documentation parle aussi de la page **Explore**), puis clique sur **View Events** : une liste quasi en temps réel des derniers événements s’affiche.
 3. Les graphiques, eux, mettent **environ 24 heures** à apparaître. Si tu vois plus d’événements que prévu, vérifie que tu enregistres bien **après** une action réussie.
 
 ### Lire l’entonnoir (exemple fictif)
