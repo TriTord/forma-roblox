@@ -43,7 +43,7 @@ questions:
   - type: vrai-faux
     question: "D’après les chiffres publiés par Roblox (consultés en octobre 2026), la plupart des créateurs qui monétisent sur Roblox participent au programme DevEx."
     reponse: false
-    explication: "Roblox indique que, parmi **les millions** de créateurs qui monétisent, un peu plus de **35 000** participent à DevEx. C’est une petite fraction : il faut aborder son premier jeu comme un projet d’apprentissage, sans promesse de revenus."
+    explication: "Roblox indique que, parmi **les millions** de créateurs qui monétisent, un peu plus de **42 000** participaient à DevEx sur les douze mois clos le 30 juin 2026 (chiffre publié en septembre 2026). C’est une petite fraction, et la médiane d’environ 1 500 dollars ne concerne que ces participants : il faut aborder son premier jeu comme un projet d’apprentissage, sans promesse de revenus."
 
   - type: qcm
     question: "Ton ami a imaginé un jeu avec un monde ouvert, des clans, 50 armes et des quêtes. Il n’a encore rien de jouable après deux mois. Quel conseil lui donnes-tu ?"
@@ -82,12 +82,12 @@ questions:
       - texte: Robux spent per user
       - texte: Intentional co-play days per user
       - texte: Aucun, seul le nombre total de visites compte
-    explication: "Le **first play bounce rate** mesure les départs après une partie très courte (moins de 60 secondes, puis entre 61 et 180 secondes). C’est l’un des signaux les plus importants, et il est négatif : plus il est élevé, plus il pénalise le jeu."
+    explication: "Le **first play bounce rate** mesure les départs après une partie très courte (moins de 60 secondes, puis entre 61 et 180 secondes). C’est l’un des signaux les plus importants, et c’est un signal négatif : un taux élevé indique que les joueurs ne trouvent pas assez de raisons de rester au début de leur partie."
 
   - type: vrai-faux
     question: "Une vidéo affirme connaître la formule exacte de l’algorithme de recommandation de Roblox. Selon les informations publiées par Roblox, c’est forcément vrai puisque Roblox publie tous ses signaux."
     reponse: false
-    explication: "Roblox publie la **liste** des signaux et leur ordre d’importance, mais pas leur poids exact ni la formule, et prévient que les signaux évoluent. Personne à l’extérieur de Roblox ne connaît la formule : méfie-toi de ce genre de promesse."
+    explication: "Roblox publie la **liste** des signaux et leur importance relative, mais pas leur poids exact ni la formule, et prévient que les signaux évoluent. Personne à l’extérieur de Roblox ne connaît la formule : méfie-toi de ce genre de promesse."
 
   - type: qcm
     question: "Lequel de ces choix de page de jeu respecte les bonnes pratiques de découverte de Roblox ?"
