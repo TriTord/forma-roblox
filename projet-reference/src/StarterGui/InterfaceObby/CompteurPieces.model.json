@@ -1,0 +1,55 @@
+{
+  "className": "Frame",
+  "properties": {
+    "AnchorPoint": {
+      "Vector2": [0, 0]
+    },
+    "Position": {
+      "UDim2": [[0.02, 0], [0.03, 0]]
+    },
+    "Size": {
+      "UDim2": [[0.2, 0], [0.08, 0]]
+    },
+    "BackgroundColor3": {
+      "Color3": [0.12, 0.12, 0.2]
+    },
+    "BackgroundTransparency": 0.3
+  },
+  "children": [
+    {
+      "name": "UICorner",
+      "className": "UICorner"
+    },
+    {
+      "name": "UIAspectRatioConstraint",
+      "className": "UIAspectRatioConstraint",
+      "properties": {
+        "AspectRatio": 3
+      }
+    },
+    {
+      "name": "Texte",
+      "className": "TextLabel",
+      "properties": {
+        "Size": {
+          "UDim2": [[1, 0], [1, 0]]
+        },
+        "BackgroundTransparency": 1,
+        "TextScaled": true,
+        "TextColor3": {
+          "Color3": [1, 1, 1]
+        },
+        "Text": "Pièces : 0"
+      },
+      "children": [
+        {
+          "name": "UITextSizeConstraint",
+          "className": "UITextSizeConstraint",
+          "properties": {
+            "MinTextSize": 12
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "className": "UIGridLayout",
+  "properties": {
+    "CellSize": {
+      "UDim2": [[0.3, 0], [0.4, 0]]
+    },
+    "CellPadding": {
+      "UDim2": [[0.03, 0], [0.03, 0]]
+    }
+  }
+}

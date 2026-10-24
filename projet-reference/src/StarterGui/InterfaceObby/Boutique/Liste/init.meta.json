@@ -1,0 +1,9 @@
+{
+  "className": "Frame",
+  "properties": {
+    "Size": {
+      "UDim2": [[1, 0], [1, 0]]
+    },
+    "BackgroundTransparency": 1
+  }
+}
