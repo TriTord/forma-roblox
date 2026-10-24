@@ -16,7 +16,7 @@
 ## Suivi par module
 | Module | Rédaction | Vérif passe 1 | Vérif passe 2 |
 |---|---|---|---|
-| 00 | FAIT | FAIT (16 corrections) | en cours |
+| 00 | FAIT | FAIT (16 corrections) | FAIT (17 corr.) ✅ |
 | 01 | FAIT | FAIT (12 corrections) | en cours |
 | 02 | FAIT | en cours | |
 | 03 | FAIT | FAIT (8 corrections) | en cours |

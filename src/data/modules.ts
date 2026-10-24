@@ -113,7 +113,7 @@ export const MODULES: ModuleInfo[] = [
     titre: 'Monétisation et DevEx',
     titreCourt: 'Monétisation',
     description:
-      'Game Passes, Developer Products, abonnements, Premium Payouts, fixation des prix, éthique et règles de Roblox, puis conversion des Robux avec DevEx.',
+      'Game Passes, Developer Products, abonnements, Creator Rewards (qui ont remplacé les Premium Payouts), fixation des prix, éthique et règles de Roblox, puis conversion des Robux avec DevEx.',
     emoji: '💎',
     objectifs: [
       'Connaître les sources de revenus d’une expérience Roblox',
