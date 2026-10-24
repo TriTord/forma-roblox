@@ -59,6 +59,19 @@ quiz:
       - texte: "Ligne 10 : `print` n’accepte qu’un seul argument"
       - texte: "Ligne 3 : `PlayerAdded` ne se déclenche que dans Studio"
     explication: "`debutEtape` est recréé à chaque changement d’étape, juste avant le calcul : la durée est donc toujours quasi nulle. Il faut déclarer `local debutEtape = os.clock()` avant `etape.Changed:Connect`, puis le remettre à `os.clock()` après chaque affichage."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code t’aide à mesurer ton prochain playtest. Quelle version du prompt est la meilleure ?"
+    prompt: "fais un script pour analyser mes joueurs"
+    options:
+      - texte: "Crée un système d’analytics complet qui enregistre tout ce que font les joueurs pendant la partie."
+      - texte: "Envoie chaque mouvement et chaque message des joueurs à mon site web avec HttpService, pour que je les analyse après."
+      - texte: |
+          Crée le Script src/ServerScriptService/SuiviPlaytest.server.luau, activé par une constante MODE_PLAYTEST.
+          À chaque changement de leaderstats.Etape, affiche dans l'Output le temps passé sur l'étape (os.clock) et le nombre de morts (Humanoid.Died), puis remets les compteurs à zéro.
+          Il ne modifie aucune valeur et n'envoie aucune donnée hors du jeu.
+          Vérification : deux morts avant le checkpoint 1 affichent « 2 chute(s) ».
+        correct: true
+    explication: "La bonne version dit exactement quoi mesurer, où l’afficher, ce que le script ne doit pas faire et comment vérifier. « Tout enregistrer » ne donne aucune mesure exploitable. Envoyer les messages et mouvements des joueurs (souvent mineurs) vers un site externe pose un vrai problème de vie privée, et ce n’est pas nécessaire pour un playtest."
 ---
 
 Tu connais ton obby par cœur : tu sais où sauter, où se cachent les pièces, comment fonctionne la boutique. C’est justement pour ça que tu es **la pire personne** pour juger s’il est clair. Les leçons précédentes t’ont donné des principes ; cette dernière leçon du module t’apprend à les vérifier avec de vrais joueurs, ceux qui découvrent ton jeu sans rien savoir.
@@ -123,7 +136,7 @@ Après la partie, pose des **questions ouvertes** qui n’orientent pas la répo
 
 ## Mesurer pendant le playtest
 
-Pendant que tu observes, un petit script peut chronométrer chaque étape à ta place. Crée un **Script** (côté serveur) nommé `SuiviPlaytest` dans **ServerScriptService**. Il affiche dans l’Output (la fenêtre de sortie) le temps passé et le nombre de chutes entre deux checkpoints. Pratique pour repérer un pic de difficulté (leçon 3) ou régler le délai de l’indice minuté (leçon 2).
+Pendant que tu observes, un petit script peut chronométrer chaque étape à ta place. Crée un **Script** (côté serveur) nommé `SuiviPlaytest` dans **ServerScriptService**. Il affiche dans l’Output (la fenêtre de sortie) le temps passé et le nombre de chutes entre deux checkpoints. Pratique pour repérer un pic de difficulté (leçon 3) ou régler le délai de l’indice minuté (leçon 2). Dans ton projet Rojo, c’est le fichier `src/ServerScriptService/SuiviPlaytest.server.luau`, que tu peux faire écrire par Claude Code (encadré plus bas) avant de le relire.
 
 ```luau
 -- Script à placer dans ServerScriptService, à n'utiliser QUE pendant tes playtests.
@@ -181,6 +194,34 @@ Quelques remarques :
 - `os.clock()` renvoie un temps en secondes, idéal pour mesurer une **durée** (la différence entre deux appels).
 - Dans Studio, les messages apparaissent dans la fenêtre Output. Dans un serveur en ligne, tu peux lire la sortie du serveur dans la Developer Console (touche F9 en jeu), si tu as les droits sur le jeu.
 - Ce script est un outil de test **temporaire**. Pour mesurer tous tes joueurs dans la durée, tu utiliseras les entonnoirs d’`AnalyticsService` au module 9.
+
+<AvecClaudeCode>
+
+Un outil de mesure doit être **neutre** : il observe sans rien changer au jeu. C’est la contrainte la plus importante du prompt, avec le format exact de la ligne affichée, pour que tu puisses comparer facilement tes séances de playtest.
+
+<Prompt titre="Mesure de playtest (SuiviPlaytest)">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je prépare des playtests avec de vrais joueurs et je veux mesurer, pour chaque étape, le temps passé et le nombre de chutes.
+Ce qui existe déjà : leaderstats.Etape (IntValue créée par le serveur après le chargement de la sauvegarde, elle augmente de 1 à chaque checkpoint validé) ; les kill bricks et les chutes dans le vide tuent le personnage (Humanoid.Died).
+Objectif : à chaque nouvelle étape, l'Output affiche une ligne au format exact « [PLAYTEST] NomDuJoueur : étape N en X s, Y chute(s) (total : Z s) », puis le chrono et les chutes repartent de zéro pour l'étape suivante.
+Fichiers concernés : crée uniquement src/ServerScriptService/SuiviPlaytest.server.luau (Script serveur). Ne modifie aucun autre fichier.
+Contraintes techniques : constante MODE_PLAYTEST = true en haut du fichier, qui encadre toutes les connexions ; durées mesurées avec os.clock() et arrondies avec math.floor ; string.format pour la ligne ; une fonction suivreJoueur(player) appelée sur PlayerAdded et, avec task.spawn, pour les joueurs déjà présents ; Humanoid.Died connecté à chaque personnage (CharacterAdded, plus le personnage déjà présent).
+Sécurité : le script ne fait que lire et afficher : il ne modifie jamais Etape ni Pieces, n'utilise aucun RemoteEvent, aucun DataStore et n'envoie aucune donnée hors du jeu (pas de HttpService).
+Cas limites : personnage déjà apparu quand le script démarre ; plusieurs morts sur la même étape ; joueur qui revient avec une sauvegarde (le premier temps affiché part de son arrivée) ; MODE_PLAYTEST = false ne doit rien afficher.
+Vérification : en Play Solo, meurs deux fois avant le checkpoint 1 puis atteins-le : la ligne indique « 2 chute(s) » ; au checkpoint 2, sans mourir, « 0 chute(s) » ; avec MODE_PLAYTEST = false, rien ne s'affiche ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `debutEtape` est créé **avant** `etape.Changed:Connect`, puis remis à `os.clock()` après chaque affichage (sinon la durée vaut toujours 0, le bug du quiz) ;
+- `chutes` est remis à 0 après chaque étape, et `Humanoid.Died` est connecté à **chaque** nouveau personnage ;
+- le script ne contient aucune écriture dans `Etape` ou `Pieces`, aucun RemoteEvent, aucun DataStore, aucun `HttpService` ;
+- `MODE_PLAYTEST` encadre bien toutes les connexions, et tu sais où le passer à `false` avant le lancement public.
+
+</AvecClaudeCode>
 
 <Astuce titre="Croiser chiffres et observations">
 Une étape franchie en 90 secondes avec 12 chutes, c’est un signal. Ce que tu as noté à côté te dit pourquoi : le testeur ne voyait pas le bord de la plateforme ? Il sautait trop tôt ? Il n’avait pas compris que la plateforme bougeait ? La solution n’est pas la même dans les trois cas.

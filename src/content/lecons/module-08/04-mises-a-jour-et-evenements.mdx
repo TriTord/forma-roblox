@@ -57,6 +57,18 @@ quiz:
         correct: true
       - texte: "Ligne 6 : `FireAllClients` ne peut pas envoyer deux valeurs"
     explication: "`restartTime` est un objet `DateTime`. On ne peut pas le soustraire directement à un nombre : il faut lire sa propriété `UnixTimestamp` (des secondes depuis 1970, comme `os.time()`). L’événement existe bien sur `game` (le DataModel), et `FireAllClients` peut transmettre plusieurs valeurs."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code prévienne les joueurs avant un redémarrage des serveurs. Quelle version du prompt est la meilleure ?"
+    prompt: "préviens les joueurs avant un redémarrage"
+    options:
+      - texte: "Toutes les 10 minutes, affiche « Redémarrage imminent ! Dépêche-toi de finir ! » à tous les joueurs, pour qu’ils ne soient jamais surpris."
+      - texte: "Crée un RemoteEvent AnnonceRedemarrage que n’importe quel client peut déclencher pour envoyer son message de redémarrage à tout le serveur."
+      - texte: |
+          Crée le Script src/ServerScriptService/Redemarrage.server.luau : sur game.ServerRestartScheduled, calcule les minutes restantes avec restartTime.UnixTimestamp - DateTime.now().UnixTimestamp (minimum 0) et envoie un message honnête avec Remotes.AnnonceRedemarrage:FireAllClients.
+          Crée le LocalScript AffichageRedemarrage.client.luau qui l'affiche avec SetCore("SendNotification") dans un pcall.
+          Vérification : un Restart Servers avec 2 minutes de délai affiche « 2 min » dans le jeu publié.
+        correct: true
+    explication: "La bonne version utilise l’événement officiel, le bon type (`DateTime`), un message vrai et un test réaliste. Un faux « redémarrage imminent » répété crée une fausse urgence. Laisser n’importe quel client envoyer un message à tout le serveur permet à un exploiteur d’afficher ce qu’il veut chez tout le monde."
 ---
 
 Un jeu Roblox n’est jamais vraiment « fini ». Après le lancement, les mises à jour donnent aux joueurs des raisons de revenir et te permettent de corriger ce que les statistiques révèlent. Mais une mise à jour mal préparée peut aussi casser les sauvegardes ou couper la partie de tout le monde au mauvais moment. Dans cette leçon, on organise les mises à jour de l’Obby des Nuages et son premier événement.
@@ -106,7 +118,7 @@ Bonne nouvelle : tu as déjà tout ce qu’il faut. Au module 5, le ModuleScript
 
 ```luau
 -- Extrait du ModuleScript « DonneesJoueurs » (ServerScriptService), écrit au module 5
--- On augmente ce numéro à chaque nouveau champ : 1 au module 5, 3 au module 7 (achats), 3 ici
+-- On augmente ce numéro à chaque nouveau champ : 1 au module 5, 2 au module 7 (achats), 3 ici
 local VERSION_DONNEES = 3
 
 -- Structure d'une sauvegarde toute neuve : on y AJOUTE les nouveaux champs
@@ -185,7 +197,7 @@ Quand tu lances un redémarrage **avec délai**, l’événement `game.ServerRes
 - `source` : `Enum.CloseReason.DeveloperUpdate` pour tes mises à jour, ou `Enum.CloseReason.RobloxMaintenance` quand Roblox fait de la maintenance ;
 - `attributes` : une table d’informations facultatives (vide si aucune).
 
-On s’en sert pour afficher un compte à rebours aux joueurs. Crée d’abord un RemoteEvent nommé `AnnonceRedemarrage` dans `ReplicatedStorage.Remotes`.
+On s’en sert pour afficher un compte à rebours aux joueurs. Crée d’abord un RemoteEvent nommé `AnnonceRedemarrage` dans `ReplicatedStorage.Remotes` (avec Rojo, il se déclare dans `default.project.json`, comme les autres RemoteEvents). Les deux scripts ci-dessous correspondent aux fichiers `src/ServerScriptService/Redemarrage.server.luau` et `src/StarterPlayer/StarterPlayerScripts/AffichageRedemarrage.client.luau` : tu peux les demander à Claude Code avec le prompt de l’encadré qui suit, puis les relire avec les explications de cette section.
 
 ```luau
 -- Script « Redemarrage » (côté serveur) à placer dans ServerScriptService
@@ -237,6 +249,35 @@ annonceRedemarrage.OnClientEvent:Connect(function(message: string)
 	end
 end)
 ```
+
+<AvecClaudeCode>
+
+Ce système ne se teste vraiment que dans le jeu publié, au moment d’un redémarrage : raison de plus pour que le prompt décrive précisément les types (`DateTime`), les messages et le test à faire depuis le Creator Dashboard.
+
+<Prompt titre="Annonce de redémarrage">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Avant de publier des mises à jour, je veux prévenir les joueurs quand je redémarre les serveurs avec un délai depuis le Creator Dashboard.
+Ce qui existe déjà : les RemoteEvents sont déclarés dans default.project.json sous ReplicatedStorage.Remotes. La sauvegarde (DonneesJoueurs, BindToClose) fonctionne déjà.
+Objectif : quand un redémarrage avec délai est programmé, chaque joueur du serveur reçoit une notification Roblox de 15 secondes, par exemple « Nouvelle version de l'Obby des Nuages ! Le serveur redémarre dans 2 min. Ta progression est sauvegardée. », ou un message de maintenance si c'est Roblox qui redémarre.
+Fichiers concernés : 1) default.project.json : ajoute le RemoteEvent AnnonceRedemarrage dans Remotes ; 2) crée le Script src/ServerScriptService/Redemarrage.server.luau ; 3) crée le LocalScript src/StarterPlayer/StarterPlayerScripts/AffichageRedemarrage.client.luau. Ne modifie rien d'autre.
+Contraintes techniques : serveur : game.ServerRestartScheduled:Connect(function(restartTime, source)) ; restartTime est un DateTime : secondes restantes = restartTime.UnixTimestamp - DateTime.now().UnixTimestamp, au minimum 0, converties en minutes avec math.ceil ; message différent si source == Enum.CloseReason.DeveloperUpdate ; envoi avec AnnonceRedemarrage:FireAllClients(message). Client : AnnonceRedemarrage.OnClientEvent affiche StarterGui:SetCore("SendNotification", { Title = "Mise à jour", Text = message, Duration = 15 }) dans un pcall, avec warn si l'appel échoue.
+Sécurité : seul le serveur envoie l'annonce ; aucun script n'écoute AnnonceRedemarrage.OnServerEvent (un client ne doit pas pouvoir envoyer un message à tout le serveur).
+Cas limites : heure de redémarrage déjà passée (0 min, pas de nombre négatif) ; interface Roblox pas encore prête (pcall) ; maintenance de Roblox ; message honnête, sans fausse urgence.
+Vérification : publie le jeu, rejoins-le, puis dans le Creator Dashboard (Configurations > Server management) lance Restart Servers avec un délai de 2 minutes : la notification annonce « 2 min » ; aucune erreur dans la console développeur (F9) ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le calcul utilise `restartTime.UnixTimestamp` : un `DateTime` ne se soustrait pas directement à un nombre (le bug du quiz) ;
+- `math.max(0, …)` empêche un compte à rebours négatif ;
+- `AnnonceRedemarrage` est déclaré dans `default.project.json`, et le serveur utilise `FireAllClients` ;
+- aucun script n’écoute `AnnonceRedemarrage.OnServerEvent` ;
+- `SetCore("SendNotification", …)` est protégé par un `pcall` côté client.
+
+</AvecClaudeCode>
 
 <Info titre="Mettre à jour sans redémarrer">
 Pour certaines nouveautés, Roblox propose les **configs** du Creator Hub : des valeurs (activer un événement, régler un prix…) que tes scripts lisent avec `ConfigService` et que tu modifies **sans publier ni redémarrer**. La documentation suggère par exemple de publier du contenu en avance, caché derrière une config, puis de l’activer au bon moment. C’est un outil plus avancé : retiens simplement qu’il existe.

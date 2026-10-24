@@ -60,6 +60,19 @@ quiz:
         correct: true
       - texte: "Ligne 8 : `print` ne fonctionne pas côté client"
     explication: "`afficher(\"+1 pièce\")` exécute la fonction immédiatement et passe son résultat (`nil`) à `Connect`, ce qui provoque une erreur. Il faut passer une fonction : `pieces.Changed:Connect(function() afficher(\"+1 pièce\") end)`."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code crée le feedback de la boucle (le message « +1 pièce »). Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais un truc qui montre les pièces gagnées"
+    options:
+      - texte: "Fais un système de feedback complet et joli pour mon obby, avec des animations, des sons et des effets."
+      - texte: "Crée un Script serveur qui ajoute des pièces au joueur et affiche un message à tous les joueurs du serveur à chaque gain."
+      - texte: |
+          Crée le LocalScript src/StarterPlayer/StarterPlayerScripts/MessagesProgression.client.luau.
+          Il lit leaderstats.Pieces, mémorise l'ancienne valeur et affiche « +N pièce(s) » seulement si le gain est positif, dans un TextLabel qui s'efface en fondu (TweenService).
+          Sécurité : il ne modifie aucune valeur et n'envoie rien au serveur.
+          Vérification : en Play Solo, ramasser une pièce affiche « +1 pièce » ; aucune erreur dans l'Output.
+        correct: true
+    explication: "La bonne version donne le fichier exact (type et emplacement), le comportement attendu, ce que le script ne doit pas faire et un test. La première laisse l'IA tout inventer et empiler des effets ; la deuxième se trompe de côté : le feedback est un affichage client, et c'est le serveur seul qui modifie les pièces après validation."
 ---
 
 Pourquoi certains jeux te donnent envie de « faire encore une partie » alors que d’autres te lassent en deux minutes ? Une grande partie de la réponse tient dans leur **boucle de jeu**, en anglais *core loop*. C’est le premier outil du game designer, et c’est par lui que commence ce module. Tu as maintenant un Obby des Nuages qui fonctionne (modules 1 à 5) : il est temps de le rendre **amusant à rejouer**.
@@ -151,7 +164,7 @@ Il manque souvent une chose dans les premiers obbys : le **retour visible** (fee
 
 ### Rendre la récompense visible
 
-Le script ci-dessous affiche un message bref en haut et au centre de l’écran quand le joueur gagne des pièces ou atteint une nouvelle étape. Crée-le comme un **LocalScript** nommé `MessagesProgression` dans **StarterPlayer › StarterPlayerScripts** : il fabrique lui-même sa petite interface, rien à construire à la main. Il ne **modifie** rien : il se contente de **regarder** les valeurs que le serveur met à jour (module 5) et de les mettre en scène.
+Le script ci-dessous affiche un message bref en haut et au centre de l’écran quand le joueur gagne des pièces ou atteint une nouvelle étape. Crée-le comme un **LocalScript** nommé `MessagesProgression` dans **StarterPlayer › StarterPlayerScripts** : il fabrique lui-même sa petite interface, rien à construire à la main. Il ne **modifie** rien : il se contente de **regarder** les valeurs que le serveur met à jour (module 5) et de les mettre en scène. Dans ton projet Rojo (module 2), ce LocalScript est le fichier `src/StarterPlayer/StarterPlayerScripts/MessagesProgression.client.luau` : tu peux le demander à Claude Code avec le prompt de l’encadré « Avec Claude Code » plus bas, puis le relire à l’aide des explications de cette leçon.
 
 ```luau
 -- LocalScript « MessagesProgression » à placer dans StarterPlayer > StarterPlayerScripts
@@ -228,6 +241,35 @@ Quelques points à remarquer :
 - On mémorise l’ancienne valeur pour calculer le **gain** et pour ne célébrer que les progrès (pas une baisse de pièces après un achat).
 - Pour les étapes, pas besoin de surveiller `Etape` : depuis le module 4, ton Script « Progression » envoie « Étape N atteinte ! » par le RemoteEvent `Notification`, juste après avoir validé le checkpoint. Le LocalScript l’écoute avec `OnClientEvent` et l’affiche.
 - Le texte apparaît puis disparaît en fondu grâce à TweenService (module 5) : le feedback doit être **bref**, pas envahissant.
+
+<AvecClaudeCode>
+
+Ce petit système est idéal pour t’entraîner : il tient dans un seul fichier, côté client, et se vérifie à l’œil en Play Solo. Le prompt précise surtout ce que le script ne doit **pas** faire (modifier les valeurs, surveiller `Etape`), car c’est là qu’une IA laissée libre a tendance à en faire trop.
+
+<Prompt titre="Feedback de la boucle (MessagesProgression)">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je veux rendre visible la récompense de la boucle de jeu : le joueur doit voir un message bref quand il gagne des pièces ou atteint une nouvelle étape.
+Ce qui existe déjà : le serveur crée les leaderstats (IntValue Etape et Pieces) avec les valeurs chargées (src/ServerScriptService/GestionJoueurs.server.luau). Le Script src/ServerScriptService/Progression.server.luau envoie "Étape N atteinte !" au joueur avec le RemoteEvent ReplicatedStorage.Remotes.Notification (déclaré dans default.project.json) après chaque checkpoint validé.
+Objectif : un message doré apparaît en haut et au centre de l'écran (« +1 pièce », « +3 pièces », « Étape 4 atteinte ! ») puis disparaît en fondu en 1,5 seconde.
+Fichiers concernés : crée uniquement src/StarterPlayer/StarterPlayerScripts/MessagesProgression.client.luau (LocalScript). Ne modifie aucun autre fichier.
+Contraintes techniques : le script crée lui-même un ScreenGui "RetourBoucle" (ResetOnSpawn = false) dans PlayerGui et un TextLabel invisible au départ (TextTransparency = 1, TextScaled). Une fonction afficher(texte) remet le texte visible puis lance un fondu avec TweenService (TweenInfo de 1,5 s). WaitForChild pour leaderstats, Pieces, Remotes et Notification, avec annotations de type (:: IntValue, :: RemoteEvent).
+Sécurité : ce script ne modifie AUCUNE valeur et n'envoie rien au serveur (pas de FireServer). Il lit Pieces et écoute Notification.OnClientEvent, c'est tout.
+Cas limites : mémorise l'ancienne valeur de Pieces et n'affiche que les gains (gain > 0), jamais une baisse après un achat ; pluriel correct (« pièce » / « pièces ») ; ignore les changements de Pieces pendant les 3 premières secondes (task.delay) ; ne surveille pas Etape, le serveur envoie déjà le message d'étape.
+Vérification : en Play Solo, ramasser une pièce affiche « +1 pièce » qui s'efface ; atteindre le checkpoint 1 affiche « Étape 1 atteinte ! » ; aucune erreur dans l'Output ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- c’est un LocalScript (suffixe `.client.luau`) dans StarterPlayerScripts, qui n’écrit jamais dans `Pieces` ou `Etape` et n’appelle aucun `FireServer` ;
+- l’ancienne valeur des pièces est mémorisée pour calculer le gain, et seul un gain positif est affiché ;
+- `Connect` reçoit bien une **fonction**, pas le résultat d’un appel comme `Connect(afficher("+1 pièce"))` (le piège du quiz) ;
+- le ScreenGui a `ResetOnSpawn = false`, sinon le message disparaît à chaque réapparition ;
+- le fondu passe par `TweenService:Create`, sans boucle ni `wait`.
+
+</AvecClaudeCode>
 
 <Astuce titre="Le feedback se joue aussi avec le son">
 Un son court et joyeux au ramassage d’une pièce peut renforcer la sensation de récompense : à toi de le vérifier en playtest (leçon 5). Dans ses exemples de feedback, la documentation Roblox montre un jeu où des pièces jaillissent à l’écran quand le joueur remporte un combat : le même gain, mais bien plus satisfaisant. Pour essayer : crée par script un objet `Sound` (par exemple rangé dans le ScreenGui `ecran`), donne-lui le `SoundId` d’un son court, puis appelle `son:Play()` au début de la fonction `afficher`.

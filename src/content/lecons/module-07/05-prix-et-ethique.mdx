@@ -54,6 +54,19 @@ quiz:
     question: Un compte à rebours « Offre spéciale, plus que 10 minutes ! » qui recommence à zéro à chaque connexion est une technique autorisée pour encourager les achats.
     reponse: false
     explication: "Roblox interdit les comptes à rebours inexacts ou qui redémarrent pour le même objet, ainsi que les fausses raretés (« presque épuisé »). Ces techniques créent une fausse urgence, particulièrement nocive pour un public jeune."
+  - type: ameliore-le-prompt
+    question: "Tu demandes à Claude Code le bouton « Passer l’étape » de la boutique. Quelle version du prompt respecte à la fois la technique et l’éthique de cette leçon ?"
+    prompt: "fais un bouton pour vendre passer l'étape qui donne envie d'acheter"
+    options:
+      - texte: "Ajoute un bouton « Passer l’étape » avec un compte à rebours « Offre spéciale, plus que 5 minutes ! » qui recommence à chaque connexion, pour pousser à l’achat."
+      - texte: "Affiche « Passer l’étape : 25 Robux » sur le bouton et appelle PromptProductPurchase directement depuis le LocalScript."
+      - texte: |
+          Crée le LocalScript ScriptBouton.client.luau du TextButton BoutonPasserEtape (StarterGui > InterfaceObby > Boutique > Liste).
+          Le prix vient de GetProductInfoAsync(ID_PASSER_ETAPE, Enum.InfoType.Product) dans un pcall ; sans prix disponible, affiche seulement « Passer l'étape ».
+          Au clic : Remotes.DemanderPasserEtape:FireServer() sans argument. Textes neutres, sans compte à rebours ni fausse promotion.
+          Vérification : avec l'ID à 0, le bouton s'affiche sans prix et sans erreur.
+        correct: true
+    explication: "La bonne version lit le prix réel, laisse le serveur vérifier avant d’ouvrir la fenêtre et impose des textes honnêtes. Le compte à rebours qui redémarre est explicitement interdit par Roblox. Un prix écrit en dur est faux pour les joueurs à prix régionaux ou abonnés Roblox Plus, et appeler `PromptProductPurchase` depuis le client contourne la vérification « étape suivante » du serveur."
 ---
 
 Tu sais maintenant créer et vendre un Game Pass, un Developer Product et un abonnement. Reste une question délicate : **à quel prix**, et **jusqu’où** aller ? Sur Roblox, beaucoup de joueurs sont mineurs. Monétiser éthiquement n’est pas seulement une question de morale : c’est aussi une question de **règles** que Roblox impose, et de **confiance** de tes joueurs.
@@ -99,7 +112,7 @@ Avec les prix régionaux, un même objet peut coûter moins cher dans certains p
 
 ### Le prérequis : des prix lus dynamiquement
 
-Tous ces outils, ainsi que les réductions Roblox Plus, supposent que ton interface lit le prix **depuis Roblox**. La documentation fournit même un outil, **Dynamic Price Check**, qui affiche de faux prix à des comptes de test pour repérer les prix écrits « en dur ». Voici enfin le bouton « Passer l’étape » annoncé à la leçon 3, avec un prix toujours exact. Comme pour la traînée dorée (leçon 2), crée un TextButton `BoutonPasserEtape` dans `InterfaceObby` › `Boutique` › `Liste`, puis un LocalScript `ScriptBouton` dedans, et remplace `0` par l’ID de ton Developer Product :
+Tous ces outils, ainsi que les réductions Roblox Plus, supposent que ton interface lit le prix **depuis Roblox**. La documentation fournit même un outil, **Dynamic Price Check**, qui affiche de faux prix à des comptes de test pour repérer les prix écrits « en dur ». Voici enfin le bouton « Passer l’étape » annoncé à la leçon 3, avec un prix toujours exact. Comme pour la traînée dorée (leçon 2), crée un TextButton `BoutonPasserEtape` dans `InterfaceObby` › `Boutique` › `Liste`, puis un LocalScript `ScriptBouton` dedans, et remplace `0` par l’ID de ton Developer Product (dans ton projet Rojo : `src/StarterGui/InterfaceObby/Boutique/Liste/BoutonPasserEtape/ScriptBouton.client.luau`, que Claude Code peut écrire avec le prompt de l’encadré plus bas) :
 
 ```luau
 -- LocalScript dans le TextButton « BoutonPasserEtape »
@@ -134,6 +147,34 @@ afficherPrix()
 <Astuce titre="Tester sans Managed Pricing">
 Même sans assez de transactions pour un test de prix officiel, tu peux mesurer l’effet d’un changement : modifie **un seul** prix à la fois, note la date, et compare les ventes et la rétention avant et après dans tes statistiques (module 9). Roblox propose aussi des **Experiments** (tests A/B) dont la documentation cite la tarification parmi les usages possibles.
 </Astuce>
+
+<AvecClaudeCode>
+
+Une IA à qui l’on demande un bouton « qui donne envie d’acheter » peut te proposer un faux compte à rebours ou un prix écrit en dur. Le prompt ci-dessous fixe donc à la fois la technique (prix lu depuis Roblox, demande au serveur) et l’éthique (textes neutres, aucune pression).
+
+<Prompt titre="Bouton « Passer l’étape » au prix réel">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute à la boutique le bouton du Developer Product « Passer l'étape », avec un prix toujours exact et une présentation honnête.
+Ce qui existe déjà : src/ServerScriptService/DemandesAchat.server.luau écoute le RemoteEvent ReplicatedStorage.Remotes.DemanderPasserEtape, vérifie qu'une étape suivante existe puis ouvre la fenêtre d'achat ; src/ServerScriptService/Achats.server.luau traite les reçus. La boutique est dans src/StarterGui/InterfaceObby/Boutique/Liste (UIGridLayout).
+Objectif : un bouton affiche « Passer l'étape (N Robux) » avec le prix réel du joueur (régional, réduit ou en test) ; un clic demande l'achat au serveur.
+Fichiers concernés : crée le TextButton src/StarterGui/InterfaceObby/Boutique/Liste/BoutonPasserEtape/ (init.meta.json avec className TextButton) et son LocalScript ScriptBouton.client.luau. Ne modifie ni DemandesAchat ni Achats, ni aucun autre fichier.
+Contraintes techniques : constante ID_PASSER_ETAPE (0 en attendant l'ID) ; fonction afficherPrix() qui appelle MarketplaceService:GetProductInfoAsync(ID_PASSER_ETAPE, Enum.InfoType.Product) dans un pcall et lit PriceInRobux ; si l'appel échoue, le bouton affiche « Passer l'étape » sans prix ; sur Activated, demanderPasserEtape:FireServer() sans argument.
+Sécurité : le LocalScript n'envoie ni prix, ni ID de produit, ni étape, et n'appelle pas PromptProductPurchase lui-même : il demande, le serveur vérifie puis ouvre la fenêtre.
+Cas limites : prix indisponible (mieux vaut aucun prix qu'un prix faux) ; clics répétés (le serveur limite déjà les demandes) ; joueur à la dernière étape (le serveur ne propose rien). Textes neutres uniquement : pas de « Dernière chance », pas de compte à rebours, pas de fausse promotion.
+Vérification : en Play, avec l'ID à 0, le bouton affiche « Passer l'étape » sans prix et sans erreur ; avec le vrai ID, il affiche le prix du Creator Hub ; un clic ouvre la fenêtre d'achat sauf à la dernière étape ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le prix vient de `GetProductInfoAsync` avec `Enum.InfoType.Product` (et non `GamePass`), dans un `pcall` ; aucun prix n’est écrit en dur ;
+- en cas d’échec, le bouton n’affiche **aucun** prix plutôt qu’un prix faux ;
+- `FireServer()` est appelé sans argument, et le LocalScript n’appelle pas `PromptProductPurchase` directement ;
+- les textes passent la checklist éthique de cette leçon : aucune pression, aucune fausse rareté, aucun compte à rebours.
+
+</AvecClaudeCode>
 
 ## Cosmétique, confort ou pay-to-win ?
 

@@ -62,6 +62,19 @@ quiz:
       - texte: "Ligne 9 : il faut utiliser `==` au lieu de `~=`"
       - texte: "Ligne 7 : une fonction ne peut pas modifier une table reçue en paramètre"
     explication: "`os.time() / 86400` donne un nombre à virgule (par exemple 20385.4127) qui augmente à chaque seconde. Il faut l’arrondir vers le bas avec `math.floor` pour obtenir un numéro de jour qui ne change qu’à minuit UTC. Une journée compte bien 86 400 secondes."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code ajoute un objectif quotidien à l’Obby des Nuages. Quelle version du prompt suit le mieux cette leçon ?"
+    prompt: "ajoute des quêtes journalières pour que les joueurs reviennent tous les jours"
+    options:
+      - texte: "Ajoute des quêtes journalières et une série de connexions qui remet tout à zéro et retire les objets gagnés si le joueur rate un seul jour, pour qu’il revienne chaque jour."
+      - texte: |
+          Crée le ModuleScript src/ServerScriptService/ObjectifsQuotidiens.luau : « Ramasse 20 pièces aujourd'hui », bonus de 15 pièces une fois par jour.
+          Le jour se calcule côté serveur en UTC avec math.floor(os.time() / 86400). Les champs sont rangés dans la table de DonneesJoueurs, sans nouvel appel DataStore.
+          Un jour manqué ne retire rien. Appelle-le depuis Pieces.server.luau après chaque pièce validée.
+          Vérification : avec un objectif réduit à 3 pièces, la 3e pièce donne le bonus, la 4e non.
+        correct: true
+      - texte: "Crée un objectif quotidien dans un LocalScript, en lisant l’heure de l’ordinateur du joueur, et enregistre-le dans un nouveau DataStore « Quetes »."
+    explication: "La bonne version fixe l’objectif, le calcul du jour côté serveur, le stockage existant, l’absence de punition et un test rapide. La série qui punit est le choix que la leçon déconseille pour un public jeune. Le LocalScript laisse le joueur tricher en changeant l’heure de son appareil, et un second DataStore multiplie les requêtes et les risques de désynchronisation."
 ---
 
 Ton obby est amusant la première fois. Mais un joueur qui l’a terminé a-t-il une raison d’y revenir demain ? Sur Roblox, cette question est centrale : la page officielle « Design for Roblox » distingue les **touristes**, qui passent d’un jeu à l’autre en privilégiant la variété, et les **habitués** (*locals*), qui se concentrent sur un petit nombre de jeux et forment presque toute la base de joueurs engagés d’un jeu. Cette leçon passe en revue les leviers qui transforment un touriste en habitué, et ceux qu’il ne faut **jamais** utiliser.
@@ -90,7 +103,7 @@ Ces idées sont des exemples de la formation. La documentation Roblox sur les qu
 
 La documentation Roblox décrit les **quotidiennes** (*dailies*) comme des tâches courtes, aux objectifs simples et peu exigeants, avec des récompenses modestes, à accomplir dans les 24 heures. Elle recommande de les réserver aux objectifs à **court terme**, réalisables en une session. Ce sont aussi, selon la même page, un bon moyen de distribuer régulièrement de petites quantités de monnaie.
 
-Voici un objectif quotidien pour l’Obby des Nuages : « Ramasse 20 pièces aujourd’hui » (bonus : 15 pièces). Crée un **ModuleScript** `ObjectifsQuotidiens` dans **ServerScriptService** avec le code ci-dessous. Ce module ne fait **aucun appel au DataStore** : il lit et modifie la table de données du joueur que ton module `DonneesJoueurs` (module 5) garde déjà en mémoire et enregistre en entier à chaque sauvegarde.
+Voici un objectif quotidien pour l’Obby des Nuages : « Ramasse 20 pièces aujourd’hui » (bonus : 15 pièces). Crée un **ModuleScript** `ObjectifsQuotidiens` dans **ServerScriptService** avec le code ci-dessous. Ce module ne fait **aucun appel au DataStore** : il lit et modifie la table de données du joueur que ton module `DonneesJoueurs` (module 5) garde déjà en mémoire et enregistre en entier à chaque sauvegarde. Dans ton projet Rojo, c’est le fichier `src/ServerScriptService/ObjectifsQuotidiens.luau` ; l’encadré « Avec Claude Code » plus bas te donne le prompt pour le faire écrire et brancher, à condition de relire le résultat avec ce qui suit.
 
 ```luau
 -- ModuleScript « ObjectifsQuotidiens » dans ServerScriptService
@@ -177,6 +190,35 @@ Remarque les choix de conception, aussi importants que le code :
 <Erreur titre="La série qui punit">
 Les « séries » (*streaks*) qui remettent tout à zéro au premier jour manqué, ou qui font perdre des objets, risquent de transformer le jeu en corvée pour un public souvent jeune. Ce n’est pas une règle Roblox explicite, mais un **choix éthique de cette formation**, dans l’esprit des recommandations officielles (éviter l’épuisement des joueurs, aucune fausse urgence). Si tu veux récompenser la régularité, fais-le **sans punition** : par exemple un badge au 7ᵉ objectif accompli, quel que soit le délai entre deux.
 </Erreur>
+
+<AvecClaudeCode>
+
+Demande l’objectif quotidien en un seul prompt, mais avec les choix de conception de la leçon écrits noir sur blanc : jour en UTC, aucune punition, aucun nouvel appel au DataStore. Sans eux, une IA propose volontiers une « série de connexions » qui remet tout à zéro, ou un second DataStore.
+
+<Prompt titre="Objectif quotidien (ObjectifsQuotidiens)">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute un objectif quotidien respectueux du temps du joueur : « Ramasse 20 pièces aujourd'hui », bonus de 15 pièces.
+Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau (DonneesJoueurs.Obtenir(player) renvoie la table de données du joueur en mémoire, ou nil si elle n'est pas chargée ; cette table est sauvegardée en entier dans le DataStore "DonneesJoueurs_v1"). src/ServerScriptService/Pieces.server.luau valide chaque ramassage côté serveur (distance, cooldown) dans la fonction preparerPiece, puis fait pieces.Value += VALEUR_PIECE.
+Objectif : chaque jour (UTC), la 20e pièce ramassée rapporte en plus un bonus de 15 pièces, une seule fois par jour. Un jour manqué ne fait rien perdre : l'objectif repart simplement de zéro.
+Fichiers concernés : 1) crée le ModuleScript src/ServerScriptService/ObjectifsQuotidiens.luau avec PIECES_A_RAMASSER = 20, BONUS = 15, enregistrerPiece(donnees): number (renvoie le bonus à verser, 0 la plupart du temps) et progression(donnees): (number, number). 2) Dans Pieces.server.luau : ajoute les require de DonneesJoueurs et ObjectifsQuotidiens, une fonction locale verifierObjectifDuJour(player, pieces) placée au-dessus de preparerPiece, et son appel juste après pieces.Value += VALEUR_PIECE. Ne modifie rien d'autre.
+Contraintes techniques : numéro du jour = math.floor(os.time() / 86400) ; champs jourObjectif, piecesDuJour et bonusReclame dans la table de données ; une fonction locale mettreAJour(donnees) remet piecesDuJour à 0 et bonusReclame à false quand le jour change ; ObjectifsQuotidiens ne fait AUCUN appel DataStore et n'attend jamais (pas de task.wait).
+Sécurité : tout se passe côté serveur ; l'heure de l'appareil du joueur ne compte pas ; aucun RemoteEvent ne permet au client de déclarer une pièce ramassée ou un objectif atteint.
+Cas limites : anciennes sauvegardes sans ces champs (nil = nouveau jour) ; données pas encore chargées (Obtenir renvoie nil : on ne compte rien) ; bonus déjà réclamé aujourd'hui ; pas de série de jours ni de pénalité.
+Vérification : en Play Solo, avec PIECES_A_RAMASSER mis temporairement à 3, la 3e pièce rapporte 1 + 15 et la 4e seulement 1 (remets 20 ensuite) ; aucune erreur dans l'Output ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le jour est calculé avec `math.floor(os.time() / 86400)` : sans `math.floor`, l’objectif se réinitialise à chaque seconde (le bug du quiz) ;
+- `ObjectifsQuotidiens` ne contient aucun `GetDataStore`, `SetAsync` ou `UpdateAsync` ;
+- `bonusReclame` passe à `true` au moment où le bonus est renvoyé, donc il n’est versé qu’une fois par jour ;
+- rien n’est retiré au joueur quand le jour change : pas de série, pas de pénalité ;
+- `verifierObjectifDuJour` est définie **au-dessus** de `preparerPiece` et ne compte rien si `DonneesJoueurs.Obtenir` renvoie `nil`.
+
+</AvecClaudeCode>
 
 ## Levier 3 : jouer avec ses amis
 

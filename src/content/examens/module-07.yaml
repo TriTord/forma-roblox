@@ -143,3 +143,37 @@ questions:
         correct: true
       - texte: Les gains DevEx ne sont jamais imposables pour un mineur
     explication: "Les conditions DevEx rendent chaque participant responsable de ses impôts, Roblox ne donne aucun conseil fiscal, et la page officielle annonce qu’à partir du 1er novembre 2026 des retenues américaines peuvent s’appliquer selon les informations fiscales fournies. Pour ta situation, consulte un professionnel."
+
+  - type: qcm
+    question: "Claude Code t’a livré `Achats.server.luau`. En cherchant `PurchaseGranted` dans le fichier, tu le trouves à trois endroits : après une sauvegarde réussie, quand le joueur n’est pas sur le serveur, et quand le produit est inconnu. Que fais-tu ?"
+    options:
+      - texte: Rien, l’important est que l’achat ne reste jamais bloqué chez Roblox
+      - texte: "Tu demandes de remplacer les deux derniers par `NotProcessedYet` : `PurchaseGranted` ne doit être renvoyé qu’après avoir donné le produit et sauvegardé"
+        correct: true
+      - texte: Tu supprimes la sauvegarde pour que le script réponde plus vite
+      - texte: Tu ajoutes un second script qui définit aussi `ProcessReceipt`, par sécurité
+    explication: "Renvoyer `PurchaseGranted` alors que rien n’a été donné confirme l’achat à Roblox : le joueur a payé pour rien. Avec `NotProcessedYet`, le reçu reviendra plus tard. Supprimer la sauvegarde casserait l’idempotence, et un second `ProcessReceipt` écraserait le premier. Chercher un mot-clé dans le code produit est un réflexe de relecture simple et efficace."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce LocalScript doit « activer » la traînée dorée des joueurs qui possèdent le Game Pass."
+    code: |
+      -- LocalScript placé dans StarterPlayerScripts
+      local MarketplaceService = game:GetService("MarketplaceService")
+      local Players = game:GetService("Players")
+
+      local ID_PASS_TRAIL_DORE = 123456789
+      local joueur = Players.LocalPlayer
+
+      local ok, possede = pcall(function()
+      	return MarketplaceService:UserOwnsGamePassAsync(joueur.UserId, ID_PASS_TRAIL_DORE)
+      end)
+      if ok and possede then
+      	joueur:SetAttribute("PossedeTrailDore", true)
+      end
+    options:
+      - texte: "Ligne 9 : `UserOwnsGamePassAsync` attend l’objet `Player`, pas son `UserId`"
+      - texte: "Ligne 8 : le `pcall` est inutile, cette fonction ne peut pas échouer"
+      - texte: "Ligne 12 : la décision est prise côté client : un exploiteur peut forcer `possede` à vrai, et un attribut posé par un LocalScript n’est pas répliqué au serveur, qui ne donnera jamais la traînée"
+        correct: true
+      - texte: "Ligne 5 : l’ID d’un Game Pass doit être écrit entre guillemets"
+    explication: "La vérification et l’attribution d’un Game Pass se font dans un Script serveur (`GamePassTrail`) : c’est lui qui appelle `UserOwnsGamePassAsync` dans un `pcall` et pose l’attribut, que tous les scripts peuvent alors croire. Un attribut modifié par le client ne quitte pas sa machine. La fonction attend bien un `UserId`, et le `pcall` est indispensable pour un appel réseau."

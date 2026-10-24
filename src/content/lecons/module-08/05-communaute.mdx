@@ -62,6 +62,29 @@ quiz:
         correct: true
       - texte: "Ligne 5 : `PlayerAdded` ne fournit pas le joueur en paramètre"
     explication: "Quand l’appel échoue, `pcall` renvoie `false` et un **message d’erreur** (un texte). `resultat.IsMember` provoque alors une nouvelle erreur. Il faut d’abord tester `if not ok then … return end`, puis lire `resultat`."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Tu as demandé « un bouton pour que les modérateurs puissent expulser un joueur »."
+    code: |
+      local Players = game:GetService("Players")
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local remotes = ReplicatedStorage:WaitForChild("Remotes")
+      local expulser = remotes:WaitForChild("ExpulserJoueur") :: RemoteEvent
+
+      expulser.OnServerEvent:Connect(function(player: Player, nomCible: string)
+      	if player:GetAttribute("RoleCommunaute") ~= "Joueur" then
+      		local cible = Players:FindFirstChild(nomCible)
+      		if cible and cible:IsA("Player") then
+      			cible:Kick("Expulsé par un modérateur")
+      		end
+      	end
+      end)
+    options:
+      - texte: "Ligne 6 : un RemoteEvent ne peut pas transmettre de texte au serveur"
+      - texte: "Ligne 7 : n’importe quel membre (« Membre », « Testeur »), et même un joueur dont la lecture des rôles a échoué (attribut absent), peut expulser qui il veut"
+        correct: true
+      - texte: "Ligne 8 : `FindFirstChild` ne trouve pas les joueurs dans le service Players"
+      - texte: "Ligne 10 : `Kick` ne fonctionne que dans un LocalScript"
+    explication: "La condition `~= \"Joueur\"` est vraie pour tous les membres, et aussi quand l’attribut vaut `nil` (appel `GetRolesInGroupAsync` en échec). Un exploiteur membre de la communauté n’a qu’à déclencher le RemoteEvent. La leçon le dit : ces rôles servent à la reconnaissance, pas à donner des pouvoirs de modération sans vérifications supplémentaires (au minimum, une liste d’UserId autorisés contrôlée par le serveur)."
 ---
 
 Un jeu qui dure, ce n’est pas seulement du contenu : c’est aussi un endroit où les joueurs se retrouvent, donnent leur avis et attendent la prochaine mise à jour. Dans cette dernière leçon du module, tu vas choisir où réunir les joueurs de l’Obby des Nuages, comment les protéger (beaucoup sont mineurs), et comment transformer leurs retours en décisions.
@@ -190,7 +213,9 @@ Tu recevras des critiques, parfois injustes ou mal formulées. Quelques principe
 
 Tu peux donner un petit signe de reconnaissance en jeu aux membres de ta communauté, ou aux rôles **Testeur** et **Modérateur**. La méthode actuelle est `GroupService:GetRolesInGroupAsync()`.
 
-Les anciennes méthodes `Player:GetRankInGroupAsync()` et `Player:GetRoleInGroupAsync()` sont **dépréciées** (déconseillées par Roblox et amenées à disparaître), car elles ne renvoient que le rôle public le plus élevé alors qu’un membre peut désormais avoir plusieurs rôles. Leurs versions encore plus anciennes, `Player:GetRankInGroup()` et `Player:GetRoleInGroup()`, que tu croiseras dans de vieux tutoriels, sont elles aussi dépréciées.
+Les anciennes méthodes `Player:GetRankInGroupAsync()` et `Player:GetRoleInGroupAsync()` sont **dépréciées** (déconseillées par Roblox et amenées à disparaître), car elles ne renvoient que le rôle public le plus élevé alors qu’un membre peut désormais avoir plusieurs rôles. Leurs versions encore plus anciennes, `Player:GetRankInGroup()` et `Player:GetRoleInGroup()`, que tu croiseras dans de vieux tutoriels, sont elles aussi dépréciées. Une IA entraînée sur ces vieux tutoriels peut encore te les proposer : c’est un bon exemple de ce qu’il faut repérer en relisant.
+
+Appelle le Script ci-dessous `RolesCommunaute` (dans ton projet Rojo : `src/ServerScriptService/RolesCommunaute.server.luau`).
 
 ```luau
 -- Script (côté serveur) à placer dans ServerScriptService
@@ -246,6 +271,34 @@ Un script d’interface pourra ensuite lire l’attribut `RoleCommunaute` pour a
 <Info>
 La documentation précise que ces résultats sont **mis en cache** par utilisateur et par communauté : si un joueur rejoint ou quitte la communauté pendant sa partie, un nouvel appel peut renvoyer l’ancien résultat tant que le cache n’a pas expiré. Ici, on ne lit les rôles qu’à l’arrivée du joueur, donc le changement ne sera pris en compte, au plus tôt, qu’à sa prochaine connexion. Seuls les rôles **publics** sont renvoyés. Elle conseille aussi d’identifier un rôle par son identifiant (`Id`, stable) plutôt que par son nom : si tu renommes un rôle, pense à mettre à jour `ROLES_SPECIAUX`. Enfin, n’utilise ces rôles que pour des **signes de reconnaissance**, jamais pour donner des pouvoirs de modération en jeu sans vérifications supplémentaires.
 </Info>
+
+<AvecClaudeCode>
+
+Le prompt nomme l’API actuelle et interdit les anciennes, sinon l’IA risque de ressortir `GetRankInGroup`. Il précise aussi l’usage du rôle : un signe de reconnaissance, rien de plus.
+
+<Prompt titre="Rôles de la communauté en jeu">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Le jeu a une communauté Roblox avec les rôles "Moderateur" et "Testeur", et je veux afficher plus tard un badge à côté de leur nom.
+Ce qui existe déjà : l'identifiant de la communauté (visible dans son adresse) ira dans une constante ID_COMMUNAUTE, 0 en attendant. Aucun script ne lit encore les rôles.
+Objectif : à son arrivée, chaque joueur reçoit l'attribut RoleCommunaute : "Moderateur" ou "Testeur" s'il a ce rôle (le plus important en premier), "Membre" s'il est membre sans rôle spécial, "Joueur" s'il n'est pas membre.
+Fichiers concernés : crée uniquement le Script src/ServerScriptService/RolesCommunaute.server.luau. Ne modifie aucun autre fichier.
+Contraintes techniques : GroupService:GetRolesInGroupAsync(player.UserId, ID_COMMUNAUTE) dans un pcall ; si l'appel échoue, warn et return sans poser d'attribut ; lire resultat.IsMember, puis parcourir tous les rôles de resultat.Roles (un membre peut en avoir plusieurs) ; ROLES_SPECIAUX = { "Moderateur", "Testeur" } du plus important au moins important. N'utilise aucune méthode dépréciée : ni Player:GetRankInGroup, ni Player:GetRoleInGroup, ni leurs variantes Async.
+Sécurité : l'attribut sert uniquement à l'affichage : n'ajoute aucune commande, aucun pouvoir de modération (expulser, bannir…) et aucun avantage de jeu à partir de ce rôle.
+Cas limites : service indisponible ; joueur non membre ; joueur avec plusieurs rôles ; rôle renommé dans la communauté (il faudra mettre à jour ROLES_SPECIAUX) ; changement de rôle pendant la partie (pris en compte à la prochaine connexion, à cause du cache).
+Vérification : avec le vrai ID et mon compte, en Play, l'Output affiche « MonNom : Membre » (ou Moderateur, ou Testeur, si j'ai ce rôle) et l'attribut apparaît dans les propriétés de mon joueur (Players) ; avec l'ID à 0, un avertissement s'affiche sans erreur bloquante ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `ok` est testé **avant** de lire `resultat` : en cas d’échec, `resultat` est un message d’erreur (le bug du quiz) ;
+- l’appel est `GroupService:GetRolesInGroupAsync(player.UserId, ID_COMMUNAUTE)`, dans un `pcall`, sans aucune méthode dépréciée ;
+- tous les rôles de `resultat.Roles` sont parcourus, pas seulement le premier ;
+- aucun code ne donne de commande, de pouvoir ou d’avantage selon `RoleCommunaute`.
+
+</AvecClaudeCode>
 
 <Defi>
 1. Crée (ou prépare) la communauté de l’Obby des Nuages : nom du studio, image, description, et un rôle « Testeur ».

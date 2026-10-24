@@ -60,6 +60,19 @@ quiz:
       - texte: "Ligne 6 : un attribut ne peut pas contenir de texte"
       - texte: "Ligne 10 : il faut écrire `onPlayerAdded()` avec des parenthèses"
     explication: "Avec un point, `player.GetJoinData()` appelle la méthode sans lui passer le joueur (`self`), ce qui provoque une erreur. Il faut écrire `player:GetJoinData()`. Les attributs acceptent bien les textes, et à la ligne 10 on passe la fonction sans l’appeler."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code accueille différemment les joueurs venus de ta publicité. Quelle version du prompt est la plus sûre ?"
+    prompt: "donne un bonus aux joueurs qui viennent de ma pub"
+    options:
+      - texte: "Si la launch data du joueur vaut « pub_lancement », donne-lui 500 pièces et le Game Pass Traînée dorée gratuitement."
+      - texte: "Dans un LocalScript, lis l’adresse du navigateur du joueur pour savoir de quelle publicité il vient."
+      - texte: |
+          Crée le Script src/ServerScriptService/SourcesArrivee.server.luau : lis player:GetJoinData().LaunchData à l'arrivée.
+          Si la valeur est dans SOURCES_CONNUES (pub_lancement, lien_discord), pose l'attribut SourceArrivee pour adapter le message d'accueil ; sinon, ignore-la.
+          N'accorde aucune récompense importante à partir de cette valeur, que n'importe qui peut copier.
+          Vérification : dans le jeu publié, rejoindre par le lien affiche la source dans la console développeur (F9).
+        correct: true
+    explication: "La launch data se lit dans l’adresse du lien : n’importe qui peut la recopier. La bonne version s’en sert pour l’accueil seulement et filtre les valeurs inconnues. Donner 500 pièces et un pass sur cette base revient à les distribuer à quiconque partage le lien. Un LocalScript n’a pas accès à l’adresse d’un navigateur : la launch data se lit côté serveur avec `GetJoinData`, comme dans la leçon."
 ---
 
 Ton Obby des Nuages a une page soignée et des visuels honnêtes. Reste à le **lancer**. La tentation est grande de tout publier d’un coup et de payer de la publicité dès le premier jour. Dans cette leçon, on voit pourquoi un lancement **progressif** est plus sûr, comment fonctionne la publicité officielle de Roblox, et comment dépenser peu en mesurant tout.
@@ -161,7 +174,7 @@ Si tu es mineur, parle de tout budget publicitaire avec un parent : il s’agit 
 
 ## Repérer en jeu les joueurs venus d’une publicité
 
-Ads Manager propose des **options d’arrivée avancées** (*Advanced join options*). Tu peux y définir des **données de lancement** (*launch data*) : un petit texte que Roblox transmet au jeu quand un joueur arrive par ta campagne. Les liens de partage proposent la même option. Côté jeu, on lit ce texte avec `Player:GetJoinData()`.
+Ads Manager propose des **options d’arrivée avancées** (*Advanced join options*). Tu peux y définir des **données de lancement** (*launch data*) : un petit texte que Roblox transmet au jeu quand un joueur arrive par ta campagne. Les liens de partage proposent la même option. Côté jeu, on lit ce texte avec `Player:GetJoinData()`. Appelle ce Script `SourcesArrivee` (dans ton projet Rojo : `src/ServerScriptService/SourcesArrivee.server.luau`) ; l’encadré « Avec Claude Code » plus bas donne le prompt pour le faire écrire.
 
 ```luau
 -- Script (côté serveur) à placer dans ServerScriptService
@@ -195,6 +208,34 @@ Tu peux ensuite adapter l’accueil : par exemple, afficher directement le premi
 <Erreur titre="Faire confiance aux données de lancement">
 La documentation précise que les données de lancement apparaissent **dans l’adresse** du lien et ne sont **pas cachées** : n’importe qui peut copier et partager ce lien. C’est la règle du module 4 : ne fais jamais confiance à ce qui vient de l’extérieur. Réserve ces données à des choses sans enjeu (message d’accueil, petit cosmétique) et ne donne jamais une grosse récompense sur cette seule base.
 </Erreur>
+
+<AvecClaudeCode>
+
+Le script est court, mais il lit une donnée qui vient de l’extérieur du jeu. Le prompt rappelle donc la règle de l’encadré précédent (aucune récompense importante) et liste les valeurs acceptées, pour que l’IA n’accepte pas n’importe quel texte.
+
+<Prompt titre="Source d’arrivée (LaunchData)">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je lance une petite campagne Ads Manager et des liens de partage, avec des données de lancement (launch data) différentes pour chaque source.
+Ce qui existe déjà : la campagne utilise la launch data "pub_lancement" et mon lien Discord "lien_discord". Aucun script ne lit encore ces données.
+Objectif : quand un joueur arrive par une source connue, le serveur la note dans l'attribut SourceArrivee du joueur (pour que l'onboarding puisse adapter l'accueil) et l'écrit dans la sortie du serveur.
+Fichiers concernés : crée uniquement le Script src/ServerScriptService/SourcesArrivee.server.luau. Ne modifie aucun autre fichier.
+Contraintes techniques : player:GetJoinData() (avec deux-points) dans une fonction onPlayerAdded branchée sur Players.PlayerAdded ; table SOURCES_CONNUES = { pub_lancement = "Publicité de lancement", lien_discord = "Lien de partage Discord" } ; print(player.Name .. " est arrivé via : " .. libellé).
+Sécurité : la launch data est visible dans l'adresse du lien et n'importe qui peut la copier : n'accorde jamais de pièces, de Game Pass, d'étape ni aucun avantage à partir de cette valeur ; ignore toute valeur absente de SOURCES_CONNUES.
+Cas limites : joueur arrivé sans launch data (LaunchData vaut nil) ; valeur inconnue ou inventée ; test dans Studio, où il n'y a pas de launch data.
+Vérification : en Play dans Studio, aucun message et aucune erreur ; dans le jeu publié, en rejoignant par le lien Discord, la console développeur (F9, sortie du serveur) affiche « … est arrivé via : Lien de partage Discord » ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `player:GetJoinData()` est appelé avec deux-points (avec un point, l’appel échoue : le bug du quiz) ;
+- `LaunchData` est testé avant usage (il peut valoir `nil`), et seule une valeur présente dans `SOURCES_CONNUES` est acceptée ;
+- aucune ligne ne donne de pièces, d’étape ou d’objet payant à partir de `LaunchData` ;
+- c’est un Script serveur (suffixe `.server.luau`) dans ServerScriptService.
+
+</AvecClaudeCode>
 
 <Defi>
 1. Crée deux liens de partage pour l’Obby des Nuages, avec des données de lancement différentes (`lien_discord` et `lien_youtube`).

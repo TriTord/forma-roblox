@@ -60,6 +60,27 @@ quiz:
       - texte: "Ligne 9 : `+=` n’existe pas en Luau"
       - texte: "Ligne 1 : une fonction locale ne peut pas avoir deux paramètres"
     explication: "Si `nouvelleEtape` est égale à `etape.Value`, la condition `<` ne bloque pas : chaque contact avec le checkpoint actuel redonne 5 pièces. Il faut n’accepter que l’étape suivante : `if nouvelleEtape ~= etape.Value + 1 then return end`. `+=` est bien valide en Luau."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Claude Code a branché `RecompensesEtapes` avec un RemoteEvent que le client déclenche quand il touche un checkpoint."
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local ServerScriptService = game:GetService("ServerScriptService")
+
+      local RecompensesEtapes = require(ServerScriptService:WaitForChild("RecompensesEtapes"))
+      local remotes = ReplicatedStorage:WaitForChild("Remotes")
+      local etapeAtteinte = remotes:WaitForChild("EtapeAtteinte") :: RemoteEvent
+
+      -- Le LocalScript du joueur appelle etapeAtteinte:FireServer(numero) au contact d'un checkpoint
+      etapeAtteinte.OnServerEvent:Connect(function(player: Player, numero: number)
+      	RecompensesEtapes.valider(player, numero)
+      end)
+    options:
+      - texte: "Ligne 4 : un Script serveur ne peut pas faire `require` d’un ModuleScript de ServerScriptService"
+      - texte: "Ligne 9 : le serveur croit le client sur parole : rien ne vérifie que le joueur a vraiment touché le checkpoint, un tricheur peut envoyer 1, 2, 3… et encaisser toutes les récompenses sans jouer"
+        correct: true
+      - texte: "Ligne 10 : il faudrait aussi envoyer le montant de la récompense depuis le client"
+      - texte: "Ligne 6 : `WaitForChild` ne fonctionne pas dans un Script serveur"
+    explication: "`valider` empêche de sauter une étape, mais un exploiteur peut appeler `FireServer` douze fois de suite avec 1, 2, 3… depuis son spawn. Le contact doit être détecté et vérifié **par le serveur** (`Touched` et distance avec `Validation.estAPortee`, comme dans `Progression`). Envoyer le montant depuis le client serait pire encore."
 ---
 
 Ton joueur a passé ses premières secondes avec plaisir. Et maintenant ? Pour qu’il continue, il lui faut un défi à sa mesure, des récompenses qui donnent envie et des objectifs qui l’attirent plus loin. C’est le rôle de la **progression**, le troisième pilier de la core loop. Cette leçon t’apprend à la doser dans l’Obby des Nuages.
@@ -219,6 +240,36 @@ local RecompensesEtapes = require(ServerScriptService:WaitForChild("RecompensesE
 2. remplace la ligne `etape.Value = numero` par `RecompensesEtapes.valider(player, numero)`. Garde avant elle toutes les vérifications déjà en place (étape suivante, distance…).
 
 Grâce au script de feedback de la leçon 1, le joueur verra « +13 pièces » en terminant « La tempête » : le bonus est **perçu**, pas seulement versé.
+
+<AvecClaudeCode>
+
+Ici, Claude Code doit toucher **trois** fichiers dont deux existent déjà : c’est le genre de tâche où une IA « améliore » au passage ce qu’on ne lui a pas demandé. Le prompt demande donc d’abord un plan, liste précisément les changements et rappelle la règle de sécurité qui empêche le « farm » de pièces.
+
+<Prompt titre="Récompenses par palier">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute des récompenses en pièces qui grandissent avec la difficulté des niveaux.
+Ce qui existe déjà : src/ReplicatedStorage/Modules/Config.luau contient Config.Niveaux (trois niveaux avec nom, etapeDebut, etapeFin : 1-5, 6-10, 11-12) et Config.obtenirNiveau(etape). src/ServerScriptService/Progression.server.luau valide les checkpoints (uniquement l'étape suivante, distance vérifiée avec Validation.estAPortee) puis fait etape.Value = numero. Les leaderstats Etape et Pieces sont des IntValue créées par le serveur.
+Objectif : atteindre une étape pour la première fois rapporte les pièces de son niveau (2, 3 puis 5 par étape), plus un bonus de 10 à la dernière étape de chaque niveau. Exemple : l'étape 10 rapporte 13 pièces.
+Fichiers concernés : 1) Config.luau : ajoute piecesParEtape à chaque niveau, puis sous Config.obtenirNiveau ajoute Config.BONUS_FIN_DE_NIVEAU = 10 et la fonction Config.recompensePourEtape(etape: number): number qui réutilise obtenirNiveau ; garde return Config en dernière ligne (et un éventuel table.freeze juste avant, après les ajouts). 2) Crée le ModuleScript src/ServerScriptService/RecompensesEtapes.luau avec RecompensesEtapes.valider(player: Player, nouvelleEtape: number): boolean qui met Etape à jour et verse Config.recompensePourEtape(nouvelleEtape). 3) Progression.server.luau : ajoute le require de RecompensesEtapes et remplace seulement la ligne etape.Value = numero par RecompensesEtapes.valider(player, numero), en gardant toutes les vérifications existantes. Ne modifie rien d'autre.
+Contraintes techniques : le module s'appelle RecompensesEtapes (un Script "Recompenses" existe déjà) ; aucune attente ni appel réseau dans le module ; leaderstats lues avec FindFirstChild et annotations de type (IntValue?) ; aucun nouveau RemoteEvent.
+Sécurité : la récompense est calculée et versée uniquement par le serveur ; valider refuse tout sauf nouvelleEtape == Etape + 1 (pas de saut d'étape, et retoucher le checkpoint actuel ne rapporte rien) ; aucun montant ne vient du client.
+Cas limites : étape hors des niveaux → 0 pièce ; leaderstats absentes → renvoie false sans erreur ; si j'ajoute des étapes plus tard, il doit suffire de modifier etapeFin dans Config.
+Vérification : un print temporaire montre Config.recompensePourEtape(5) = 12, (10) = 13, (12) = 15, (13) = 0 ; en Play Solo, atteindre l'étape 1 donne +2 pièces et retoucher le checkpoint 1 ne donne rien ; aucune erreur dans l'Output ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `valider` refuse avec `nouvelleEtape ~= etape.Value + 1` (et non `nouvelleEtape < etape.Value`, la faille du quiz qui permet de « farmer » un checkpoint) ;
+- `Config.recompensePourEtape` réutilise `Config.obtenirNiveau` et renvoie `0` hors des niveaux ;
+- `return Config` est toujours la dernière ligne, et les nouveaux champs sont ajoutés **avant** un éventuel `table.freeze` ;
+- dans `Progression`, les vérifications existantes (étape suivante, `Validation.estAPortee`) sont toujours **avant** l’appel à `RecompensesEtapes.valider` ;
+- le diff ne touche que les trois fichiers demandés (relis-le avec `git diff` avant de valider).
+
+</AvecClaudeCode>
 
 ## Équilibrer l’économie : sources et puits
 

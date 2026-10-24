@@ -64,6 +64,21 @@ quiz:
         correct: true
       - texte: "Ligne 14 : il faut écrire `MarketplaceService.ProcessReceipt:Connect(traiterRecu)`"
     explication: "Si le joueur n’est pas là ou si ses leaderstats n’existent pas encore, on ne lui a rien donné. Renvoyer `PurchaseGranted` confirme pourtant l’achat à Roblox : le joueur a payé pour rien. Avec `NotProcessedYet`, le reçu reviendra plus tard. `ProcessReceipt` est un callback qu’on **assigne** avec `=`, pas un événement."
+  - type: ameliore-le-prompt
+    question: "Tu demandes à Claude Code le traitement des achats de « Passer l’étape ». Quelle version du prompt donnera le code le plus fiable ?"
+    prompt: "fais le ProcessReceipt pour mon produit passer l'étape"
+    options:
+      - texte: "Écris un ProcessReceipt robuste et professionnel pour « Passer l’étape », avec toutes les bonnes pratiques."
+      - texte: "Écris un ProcessReceipt qui fait passer l’étape au joueur et renvoie PurchaseGranted à la fin, quoi qu’il arrive, pour ne jamais bloquer Roblox."
+      - texte: |
+          Dans src/ServerScriptService/Achats.server.luau (seul script qui assigne MarketplaceService.ProcessReceipt) :
+          renvoie NotProcessedYet si le joueur est absent ou si ses données (DonneesJoueurs.Obtenir) ne sont pas chargées après 60 s ;
+          si donnees.achats[PurchaseId] existe, ne redonne rien ; sinon donne l'étape et note le PurchaseId dans la même table, sans attente entre les deux ;
+          renvoie PurchaseGranted seulement si DonneesJoueurs.Sauvegarder(player) renvoie true, sinon NotProcessedYet.
+          Vérification : avec « if false then » à la place de la sauvegarde, un avertissement s'affiche et rien n'est confirmé.
+        correct: true
+      - texte: "Donne l’étape dans `PromptProductPurchaseFinished`, côté client, puis préviens le serveur avec un RemoteEvent pour qu’il sauvegarde."
+    explication: "Seule la bonne version reprend le motif officiel : idempotence par le `PurchaseId` rangé avec les données, sauvegarde avant confirmation, `NotProcessedYet` dans tous les autres cas, et un test du cas d’échec. « Toutes les bonnes pratiques » laisse l’IA choisir, souvent mal ; `PurchaseGranted` « quoi qu’il arrive » fait payer des joueurs pour rien ; et `PromptProductPurchaseFinished` ne prouve pas qu’un achat a réussi."
 ---
 
 « Passer l’étape » : c’est le produit qu’on voit dans beaucoup d’obbys. Le joueur bloqué paie quelques Robux et saute au checkpoint suivant. Il peut l’acheter **autant de fois** qu’il veut, ce qui en fait un **Developer Product**. C’est aussi le code le plus délicat du module : si tu te trompes, un joueur peut payer sans rien recevoir, ou recevoir deux fois. Prends ton temps, chaque ligne compte.
@@ -192,7 +207,7 @@ Comme expliqué au module 5 (leçon 2), ajoute `achats = {},` dans `donneesParDe
 
 ### Le script Achats
 
-Voici le script le plus important de la leçon. Lis d’abord les commentaires, puis l’explication en dessous.
+Voici le script le plus important de la leçon (dans ton projet Rojo : `src/ServerScriptService/Achats.server.luau`). Lis d’abord les commentaires, puis l’explication en dessous. Que tu le tapes toi-même ou que Claude Code l’écrive avec le prompt de l’encadré plus bas, c’est ce niveau de compréhension qui te permettra de repérer un `PurchaseGranted` mal placé.
 
 ```luau
 -- Script (côté serveur) dans ServerScriptService, nommé « Achats »
@@ -331,6 +346,37 @@ Le champ `achats` de chaque joueur liste les `PurchaseId` déjà traités. Le jo
 <Info titre="BindReceiptHandler, l’alternative récente">
 La référence de l’API présente désormais `MarketplaceService:BindReceiptHandler` comme une alternative plus récente à `ProcessReceipt` : on peut enregistrer un traitement par produit (ou un traitement « par défaut »), et il renvoie `Enum.ReceiptDecision.Processed` ou `NotProcessedYet`. Les principes restent exactement les mêmes : idempotence avec le `PurchaseId`, et ne confirmer qu’une fois le produit donné et sauvegardé. En octobre 2026, la référence qualifie `ProcessReceipt` de callback « legacy » (historique), mais il n’est **pas** déprécié et reste celui qu’utilise le guide officiel des Developer Products. Un handler lié par `BindReceiptHandler` passe en priorité ; les reçus qu’aucun handler ne prend en charge retombent sur `ProcessReceipt`.
 </Info>
+
+<AvecClaudeCode>
+
+C’est le prompt le plus exigeant du module : il touche quatre fichiers et de vrais Robux. Il commence par un plan, impose l’ordre officiel en cinq étapes et liste les cas difficiles de la leçon. Garde ta grille de lecture sous la main : c’est **toi** qui valides le plan, puis le code.
+
+<Prompt titre="Developer Product « Passer l’étape »">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je vends un Developer Product « Passer l'étape », achetable plusieurs fois, qui fait passer le joueur au checkpoint suivant. C'est du code d'achat : un joueur ne doit jamais payer sans rien recevoir, ni recevoir deux fois.
+Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau : DonneesJoueurs.Obtenir(player) renvoie la table de données en mémoire (ou nil si pas encore chargée) ; DonneesJoueurs.Sauvegarder(player) enregistre cette table en entier dans le DataStore "DonneesJoueurs_v1" (clé "Joueur_" .. UserId) et renvoie true seulement si l'écriture a réussi ; donneesParDefaut(), completer() et VERSION_DONNEES gèrent les anciennes sauvegardes. Les leaderstats Etape et Pieces sont des IntValue créées par le serveur. Workspace.Checkpoints contient les Parts "1", "2"… Le Developer Product est créé dans le Creator Hub (ID dans une constante ID_PASSER_ETAPE, 0 en attendant).
+Objectif : quand le joueur demande « Passer l'étape », le serveur vérifie qu'une étape suivante existe puis ouvre la fenêtre d'achat. Une fois l'achat payé, le joueur passe à l'étape suivante et il est téléporté dessus. S'il est déjà au bout, il reçoit 100 pièces de secours.
+Fichiers concernés : 1) default.project.json : ajoute le RemoteEvent DemanderPasserEtape dans ReplicatedStorage.Remotes ; 2) crée le Script src/ServerScriptService/DemandesAchat.server.luau ; 3) crée le Script src/ServerScriptService/Achats.server.luau ; 4) dans DonneesJoueurs.luau, ajoute seulement achats = {} dans donneesParDefaut() et augmente VERSION_DONNEES d'une unité. Ne modifie rien d'autre.
+Contraintes techniques : DemandesAchat : DemanderPasserEtape.OnServerEvent n'utilise aucun argument du client ; au plus une demande toutes les 2 s par joueur (table libérée à PlayerRemoving) ; PromptProductPurchase(player, ID_PASSER_ETAPE) seulement si Checkpoints contient tostring(Etape + 1). Achats : c'est le SEUL script du jeu qui assigne MarketplaceService.ProcessReceipt (avec =, pas Connect) ; une table produits { [ID_PASSER_ETAPE] = donnerPasserEtape } ; chaque fonction « donner » n'attend jamais (pas de task.wait, pas d'appel réseau) et écrit l'effet dans les leaderstats ET dans la table de données (donnees.etape, ou donnees.pieces pour les 100 pièces de secours) ; téléportation avec PivotTo, 4 studs au-dessus du checkpoint. Ordre obligatoire dans traiterRecu : 1) joueur présent sur ce serveur (GetPlayerByUserId) et produit connu, sinon NotProcessedYet ; 2) attendre les données chargées (boucle avec task.wait(1), 60 s au maximum, tant que le joueur est sur le serveur), sinon NotProcessedYet ; 3) si donnees.achats[receiptInfo.PurchaseId] existe déjà, ne rien redonner ; 4) sinon donner ET noter donnees.achats[receiptInfo.PurchaseId] = true, sans aucune attente entre les deux ; 5) appeler DonneesJoueurs.Sauvegarder(player) : PurchaseGranted seulement si elle renvoie true, sinon warn et NotProcessedYet. Crée donnees.achats s'il manque. N'utilise ni PromptProductPurchaseFinished ni BindReceiptHandler.
+Sécurité : le client ne choisit ni le produit, ni le prix, ni l'étape : il envoie une demande sans argument et le serveur décide tout.
+Cas limites : joueur parti pendant l'achat ; reçu rejoué à l'arrivée avant la fin du chargement des données ; même reçu reçu deux fois ; DataStore en panne ; produit inconnu ; ancienne sauvegarde sans champ achats ; joueur déjà à la dernière étape ; clics répétés sur le bouton.
+Vérification : en Play classique (pas en Team Test), avec l'accès aux API activé sur une copie de test : achat normal → étape + 1 et téléportation ; Annuler → rien ; en remplaçant temporairement if DonneesJoueurs.Sauvegarder(player) then par if false then → l'étape est reçue et un avertissement apparaît dans l'Output (remets la ligne ensuite) ; à la dernière étape → aucune fenêtre d'achat ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `PurchaseGranted` n’apparaît qu’à **un seul** endroit, juste après `if DonneesJoueurs.Sauvegarder(player) then` ; tous les autres chemins renvoient `NotProcessedYet` ;
+- le `PurchaseId` est noté dans `donnees.achats`, la **même** table que l’étape, et rien ne cède la main (`task.wait`, appel réseau) entre « donner » et « noter » ;
+- le test « déjà traité » regarde `donnees.achats[receiptInfo.PurchaseId]` **avant** de donner, et un reçu déjà noté est quand même sauvegardé puis confirmé ;
+- `MarketplaceService.ProcessReceipt =` n’apparaît que dans `Achats.server.luau` (cherche-le dans tout le dossier `src`) ;
+- `donnerPasserEtape` met à jour `etape.Value` **et** `donnees.etape` (ou `pieces.Value` et `donnees.pieces`) ;
+- `DemandesAchat` n’utilise aucune valeur envoyée par le client et vérifie qu’une étape suivante existe avant d’ouvrir la fenêtre.
+
+</AvecClaudeCode>
 
 ## Tester sans se ruiner
 

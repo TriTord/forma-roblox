@@ -54,6 +54,28 @@ quiz:
     question: Le prix affiché pour un Game Pass peut être différent d’un joueur à l’autre, c’est pourquoi il vaut mieux le lire avec `GetProductInfoAsync` plutôt que l’écrire à la main dans l’interface.
     reponse: true
     explication: "Les prix régionaux (activés par défaut pour les passes au moment de la rédaction), les tests de prix et les réductions Roblox Plus peuvent changer le prix vu. `GetProductInfoAsync` renvoie le prix réel dans `PriceInRobux`."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Pour « simplifier », l’IA fait prévenir le serveur par le bouton de la boutique quand la fenêtre d’achat se ferme."
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local ID_PASS_TRAIL_DORE = 123456789
+      local remotes = ReplicatedStorage:WaitForChild("Remotes")
+      local passAchete = remotes:WaitForChild("PassAchete") :: RemoteEvent
+
+      -- Le LocalScript du bouton appelle passAchete:FireServer(idPass) après l'achat
+      passAchete.OnServerEvent:Connect(function(player: Player, idPass: number)
+      	if idPass == ID_PASS_TRAIL_DORE then
+      		player:SetAttribute("PossedeTrailDore", true)
+      	end
+      end)
+    options:
+      - texte: "Ligne 3 : l’ID d’un Game Pass doit être une chaîne de caractères"
+      - texte: "Ligne 8 : le serveur croit le client sur parole : un exploiteur peut envoyer `FireServer(123456789)` et recevoir la traînée sans rien payer"
+        correct: true
+      - texte: "Ligne 10 : `SetAttribute` ne fonctionne pas dans un Script serveur"
+      - texte: "Ligne 5 : un RemoteEvent ne peut pas être rangé dans ReplicatedStorage"
+    explication: "N’importe quel client peut déclencher un RemoteEvent avec les valeurs qu’il veut. La possession doit être établie par le serveur lui-même : `UserOwnsGamePassAsync` (dans un `pcall`) à l’arrivée, et `PromptGamePassPurchaseFinished` écouté côté serveur avec `wasPurchased`. L’ID est bien un nombre et `SetAttribute` fonctionne côté serveur."
 ---
 
 Dans la leçon précédente, tu as vu que l’Obby des Nuages vendrait une **traînée dorée** exclusive. C’est l’exemple parfait de **Game Pass** : un achat unique, un avantage permanent, purement cosmétique. Dans cette leçon, tu vas le créer, puis écrire le code qui le vend et le donne, sans jamais faire confiance au client (souviens-toi du module 4).
@@ -112,7 +134,7 @@ Voici le cœur du système. Il fait trois choses :
 2. quand un joueur termine un achat réussi, il lui donne l’avantage tout de suite ;
 3. à chaque réapparition du personnage, il remet la traînée.
 
-L’avantage est mémorisé dans un **attribut** du joueur (`PossedeTrailDore`), que les autres scripts (et l’interface) peuvent lire.
+L’avantage est mémorisé dans un **attribut** du joueur (`PossedeTrailDore`), que les autres scripts (et l’interface) peuvent lire. Dans ton projet Rojo, ce Script est le fichier `src/ServerScriptService/GamePassTrail.server.luau`. Tu peux le faire écrire par Claude Code avec le prompt de l’encadré « Avec Claude Code » (après la section sur le bouton), mais un code d’achat se **relit toujours** : les explications ci-dessous sont ta grille de lecture.
 
 ```luau
 -- Script (côté serveur) à placer dans ServerScriptService, nommé « GamePassTrail »
@@ -252,6 +274,36 @@ Ici, le client **demande** l’achat, mais c’est Roblox qui affiche la fenêtr
 <Astuce titre="Le prix, toujours depuis Roblox">
 La documentation de Roblox avertit que les prix écrits « en dur » peuvent afficher un montant faux aux abonnés Roblox Plus ou dans les pays à prix régionaux : le joueur est quand même débité du bon prix, mais ton interface lui ment. Avec `GetProductInfoAsync` et `PriceInRobux`, ton bouton affiche toujours le prix réel.
 </Astuce>
+
+<AvecClaudeCode>
+
+Le Game Pass touche à de vrais Robux : le prompt impose donc les règles de la leçon une par une (vérification serveur dans un `pcall`, `wasPurchased`, prix lu depuis Roblox) et interdit explicitement tout raccourci côté client.
+
+<Prompt titre="Game Pass « Traînée dorée »">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je vends un Game Pass cosmétique « Traînée dorée » : achat unique, avantage permanent, purement visuel.
+Ce qui existe déjà : le pass est créé dans le Creator Hub (son ID ira dans une constante ID_PASS_TRAIL_DORE, 0 en attendant). La boutique est dans src/StarterGui/InterfaceObby/Boutique/Liste (Frame avec un UIGridLayout qui range les boutons).
+Objectif : un joueur qui possède le pass (acheté en jeu ou avant) a une traînée dorée en permanence, y compris après une mort. Le bouton de la boutique affiche le vrai prix, ouvre la fenêtre d'achat officielle et affiche « Traînée dorée : possédée » une fois le pass obtenu.
+Fichiers concernés : 1) crée le Script src/ServerScriptService/GamePassTrail.server.luau ; 2) crée le TextButton BoutonTrailDore sous forme de dossier src/StarterGui/InterfaceObby/Boutique/Liste/BoutonTrailDore/ avec un init.meta.json (className TextButton) et le LocalScript ScriptBouton.client.luau. Ne modifie rien d'autre.
+Contraintes techniques : serveur : MarketplaceService:UserOwnsGamePassAsync(player.UserId, ID_PASS_TRAIL_DORE) dans un pcall, 3 tentatives espacées de 2 s (task.wait) avec warn en cas d'échec ; fonction accorderPass(player) qui pose l'attribut PossedeTrailDore = true et ajoute la traînée ; fonction ajouterTrail(character) : Attachments TrailHaut (0, 1, 0) et TrailBas (0, -1, 0) sur HumanoidRootPart (WaitForChild avec 5 s maximum), Trail "TrailDore" couleur 255, 210, 80, Lifetime 0.6 ; CharacterAdded remet la traînée si l'attribut est vrai ; joueurs déjà présents traités avec task.spawn ; MarketplaceService.PromptGamePassPurchaseFinished écouté dans ce Script serveur. Client : prix lu avec GetProductInfoAsync(ID_PASS_TRAIL_DORE, Enum.InfoType.GamePass) dans un pcall (champ PriceInRobux) ; PromptGamePassPurchase(joueur, ID_PASS_TRAIL_DORE) sur Activated, sauf si le pass est déjà possédé ; texte mis à jour avec GetAttributeChangedSignal("PossedeTrailDore").
+Sécurité : seul le serveur décide que le joueur possède le pass : le LocalScript ne pose jamais l'attribut et ne crée jamais la traînée ; aucun RemoteEvent du type « j'ai acheté » ; l'avantage n'est donné après la fenêtre d'achat que si wasPurchased est vrai ET si l'ID est celui du pass.
+Cas limites : Roblox ne répond pas (pcall et nouvelles tentatives) ; achat annulé (rien ne se passe) ; réapparition (traînée remise, jamais en double grâce à FindFirstChild("TrailDore")) ; pass acheté hors du jeu (vérifié à chaque arrivée) ; prix indisponible (le bouton garde son texte).
+Vérification : Studio ne simule pas vraiment l'achat de passes. En Play : le bouton affiche le prix et ouvre la fenêtre, Annuler ne donne rien. Pour tester l'effet, ajoute temporairement accorderPass(player) au début de onPlayerAdded : traînée visible, de retour après une mort, bouton « possédée » ; puis retire cette ligne. Dernier test dans le jeu publié. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `UserOwnsGamePassAsync` reçoit `player.UserId` (un nombre, pas l’objet `Player`) et se trouve dans un `pcall` ;
+- le callback de `PromptGamePassPurchaseFinished` teste `wasPurchased` **et** l’ID du pass (sans `wasPurchased`, Annuler donne la traînée : le bug du quiz) ;
+- `PromptGamePassPurchaseFinished` est écouté dans le Script serveur, pas dans le LocalScript ;
+- aucun LocalScript n’appelle `SetAttribute("PossedeTrailDore", …)` ni ne crée de `Trail` ;
+- le prix affiché vient de `GetProductInfoAsync` (`PriceInRobux`), jamais d’un nombre écrit à la main ;
+- la ligne de test `accorderPass(player)` a bien disparu avant la publication.
+
+</AvecClaudeCode>
 
 ## Mise en cache : ne pas interroger Roblox en boucle
 

@@ -54,6 +54,20 @@ quiz:
     question: En 2026, Roblox a lancé Roblox Plus et cessé de vendre l’abonnement Premium aux nouveaux abonnés.
     reponse: true
     explication: "Roblox Plus est disponible depuis le 30 avril 2026, et la page d’aide officielle indique que Premium n’est plus vendu depuis cette même date (les abonnés existants peuvent le garder, sans pouvoir s’y réabonner). Côté code, `Player.MembershipType` est désormais déprécié au profit de `Player.HasRobloxSubscription`."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code programme l’avantage de l’abonnement « Nuage+ ». Quelle version du prompt est la meilleure ?"
+    prompt: "ajoute un abonnement VIP qui double les pièces"
+    options:
+      - texte: "Quand le joueur achète l’abonnement VIP, enregistre VIP = true dans son DataStore, puis double ses pièces à chaque partie."
+      - texte: "Dans un LocalScript, vérifie si le joueur est abonné et double les pièces qu’il ramasse."
+      - texte: |
+          Crée le Script src/ServerScriptService/Abonnements.server.luau : à chaque arrivée et sur Players.UserSubscriptionStatusChanged, appelle GetUserSubscriptionStatusAsync(player, ID_ABONNEMENT) dans un pcall et pose l'attribut AbonneNuagePlus = statut.IsSubscribed (sans le changer si l'appel échoue).
+          Dans Pieces.server.luau, une fonction calculerGain(player) renvoie 2 si l'attribut est vrai, sinon 1.
+          N'enregistre rien dans le DataStore.
+          Vérification : avec l'attribut forcé temporairement à true, une pièce rapporte 2.
+        correct: true
+      - texte: "Fais un abonnement VIP propre et sécurisé qui double les pièces."
+    explication: "La bonne version vérifie le statut côté serveur à chaque arrivée et à chaque changement, lit le bon champ (`IsSubscribed`) et refuse de mémoriser l’abonnement. Le DataStore garderait l’avantage après la fin de l’abonnement, le LocalScript se laisse tromper par un exploiteur, et « propre et sécurisé » ne dit à l’IA rien de ce qu’il faut faire."
 ---
 
 Un Game Pass se paie une fois, un Developer Product à chaque utilisation. Il existe une troisième voie : l’**abonnement d’expérience**, payé chaque mois. Dans cette leçon, tu vas voir comment il fonctionne, comment le vérifier proprement, puis faire le point sur un sujet qui a beaucoup changé : les **Premium Payouts**, remplacés par de nouveaux programmes en 2025 et 2026.
@@ -194,6 +208,35 @@ mettreAJour()
 ```
 
 Quand le joueur termine son achat, le serveur reçoit `UserSubscriptionStatusChanged`, revérifie le statut, met l’attribut à jour… et le bouton disparaît tout seul.
+
+<AvecClaudeCode>
+
+Si tu crées vraiment « Nuage+ », ces trois morceaux (Script serveur, calcul du gain, bouton) se demandent en un seul prompt. Le point délicat est celui de l’encadré « Erreur » plus haut : l’avantage doit **s’arrêter** avec l’abonnement, donc le prompt interdit de l’enregistrer dans le DataStore.
+
+<Prompt titre="Abonnement « Nuage+ » (pièces doublées)">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute un abonnement d'expérience « Nuage+ » qui double les pièces ramassées tant que le joueur est abonné.
+Ce qui existe déjà : l'abonnement est créé dans le Creator Hub (son ID est une chaîne "EXP-…", à mettre dans une constante ID_ABONNEMENT). src/ServerScriptService/Pieces.server.luau valide chaque ramassage côté serveur dans preparerPiece et ajoute VALEUR_PIECE à leaderstats.Pieces. La boutique est dans src/StarterGui/InterfaceObby/Boutique/Liste.
+Objectif : un abonné actif gagne 2 pièces par pièce ramassée au lieu de 1 ; l'avantage disparaît quand l'abonnement prend fin ; un bouton « Nuage+ » n'est visible que pour les joueurs qui ont le droit de s'abonner et ne sont pas déjà abonnés.
+Fichiers concernés : 1) crée le Script src/ServerScriptService/Abonnements.server.luau ; 2) dans Pieces.server.luau, ajoute une fonction calculerGain(player) au-dessus de preparerPiece et utilise-la à la place de VALEUR_PIECE dans la ligne qui ajoute la pièce ; 3) crée le TextButton src/StarterGui/InterfaceObby/Boutique/Liste/BoutonNuagePlus/ (init.meta.json avec className TextButton) et son LocalScript ScriptBouton.client.luau. Ne modifie rien d'autre.
+Contraintes techniques : serveur : MarketplaceService:GetUserSubscriptionStatusAsync(player, ID_ABONNEMENT) (l'objet Player, pas l'UserId) dans un pcall ; lire statut.IsSubscribed et poser l'attribut AbonneNuagePlus ; en cas d'échec, warn et garder l'état précédent ; PolicyService:GetPolicyInfoForPlayerAsync(player) dans un pcall pour poser l'attribut PeutSAbonner (IsEligibleToPurchaseSubscription == true, false si l'appel échoue) ; Players.UserSubscriptionStatusChanged revérifie le statut si l'ID correspond. Client : MarketplaceService:PromptSubscriptionPurchase(joueur, ID_ABONNEMENT) sur Activated ; visibilité recalculée avec GetAttributeChangedSignal sur les deux attributs.
+Sécurité : le statut d'abonnement est vérifié uniquement par le serveur ; le gain est calculé par le serveur dans Pieces ; ne sauvegarde jamais « abonné = vrai » dans le DataStore : on revérifie à chaque arrivée.
+Cas limites : service indisponible (on ne retire pas l'avantage par erreur) ; abonnement terminé ou non renouvelé ; joueur non éligible (pays, âge, plateforme) : bouton caché ; ID encore fictif pendant les tests : avertissement dans l'Output, pas de plantage.
+Vérification : en Play, avec l'ID fictif, un avertissement s'affiche sans erreur bloquante ; en ajoutant temporairement player:SetAttribute("AbonneNuagePlus", true) côté serveur, une pièce rapporte 2 (retire la ligne ensuite) ; le bouton se cache quand AbonneNuagePlus est vrai ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le test porte sur `statut.IsSubscribed`, pas sur `statut` (une table est toujours « vraie » en Luau : le bug du quiz) ;
+- `GetUserSubscriptionStatusAsync` et `GetPolicyInfoForPlayerAsync` sont dans des `pcall`, dans le Script serveur ;
+- en cas d’échec réseau, l’attribut `AbonneNuagePlus` n’est **pas** remis à `false` ;
+- aucun code n’enregistre l’abonnement dans le DataStore, et `calculerGain` n’existe que côté serveur ;
+- `ID_ABONNEMENT` est une chaîne de texte (`"EXP-…"`), identique dans le Script et le LocalScript.
+
+</AvecClaudeCode>
 
 <Astuce titre="Un abonnement doit valoir le coup chaque mois">
 Un joueur qui paie tous les mois attend de la nouveauté ou un confort réel et durable. Pour un petit obby, un abonnement est rarement le premier produit à créer : commence par un Game Pass cosmétique, observe tes statistiques (module 9), et n’ajoute un abonnement que si tu peux le faire vivre dans le temps.

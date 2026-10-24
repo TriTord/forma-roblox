@@ -144,3 +144,37 @@ questions:
     question: "Pour connaître les rôles d’un joueur dans ta communauté, la méthode recommandée aujourd’hui est `Player:GetRankInGroupAsync()`."
     reponse: false
     explication: "`GetRankInGroupAsync` et `GetRoleInGroupAsync` sont dépréciées : elles ne renvoient que le rôle le plus élevé. La méthode actuelle est `GroupService:GetRolesInGroupAsync(userId, groupId)`, qui renvoie `IsMember` et la liste de tous les rôles publics du joueur."
+
+  - type: trouve-le-bug
+    question: "Trouve le problème dans ce code généré par IA. Il doit marquer les modérateurs et les membres de ta communauté. Même s’il semble marcher pendant tes tests, tu ne devrais pas l’accepter tel quel."
+    code: |
+      local Players = game:GetService("Players")
+      local ID_COMMUNAUTE = 1234567
+
+      Players.PlayerAdded:Connect(function(player: Player)
+      	local ok, rang = pcall(function()
+      		return player:GetRankInGroup(ID_COMMUNAUTE)
+      	end)
+      	if ok and rang >= 200 then
+      		player:SetAttribute("RoleCommunaute", "Moderateur")
+      	elseif ok and rang > 0 then
+      		player:SetAttribute("RoleCommunaute", "Membre")
+      	end
+      end)
+    options:
+      - texte: "Ligne 5 : il ne faut pas de `pcall` autour d’un appel réseau"
+      - texte: "Ligne 6 : `GetRankInGroup` est une méthode dépréciée, qui ne renvoie que le rang le plus élevé ; il faut `GroupService:GetRolesInGroupAsync(player.UserId, ID_COMMUNAUTE)`"
+        correct: true
+      - texte: "Ligne 4 : `PlayerAdded` ne se déclenche pas pour le propriétaire du jeu"
+      - texte: "Ligne 9 : un attribut ne peut pas contenir de texte"
+    explication: "Les IA reproduisent souvent des API vues dans de vieux tutoriels. `GetRankInGroup` (comme `GetRankInGroupAsync` et `GetRoleInGroupAsync`) est dépréciée : elle ne connaît que le rang le plus élevé alors qu’un membre peut avoir plusieurs rôles, et elle peut disparaître. Demande à l’IA d’utiliser `GroupService:GetRolesInGroupAsync`, toujours dans un `pcall`."
+
+  - type: qcm
+    question: "Tu demandes à Claude Code d’ajouter le champ `zoneOragesDebloquee` aux sauvegardes. Dans son plan, il propose de passer au DataStore `DonneesJoueurs_v2` « pour repartir sur une structure propre ». Que réponds-tu ?"
+    options:
+      - texte: "J’accepte : une structure propre évite les bugs"
+      - texte: "Je refuse : tous les joueurs perdraient leur progression ; je demande d’ajouter le champ dans `donneesParDefaut()` et d’augmenter `VERSION_DONNEES` d’une unité, sans toucher au nom du DataStore ni aux clés"
+        correct: true
+      - texte: "J’accepte, à condition d’effacer d’abord les anciennes sauvegardes"
+      - texte: "Je lui demande de garder les deux DataStores et de choisir au hasard lequel lire"
+    explication: "Changer de DataStore rend les anciennes données introuvables : c’est la pire mise à jour possible. La méthode de la leçon garde `DonneesJoueurs_v1` et la clé `\"Joueur_\" .. UserId`, ajoute le champ avec une valeur par défaut et laisse `completer` remplir les anciennes sauvegardes. Le mode plan sert justement à refuser ce genre de proposition avant que le code soit écrit."

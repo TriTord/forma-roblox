@@ -57,6 +57,19 @@ quiz:
       - texte: "Ligne 5 : il faut utiliser `FindFirstChild` au lieu de `WaitForChild`"
       - texte: "Ligne 3 : une constante doit être écrite en minuscules"
     explication: "`etape.Value > 0` est vrai pour ceux qui ont **déjà** atteint un checkpoint. Pour aider les joueurs bloqués, il faut tester `etape.Value == 0` (ou `< 1`). Un indice minuté ne doit apparaître qu’aux joueurs en difficulté."
+  - type: ameliore-le-prompt
+    question: "Tu veux que Claude Code améliore le début de partie de l’Obby des Nuages. Quelle version du prompt suit le mieux cette leçon ?"
+    prompt: "ajoute un tutoriel au début de mon obby"
+    options:
+      - texte: "Ajoute au spawn une fenêtre de tutoriel de 6 pages qui explique toutes les règles, avec un bouton « Suivant » obligatoire avant de pouvoir jouer."
+      - texte: "Ajoute une flèche ou quelque chose pour guider le joueur, fais au mieux."
+      - texte: |
+          Crée le LocalScript src/StarterPlayer/StarterPlayerScripts/IndiceDepart.client.luau.
+          Si leaderstats.Etape vaut toujours 0 après 15 secondes (task.delay), affiche en bas de l'écran « Suis le rayon doré et saute sur le premier nuage ! ».
+          L'indice ne bloque rien, n'affiche aucun compte à rebours et disparaît dès que Etape atteint 1.
+          Vérification : un joueur qui atteint le checkpoint 1 en 5 secondes ne voit jamais l'indice.
+        correct: true
+    explication: "La bonne version applique la technique officielle de l’indice minuté : une aide courte, réservée aux joueurs en difficulté, qui ne bloque pas. La fenêtre de 6 pages est le « mur de texte » que Roblox déconseille, et « fais au mieux » ne donne ni fichier, ni condition, ni critère de réussite."
 ---
 
 Sur Roblox, quitter un jeu prend une seconde, et des milliers d’autres jeux attendent à côté. Le début de partie est donc le moment où tu as le plus de chances… de perdre ton joueur. Dans cette leçon, tu vas repenser l’arrivée dans l’Obby des Nuages : ce que le joueur voit, ce qu’il fait, et comment l’aider sans l’ennuyer.
@@ -120,7 +133,7 @@ Mettons en pratique la technique des éléments visuels. On va relier le personn
 
 On suppose ici que `Etape` vaut `0` tant qu’aucun checkpoint n’est atteint, et que les checkpoints sont des Parts nommées `"1"`, `"2"`… dans `Workspace.Checkpoints`, comme dans tout le projet. Si ton jeu commence à `1`, adapte le calcul de `prochaine`.
 
-Crée un **LocalScript** nommé `GuideCheckpoint` dans **StarterPlayer › StarterPlayerScripts** et colle ce code :
+Crée un **LocalScript** nommé `GuideCheckpoint` dans **StarterPlayer › StarterPlayerScripts** et colle ce code. Dans ton projet Rojo, c’est le fichier `src/StarterPlayer/StarterPlayerScripts/GuideCheckpoint.client.luau` : tu peux aussi le faire écrire par Claude Code avec le prompt de l’encadré « Avec Claude Code » plus bas, puis le relire ligne par ligne avec les explications de cette section.
 
 ```luau
 -- LocalScript « GuideCheckpoint » à placer dans StarterPlayer > StarterPlayerScripts
@@ -256,6 +269,36 @@ L’indice est **court**, **concret** et ne bloque rien. Un joueur expérimenté
 <Attention>
 Ne transforme pas l’indice en pression. Un message du type « Dépêche-toi, il ne te reste que 10 secondes ! » alors qu’aucune limite n’existe est une fausse urgence. Roblox interdit explicitement ce genre de procédé dans ses notifications (leçon 4), et c’est une mauvaise pratique partout ailleurs aussi.
 </Attention>
+
+<AvecClaudeCode>
+
+Les deux LocalScripts forment un seul petit système d’onboarding : un prompt suffit. Il donne les règles de conception de la leçon (deux étapes guidées, indice à 15 secondes, rien qui bloque), sinon l’IA risque de produire un tutoriel bavard ou un guide qui ne disparaît jamais.
+
+<Prompt titre="Onboarding : faisceau et indice minuté">
+
+```text
+Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je refais les 60 premières secondes : je veux guider le nouveau joueur vers les premiers checkpoints sans mur de texte et sans le bloquer.
+Ce qui existe déjà : leaderstats.Etape (IntValue, créée par le serveur, vaut 0 tant qu'aucun checkpoint n'est atteint) ; Workspace.Checkpoints contient des Parts nommées "1", "2", "3"… Le streaming d'instances peut être activé plus tard.
+Objectif : 1) un faisceau doré relie le personnage au prochain checkpoint, seulement pour les checkpoints 1 et 2, puis disparaît pour de bon ; 2) si le joueur est toujours à l'étape 0 après 15 secondes, un indice apparaît en bas de l'écran : « Suis le rayon doré et saute sur le premier nuage ! », et il disparaît dès l'étape 1.
+Fichiers concernés : crée src/StarterPlayer/StarterPlayerScripts/GuideCheckpoint.client.luau et src/StarterPlayer/StarterPlayerScripts/IndiceDepart.client.luau (deux LocalScripts). Ne modifie aucun autre fichier.
+Contraintes techniques : GuideCheckpoint : constante ETAPES_GUIDEES = 2 ; un Attachment sur HumanoidRootPart, un autre sur le checkpoint Etape + 1, et un Beam entre les deux (FaceCamera = true, Width0 et Width1 = 0.3, couleur 255, 220, 80) ; une liste des objets créés et une fonction retirerGuide() qui les détruit avant d'en créer de nouveaux ; placerGuide() appelée sur Etape.Changed, sur CharacterAdded (après WaitForChild("HumanoidRootPart")), sur Checkpoints.ChildAdded si c'est le checkpoint visé, et au démarrage si le personnage existe. IndiceDepart : constante DELAI_INDICE = 15 ; ScreenGui "IndiceDepart" (ResetOnSpawn = false) avec un TextLabel invisible au départ ; task.delay (jamais wait) ; ScreenGui détruit dès que Etape >= 1.
+Sécurité : tout est visuel et local au joueur : aucun des deux scripts ne modifie Etape ni n'utilise de RemoteEvent.
+Cas limites : checkpoint visé pas encore chargé (FindFirstChild + IsA("BasePart"), sinon on attend ChildAdded) ; personnage absent ou qui réapparaît ; joueur qui revient avec une sauvegarde à l'étape 5 (ni faisceau ni indice) ; aucun compte à rebours ni fausse urgence dans les textes.
+Vérification : en Play Solo avec un nouveau joueur, le faisceau vise le checkpoint 1, puis le 2, puis plus rien ; après une mort, il revient ; en attendant 15 s au spawn, l'indice apparaît et disparaît au checkpoint 1 ; aucune erreur dans l'Output ; selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- l’indice teste `etape.Value == 0` (et non `> 0`, le bug du quiz), avec `task.delay` et pas `wait` ;
+- les Attachments et le Beam sont créés dans un LocalScript, donc visibles par ce seul joueur ;
+- `retirerGuide()` détruit les anciens objets **avant** chaque nouveau placement : sinon les faisceaux s’empilent à chaque étape ;
+- la condition `prochaine > ETAPES_GUIDEES` arrête bien le guide après le checkpoint 2 ;
+- `FindFirstChild` et `IsA("BasePart")` protègent contre un checkpoint pas encore chargé, et `CharacterAdded` recrée l’attache sur le nouveau corps ;
+- aucun texte ne bloque le jeu ni ne crée de fausse urgence.
+
+</AvecClaudeCode>
 
 <Defi>
 Demande à une personne qui n’a jamais vu ton obby d’y jouer pendant que tu chronomètres en silence :

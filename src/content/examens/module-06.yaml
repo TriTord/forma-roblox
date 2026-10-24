@@ -145,3 +145,39 @@ questions:
       - texte: Chercher la raison derrière la suggestion (par exemple une zone jugée monotone)
         correct: true
     explication: Roblox souligne que la raison derrière une suggestion compte encore plus que la suggestion elle-même. Comprendre le besoin permet de choisir la meilleure solution, qui n’est pas forcément celle proposée.
+
+  - type: qcm
+    question: "Claude Code vient d’écrire `RecompensesEtapes.valider` pour verser les pièces d’étape. Le code s’exécute sans erreur. Quel point de relecture est le plus important ?"
+    options:
+      - texte: Vérifier que les commentaires sont bien en français
+      - texte: Vérifier que seule l’étape `Etape + 1` est acceptée avant de verser des pièces
+        correct: true
+      - texte: Vérifier que le fichier fait moins de 30 lignes
+      - texte: Vérifier que le module utilise beaucoup de fonctions différentes
+    explication: "Un code qui tourne sans erreur peut quand même contenir une faille. Ici, le danger est le « farm » : si une étape déjà atteinte est acceptée, un joueur touche le même checkpoint en boucle pour accumuler des pièces. Le style et la longueur comptent beaucoup moins que cette règle de jeu, que tu dois savoir vérifier toi-même."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Pour l’objectif quotidien, l’IA a fait signaler chaque pièce ramassée par le client."
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local ServerScriptService = game:GetService("ServerScriptService")
+      local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs"))
+      local ObjectifsQuotidiens = require(ServerScriptService:WaitForChild("ObjectifsQuotidiens"))
+      local pieceRamassee = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PieceRamassee") :: RemoteEvent
+
+      -- Le LocalScript des pièces appelle pieceRamassee:FireServer() à chaque contact
+      pieceRamassee.OnServerEvent:Connect(function(player: Player)
+      	local donnees = DonneesJoueurs.Obtenir(player)
+      	local stats = player:FindFirstChild("leaderstats")
+      	local pieces = stats and stats:FindFirstChild("Pieces")
+      	if donnees and pieces and pieces:IsA("IntValue") then
+      		pieces.Value += 1 + ObjectifsQuotidiens.enregistrerPiece(donnees)
+      	end
+      end)
+    options:
+      - texte: "Ligne 3 : un Script ne peut pas faire `require` d’un ModuleScript placé dans ServerScriptService"
+      - texte: "Ligne 8 : le serveur croit le client sur parole : un exploiteur peut appeler `FireServer` des centaines de fois par seconde et encaisser pièces et bonus du jour sans rien ramasser"
+        correct: true
+      - texte: "Ligne 13 : `+=` ne fonctionne pas sur la valeur d’une IntValue"
+      - texte: "Ligne 4 : `ObjectifsQuotidiens` fait un appel au DataStore à chaque pièce"
+    explication: "Le ramassage doit être détecté et validé **par le serveur**, comme dans le Script « Pieces » (contact `Touched`, distance, délai entre deux ramassages), puis seulement compté pour l’objectif du jour. Ici, rien ne prouve qu’une pièce a été touchée. Le `require` et `+=` sont corrects, et `ObjectifsQuotidiens` ne fait aucun appel au DataStore."
