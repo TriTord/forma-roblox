@@ -17,7 +17,7 @@
 | Module | Rédaction | Vérif passe 1 | Vérif passe 2 |
 |---|---|---|---|
 | 00 | FAIT | en cours | |
-| 01 | en cours | | |
+| 01 | FAIT | en cours | |
 | 02 | en cours | | |
 | 03 | en cours | | |
 | 04 | en cours | | |
