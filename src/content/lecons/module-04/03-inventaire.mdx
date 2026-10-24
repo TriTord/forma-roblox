@@ -76,7 +76,7 @@ On stocke des **identifiants** (`"TrailNuage"`), jamais des objets Roblox. Un Da
 
 ## Le catalogue : une seule source pour les prix
 
-Les caractéristiques de chaque objet (nom affiché, prix, couleurs) vivent dans un **ModuleScript** partagé. Crée le ModuleScript `Catalogue` dans **ReplicatedStorage ⟩ Modules** (le Folder `Modules` du projet).
+Les caractéristiques de chaque objet (nom affiché, prix, couleurs) vivent dans un **ModuleScript** partagé : le `Catalogue` que tu as créé au module 3 dans **ReplicatedStorage ⟩ Modules** (le Folder `Modules` du projet). Remplace son contenu par cette version complète : mêmes identifiants, mêmes prix, avec en plus les couleurs des traînées.
 
 ```luau
 -- ModuleScript « Catalogue » dans ReplicatedStorage > Modules
@@ -142,7 +142,7 @@ Les attributs posés sur un `Player` sont visibles par **tous** les clients, pas
 
 ### Le Script Boutique
 
-Crée un **Script** `Boutique` dans **ServerScriptService**. Il utilise le module `DonneesJoueurs` de la leçon 2.
+Ce **Script** `Boutique`, dans **ServerScriptService**, **remplace** celui du module 3 : remplace tout son contenu (ne garde pas les deux, sinon chaque achat serait débité deux fois). Il garde les protections du module 3 (type et longueur de l’identifiant avec le ModuleScript `Validation`, délai minimal entre deux demandes), mais range désormais l’inventaire dans les données de `DonneesJoueurs` (leçon 2) au lieu de la table `objetsPossedes`, pour qu’il soit sauvegardé. Supprime aussi le LocalScript de démonstration du module 3, qui achetait `TrailNuage` tout seul au bout de 5 secondes.
 
 ```luau
 -- Script « Boutique » dans ServerScriptService (côté serveur)
@@ -151,6 +151,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs"))
+local Validation = require(ServerScriptService:WaitForChild("Validation")) -- module 3, leçon 4
 local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue"))
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
@@ -158,6 +159,9 @@ local acheterObjet = remotes:WaitForChild("AcheterObjet") :: RemoteEvent
 local equiperObjet = remotes:WaitForChild("EquiperObjet") :: RemoteEvent
 
 local NOMS_TRAINEE = { "TraineeObby", "TraineeHaut", "TraineeBas" }
+local LONGUEUR_ID_MAX = 50 -- aucun identifiant du catalogue n'est plus long
+local peutAcheter = Validation.creerCooldown(1) -- un achat par seconde maximum (module 3)
+local peutEquiper = Validation.creerCooldown(0.5) -- limite aussi le spam d'équipement
 
 -- Retrouve une statistique des leaderstats (voir leçon 1)
 local function obtenirStat(player: Player, nomStat: string): IntValue?
@@ -225,8 +229,12 @@ end
 
 -- ACHAT : le client envoie seulement l'identifiant de l'objet
 acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
-	-- 1. Le bon type ? (un exploiteur peut envoyer n'importe quoi)
-	if typeof(idObjet) ~= "string" then
+	-- 1. Un texte de taille raisonnable ? (un exploiteur peut envoyer n'importe quoi)
+	if typeof(idObjet) ~= "string" or not Validation.estTexte(idObjet, LONGUEUR_ID_MAX) then
+		return
+	end
+	-- Pas plus d'une demande par seconde (cooldown du module 3)
+	if not peutAcheter(player) then
 		return
 	end
 	-- 2. L'objet existe ? Le prix vient du catalogue DU SERVEUR
@@ -253,7 +261,11 @@ end)
 
 -- ÉQUIPEMENT : "" retire la traînée, sinon il faut posséder l'objet
 equiperObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
-	if typeof(idObjet) ~= "string" then
+	-- "" est accepté ici (retirer la traînée) : on vérifie donc le type et la longueur à la main
+	if typeof(idObjet) ~= "string" or #idObjet > LONGUEUR_ID_MAX then
+		return
+	end
+	if not peutEquiper(player) then
 		return
 	end
 	local donnees = DonneesJoueurs.Obtenir(player)
@@ -294,7 +306,9 @@ for _, player in Players:GetPlayers() do
 end
 ```
 
-Remarque l’**ordre** dans l’achat : toutes les vérifications d’abord, les modifications ensuite. Si une seule vérification échoue, on sort avec `return` sans rien avoir touché. Le module 3 t’a montré comment ajouter en plus un délai minimal entre deux requêtes (cooldown) : tu peux l’intégrer ici.
+Remarque l’**ordre** dans l’achat : toutes les vérifications d’abord, les modifications ensuite. Si une seule vérification échoue, on sort avec `return` sans rien avoir touché. Et entre la vérification du solde et le débit, il n’y a aucune pause (ni `task.wait`, ni appel réseau) : comme au module 3, deux demandes rapprochées ne peuvent pas dépenser deux fois les mêmes pièces.
+
+La boutique du module 3 répondait au client avec `FireClient` (« achat réussi », « il te manque… »). Ici, le client apprend le résultat autrement : les attributs changent quand l’achat réussit (voir plus bas). Si tu veux garder les messages d’erreur, renvoie-les avec le RemoteEvent `Notification` du module 3.
 
 <Erreur titre="Faire confiance au client pour le prix ou la possession">
 `acheterObjet:FireServer("TrailAurore", 0)` : si ton serveur utilise ce `0`, l’objet est gratuit. Pareil pour `EquiperObjet` : si le serveur ne vérifie pas `donnees.inventaire[idObjet]`, n’importe qui porte la traînée la plus chère sans l’avoir achetée. Le serveur prend **toujours** le prix dans son catalogue et vérifie **toujours** la possession.
@@ -338,17 +352,17 @@ afficherInventaire()
 Pour tester un achat sans interface, donne-toi des pièces en modifiant `Pieces.Value` dans l’Explorer **en vue serveur**, puis exécute dans la **Command Bar**, en vue client : `game.ReplicatedStorage.Remotes.AcheterObjet:FireServer("TrailNuage")`.
 
 <Defi>
-1. Crée `Catalogue`, le RemoteEvent `EquiperObjet` et le Script `Boutique`.
+1. Complète `Catalogue`, crée le RemoteEvent `EquiperObjet` et remplace le contenu du Script `Boutique`.
 2. Achète `TrailNuage` comme indiqué ci-dessus, puis équipe-le avec `EquiperObjet:FireServer("TrailNuage")`. Une traînée blanche doit te suivre.
 3. Essaie d’équiper `TrailAurore` sans l’avoir acheté : rien ne doit se passer.
-4. Arrête le test, relance : la traînée est toujours équipée, grâce à la sauvegarde.
+4. Arrête le test, relance : la traînée est toujours équipée, grâce à la sauvegarde (sur ta copie de test, avec `SAUVEGARDER_EN_STUDIO` à `true` le temps de l’essai, comme à la leçon 2).
 5. Bonus : ajoute une quatrième traînée au catalogue, sans toucher à aucun autre script.
 </Defi>
 
 <Resume>
 - Un inventaire se modélise simplement : une table « identifiant → `true` » et un identifiant pour l’objet équipé.
 - Le `Catalogue` (ModuleScript dans ReplicatedStorage ⟩ Modules) décrit les objets ; le serveur y lit les prix, le client l’affichage.
-- Le client n’envoie que des identifiants ; le serveur vérifie type, existence, possession et solde **avant** de modifier quoi que ce soit.
+- Le client n’envoie que des identifiants ; le serveur vérifie type, longueur, débit (cooldown), existence, possession et solde **avant** de modifier quoi que ce soit, comme au module 3.
 - Des attributs posés par le serveur (`Possede_…`, `TrailEquipe`) synchronisent l’état avec le client.
 - L’inventaire fait partie de la table de session : il est sauvegardé par le système de la leçon 2.
 </Resume>

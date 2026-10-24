@@ -162,7 +162,7 @@ Réglages conseillés :
 
 - **CompteurPieces** : `AnchorPoint = (0, 0)`, `Position = {0.02, 0}, {0.03, 0}`, `Size = {0.2, 0}, {0.08, 0}`. Le `UIAspectRatioConstraint` le garde trois fois plus large que haut.
 - **Texte** : `Size = {1, 0}, {1, 0}` (tout le cadre), `BackgroundTransparency = 1`, `TextScaled = true`, plus un `UITextSizeConstraint` (`MinTextSize = 12`).
-- **BoutonBoutique** : `AnchorPoint = (0, 1)`, `Position = {0.02, 0}, {0.97, 0}`, `Size = {0.15, 0}, {0.08, 0}` : en bas à gauche, facile à atteindre avec le pouce.
+- **BoutonBoutique** : `AnchorPoint = (0, 0.5)`, `Position = {0.02, 0}, {0.5, 0}`, `Size = {0.15, 0}, {0.08, 0}` : sur le bord gauche, à mi-hauteur. Évite les coins inférieurs : d’après la documentation, sur mobile, Roblox y affiche le joystick (en bas à gauche) et le bouton de saut (en bas à droite), et un bouton placé là serait caché par le pouce ou touché par erreur. On approfondira le mobile au module 9.
 - **Boutique** : `AnchorPoint = (0.5, 0.5)`, `Position = {0.5, 0}, {0.5, 0}`, `Size = {0.6, 0}, {0.6, 0}`.
 - **Liste** : `Size = {1, 0}, {1, 0}`, `BackgroundTransparency = 1`. Dans son **UIGridLayout** : `CellSize = {0.3, 0}, {0.4, 0}` et `CellPadding = {0.03, 0}, {0.03, 0}`.
 
@@ -268,9 +268,9 @@ On utilise l’événement `Activated` des boutons, que la documentation présen
 
 ## Tester sur plusieurs écrans
 
-Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portrait et en paysage. Au moment de la rédaction (octobre 2026), la documentation présente le **Device Simulator**, une barre d’outils placée au-dessus de la vue 3D. Il est encore en **bêta** : on l’active via **File ⟩ Beta Features ⟩ New Device Simulator**, puis on redémarre Studio. Comme son fonctionnement peut changer, consulte sa page de documentation (dans les sources) si l’interface diffère chez toi. Vérifie au minimum :
+Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portrait et en paysage, avec le **Device Simulator** : une barre d’outils placée au-dessus de la vue 3D. Au moment de la rédaction (octobre 2026), l’annonce officielle de l’équipe Studio sur le DevForum (mise à jour le 16 octobre 2026) indique qu’il est sorti de bêta : on l’ouvre via le menu **Test ⟩ Device Simulator**. Sa page de documentation affiche encore un avertissement « bêta » : si l’outil n’apparaît pas chez toi, active **New Device Simulator** dans **File ⟩ Beta Features**, puis redémarre Studio. On l’utilisera plus en détail au module 9. Vérifie au minimum :
 
-- que le compteur et le bouton restent visibles et ne passent pas sous la barre de Roblox ;
+- que le compteur et le bouton restent visibles et ne passent pas sous la barre de Roblox, ni sous le joystick ou le bouton de saut ;
 - que le texte reste lisible sur le plus petit appareil ;
 - que les boutons sont assez grands pour un pouce.
 
@@ -291,7 +291,7 @@ Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portra
 </Resume>
 
 <Sources>
-- [Position and size UI objects — documentation Roblox](https://create.roblox.com/docs/ui/position-and-size)
+- [Position and size UI objects (dont les zones réservées aux contrôles tactiles) — documentation Roblox](https://create.roblox.com/docs/ui/position-and-size)
 - [On-screen UI containers (ScreenInsets, ResetOnSpawn) — documentation Roblox](https://create.roblox.com/docs/ui/on-screen-containers)
 - [ScreenGui — référence API](https://create.roblox.com/docs/reference/engine/classes/ScreenGui)
 - [Size modifiers and constraints — documentation Roblox](https://create.roblox.com/docs/ui/size-modifiers)
@@ -299,4 +299,5 @@ Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portra
 - [Grid and table layouts (UIGridLayout) — documentation Roblox](https://create.roblox.com/docs/ui/grid-table-layouts)
 - [Buttons — documentation Roblox](https://create.roblox.com/docs/ui/buttons)
 - [Device Simulator — documentation Roblox](https://create.roblox.com/docs/studio/device-simulator)
+- [New Device Simulator Toolbar and Network Simulator — annonce officielle de l’équipe Studio (DevForum, mise à jour du 16 octobre 2026)](https://devforum.roblox.com/t/studio-beta-new-device-simulator-toolbar-and-network-simulator/4861695)
 </Sources>

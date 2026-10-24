@@ -13,7 +13,7 @@ questions:
     explication: "Les leaderstats se créent côté serveur, dans chaque joueur, à son arrivée. Créées par un LocalScript, elles n’existeraient que sur ce client : ni le serveur, ni les autres joueurs, ni la sauvegarde ne les verraient."
 
   - type: trouve-le-bug
-    question: "Dans l’Obby des Nuages, `Etape` contient le numéro du dernier checkpoint validé, et un checkpoint N n’est accepté que si N vaut Etape + 1. Ce code laisse pourtant les joueurs sauter des étapes. Où est le bug ?"
+    question: "Dans l’Obby des Nuages, `Etape` contient le numéro du dernier checkpoint validé, et un checkpoint N n’est accepté que si N vaut Etape + 1. Ce code (raccourci : la vérification de distance du module 3 a été retirée) laisse pourtant les joueurs sauter des étapes. Où est le bug ?"
     code: |
       local Players = game:GetService("Players")
       local checkpoint = script.Parent

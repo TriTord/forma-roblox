@@ -106,7 +106,7 @@ Par défaut, les tests dans Studio n’ont **pas** accès aux DataStores. Pour l
 3. active **Enable Studio Access to API Services** ;
 4. clique sur **Save**.
 
-Sans cette option, tu obtiens une erreur `StudioAccessToApisNotAllowed`. La documentation met en garde : Studio lit et écrit **les mêmes données** que le jeu en ligne. Pour un jeu déjà lancé, active plutôt cette option sur une **copie de test** de ton expérience, pour ne pas abîmer les sauvegardes des vrais joueurs.
+Sans cette option, tu obtiens une erreur `StudioAccessToApisNotAllowed`. Avec le code de cette leçon, le chargement échoue alors à chaque test et tu es expulsé au bout de quelques secondes : c’est normal, active l’option (ou teste sur ton expérience publiée). La documentation met en garde : Studio lit et écrit **les mêmes données** que le jeu en ligne. Pour un jeu déjà lancé, active plutôt cette option sur une **copie de test** de ton expérience, pour ne pas abîmer les sauvegardes des vrais joueurs.
 
 ## Les trois règles d’une sauvegarde fiable
 
@@ -163,6 +163,10 @@ On découpe la sauvegarde en deux scripts, tous deux côté serveur :
 
 - un **ModuleScript** `DonneesJoueurs` dans **ServerScriptService** : il charge, garde en mémoire et sauvegarde. D’autres scripts (comme la boutique, leçon 3) pourront l’utiliser avec `require` ;
 - un **Script** `GestionJoueurs` dans **ServerScriptService** : il branche le module sur les événements du jeu. Il **remplace** le Script `Leaderstats` de la leçon 1 (supprime ce dernier).
+
+Vérifie aussi qu’aucun autre script ne crée de dossier `leaderstats` : depuis la leçon 1, le Script « Progression » du module 3 ne le fait plus. C’est important : un second dossier `leaderstats` (à 0) pourrait être celui que la sauvegarde lit, et elle enregistrerait alors 0 pièce.
+
+Le code utilise des **annotations de type**, comme `player: Player` ou `{ [string]: any }` (« une table dont les clés sont des textes et les valeurs n’importe quoi »). Elles sont facultatives en Luau : elles ne changent rien à l’exécution, mais aident Studio à repérer tes fautes de frappe.
 
 ### Le ModuleScript DonneesJoueurs
 
@@ -270,7 +274,8 @@ function DonneesJoueurs.Obtenir(player: Player): { [string]: any }?
 	return sessions[player]
 end
 
--- Sauvegarde les données d'un joueur ; renvoie true si c'est réussi
+-- Sauvegarde les données d'un joueur ; renvoie true SEULEMENT si elles ont
+-- réellement été écrites dans le DataStore (false sinon)
 function DonneesJoueurs.Sauvegarder(player: Player): boolean
 	local donnees = sessions[player]
 	if donnees == nil then
@@ -280,13 +285,17 @@ function DonneesJoueurs.Sauvegarder(player: Player): boolean
 
 	sauvegardesEnCours += 1
 	local cle = "Joueur_" .. player.UserId
+	local ecritureAnnulee = false
 	local succes, erreur = avecTentatives(function()
 		return magasin:UpdateAsync(cle, function(ancienne)
 			-- Si la sauvegarde vient d'une version plus récente du jeu,
 			-- on n'y touche pas : renvoyer nil annule l'écriture
 			if ancienne ~= nil and (ancienne.version or 0) > VERSION_DONNEES then
+				ecritureAnnulee = true
 				return nil
 			end
+			-- (cette fonction peut être rappelée : on remet l'indicateur à jour)
+			ecritureAnnulee = false
 			-- Nouvelle valeur + UserId du joueur associé à la clé
 			return donnees, { player.UserId }
 		end)
@@ -294,8 +303,13 @@ function DonneesJoueurs.Sauvegarder(player: Player): boolean
 	sauvegardesEnCours -= 1
 	if not succes then
 		warn(`Sauvegarde impossible pour {player.Name} : {erreur}`)
+		return false
 	end
-	return succes
+	if ecritureAnnulee then
+		warn(`Sauvegarde annulée pour {player.Name} : données d'une version plus récente du jeu`)
+		return false -- rien n'a été écrit
+	end
+	return true
 end
 
 -- Oublie les données en mémoire (à appeler quand le joueur est parti)
@@ -319,13 +333,25 @@ end
 return DonneesJoueurs
 ```
 
+Les fonctions que les autres scripts peuvent appeler (on les réutilisera jusqu’au module 10) :
+
+| Fonction | Rôle | Renvoie |
+|---|---|---|
+| `DonneesJoueurs.Charger(player)` | lit la sauvegarde et crée la session | la table de données, ou `nil` en cas d’échec |
+| `DonneesJoueurs.Obtenir(player)` | donne accès à la table en mémoire (la **même** table, pas une copie) | la table, ou `nil` si pas chargée |
+| `DonneesJoueurs.Sauvegarder(player)` | écrit la session dans le DataStore | `true` seulement si l’écriture a eu lieu |
+| `DonneesJoueurs.Liberer(player)` | oublie la session d’un joueur parti | rien |
+| `DonneesJoueurs.SauvegarderTout()` | fermeture du serveur : sauvegarde tout et attend | rien |
+
 Quelques explications :
 
 - **La clé** suit la convention du projet : `"Joueur_" .. player.UserId`. On utilise toujours le `UserId`, qui ne change jamais, et pas le nom du joueur, qui peut changer. La documentation recommande justement des clés stables comme `User_123456`.
 - **Une seule clé par joueur**, qui contient toute sa table : moins de requêtes, et tout est enregistré d’un bloc.
+- **La valeur renvoyée par `Sauvegarder`** est `true` seulement si les données ont vraiment été écrites. Elle vaut `false` si le chargement avait échoué, si toutes les tentatives ont échoué, ou si l’écriture a été annulée (sauvegarde d’une version plus récente du jeu). Le module 6 s’en servira pour ne confirmer un achat en Robux qu’une fois la sauvegarde faite.
 - **Le champ `version`** prépare l’avenir. Quand tu ajouteras un champ (par exemple `meilleurTemps`), augmente `VERSION_DONNEES` : `completer` remplira le nouveau champ dans les anciennes sauvegardes et passera leur `version` au nouveau numéro. À la sauvegarde suivante, la clé porte donc le numéro le plus récent, et un serveur qui tourne encore avec l’ancienne version du jeu refusera de l’écraser (grâce au test sur `ancienne.version` dans `Sauvegarder`).
 - **Le deuxième élément renvoyé** par la fonction d’`UpdateAsync`, `{ player.UserId }`, associe la clé au joueur. La référence API le recommande fortement (paramètre `userIds`) pour faciliter le suivi et la suppression des données personnelles (RGPD). On le renvoie à chaque sauvegarde : d’après la référence d’`UpdateAsync`, des UserIds non renvoyés sont effacés.
 - **Le compteur `sauvegardesEnCours`** compte toutes les sauvegardes en cours, quelle que soit leur origine. `SauvegarderTout` s’en sert à la fermeture du serveur (voir plus bas).
+- **`task.spawn(fonction, argument)`** lance la fonction tout de suite, dans un fil d’exécution à part : le script continue sans attendre qu’elle finisse. C’est ce qui permet de lancer plusieurs sauvegardes en même temps.
 
 ### Le Script GestionJoueurs
 
@@ -376,7 +402,7 @@ local function surArrivee(player: Player)
 end
 
 local function surDepart(player: Player)
-	DonneesJoueurs.Sauvegarder(player)
+	DonneesJoueurs.Sauvegarder(player) -- ne fait rien si le chargement avait échoué
 	DonneesJoueurs.Liberer(player)
 end
 
@@ -406,6 +432,16 @@ task.spawn(function()
 end)
 ```
 
+### Et si le chargement échoue ?
+
+Suivons ce qui se passe, ligne par ligne, quand `GetAsync` échoue trois fois de suite :
+
+1. `Charger` renvoie `nil` **sans** remplir `sessions[player]` ;
+2. `surArrivee` expulse le joueur avec un message (`player:Kick`) ; il n’a jamais reçu de leaderstats ;
+3. l’expulsion déclenche `PlayerRemoving`, donc `surDepart` : `Sauvegarder` ne trouve aucune session et renvoie `false` **sans rien écrire**. La sauvegarde automatique et `SauvegarderTout` font de même.
+
+Sa vraie progression reste donc intacte dans le DataStore. Il la retrouvera en revenant, quand le service répondra de nouveau.
+
 ### Pourquoi BindToClose ?
 
 Quand un serveur s’arrête (mise à jour du jeu, dernier joueur parti, redémarrage), les sauvegardes lancées par `PlayerRemoving` pourraient ne pas avoir le temps de finir. `game:BindToClose` enregistre une fonction appelée **avant** l’arrêt. D’après la référence API, le serveur attend **30 secondes** que les fonctions liées se terminent, puis s’arrête quoi qu’il arrive. D’où trois précautions dans `SauvegarderTout` :
@@ -414,13 +450,13 @@ Quand un serveur s’arrête (mise à jour du jeu, dernier joueur parti, redéma
 - elle parcourt les **sessions en mémoire**, et pas `Players:GetPlayers()` : à la fermeture, les joueurs sont déconnectés et peuvent avoir déjà quitté la liste des joueurs alors que leur sauvegarde de départ n’est pas finie ;
 - elle attend que le compteur `sauvegardesEnCours` revienne à 0, donc aussi la fin des sauvegardes **déjà lancées** par `PlayerRemoving`, avec une limite de 25 secondes pour rester sous les 30 secondes.
 
-Un même joueur peut ainsi être sauvegardé deux fois de suite (départ + fermeture) : c’est sans danger, car les deux écritures contiennent la même table.
+Un même joueur peut ainsi être sauvegardé deux fois de suite (départ + fermeture) : c’est sans danger, car les deux écritures contiennent la même table. C’est pareil si un joueur part **pendant** une sauvegarde automatique : deux `UpdateAsync` sont en cours pour lui en même temps, mais tous deux écrivent la même table en mémoire, qui contient ses données les plus récentes. Quel que soit celui qui termine en dernier, rien n’est perdu. Et comme `Liberer` ne fait qu’oublier la table (sans la vider), une sauvegarde encore en cours garde accès à ses données.
 
 ### Et dans Studio ?
 
 La référence de `DataModel:BindToClose` conseille de vérifier `RunService:IsStudio()`, et son exemple officiel de sauvegarde **ne sauvegarde pas** à la fermeture d’un test Studio, pour deux raisons données en commentaire : ne pas écrire des données de test dans les données réelles du jeu, et ne pas bloquer l’arrêt du test. On suit cette recommandation : avec `SAUVEGARDER_EN_STUDIO = false`, la fonction liée s’arrête tout de suite dans Studio.
 
-Conséquence : dans Studio, seule la sauvegarde de `PlayerRemoving` est tentée quand tu cliques sur **Stop**, et rien ne garantit qu’elle ait le temps de se terminer avant la fin du test. Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUVEGARDER_EN_STUDIO` à `true` : l’arrêt du test peut alors prendre quelques secondes, le temps que les sauvegardes se terminent. Remets-le à `false` ensuite. Sur les serveurs en ligne, `IsStudio()` renvoie `false` : la sauvegarde à la fermeture a toujours lieu.
+Conséquence : dans Studio, seule la sauvegarde de `PlayerRemoving` est tentée quand tu cliques sur **Stop**, et rien ne garantit qu’elle ait le temps de se terminer avant la fin du test. Attention : si l’accès aux API est activé, cette sauvegarde-là écrit bel et bien dans les données de l’expérience. C’est une raison de plus pour ne tester que sur une copie de test. Pour tester ta sauvegarde (sur ta **copie de test**), passe temporairement `SAUVEGARDER_EN_STUDIO` à `true` : l’arrêt du test peut alors prendre quelques secondes, le temps que les sauvegardes se terminent. Remets-le à `false` ensuite. Sur les serveurs en ligne, `IsStudio()` renvoie `false` : la sauvegarde à la fermeture a toujours lieu.
 
 <Astuce>
 Pour vérifier ta sauvegarde, ouvre le **Data Stores Manager** : dans le Creator Dashboard, sélectionne ton expérience, puis **Configurations ⟩ Data stores manager**. Tu peux y consulter tes DataStores et leurs clés, sans écrire une ligne de code. Pratique pour voir si `Joueur_` suivi de ton UserId contient bien tes pièces.

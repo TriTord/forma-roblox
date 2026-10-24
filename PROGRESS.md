@@ -6,7 +6,7 @@
 - [x] 2. Validation du plan par le chef d'orchestre (58 leçons, fil rouge « Obby des Nuages »)
 - [x] 3. RÉDACTEURS : modules 0 à 10 (58 leçons + 11 examens)
 - [x] 4. VÉRIFICATEURS passe 1 (faits + sources) — 11 modules
-- [ ] 5. VÉRIFICATEURS passe 2 (indépendants : code Luau + quiz + re-vérif faits)
+- [x] 5. VÉRIFICATEURS passe 2 (indépendants : code Luau + quiz + re-vérif faits) — 11 modules
 - [ ] 6. Consolidation VERIFICATION.md
 - [ ] 7. QA : build, tests auto (Playwright/Vitest), bugs — phase 1 (infra de tests) EN COURS
 - [ ] 8. Corrections + re-tests
@@ -20,7 +20,7 @@
 | 01 | FAIT | FAIT (12 corrections) | FAIT (9 corr.) ✅ |
 | 02 | FAIT | FAIT (14 corrections) | FAIT (12 corr.) ✅ |
 | 03 | FAIT | FAIT (8 corrections) | FAIT (9 corr.) ✅ |
-| 04 | FAIT | FAIT (13 corr., 1 suppr.) | en cours |
+| 04 | FAIT | FAIT (13 corr., 1 suppr.) | FAIT (16 corr., 1 suppr.) ✅ |
 | 05 | FAIT | FAIT (21 corr., 2 suppr.) | FAIT (9 corr.) ✅ |
 | 06 | FAIT | FAIT (22 corrections) | FAIT (14 corr., 1 suppr.) ✅ |
 | 07 | FAIT | FAIT (11 corrections) | FAIT (14 corr.) ✅ |
@@ -41,3 +41,4 @@
 - Désaccord passe1/passe2 module 08 (Daily Engagement Rewards) tranché par le chef d'orchestre sur create.roblox.com/docs/creator-rewards : la passe 2 a raison (ordre de lancement).
 - Cohérence : harmoniser la présentation des seuils Kids & Select entre modules 01, 07, 10 (07 : 500 en juin puis 250 depuis le 19/08/2026).
 - Creator Rewards (modules 06 et 08) : règle revérifiée par le chef d'orchestre sur la source officielle (exemples 1 et 2) : parmi les jeux où l'Active Spender passe ≥ 10 min, les 3 premiers dans l'ordre des visites. Les deux modules sont cohérents.
+- Étape 5b (EN COURS) : passe de COHÉRENCE inter-modules : (A) code du fil rouge assemblé en projet de référence `projet-reference/` + luau-lsp avec sourcemap ; (B) faits et renvois répétés entre modules.
