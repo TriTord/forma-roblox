@@ -63,6 +63,7 @@ for (const [module, passes] of parModule) {
 
 const annexes = readdirSync(dossier).filter((f) => /^(coherence|relecture|qa)-.*.md$/.test(f)).sort();
 const intro = readFileSync(join(racine, "scripts", "verification-intro.md"), "utf8");
+const suivi = readFileSync(join(racine, "scripts", "verification-suivi.md"), "utf8");
 
 writeFileSync(
   join(racine, "VERIFICATION.md"),
@@ -74,6 +75,8 @@ Comptage automatique des lignes des tableaux « Détail » de chaque rapport (un
 
 ${tableau.trimEnd()}
 | **Total** | | **${total.OK}** | **${total["CORRIGÉ"]}** | **${total["REFORMULÉ"]}** | **${total["SUPPRIMÉ"]}** | |
+
+${suivi.trim()}
 
 ${annexes.length ? `Rapports transverses : ${annexes.map((f) => `[${f}](verification/${f})`).join(", ")}.\n` : ""}
 # Résumés par module
