@@ -83,7 +83,7 @@ quiz:
       - texte: "Ligne 11 : le joueur à faire réapparaître vient du client ; un tricheur peut viser n’importe qui. Il faut utiliser `player`"
         correct: true
       - texte: "Ligne 14 : effacer la table à `PlayerRemoving` fait perdre le délai au joueur"
-    explication: "Le seul joueur fiable est le `player` ajouté par Roblox en premier paramètre. Ici, l’IA a ajouté un argument `cible` envoyé par le client : un tricheur peut faire réapparaître tous les autres joueurs en boucle (un par seconde suffit à ruiner leur partie). Le délai est bien côté serveur, et le nettoyage à `PlayerRemoving` est une bonne pratique."
+    explication: "Le seul joueur fiable est le `player` ajouté par Roblox en premier paramètre. Ici, l’IA a ajouté un argument `cible` envoyé par le client : un tricheur peut faire réapparaître n’importe quel autre joueur, par exemple juste avant l’arrivée d’un saut difficile (même une fois toutes les 5 secondes, cela suffit à ruiner la partie de la personne visée). Le délai est bien côté serveur, et le nettoyage à `PlayerRemoving` est une bonne pratique."
 ---
 
 Dans la leçon précédente, tu as vu que le client ne peut pas modifier l’état du jeu pour les autres. Mais il doit bien pouvoir **demander** des choses : « je veux réapparaître au checkpoint », « je veux acheter cette traînée ». Et le serveur doit pouvoir **prévenir** les joueurs : « étape 3 atteinte ! ». C’est le rôle des **RemoteEvents**, les messages qui traversent la frontière entre client et serveur.

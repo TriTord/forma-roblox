@@ -133,7 +133,7 @@ Depuis le module 2, le code de l’Obby des Nuages vit aussi dans des **fichiers
 C’est la première chose à relire quand Claude Code crée un fichier : un `.client.luau` dans `src/ServerScriptService` donnerait un LocalScript qui ne s’exécuterait jamais.
 
 <Attention>
-Dans ton projet, Rojo gère ServerScriptService et `ReplicatedStorage.Modules`, et d’après sa documentation il peut **supprimer** à la synchronisation les objets qu’il ne connaît pas dans ces dossiers. Pour un script de ces emplacements, crée donc le **fichier** plutôt qu’un Script inséré à la main dans Studio. Les petits scripts placés **dans une Part** (leçons 1 à 3) se créent, eux, directement dans Studio : notre projet ne synchronise pas le Workspace.
+Dans ton projet, Rojo gère ServerScriptService, `ReplicatedStorage.Modules`, StarterGui et les dossiers de scripts de StarterPlayer (`StarterPlayerScripts`, `StarterCharacterScripts`), et d’après sa documentation il peut **supprimer** à la synchronisation les objets qu’il ne connaît pas dans ces dossiers. Pour un script de ces emplacements, crée donc le **fichier** plutôt qu’un Script inséré à la main dans Studio. Les petits scripts placés **dans une Part** (leçons 1 à 3) se créent, eux, directement dans Studio : notre projet ne synchronise pas le Workspace.
 </Attention>
 
 ## Ton premier script, pas à pas

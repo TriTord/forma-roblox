@@ -155,7 +155,7 @@ Deux autres propriétés du `ScreenGui` existent : `ClipToDeviceSafeArea` (activ
 
 <Attention titre="Si ton projet utilise Rojo (module 2)">
 
-Dans ton projet Rojo, `default.project.json` synchronise **StarterGui** depuis le dossier `src/StarterGui` (ligne `"$path"`). D’après la documentation de Rojo, pour un dossier synchronisé avec `$path`, l’option `$ignoreUnknownInstances` vaut `false` par défaut : Rojo **supprime** les objets qu’il ne trouve pas dans tes fichiers. Une interface construite à la main dans Studio disparaît donc dès que tu connectes Rojo. Le niveau construit à la main n’est pas concerné : dans ce projet, Rojo ne gère pas le Workspace.
+Dans ton projet Rojo, `default.project.json` synchronise **StarterGui** depuis le dossier `src/StarterGui` (ligne `"$path"`). D’après la documentation de Rojo, pour un dossier synchronisé avec `$path`, l’option `$ignoreUnknownInstances` vaut `false` par défaut : Rojo **supprime** les objets qu’il ne trouve pas dans tes fichiers. Une interface construite à la main dans Studio disparaît donc dès que tu connectes Rojo et que tu acceptes la synchronisation (bouton **Accept** de la fenêtre « Sync changes », vue au module 2 : elle annonce justement cette suppression). Le niveau construit à la main n’est pas concerné : dans ce projet, Rojo ne gère pas le Workspace.
 
 Deux façons de faire. La plus directe : faire écrire les fichiers de l’interface par Claude Code avec le prompt de l’encadré « Avec Claude Code », plus bas dans cette leçon. Celle qui t’apprend le mieux les propriétés, en trois étapes :
 
@@ -177,7 +177,7 @@ Vérification : la commande rojo build default.project.json -o test-interface.rb
 
 </Prompt>
 
-3. **Reconnecte Rojo et vérifie** : relance `rojo serve`, clique sur **Connect** dans le plugin, puis compare l’interface à ta copie de ServerStorage (Explorer, fenêtre Properties) et teste en **Play**. Si tout est identique, supprime la copie de ServerStorage et enregistre ton travail avec un commit Git (`git add` puis `git commit`, comme au module 2). Si quelque chose manque, déconnecte Rojo, recolle ta copie dans StarterGui et demande à Claude Code de corriger les fichiers.
+3. **Reconnecte Rojo et vérifie** : relance `rojo serve`, clique sur **Connect** dans le plugin, lis la fenêtre « Sync changes » (si elle annonce la suppression d’objets de l’interface, clique sur **Abort** : il manque des fichiers ; sinon, clique sur **Accept**), puis compare l’interface à ta copie de ServerStorage (Explorer, fenêtre Properties) et teste en **Play**. Si tout est identique, supprime la copie de ServerStorage et enregistre ton travail avec un commit Git (`git add` puis `git commit`, comme au module 2). Si quelque chose manque, déconnecte Rojo, recolle ta copie dans StarterGui et demande à Claude Code de corriger les fichiers.
 
 </Attention>
 
@@ -319,7 +319,7 @@ Studio peut afficher ton jeu comme sur un téléphone ou une tablette, en portra
 
 <AvecClaudeCode>
 
-Dans ton projet Rojo, l’interface aussi peut être décrite dans des fichiers : un `init.meta.json` donne la classe et les propriétés du dossier `InterfaceObby` (le ScreenGui), et des fichiers `.model.json` décrivent les Frames et leurs enfants. Demande-la à Claude Code avec ce prompt, qui reprend les réglages exacts de la leçon. Il est précis parce qu’il donne chaque `AnchorPoint`, `Position` et `Size` en Scale, et limite le LocalScript à afficher et demander.
+Dans ton projet Rojo, l’interface aussi peut être décrite dans des fichiers : un `init.meta.json` donne la classe et les propriétés d’un dossier (`InterfaceObby` devient le ScreenGui, `Boutique` et `Liste` des Frames), et des fichiers `.model.json` décrivent les éléments simples et leurs enfants (`CompteurPieces`, `BoutonBoutique`, `UIGridLayout`…). Demande-la à Claude Code avec ce prompt, qui reprend les réglages exacts de la leçon. Il est précis parce qu’il donne chaque `AnchorPoint`, `Position` et `Size` en Scale, et limite le LocalScript à afficher et demander.
 
 <Prompt titre="Interface de l’Obby (compteur et boutique)">
 
@@ -327,7 +327,7 @@ Dans ton projet Rojo, l’interface aussi peut être décrite dans des fichiers 
 Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Il faut une interface lisible sur PC comme sur téléphone : un compteur de pièces toujours visible et une boutique de traînées qui s'ouvre avec un bouton.
 Ce qui existe déjà : leaderstats.Pieces (IntValue créée par le serveur) ; src/ReplicatedStorage/Modules/Catalogue.luau (nom, prix, couleurDebut, couleurFin) ; les RemoteEvents AcheterObjet et EquiperObjet ; les attributs Possede_<identifiant> et TrailEquipe posés par le serveur sur le Player ; le LocalScript TestInventaire.client.luau. Les conventions sont dans CLAUDE.md.
 Objectif : en haut à gauche, « Pièces : N » se met à jour à chaque gain ; un bouton « Boutique » au bord gauche, à mi-hauteur, ouvre et ferme une fenêtre centrée ; chaque traînée du Catalogue y a un bouton qui affiche son prix, « Équiper » ou « Équipé » selon l'état publié par le serveur.
-Fichiers concernés : crée le dossier src/StarterGui/InterfaceObby (un init.meta.json pour le ScreenGui, des fichiers .model.json pour CompteurPieces, BoutonBoutique et Boutique) et le LocalScript src/StarterGui/InterfaceObby/ScriptInterface.client.luau ; supprime TestInventaire.client.luau. Ne modifie rien d'autre.
+Fichiers concernés : crée le dossier src/StarterGui/InterfaceObby avec un init.meta.json (le ScreenGui), CompteurPieces.model.json et BoutonBoutique.model.json (avec leurs enfants), un sous-dossier Boutique (init.meta.json de la Frame, UICorner.model.json, UIPadding.model.json) qui contient un sous-dossier Liste (init.meta.json de la Frame, UIGridLayout.model.json), et le LocalScript src/StarterGui/InterfaceObby/ScriptInterface.client.luau ; supprime TestInventaire.client.luau. Ne modifie rien d'autre.
 Contraintes techniques : InterfaceObby : ScreenGui, ResetOnSpawn = false, ScreenInsets laissé à sa valeur par défaut (CoreUISafeInsets). CompteurPieces : Frame, AnchorPoint (0, 0), Position {0.02, 0}, {0.03, 0}, Size {0.2, 0}, {0.08, 0}, avec un UICorner, un UIAspectRatioConstraint (AspectRatio 3) et un TextLabel Texte (Size {1, 0}, {1, 0}, BackgroundTransparency 1, TextScaled, et un UITextSizeConstraint MinTextSize 12). BoutonBoutique : TextButton « Boutique », AnchorPoint (0, 0.5), Position {0.02, 0}, {0.5, 0}, Size {0.15, 0}, {0.08, 0}. Boutique : Frame, Visible = false, AnchorPoint (0.5, 0.5), Position {0.5, 0}, {0.5, 0}, Size {0.6, 0}, {0.6, 0}, avec un UICorner, un UIPadding et une Frame Liste transparente (Size {1, 0}, {1, 0}) qui contient un UIGridLayout (CellSize {0.3, 0}, {0.4, 0}, CellPadding {0.03, 0}, {0.03, 0}). Tailles et positions en Scale, pas en Offset. ScriptInterface fabrique un TextButton par objet du Catalogue (fond couleurDebut, texte foncé, TextScaled avec un UITextSizeConstraint de 12 à 28, un UICorner), réagit avec l'événement Activated et met les textes à jour avec GetAttributeChangedSignal.
 Sécurité : l'interface n'ajoute jamais de pièces et ne donne jamais d'objet : elle affiche ce que le serveur a décidé (leaderstats, attributs) et envoie seulement un identifiant, avec AcheterObjet:FireServer(id) ou EquiperObjet:FireServer(id), ou "" pour retirer l'objet équipé.
 Cas limites : leaderstats pas encore arrivées (WaitForChild) ; joueur qui tombe et réapparaît (la boutique ne se referme pas) ; nouvel objet ajouté au Catalogue (son bouton apparaît sans autre modification).
@@ -338,7 +338,7 @@ Vérification : en Play, le compteur suit mes pièces et la boutique s'ouvre et 
 
 **À vérifier dans le code produit :**
 
-- dans les fichiers `.model.json`, les `Size` et `Position` principales utilisent le Scale (le second nombre de chaque axe vaut 0) ;
+- dans les fichiers `.model.json` et `init.meta.json`, les `Size` et `Position` principales utilisent le Scale (le second nombre de chaque axe vaut 0) ;
 - `init.meta.json` met bien `ResetOnSpawn` à `false` ;
 - `ScriptInterface` ne modifie jamais `pieces.Value` ni un attribut : il lit, puis appelle `FireServer` avec un identifiant ;
 - le compteur affiche `pieces.Value`, pas l’objet `pieces` (le bug du quiz) ;
@@ -373,4 +373,7 @@ Vérification : en Play, le compteur suit mes pièces et la boutique s'ouvre et 
 - [Buttons — documentation Roblox](https://create.roblox.com/docs/ui/buttons)
 - [Device Simulator — documentation Roblox](https://create.roblox.com/docs/studio/device-simulator)
 - [New Device Simulator Toolbar and Network Simulator — annonce officielle de l’équipe Studio (DevForum, mise à jour du 16 octobre 2026)](https://devforum.roblox.com/t/full-release-new-device-simulator-toolbar-and-network-simulator/4861695)
+- [Rojo — Project Format (`$path`, `$ignoreUnknownInstances`)](https://rojo.space/docs/v7/project-format/)
+- [Rojo — Sync Details (`init.meta.json`, fichiers `.model.json`)](https://rojo.space/docs/v7/sync-details/)
+- [Studio MCP server (outils `list_roblox_studios`, `search_game_tree`, `inspect_instance`, `script_read`…) — documentation Roblox](https://create.roblox.com/docs/studio/mcp)
 </Sources>
