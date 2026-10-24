@@ -19,3 +19,4 @@ Décisions prises de façon autonome par le chef d'orchestre (l'utilisateur n'é
 | 13 | 2026-10-24 | Tutoiement dans tout le site | Public débutant, souvent jeune ; ton pédagogique. |
 | 14 | 2026-10-24 | Premium Payouts : la doc officielle indique leur arrêt (24/07/2025) et leur remplacement par Creator Rewards → présentés comme historique + dispositif actuel (module 06, slug inchangé) | Le brief demande les Premium Payouts, mais une info obsolète présentée comme actuelle serait fausse. |
 | 15 | 2026-10-24 | Programme « Roblox Kids and Select » (accès des moins de 16 ans) signalé aux rédacteurs 01, 07, 10 pour vérification et intégration | Info 2026 importante pour la publication, découverte par le rédacteur 00. |
+| 16 | 2026-10-24 | Convention fil rouge : `leaderstats.Etape` = numéro du dernier checkpoint validé (0 au départ), checkpoint N accepté seulement si N == Etape + 1 | Cohérence du code entre modules 02, 03, 04, 05, 08. |
