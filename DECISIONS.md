@@ -17,3 +17,5 @@ Décisions prises de façon autonome par le chef d'orchestre (l'utilisateur n'é
 | 11 | 2026-10-24 | Plan validé par le chef d'orchestre : 11 modules, 58 leçons (voir PLAN.md) | Couvre tout le contenu minimum demandé, progression cohérente. |
 | 12 | 2026-10-24 | Builds concurrents des agents sérialisés par `scripts/build-verrou.sh` (verrou mkdir) | 11 rédacteurs en parallèle dans le même dossier. |
 | 13 | 2026-10-24 | Tutoiement dans tout le site | Public débutant, souvent jeune ; ton pédagogique. |
+| 14 | 2026-10-24 | Premium Payouts : la doc officielle indique leur arrêt (24/07/2025) et leur remplacement par Creator Rewards → présentés comme historique + dispositif actuel (module 06, slug inchangé) | Le brief demande les Premium Payouts, mais une info obsolète présentée comme actuelle serait fausse. |
+| 15 | 2026-10-24 | Programme « Roblox Kids and Select » (accès des moins de 16 ans) signalé aux rédacteurs 01, 07, 10 pour vérification et intégration | Info 2026 importante pour la publication, découverte par le rédacteur 00. |

@@ -1,0 +1,240 @@
+---
+titre: Tester avec de vrais joueurs
+description: Organise un playtest de l’Obby des Nuages, observe sans influencer, mesure où les joueurs bloquent et transforme leurs retours en décisions.
+duree: 30
+objectifs:
+  - Organiser un playtest avec des amis ou des testeurs invités
+  - Observer les joueurs sans influencer leur comportement
+  - Mesurer simplement le temps passé et les chutes à chaque étape
+  - Prioriser les retours et tenir un journal des changements
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Pendant un playtest, ton testeur cherche depuis une minute où aller après le checkpoint 3. Que fais-tu ?
+    options:
+      - texte: Je lui montre tout de suite le bon chemin pour ne pas perdre de temps
+      - texte: Je note le moment et l’endroit, et je le laisse chercher
+        correct: true
+      - texte: J’arrête le test, il n’est visiblement pas doué
+    explication: Le blocage **est** l’information que tu cherches. Si tu aides, tu effaces le problème que tes futurs joueurs rencontreront seuls. Note-le, et n’interviens que si le testeur est complètement coincé ou très frustré.
+  - type: vrai-faux
+    question: "« Est-ce que tu as trouvé le jeu facile ? » est une bonne question ouverte pour un playtest."
+    reponse: false
+    explication: "Elle appelle un « oui » ou un « non » et suggère déjà une réponse. Une question ouverte comme « Qu’est-ce qui t’a paru le plus difficile ? » ou « Raconte-moi ce que tu as essayé de faire ici » donne bien plus d’informations."
+  - type: qcm
+    question: "Que recommande l’article de Jakob Nielsen (Nielsen Norman Group) sur le nombre de testeurs ?"
+    options:
+      - texte: Un seul grand test avec le plus de monde possible
+      - texte: Plusieurs petits tests d’environ 5 personnes, en corrigeant entre chaque
+        correct: true
+      - texte: Ne jamais tester avec moins de 100 personnes
+    explication: "Nielsen conseille de tester avec peu de personnes, mais **souvent** : un petit groupe révèle déjà la plupart des gros problèmes, et chaque nouvelle série vérifie que les corrections fonctionnent. C’est une règle empirique issue des tests d’utilisabilité, pas une loi."
+  - type: qcm
+    question: "Trois retours sont arrivés : (A) « Je suis tombé 15 fois à l’étape 4 » observé chez 4 testeurs sur 5, (B) « Ajoute des dragons ! » demandé par 1 testeur, (C) une pièce flotte légèrement à côté du chemin. Par quoi commences-tu ?"
+    options:
+      - texte: "A : un blocage observé chez la plupart des testeurs"
+        correct: true
+      - texte: "B : c’est la suggestion la plus enthousiaste"
+      - texte: "C : c’est le plus rapide à corriger"
+    explication: "Un problème qui touche beaucoup de joueurs et peut les faire abandonner passe en premier. Pour B, la documentation Roblox conseille de chercher la raison derrière la suggestion plutôt que de l’appliquer telle quelle. C peut attendre."
+  - type: trouve-le-bug
+    question: "Ce script de playtest doit afficher le temps passé sur chaque étape. Il affiche toujours « 0 s ». Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      Players.PlayerAdded:Connect(function(player)
+      	local stats = player:WaitForChild("leaderstats")
+      	local etape = stats:WaitForChild("Etape") :: IntValue
+
+      	etape.Changed:Connect(function(nouvelleEtape)
+      		local debutEtape = os.clock()
+      		local duree = os.clock() - debutEtape
+      		print(player.Name, "étape", nouvelleEtape, "en", math.floor(duree), "s")
+      	end)
+      end)
+    options:
+      - texte: "Ligne 4 : `WaitForChild` ne fonctionne pas sur un joueur"
+      - texte: "Ligne 8 : le chrono est relancé juste avant le calcul, il doit être créé hors de la fonction et mis à jour après chaque étape"
+        correct: true
+      - texte: "Ligne 10 : `print` n’accepte qu’un seul argument"
+      - texte: "Ligne 3 : `PlayerAdded` ne se déclenche que dans Studio"
+    explication: "`debutEtape` est recréé à chaque changement d’étape, juste avant le calcul : la durée est donc toujours quasi nulle. Il faut déclarer `local debutEtape = os.clock()` avant `etape.Changed:Connect`, puis le remettre à `os.clock()` après chaque affichage."
+---
+
+Tu connais ton obby par cœur : tu sais où sauter, où se cachent les pièces, comment fonctionne la boutique. C’est justement pour ça que tu es **la pire personne** pour juger s’il est clair. Les leçons précédentes t’ont donné des principes ; cette dernière leçon du module t’apprend à les vérifier avec de vrais joueurs, ceux qui découvrent ton jeu sans rien savoir.
+
+## Pourquoi tester avec d’autres que toi
+
+La documentation Roblox sur le prototypage explique que le prototypage permet de détecter tôt les défauts de conception, les oublis et les besoins techniques inattendus, quand ils coûtent encore peu à corriger. Elle conseille de partager ton prototype **en dehors de ton équipe** (amis, famille, réseaux sociaux) pour obtenir des retours et un regard neuf, puis d’**itérer** jusqu’à être satisfait.
+
+Elle cite aussi ce qu’il faut examiner de près : la **core loop** (leçon 1), l’**interface et les contrôles** (sont-ils intuitifs ?), les **règles du jeu** (où et quand on réapparaît…) et les **cas limites** : comment un joueur peut pousser ton jeu dans ses retranchements.
+
+## Organiser un playtest
+
+### Qui inviter ?
+
+- **Des personnes qui n’ont jamais vu ton jeu.** Un ami qui t’a regardé le construire n’est plus un nouveau joueur.
+- **Des profils proches de ton public.** Si ton obby vise les 10-14 ans, un petit frère ou une cousine de cet âge t’apprendra plus qu’un adulte qui ne joue jamais à Roblox.
+- **Peu de monde, mais souvent.** Dans un article célèbre du Nielsen Norman Group, spécialiste de l’ergonomie, Jakob Nielsen recommande de tester avec environ **5 personnes** et de multiplier les petites séries, en corrigeant entre chacune, plutôt qu’un seul grand test. C’est une règle empirique issue des tests d’utilisabilité, pas une loi exacte, mais elle convient très bien à un petit projet.
+
+### Comment les faire jouer ?
+
+1. **Sur ton ordinateur, dans Studio** : le plus simple. Ton testeur joue avec le bouton Play pendant que tu observes derrière lui.
+2. **En ligne, avant le lancement public** : au moment de la rédaction (octobre 2026), la documentation Roblox indique qu’un jeu nouvellement publié n’est accessible qu’à toi et aux personnes ayant les droits d’édition. Tu peux inviter jusqu’à **10 amis d’âge proche** comme testeurs (*early testers*) depuis Studio, via **File > Invite early testers**. Roblox peut te demander une vérification d’âge, et tes testeurs voient un filigrane indiquant qu’il s’agit d’un aperçu. Ces options évoluent souvent : vérifie la page officielle de publication, dont on reparle au module 7.
+
+<Info>
+En ligne, fais quand même au moins une séance « en direct » : en appel vidéo avec partage d’écran, ou à côté de ton testeur. Les chiffres te disent **où** il y a un problème ; seul le regard sur le joueur te dit **pourquoi**.
+</Info>
+
+## Observer sans influencer
+
+### Penser à voix haute
+
+La méthode la plus utilisée en ergonomie s’appelle le **think aloud** (« penser à voix haute ») : on demande au testeur d’utiliser le produit en disant en continu ce qu’il pense. Jakob Nielsen la résume en trois étapes : recruter des utilisateurs représentatifs, leur donner des tâches représentatives, puis **se taire** et les laisser parler.
+
+Pour l’Obby des Nuages, la consigne peut être : « Joue comme si tu étais chez toi, et dis-moi à voix haute ce que tu regardes, ce que tu cherches et ce que tu ressens. Ce n’est pas toi qu’on teste, c’est mon jeu. »
+
+### Ce que tu notes
+
+- **Les blocages** : où le joueur hésite, tourne en rond, tombe plusieurs fois.
+- **Les surprises** : ce qu’il essaie et que tu n’avais pas prévu (passer par-dessus un mur, sauter un checkpoint…).
+- **Les émotions** : soupirs, rires, « ah, d’accord ! », silence ennuyé.
+- **Ce qu’il ne voit pas** : la boutique, la pièce dorée, le message de la leçon 1.
+
+<Erreur titre="Expliquer pendant le test">
+« Non, il faut aller à gauche ! » Dès que tu guides ton testeur, tu effaces le problème que tes futurs joueurs rencontreront **seuls**, sans toi pour les aider. Nielsen prévient que les interventions de l’animateur peuvent très facilement changer le comportement des utilisateurs. Tais-toi, note, et n’interviens que si le testeur est complètement bloqué.
+</Erreur>
+
+### Les questions de fin
+
+Après la partie, pose des **questions ouvertes** qui n’orientent pas la réponse :
+
+- « Qu’est-ce que tu as préféré ? Qu’est-ce qui t’a énervé ? »
+- « À quoi servaient les pièces, d’après toi ? »
+- « Si tu devais décrire ce jeu à un ami en une phrase, tu dirais quoi ? »
+- « Est-ce que tu y rejouerais ? Pourquoi ? »
+
+Évite les questions fermées qui suggèrent la réponse (« C’était bien, hein ? »). La question « À quoi servaient les pièces ? » est précieuse : si la réponse est « je ne sais pas », ta boucle méta (leçon 3) n’est pas comprise.
+
+## Mesurer pendant le playtest
+
+Pendant que tu observes, un petit script peut chronométrer chaque étape à ta place. Il affiche dans l’Output (la fenêtre de sortie) le temps passé et le nombre de chutes entre deux checkpoints. Pratique pour repérer un pic de difficulté (leçon 3) ou régler le délai de l’indice minuté (leçon 2).
+
+```luau
+-- Script à placer dans ServerScriptService, à n'utiliser QUE pendant tes playtests.
+-- Affiche dans l'Output le temps et le nombre de chutes pour chaque étape franchie.
+local Players = game:GetService("Players")
+
+local MODE_PLAYTEST = true -- passe à false (ou supprime ce script) avant le lancement public
+
+local function suivreJoueur(player: Player)
+	local chutes = 0
+
+	-- Compte les morts (kill bricks, chutes dans le vide…)
+	local function suivrePersonnage(personnage: Model)
+		local humanoid = personnage:WaitForChild("Humanoid") :: Humanoid
+		humanoid.Died:Connect(function()
+			chutes += 1
+		end)
+	end
+	player.CharacterAdded:Connect(suivrePersonnage)
+	if player.Character then
+		suivrePersonnage(player.Character)
+	end
+
+	local etape = player:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
+	local debutPartie = os.clock()
+	local debutEtape = debutPartie
+
+	etape.Changed:Connect(function(nouvelleEtape: number)
+		local maintenant = os.clock()
+		print(string.format(
+			"[PLAYTEST] %s : étape %d en %d s, %d chute(s) (total : %d s)",
+			player.Name,
+			nouvelleEtape,
+			math.floor(maintenant - debutEtape),
+			chutes,
+			math.floor(maintenant - debutPartie)
+		))
+		-- On repart de zéro pour l'étape suivante
+		debutEtape = maintenant
+		chutes = 0
+	end)
+end
+
+if MODE_PLAYTEST then
+	Players.PlayerAdded:Connect(suivreJoueur)
+end
+```
+
+Quelques remarques :
+
+- `os.clock()` renvoie un temps en secondes, idéal pour mesurer une **durée** (la différence entre deux appels).
+- Dans Studio, les messages apparaissent dans la fenêtre Output. Dans un serveur en ligne, tu peux lire la sortie du serveur dans la Developer Console (touche F9 en jeu), si tu as les droits sur le jeu.
+- Ce script est un outil de test **temporaire**. Pour mesurer tous tes joueurs dans la durée, tu utiliseras les entonnoirs d’`AnalyticsService` au module 8.
+
+<Astuce titre="Croiser chiffres et observations">
+Une étape franchie en 90 secondes avec 12 chutes, c’est un signal. Ce que tu as noté à côté te dit pourquoi : le testeur ne voyait pas le bord de la plateforme ? Il sautait trop tôt ? Il n’avait pas compris que la plateforme bougeait ? La solution n’est pas la même dans les trois cas.
+</Astuce>
+
+## Transformer les retours en décisions
+
+### Écouter la raison, pas seulement la demande
+
+La documentation Roblox sur les LiveOps donne un conseil précieux : plus importantes que les suggestions précises des joueurs, il y a **les raisons** qui se cachent derrière. « Ajoute des dragons ! » veut peut-être dire « la zone 2 est visuellement monotone ». Ajouter des dragons n’est qu’une solution parmi d’autres.
+
+### Prioriser
+
+Classe chaque problème selon deux questions :
+
+1. **Combien de testeurs l’ont rencontré ?** Un blocage vu chez 4 testeurs sur 5 passe avant une remarque isolée.
+2. **Est-ce qu’il fait abandonner ?** Un joueur qui quitte à l’étape 4 est plus grave qu’une pièce mal placée.
+
+La même logique sert à Roblox pour les bugs : la documentation LiveOps les classe selon leur gravité, l’effort pour les corriger et le nombre de joueurs touchés.
+
+| Priorité | Exemple dans l’Obby des Nuages | Action |
+|---|---|---|
+| Haute | 4 testeurs sur 5 tombent en boucle à l’étape 4 | élargir la plateforme, ajouter un checkpoint avant |
+| Moyenne | 2 testeurs n’ont pas vu la boutique | la présenter au premier achat possible (leçon 2) |
+| Basse | une pièce flotte un peu à côté du chemin | à corriger avec la prochaine série |
+
+### Itérer vite, une chose à la fois
+
+Corrige les priorités hautes, puis **reteste avec de nouvelles personnes**. Si tu changes dix choses d’un coup, tu ne sauras pas laquelle a fait la différence.
+
+### Tenir un journal des changements
+
+Note chaque modification avec sa date et sa raison, par exemple dans un simple fichier texte :
+
+- « 24/10 : étape 4 élargie (4/5 testeurs bloqués). »
+- « 26/10 : indice minuté passé de 15 à 10 s (3 testeurs perdus au départ). »
+
+Ce journal te servira au module 8 : quand une courbe de statistiques bougera, tu sauras exactement ce qui a changé ce jour-là.
+
+<Defi>
+Organise ton premier vrai playtest :
+
+1. invite **3 à 5 personnes** qui n’ont jamais vu l’Obby des Nuages ;
+2. active le script de playtest et observe chaque partie en silence, en notant blocages, surprises et émotions ;
+3. pose les quatre questions ouvertes de la leçon ;
+4. remplis un tableau de priorités et corrige **uniquement** les priorités hautes ;
+5. note tout dans ton journal, puis recommence avec de nouvelles personnes.
+</Defi>
+
+<Resume>
+- Tu connais trop bien ton jeu pour juger s’il est clair : seuls de nouveaux joueurs peuvent te le dire.
+- Teste peu de monde, mais souvent, avec des profils proches de ton public.
+- Observe sans aider : fais penser à voix haute, note blocages, surprises et émotions, puis pose des questions ouvertes.
+- Un petit script de playtest mesure temps et chutes par étape ; les entonnoirs du module 8 prendront le relais.
+- Priorise selon le nombre de joueurs touchés et le risque d’abandon, cherche la raison derrière chaque suggestion, change une chose à la fois et tiens un journal.
+</Resume>
+
+<Sources>
+- [Prototyping — tester tôt et itérer (Roblox)](https://create.roblox.com/docs/production/game-design/prototyping)
+- [Publish experiences and places — accès et testeurs invités (Roblox)](https://create.roblox.com/docs/production/publishing/publish-experiences-and-places)
+- [LiveOps essentials — écouter les joueurs et prioriser les bugs (Roblox)](https://create.roblox.com/docs/production/game-design/liveops-essentials)
+- [Onboarding techniques — régler les indices grâce aux playtests (Roblox)](https://create.roblox.com/docs/production/game-design/onboarding-techniques)
+- [Developer Console — lire la sortie du serveur en jeu (Roblox)](https://create.roblox.com/docs/studio/developer-console)
+- [Thinking Aloud: The #1 Usability Tool — Jakob Nielsen, Nielsen Norman Group](https://www.nngroup.com/articles/thinking-aloud-the-1-usability-tool/)
+- [Why You Only Need to Test with 5 Users — Jakob Nielsen, Nielsen Norman Group](https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/)
+</Sources>

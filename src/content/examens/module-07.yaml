@@ -1,0 +1,146 @@
+module: "07"
+titre: Examen du module 7
+description: Vérifie que tu sais préparer la page de ton jeu, créer des visuels honnêtes, lancer prudemment, mettre à jour sans casse et animer une communauté en sécurité.
+seuil: 70
+questions:
+  - type: qcm
+    question: Quelle première phrase de description suit le mieux les conseils officiels pour l’Obby des Nuages ?
+    options:
+      - texte: "Le meilleur jeu de tout Roblox, joue maintenant !!!"
+      - texte: "Saute de nuage en nuage dans un parcours d’obstacles céleste et collectionne des pièces pour débloquer des traînées."
+        correct: true
+      - texte: "obby parkour tycoon simulator adopt me brookhaven piggy"
+      - texte: "Mise à jour 1.4 : corrections de bugs."
+    explication: "La documentation conseille de **résumer le jeu dès la première phrase**, avec des mots-clés pertinents. Les affirmations vagues ou exagérées n’informent pas, et une liste de mots-clés sans rapport peut faire rétrograder le jeu."
+
+  - type: vrai-faux
+    question: "Tu ajoutes à l’Obby des Nuages une zone hantée avec des cris et des apparitions soudaines. Tu dois mettre à jour ton questionnaire de maturité."
+    reponse: true
+    explication: "Les éléments qui font peur (cris, apparitions soudaines, musique angoissante…) font partie des catégories du questionnaire. La documentation impose de refaire le questionnaire quand une mise à jour change une réponse."
+
+  - type: qcm
+    question: "D’après la documentation au moment de la rédaction, lesquelles de ces conditions faut-il remplir pour ouvrir un jeu à **tous les âges** ? (plusieurs réponses possibles)"
+    options:
+      - texte: Activer la validation en deux étapes sur son compte
+        correct: true
+      - texte: Avoir un abonnement Roblox Plus ou Premium depuis 2 mois, ou payer des frais de publication remboursables
+        correct: true
+      - texte: Remplir tout le questionnaire et obtenir un label Minimal, Mild ou Moderate
+        correct: true
+      - texte: Avoir déjà publié au moins trois autres jeux
+    explication: "Pour tous les âges (Roblox Kids et Select), il faut notamment un compte vérifié, la 2FA, un abonnement ou des frais remboursables, le questionnaire complet avec un label adapté, et réussir l’évaluation de Roblox. Aucun nombre minimum de jeux déjà publiés n’est demandé."
+
+  - type: qcm
+    question: Où vaut-il mieux éviter de placer le texte important d’une miniature ?
+    options:
+      - texte: En haut à gauche
+      - texte: Au centre
+      - texte: En bas, où des informations comme le nombre de joueurs peuvent s’afficher par-dessus
+        correct: true
+      - texte: Nulle part, Roblox n’affiche rien par-dessus les miniatures
+    explication: "La documentation prévient que des métadonnées comme le nombre de joueurs peuvent recouvrir le **bas** de la miniature. Garde les éléments essentiels ailleurs."
+
+  - type: vrai-faux
+    question: Un jeu qui n’a que la miniature générée par défaut peut quand même recevoir des affichages dans les recommandations de la page d’accueil.
+    reponse: false
+    explication: "La documentation sur la découverte indique qu’une **miniature personnalisée est obligatoire** pour recevoir des affichages dans les recommandations de la page d’accueil. Avec la seule miniature par défaut, le jeu n’y est pas éligible."
+
+  - type: qcm
+    question: "Pour la vidéo de présentation de ton jeu, quel choix est autorisé ?"
+    options:
+      - texte: Filmer de vraies séquences de jeu avec la caméra libre, sous des angles variés
+        correct: true
+      - texte: Ajouter ta voix pour expliquer les règles
+      - texte: Montrer une mécanique de vol que tu prévois d’ajouter plus tard
+      - texte: "Ajouter le texte « Traînée GRATUITE pour les 100 premiers ! »"
+    explication: "Les angles de caméra variés sont autorisés s’ils montrent le **vrai** gameplay. La voix off, les mécaniques absentes du jeu et les textes promotionnels sont interdits."
+
+  - type: qcm
+    question: "Ton jeu est public depuis une semaine. La plupart des nouveaux joueurs repartent en moins d’une minute. Que faire en priorité ?"
+    options:
+      - texte: Lancer une grosse campagne publicitaire pour compenser
+      - texte: Améliorer le début de partie (onboarding), puis mesurer à nouveau avant de payer de la publicité
+        correct: true
+      - texte: Changer le nom du jeu chaque jour
+      - texte: Ajouter « ROBUX GRATUITS » dans le titre
+    explication: "La publicité amène des joueurs mais ne les retient pas, et elle ne change pas le classement dans Recommended For You. La documentation d’Ads Manager conseille elle-même d’améliorer l’onboarding quand une campagne ne donne pas de résultats."
+
+  - type: vrai-faux
+    question: "Les données de lancement (*LaunchData*) d’une campagne ou d’un lien de partage sont secrètes : on peut s’en servir pour donner une grosse récompense sans risque."
+    reponse: false
+    explication: "La documentation précise que ces données apparaissent dans l’adresse du lien et ne sont **pas cachées** : n’importe qui peut les copier. On les réserve à des usages sans enjeu (message d’accueil, petit cosmétique)."
+
+  - type: trouve-le-bug
+    question: "Ce Script, placé dans ServerScriptService, doit marquer les joueurs arrivés par le lien de partage YouTube. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      local player = Players.LocalPlayer
+      local joinData = player:GetJoinData()
+
+      if joinData.LaunchData == "lien_youtube" then
+      	player:SetAttribute("SourceArrivee", "youtube")
+      end
+    options:
+      - texte: "Ligne 1 : `Players` doit s’écrire en minuscules"
+      - texte: "Ligne 3 : `Players.LocalPlayer` vaut `nil` dans un Script serveur ; il faut traiter chaque joueur dans `Players.PlayerAdded`"
+        correct: true
+      - texte: "Ligne 6 : on ne peut pas comparer `LaunchData` à un texte"
+      - texte: "Ligne 7 : `SetAttribute` n’existe pas sur un joueur"
+    explication: "`LocalPlayer` n’existe que côté client. Sur le serveur, il n’y a pas « un » joueur local : il faut connecter une fonction à `Players.PlayerAdded` et appeler `player:GetJoinData()` pour chaque joueur qui arrive."
+
+  - type: qcm
+    question: "Tu redémarres les serveurs avec l’option **Delay server restart**. Quel événement permet à ton jeu d’afficher un compte à rebours aux joueurs ?"
+    options:
+      - texte: "`Players.PlayerRemoving`"
+      - texte: "`game.ServerRestartScheduled`"
+        correct: true
+      - texte: "`game:BindToClose`"
+      - texte: "`RunService.Heartbeat`"
+    explication: "`ServerRestartScheduled` se déclenche sur les serveurs concernés et fournit l’heure prévue du redémarrage (`restartTime`), sa cause (`source`) et des attributs facultatifs. `BindToClose` sert à exécuter du code (comme une sauvegarde) juste avant la fermeture, pas à prévenir à l’avance."
+
+  - type: trouve-le-bug
+    question: "Cette fonction doit compléter les anciennes sauvegardes avec les champs ajoutés par une mise à jour. Où est le bug ?"
+    code: |
+      local DEFAUT = { Etape = 1, Pieces = 0, ZoneOragesDebloquee = false }
+
+      local function completerDonnees(donnees)
+      	for cle, valeur in DEFAUT do
+      		if donnees[cle] ~= nil then
+      			donnees[cle] = valeur
+      		end
+      	end
+      	return donnees
+      end
+    options:
+      - texte: "Ligne 1 : une table ne peut pas contenir de booléen"
+      - texte: "Ligne 4 : on ne peut pas parcourir une table sans `pairs`"
+      - texte: "Ligne 5 : la condition est inversée ; avec `~= nil`, on écrase les valeurs existantes au lieu de remplir les champs manquants"
+        correct: true
+      - texte: "Ligne 9 : une fonction ne peut pas renvoyer une table"
+    explication: "Il faut écrire `if donnees[cle] == nil then` : on ne remplit que les champs **absents**. Avec `~= nil`, un joueur à l’étape 12 serait remis à l’étape 1 : c’est exactement la perte de progression qu’on veut éviter. En Luau, on peut parcourir une table directement avec `for … in`."
+
+  - type: qcm
+    question: "Tu prépares un événement « Ciel d’automne » qui commence dans dix jours et tu ne veux pas encore qu’il soit visible. Que fais-tu ?"
+    options:
+      - texte: Tu le crées en **privé**, puis tu le passes en **public** quand tu es prêt à le promouvoir
+        correct: true
+      - texte: Tu attends le jour J pour le créer, sinon tout le monde le verra
+      - texte: Tu le crées en public avec une fausse date
+      - texte: Tu l’annonces dans la description avec un lien externe
+    explication: "La documentation conseille de créer l’événement en **privé** tant qu’il n’est pas prêt : il n’apparaît alors pas sur la page du jeu. Une fois public, les joueurs peuvent cliquer sur **Notify Me** pour être prévenus au début."
+
+  - type: qcm
+    question: "Quel canal permet de toucher **tous** les joueurs de l’Obby des Nuages, quel que soit leur âge ?"
+    options:
+      - texte: Un serveur Discord annoncé par les liens sociaux
+      - texte: Le jeu lui-même et ta communauté Roblox
+        correct: true
+      - texte: Une adresse e-mail affichée sur un panneau dans le jeu
+      - texte: Une chaîne YouTube citée dans la description
+    explication: "Les liens sociaux ne sont visibles que par les 16 ans et plus avec âge vérifié, et Discord impose au moins 13 ans. Afficher une adresse dans le jeu est interdit. Le jeu et ta communauté Roblox restent les canaux qui atteignent tout le monde."
+
+  - type: vrai-faux
+    question: "Pour connaître les rôles d’un joueur dans ta communauté, la méthode recommandée aujourd’hui est `Player:GetRankInGroupAsync()`."
+    reponse: false
+    explication: "`GetRankInGroupAsync` et `GetRoleInGroupAsync` sont dépréciées : elles ne renvoient que le rôle le plus élevé. La méthode actuelle est `GroupService:GetRolesInGroupAsync(userId, groupId)`, qui renvoie `IsMember` et la liste de tous les rôles publics du joueur."

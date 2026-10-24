@@ -1,0 +1,298 @@
+---
+titre: Les Game Passes
+description: Crée un Game Pass dans le Creator Hub, vérifie qui le possède avec UserOwnsGamePassAsync et propose l’achat en jeu pour offrir une traînée dorée exclusive.
+duree: 35
+objectifs:
+  - Créer un Game Pass et récupérer son identifiant
+  - Vérifier côté serveur qu’un joueur possède un pass, avec pcall
+  - Proposer l’achat en jeu et réagir à la fin de l’achat
+  - Appliquer et mémoriser l’avantage du pass de façon fiable
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Lequel de ces objets doit être vendu comme **Game Pass** plutôt que comme Developer Product ?
+    options:
+      - texte: Un paquet de 500 pièces, achetable autant de fois qu’on veut
+      - texte: Une traînée dorée débloquée pour toujours
+        correct: true
+      - texte: Une potion de vitesse qui dure 2 minutes
+      - texte: « Passer l’étape », utilisable à chaque blocage
+    explication: "Un Game Pass est un achat **unique** qui donne un avantage **permanent**. Tout ce qui peut s’acheter plusieurs fois (monnaie, consommables, « passer l’étape ») est un Developer Product."
+  - type: vrai-faux
+    question: "`UserOwnsGamePassAsync` peut échouer (problème réseau, service indisponible), il faut donc l’appeler dans un `pcall`."
+    reponse: true
+    explication: "C’est une fonction asynchrone qui interroge les serveurs de Roblox. Comme tout appel réseau, elle peut lever une erreur. Sans `pcall`, cette erreur arrêterait ton script."
+  - type: qcm
+    question: Où faut-il écouter `PromptGamePassPurchaseFinished` pour donner l’avantage du pass ?
+    options:
+      - texte: Dans un LocalScript, pour que ce soit plus rapide
+      - texte: Dans un Script côté serveur, par exemple dans ServerScriptService
+        correct: true
+      - texte: Dans un ModuleScript placé dans StarterGui
+    explication: "La documentation précise que cet événement ne doit être écouté que dans un script serveur : c’est là que `wasPurchased` reflète le vrai résultat. Côté client, ces valeurs ne doivent jamais servir à valider un achat."
+  - type: trouve-le-bug
+    question: "Ce Script serveur doit donner la traînée dorée uniquement aux joueurs qui ont **acheté** le pass. Où est le bug ?"
+    code: |
+      local MarketplaceService = game:GetService("MarketplaceService")
+
+      local ID_PASS_TRAIL_DORE = 123456789
+
+      local function onAchatTermine(player, idPass, achete)
+      	if idPass == ID_PASS_TRAIL_DORE then
+      		player:SetAttribute("PossedeTrailDore", true)
+      	end
+      end
+
+      MarketplaceService.PromptGamePassPurchaseFinished:Connect(onAchatTermine)
+    options:
+      - texte: "Ligne 3 : l’identifiant doit être une chaîne de caractères"
+      - texte: "Ligne 6 : la condition ne vérifie pas `achete`, donc un joueur qui clique sur Annuler reçoit aussi la traînée"
+        correct: true
+      - texte: "Ligne 11 : il faut écrire `PromptGamePassPurchaseFinished:connect` en minuscules"
+    explication: "L’événement se déclenche à **chaque fermeture** de la fenêtre d’achat, même quand le joueur annule. Il faut tester `if achete and idPass == ID_PASS_TRAIL_DORE then`. Les ID de pass sont bien des nombres, et `:Connect` prend une majuscule."
+  - type: vrai-faux
+    question: Le prix affiché pour un Game Pass peut être différent d’un joueur à l’autre, c’est pourquoi il vaut mieux le lire avec `GetProductInfoAsync` plutôt que l’écrire à la main dans l’interface.
+    reponse: true
+    explication: "Les prix régionaux (activés par défaut pour les passes au moment de la rédaction), les tests de prix et les réductions Roblox Plus peuvent changer le prix vu. `GetProductInfoAsync` renvoie le prix réel dans `PriceInRobux`."
+---
+
+Dans la leçon précédente, tu as vu que l’Obby des Nuages vendrait une **traînée dorée** exclusive. C’est l’exemple parfait de **Game Pass** : un achat unique, un avantage permanent, purement cosmétique. Dans cette leçon, tu vas le créer, puis écrire le code qui le vend et le donne, sans jamais faire confiance au client (souviens-toi du module 3).
+
+## Game Pass ou Developer Product ?
+
+Roblox propose deux grands types d’objets payants en jeu. Le choix est simple :
+
+- **Game Pass** (appelé « pass » dans le Creator Hub) : le joueur paie **une seule fois** et garde l’avantage **pour toujours**. Exemples : accès à une zone VIP, un objet d’avatar en jeu, un bonus permanent, notre traînée dorée.
+- **Developer Product** : le joueur peut l’acheter **autant de fois qu’il veut**. Exemples : monnaie, potions, « passer l’étape ». On le verra à la leçon 3.
+
+Un bon réflexe : si la phrase « je l’achète une fois et c’est à moi » décrit l’objet, c’est un Game Pass.
+
+## Créer le Game Pass dans le Creator Hub
+
+Ton jeu doit d’abord être **publié** et accessible sur Roblox (tu l’as fait au module 1). Ensuite, d’après la documentation officielle :
+
+1. Va dans **Creations** et sélectionne ton Obby des Nuages.
+2. Ouvre **Monetization** puis **Passes**.
+3. Clique sur **Create pass**.
+4. Ajoute une icône : **512 × 512 pixels maximum**, au format `.jpg`, `.png` ou `.bmp`. L’icône est découpée en cercle, donc garde l’important au centre.
+5. Donne un nom et une description honnête (« Une traînée dorée suit ton personnage. Purement cosmétique. »).
+6. Choisis une catégorie (elle sert à ranger les objets dans la boutique en jeu).
+7. Clique sur **Create pass**.
+
+Il te reste à fixer le **prix** et à **mettre le pass en vente** depuis la page du pass (onglet de vente, **Sales**). Les écrans du Creator Hub évoluent souvent : si un libellé a changé, cherche l’option de prix dans la page du pass.
+
+### Récupérer l’identifiant du pass
+
+Pour le script, tu as besoin de l’**ID du pass** : dans **Monetization ⟩ Passes**, survole la vignette du pass, clique sur le bouton **⋯** puis sur **Copy Asset ID**. Garde ce nombre de côté.
+
+<Info titre="Prix régionaux activés par défaut">
+Au moment de la rédaction (octobre 2026), Roblox applique par défaut des **prix régionaux** aux passes (système **Managed Pricing**) : un joueur d’un pays où le pouvoir d’achat est plus faible peut voir un prix plus bas, jamais en dessous de 30 % de ton prix par défaut. Tu peux le désactiver pass par pass. On en reparle à la leçon 5.
+</Info>
+
+## Les trois fonctions à connaître
+
+Tout passe par le service **MarketplaceService** (le service des achats en jeu).
+
+| Fonction ou événement | Rôle |
+|---|---|
+| `MarketplaceService:UserOwnsGamePassAsync(userId, gamePassId)` | Renvoie `true` si le joueur possède le pass. Fonction qui **attend une réponse réseau** : toujours dans un `pcall`. |
+| `MarketplaceService:PromptGamePassPurchase(player, gamePassId)` | Affiche la fenêtre d’achat officielle de Roblox au joueur. |
+| `MarketplaceService.PromptGamePassPurchaseFinished` | Événement déclenché quand cette fenêtre se ferme. Il reçoit `(player, gamePassId, wasPurchased)`. |
+
+Deux détails de la documentation officielle à retenir :
+
+- `UserOwnsGamePassAsync` attend l’**UserId** du joueur (un nombre), pas l’objet `Player`.
+- `PromptGamePassPurchaseFinished` se déclenche **aussi quand le joueur annule**. Le troisième paramètre, `wasPurchased`, vaut `true` seulement si l’achat a réussi. Et cet événement doit être écouté **côté serveur** : côté client, ses valeurs ne doivent pas servir à valider quoi que ce soit.
+
+## Le script serveur : vérifier et donner l’avantage
+
+Voici le cœur du système. Il fait trois choses :
+
+1. quand un joueur arrive, il vérifie s’il possède déjà le pass ;
+2. quand un joueur termine un achat réussi, il lui donne l’avantage tout de suite ;
+3. à chaque réapparition du personnage, il remet la traînée.
+
+L’avantage est mémorisé dans un **attribut** du joueur (`PossedeTrailDore`), que les autres scripts (et l’interface) peuvent lire.
+
+```luau
+-- Script (côté serveur) à placer dans ServerScriptService, nommé « GamePassTrail »
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+
+local ID_PASS_TRAIL_DORE = 0 -- remplace 0 par l'ID de TON pass (Copy Asset ID)
+
+-- Ajoute une traînée dorée au personnage (si elle n'y est pas déjà)
+local function ajouterTrail(character: Model)
+	local rootPart = character:WaitForChild("HumanoidRootPart", 5)
+	if rootPart == nil or rootPart:FindFirstChild("TrailDore") then
+		return
+	end
+
+	-- Une traînée a besoin de deux points d'attache (Attachments)
+	local haut = Instance.new("Attachment")
+	haut.Name = "TrailHaut"
+	haut.Position = Vector3.new(0, 1, 0)
+	haut.Parent = rootPart
+
+	local bas = Instance.new("Attachment")
+	bas.Name = "TrailBas"
+	bas.Position = Vector3.new(0, -1, 0)
+	bas.Parent = rootPart
+
+	local trail = Instance.new("Trail")
+	trail.Name = "TrailDore"
+	trail.Attachment0 = haut
+	trail.Attachment1 = bas
+	trail.Color = ColorSequence.new(Color3.fromRGB(255, 210, 80))
+	trail.Lifetime = 0.6
+	trail.Parent = rootPart
+end
+
+-- Donne l'avantage : on le note dans un attribut, puis on l'applique
+local function accorderPass(player: Player)
+	player:SetAttribute("PossedeTrailDore", true)
+	if player.Character then
+		ajouterTrail(player.Character)
+	end
+end
+
+-- Vérifie la possession du pass, avec quelques nouvelles tentatives
+local function verifierPass(player: Player)
+	for tentative = 1, 3 do
+		local ok, resultat = pcall(function()
+			return MarketplaceService:UserOwnsGamePassAsync(player.UserId, ID_PASS_TRAIL_DORE)
+		end)
+		if ok then
+			if resultat == true then
+				accorderPass(player)
+			end
+			return
+		end
+		warn("Vérification du pass impossible (essai " .. tentative .. ") : " .. tostring(resultat))
+		task.wait(2)
+	end
+end
+
+local function onPlayerAdded(player: Player)
+	-- À chaque réapparition, on remet la traînée si le joueur a le pass
+	player.CharacterAdded:Connect(function(character)
+		if player:GetAttribute("PossedeTrailDore") then
+			ajouterTrail(character)
+		end
+	end)
+	verifierPass(player)
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+-- Joueurs déjà présents si le script démarre en retard
+for _, player in Players:GetPlayers() do
+	task.spawn(onPlayerAdded, player)
+end
+
+-- Achat terminé : on ne donne l'avantage que si l'achat a RÉUSSI
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, idPass, achete)
+	if achete and idPass == ID_PASS_TRAIL_DORE then
+		accorderPass(player)
+	end
+end)
+```
+
+Prends le temps de relire les points clés :
+
+- `pcall` entoure `UserOwnsGamePassAsync` : si Roblox ne répond pas, le script ne plante pas et réessaie deux fois.
+- On compare `idPass` à **notre** ID : si tu vends plusieurs passes, chacun doit avoir son propre traitement.
+- L’avantage est appliqué **par le serveur**. Un exploiteur peut modifier son propre client, pas l’attribut décidé par le serveur.
+
+<Erreur titre="Donner l’avantage depuis un LocalScript">
+Si c’est un LocalScript qui ajoute la traînée ou qui décide que le joueur « possède » le pass, un tricheur peut s’offrir tous tes passes gratuitement en modifiant son client. La vérification et l’attribution se font **toujours** dans un Script serveur. Le client, lui, se contente d’afficher la boutique et de demander l’achat.
+</Erreur>
+
+## Le bouton de la boutique : proposer l’achat
+
+Côté client, on affiche le **vrai prix** et on ouvre la fenêtre d’achat quand le joueur clique. Ce LocalScript se place dans le bouton de ta boutique (celle construite au module 4).
+
+```luau
+-- LocalScript placé dans un TextButton « BoutonTrailDore »
+-- (par exemple StarterGui > Boutique > Cadre > BoutonTrailDore)
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+
+local ID_PASS_TRAIL_DORE = 0 -- le même ID que dans le script serveur
+local joueur = Players.LocalPlayer
+local bouton = script.Parent :: TextButton
+
+-- Affiche le prix réel : il peut varier selon le pays ou une réduction
+local ok, infos = pcall(function()
+	return MarketplaceService:GetProductInfoAsync(ID_PASS_TRAIL_DORE, Enum.InfoType.GamePass)
+end)
+if ok and infos.PriceInRobux then
+	bouton.Text = "Traînée dorée : " .. infos.PriceInRobux .. " Robux"
+end
+
+-- Si le joueur possède déjà le pass, on l'indique sur le bouton
+local function mettreAJourBouton()
+	if joueur:GetAttribute("PossedeTrailDore") then
+		bouton.Text = "Traînée dorée : possédée"
+	end
+end
+
+bouton.Activated:Connect(function()
+	if joueur:GetAttribute("PossedeTrailDore") then
+		return -- inutile de proposer un pass déjà possédé
+	end
+	MarketplaceService:PromptGamePassPurchase(joueur, ID_PASS_TRAIL_DORE)
+end)
+
+joueur:GetAttributeChangedSignal("PossedeTrailDore"):Connect(mettreAJourBouton)
+mettreAJourBouton()
+```
+
+Ici, le client **demande** l’achat, mais c’est Roblox qui affiche la fenêtre et encaisse les Robux, puis notre script serveur qui donne la traînée. Le client ne peut rien s’attribuer lui-même.
+
+<Astuce titre="Le prix, toujours depuis Roblox">
+La documentation de Roblox avertit que les prix écrits « en dur » peuvent afficher un montant faux aux abonnés Roblox Plus ou dans les pays à prix régionaux : le joueur est quand même débité du bon prix, mais ton interface lui ment. Avec `GetProductInfoAsync` et `PriceInRobux`, ton bouton affiche toujours le prix réel.
+</Astuce>
+
+## Mise en cache : ne pas interroger Roblox en boucle
+
+`UserOwnsGamePassAsync` est déjà **mis en cache** par Roblox : selon la documentation, les appels répétés répondent plus vite, et le cache est mis à jour quand `PromptGamePassPurchaseFinished` se déclenche. Un joueur qui rejoint un serveur après avoir acheté le pass est toujours reconnu comme propriétaire.
+
+Notre script ajoute sa propre « mémoire » : l’attribut `PossedeTrailDore`. Résultat :
+
+- un seul appel réseau par joueur à son arrivée ;
+- tous les autres scripts (boutique, inventaire du module 4) lisent simplement l’attribut, sans attendre.
+
+<Info titre="Achat en dehors du jeu">
+Un joueur peut aussi acheter ton pass depuis la page de ton jeu, en dehors de la partie. S’il est déjà en jeu, la documentation indique que le cache de Roblox finit par se mettre à jour, mais cela peut prendre **plusieurs minutes**. C’est une raison de plus pour vérifier la possession à chaque arrivée du joueur.
+</Info>
+
+## Tester ton Game Pass
+
+Dans Studio, lance un test (**Play**) et clique sur le bouton. Une annonce officielle du DevForum (2016) indique que les achats faits dans Studio sont **simulés** : aucun Robux n’est débité. Vérifie à chaque test que :
+
+- la traînée apparaît après un achat réussi ;
+- rien ne se passe si tu cliques sur **Annuler** ;
+- la traînée revient après une mort (réapparition) ;
+- le bouton affiche « possédée » une fois le pass obtenu.
+
+Pour tester la vérification à l’arrivée (`UserOwnsGamePassAsync`), le plus fiable reste de rejoindre le jeu publié avec un compte qui possède réellement le pass.
+
+<Defi>
+Crée le Game Pass « Traînée dorée » dans le Creator Hub, colle son ID dans les deux scripts, puis teste dans Studio. Bonus : ajoute un second pass (par exemple « Traînée arc-en-ciel ») en transformant `ID_PASS_TRAIL_DORE` en une petite table qui associe chaque ID de pass à une couleur de traînée.
+</Defi>
+
+<Resume>
+- Un **Game Pass** est un achat unique pour un avantage permanent ; on le crée dans **Monetization ⟩ Passes** et on copie son ID avec **Copy Asset ID**.
+- `UserOwnsGamePassAsync(userId, gamePassId)` vérifie la possession : toujours dans un `pcall`, côté serveur, à l’arrivée du joueur.
+- `PromptGamePassPurchase(player, gamePassId)` ouvre la fenêtre d’achat ; `PromptGamePassPurchaseFinished` se déclenche même en cas d’annulation : vérifie `wasPurchased`.
+- L’avantage est appliqué **par le serveur** et mémorisé (attribut), puis réappliqué à chaque réapparition.
+- Le prix affiché se lit avec `GetProductInfoAsync`, car il peut varier selon le joueur.
+</Resume>
+
+<Sources>
+- [Passes — guide officiel (création, ID, vente, attribution)](https://create.roblox.com/docs/production/monetization/passes)
+- [MarketplaceService — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/MarketplaceService)
+- [Regional pricing — prix régionaux et Managed Pricing](https://create.roblox.com/docs/production/monetization/regional-pricing)
+- [Roblox Plus — avertissement sur les prix écrits en dur](https://create.roblox.com/docs/production/monetization/roblox-plus)
+- [Mock purchases in Studio — annonce du DevForum (2016)](https://devforum.roblox.com/t/mock-purchases-in-studio/26974)
+</Sources>

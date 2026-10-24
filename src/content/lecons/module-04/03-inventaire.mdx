@@ -1,0 +1,362 @@
+---
+titre: Un inventaire simple et sécurisé
+description: Modélise l’inventaire de traînées de l’Obby des Nuages, garde le serveur maître des données, synchronise le client avec des attributs et sauvegarde le tout.
+duree: 35
+objectifs:
+  - Modéliser un inventaire et un objet équipé dans une table de données
+  - Décrire les objets de la boutique dans un ModuleScript Catalogue
+  - Synchroniser l’inventaire avec le client sans lui confier la moindre décision
+  - Sauvegarder l’inventaire avec le système de la leçon précédente
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Où ranger le ModuleScript `Catalogue` pour que le serveur ET les clients puissent le lire ?
+    options:
+      - texte: Dans ServerScriptService
+      - texte: Dans ServerStorage
+      - texte: Dans ReplicatedStorage
+        correct: true
+      - texte: Dans StarterGui
+    explication: "ReplicatedStorage est répliqué vers les clients et accessible au serveur. ServerScriptService et ServerStorage ne sont jamais envoyés aux clients, et StarterGui sert aux interfaces."
+  - type: trouve-le-bug
+    question: "Ce gestionnaire d’achat permet à un exploiteur d’obtenir des traînées sans dépenser ses pièces. Quelle ligne pose problème ?"
+    code: |
+      acheterObjet.OnServerEvent:Connect(function(player, idObjet, prix)
+      	if typeof(idObjet) ~= "string" then return end
+      	local objet = Catalogue[idObjet]
+      	local donnees = DonneesJoueurs.Obtenir(player)
+      	if objet == nil or donnees == nil then return end
+      	if donnees.inventaire[idObjet] then return end
+      	local pieces = obtenirStat(player, "Pieces")
+      	if pieces == nil or pieces.Value < objet.prix then return end
+      	pieces.Value -= prix
+      	donnees.inventaire[idObjet] = true
+      end)
+    options:
+      - texte: "Ligne 2 : `typeof` ne fonctionne pas sur les textes"
+      - texte: "Ligne 8 : il faut vérifier `pieces.Value <= objet.prix`"
+      - texte: "Ligne 9 : le montant débité vient du client au lieu de `objet.prix`"
+        correct: true
+      - texte: "Ligne 10 : il faut stocker `\"oui\"` au lieu de `true`"
+    explication: "La vérification de la ligne 8 utilise bien le prix du catalogue, mais la ligne 9 débite `prix`, une valeur envoyée par le client (3e argument). Un exploiteur envoie 0 et ne paie rien, ou un nombre négatif pour gagner des pièces. Le serveur doit toujours débiter `objet.prix`, et le paramètre `prix` ne devrait même pas exister. À la ligne 8, `<` est correct : avoir exactement le prix suffit."
+  - type: vrai-faux
+    question: On peut stocker directement la table de l’inventaire (`{ TrailNuage = true }`) dans un attribut du joueur.
+    reponse: false
+    explication: "Les attributs acceptent des types simples (texte, booléen, nombre, Vector3, Color3…), mais pas les tables. C’est pourquoi on publie un attribut par objet, comme `Possede_TrailNuage`."
+  - type: qcm
+    question: Pourquoi utiliser des attributs plutôt qu’un RemoteEvent pour indiquer au client ce qu’il possède ?
+    options:
+      - texte: Parce que les attributs sont chiffrés
+      - texte: Parce qu’un attribut garde sa valeur actuelle, que le client peut lire à tout moment, même s’il s’est connecté après le changement
+        correct: true
+      - texte: Parce que les RemoteEvents ne peuvent pas aller du serveur vers le client
+    explication: "Un attribut décrit un **état** : sa valeur est répliquée et reste lisible, et `GetAttributeChangedSignal` prévient des changements. Un RemoteEvent transporte un **message ponctuel** : si le LocalScript n’écoute pas encore, il doit redemander l’état. Les deux approches sont valables ; les attributs sont plus simples pour un petit inventaire."
+  - type: vrai-faux
+    question: Dans notre système, si un LocalScript passe l’attribut `TrailEquipe` à `"TrailAurore"`, le joueur obtient la traînée Aurore.
+    reponse: false
+    explication: "Le changement reste sur le client : il n’est pas répliqué au serveur. Le serveur applique la traînée d’après `donnees.equipe`, qu’il est le seul à modifier, après avoir vérifié que l’objet est bien possédé."
+---
+
+Les pièces de l’Obby des Nuages doivent servir à quelque chose ! Dans cette leçon, tu crées un **inventaire** : la liste des traînées (« trails ») qu’un joueur possède, et celle qu’il porte. Tu réutilises tout ce que tu as construit : la validation côté serveur du module 3, les leaderstats et la sauvegarde des leçons précédentes. L’interface de la boutique viendra à la leçon 4.
+
+## Modéliser un inventaire
+
+Avant d’écrire du code, décide **comment représenter** les données. Pour notre boutique de traînées, deux informations suffisent :
+
+- **ce que le joueur possède** : une table dont les clés sont les identifiants d’objets, par exemple `{ TrailNuage = true, TrailSoleil = true }` ;
+- **ce qu’il a équipé** : un texte, par exemple `"TrailNuage"`, ou `""` s’il ne porte rien.
+
+Pourquoi une table « identifiant → `true` » plutôt qu’une liste `{ "TrailNuage", "TrailSoleil" }` ? Pour savoir si le joueur possède un objet, il suffit d’écrire `inventaire[idObjet]`, sans parcourir toute la liste. Et un même objet ne peut pas apparaître deux fois.
+
+Bonne nouvelle : ces deux champs, `inventaire` et `equipe`, existent déjà dans `donneesParDefaut` (leçon 2). Ils sont donc **déjà sauvegardés** avec le reste. Il ne reste qu’à les remplir.
+
+<Info>
+On stocke des **identifiants** (`"TrailNuage"`), jamais des objets Roblox. Un DataStore enregistre du texte JSON : un identifiant passe sans problème, et tu pourras changer la couleur d’une traînée dans le catalogue sans toucher aux sauvegardes.
+</Info>
+
+## Le catalogue : une seule source pour les prix
+
+Les caractéristiques de chaque objet (nom affiché, prix, couleurs) vivent dans un **ModuleScript** partagé. Crée le ModuleScript `Catalogue` dans **ReplicatedStorage ⟩ Modules** (le Folder `Modules` du projet).
+
+```luau
+-- ModuleScript « Catalogue » dans ReplicatedStorage > Modules
+-- Lu par le serveur (prix, vérifications) ET par le client (affichage).
+export type Objet = {
+	nom: string, -- nom affiché dans la boutique
+	prix: number, -- prix en pièces
+	couleurDebut: Color3, -- couleur à l'avant de la traînée
+	couleurFin: Color3, -- couleur à l'arrière
+}
+
+local Catalogue: { [string]: Objet } = {
+	TrailNuage = {
+		nom = "Traînée Nuage",
+		prix = 25,
+		couleurDebut = Color3.fromRGB(255, 255, 255),
+		couleurFin = Color3.fromRGB(170, 215, 255),
+	},
+	TrailSoleil = {
+		nom = "Traînée Soleil",
+		prix = 75,
+		couleurDebut = Color3.fromRGB(255, 220, 80),
+		couleurFin = Color3.fromRGB(255, 120, 40),
+	},
+	TrailAurore = {
+		nom = "Traînée Aurore",
+		prix = 150,
+		couleurDebut = Color3.fromRGB(120, 255, 200),
+		couleurFin = Color3.fromRGB(170, 90, 255),
+	},
+}
+
+return Catalogue
+```
+
+Le client peut lire ce module, et même modifier **sa** copie en mémoire : ça ne change rien pour le serveur, qui utilise sa propre copie. C’est exactement ce qu’on veut : le client s’en sert pour **afficher** les prix, le serveur pour **décider**.
+
+<Astuce>
+Ajouter un objet à la boutique ne demande qu’une nouvelle entrée dans `Catalogue`. Le serveur, la sauvegarde et (à la leçon 4) l’interface s’adaptent tout seuls. Choisis des identifiants définitifs : si tu renommes `TrailNuage`, les joueurs qui le possédaient le perdent.
+</Astuce>
+
+## Le serveur, seule source de vérité
+
+Rappel du module 3 : le client **demande**, le serveur **vérifie et décide**. Pour l’inventaire, il faut deux RemoteEvents dans **ReplicatedStorage ⟩ Remotes** :
+
+- `AcheterObjet` (déjà créé au module 3) : le client envoie l’identifiant de l’objet voulu ;
+- `EquiperObjet` (à créer) : le client envoie l’identifiant de l’objet à porter, ou `""` pour tout retirer.
+
+Le client n’envoie **que** l’identifiant. Jamais le prix, jamais le solde, jamais « j’ai le droit ».
+
+### Synchroniser avec des attributs
+
+Le client a besoin de savoir ce qu’il possède, pour afficher « Acheté » ou « Équipé » dans la boutique. Deux méthodes classiques :
+
+- **un RemoteEvent** du serveur vers le client (`FireClient`) qui envoie l’inventaire à chaque changement ;
+- **des attributs** posés par le serveur sur l’objet `Player`. Ils sont répliqués automatiquement, et le client peut les lire quand il veut.
+
+On choisit les attributs : ils décrivent un **état** toujours à jour, sans souci de timing. Un attribut ne peut pas contenir de table, alors on en publie un par objet : `Possede_TrailNuage = true`, plus un attribut `TrailEquipe` pour l’objet équipé.
+
+<Attention>
+Les attributs posés sur un `Player` sont visibles par **tous** les clients, pas seulement par le joueur concerné. Pour des cosmétiques, c’est sans importance. N’y mets jamais d’informations sensibles.
+</Attention>
+
+### Le Script Boutique
+
+Crée un **Script** `Boutique` dans **ServerScriptService**. Il utilise le module `DonneesJoueurs` de la leçon 2.
+
+```luau
+-- Script « Boutique » dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs"))
+local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue"))
+
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local acheterObjet = remotes:WaitForChild("AcheterObjet") :: RemoteEvent
+local equiperObjet = remotes:WaitForChild("EquiperObjet") :: RemoteEvent
+
+local NOMS_TRAINEE = { "TraineeObby", "TraineeHaut", "TraineeBas" }
+
+-- Retrouve une statistique des leaderstats (voir leçon 1)
+local function obtenirStat(player: Player, nomStat: string): IntValue?
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local stat = leaderstats and leaderstats:FindFirstChild(nomStat)
+	if stat and stat:IsA("IntValue") then
+		return stat
+	end
+	return nil
+end
+
+-- Publie l'inventaire sous forme d'attributs (répliqués vers les clients)
+local function publierInventaire(player: Player, donnees: { [string]: any })
+	for idObjet in Catalogue do
+		player:SetAttribute("Possede_" .. idObjet, donnees.inventaire[idObjet] == true)
+	end
+	player:SetAttribute("TrailEquipe", donnees.equipe)
+end
+
+-- Pose (ou retire) la traînée équipée sur le personnage du joueur
+local function appliquerTrainee(player: Player)
+	local donnees = DonneesJoueurs.Obtenir(player)
+	local personnage = player.Character
+	if donnees == nil or personnage == nil then
+		return
+	end
+	local racine = personnage:WaitForChild("HumanoidRootPart", 5)
+	if racine == nil or not racine:IsA("BasePart") then
+		return
+	end
+
+	-- 1. On retire l'ancienne traînée, s'il y en a une
+	for _, nom in NOMS_TRAINEE do
+		local ancien = racine:FindFirstChild(nom)
+		if ancien then
+			ancien:Destroy()
+		end
+	end
+
+	-- 2. Rien d'équipé (ou objet retiré du catalogue) : on s'arrête là
+	local objet = Catalogue[donnees.equipe]
+	if objet == nil then
+		return
+	end
+
+	-- 3. Une traînée se dessine entre deux Attachments
+	local haut = Instance.new("Attachment")
+	haut.Name = "TraineeHaut"
+	haut.Position = Vector3.new(0, 0.8, 0)
+	haut.Parent = racine
+
+	local bas = Instance.new("Attachment")
+	bas.Name = "TraineeBas"
+	bas.Position = Vector3.new(0, -0.8, 0)
+	bas.Parent = racine
+
+	local trainee = Instance.new("Trail")
+	trainee.Name = "TraineeObby"
+	trainee.Attachment0 = haut
+	trainee.Attachment1 = bas
+	trainee.Color = ColorSequence.new(objet.couleurDebut, objet.couleurFin)
+	trainee.Lifetime = 0.6 -- durée de vie de chaque segment, en secondes
+	trainee.Parent = racine
+end
+
+-- ACHAT : le client envoie seulement l'identifiant de l'objet
+acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+	-- 1. Le bon type ? (un exploiteur peut envoyer n'importe quoi)
+	if typeof(idObjet) ~= "string" then
+		return
+	end
+	-- 2. L'objet existe ? Le prix vient du catalogue DU SERVEUR
+	local objet = Catalogue[idObjet]
+	local donnees = DonneesJoueurs.Obtenir(player)
+	if objet == nil or donnees == nil then
+		return
+	end
+	-- 3. Pas déjà possédé ?
+	if donnees.inventaire[idObjet] then
+		return
+	end
+	-- 4. Assez de pièces ?
+	local pieces = obtenirStat(player, "Pieces")
+	if pieces == nil or pieces.Value < objet.prix then
+		return
+	end
+
+	-- Tout est valide : on débite, puis on donne l'objet
+	pieces.Value -= objet.prix
+	donnees.inventaire[idObjet] = true
+	publierInventaire(player, donnees)
+end)
+
+-- ÉQUIPEMENT : "" retire la traînée, sinon il faut posséder l'objet
+equiperObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+	if typeof(idObjet) ~= "string" then
+		return
+	end
+	local donnees = DonneesJoueurs.Obtenir(player)
+	if donnees == nil then
+		return
+	end
+	if idObjet ~= "" and not donnees.inventaire[idObjet] then
+		return -- on ne peut pas équiper un objet qu'on ne possède pas
+	end
+
+	donnees.equipe = idObjet
+	publierInventaire(player, donnees)
+	appliquerTrainee(player)
+end)
+
+-- ARRIVÉE : on attend que les données soient chargées (leçon 2)
+local function surArrivee(player: Player)
+	-- Les leaderstats n'apparaissent qu'après un chargement réussi
+	local leaderstats = player:WaitForChild("leaderstats", 60)
+	local donnees = DonneesJoueurs.Obtenir(player)
+	if leaderstats == nil or donnees == nil then
+		return
+	end
+	publierInventaire(player, donnees)
+
+	-- La traînée doit être reposée à chaque réapparition
+	player.CharacterAdded:Connect(function()
+		appliquerTrainee(player)
+	end)
+	if player.Character then
+		appliquerTrainee(player)
+	end
+end
+
+Players.PlayerAdded:Connect(surArrivee)
+for _, player in Players:GetPlayers() do
+	task.spawn(surArrivee, player)
+end
+```
+
+Remarque l’**ordre** dans l’achat : toutes les vérifications d’abord, les modifications ensuite. Si une seule vérification échoue, on sort avec `return` sans rien avoir touché. Le module 3 t’a montré comment ajouter en plus un délai minimal entre deux requêtes (cooldown) : tu peux l’intégrer ici.
+
+<Erreur titre="Faire confiance au client pour le prix ou la possession">
+`acheterObjet:FireServer("TrailAurore", 0)` : si ton serveur utilise ce `0`, l’objet est gratuit. Pareil pour `EquiperObjet` : si le serveur ne vérifie pas `donnees.inventaire[idObjet]`, n’importe qui porte la traînée la plus chère sans l’avoir achetée. Le serveur prend **toujours** le prix dans son catalogue et vérifie **toujours** la possession.
+</Erreur>
+
+### Et la sauvegarde ?
+
+Il n’y a rien à ajouter ! `DonneesJoueurs.Obtenir(player)` renvoie **la même table** que celle gardée en mémoire par le module. Quand la boutique écrit `donnees.inventaire[idObjet] = true`, la prochaine sauvegarde (automatique, au départ ou à la fermeture) l’enregistre. Les pièces dépensées, elles, sont lues dans les leaderstats au moment de la sauvegarde.
+
+## Côté client : lire l’inventaire
+
+Pour vérifier que tout fonctionne, voici un petit **LocalScript** de test à placer dans **StarterPlayerScripts**. À la leçon 4, l’interface de la boutique utilisera exactement les mêmes appels.
+
+```luau
+-- LocalScript dans StarterPlayer > StarterPlayerScripts (côté client)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue"))
+
+local joueur = Players.LocalPlayer
+
+-- Affiche l'état de chaque objet dans la fenêtre Output
+local function afficherInventaire()
+	for idObjet, objet in Catalogue do
+		local possede = joueur:GetAttribute("Possede_" .. idObjet) == true
+		local equipe = joueur:GetAttribute("TrailEquipe") == idObjet
+		print(objet.nom, "| possédé :", possede, "| équipé :", equipe)
+	end
+end
+
+-- On réaffiche à chaque changement d'attribut publié par le serveur
+for idObjet in Catalogue do
+	joueur:GetAttributeChangedSignal("Possede_" .. idObjet):Connect(afficherInventaire)
+end
+joueur:GetAttributeChangedSignal("TrailEquipe"):Connect(afficherInventaire)
+
+afficherInventaire()
+```
+
+Pour tester un achat sans interface, donne-toi des pièces en modifiant `Pieces.Value` dans l’Explorer **en vue serveur**, puis exécute dans la **Command Bar**, en vue client : `game.ReplicatedStorage.Remotes.AcheterObjet:FireServer("TrailNuage")`.
+
+<Defi>
+1. Crée `Catalogue`, le RemoteEvent `EquiperObjet` et le Script `Boutique`.
+2. Achète `TrailNuage` comme indiqué ci-dessus, puis équipe-le avec `EquiperObjet:FireServer("TrailNuage")`. Une traînée blanche doit te suivre.
+3. Essaie d’équiper `TrailAurore` sans l’avoir acheté : rien ne doit se passer.
+4. Arrête le test, relance : la traînée est toujours équipée, grâce à la sauvegarde.
+5. Bonus : ajoute une quatrième traînée au catalogue, sans toucher à aucun autre script.
+</Defi>
+
+<Resume>
+- Un inventaire se modélise simplement : une table « identifiant → `true` » et un identifiant pour l’objet équipé.
+- Le `Catalogue` (ModuleScript dans ReplicatedStorage ⟩ Modules) décrit les objets ; le serveur y lit les prix, le client l’affichage.
+- Le client n’envoie que des identifiants ; le serveur vérifie type, existence, possession et solde **avant** de modifier quoi que ce soit.
+- Des attributs posés par le serveur (`Possede_…`, `TrailEquipe`) synchronisent l’état avec le client.
+- L’inventaire fait partie de la table de session : il est sauvegardé par le système de la leçon 2.
+</Resume>
+
+<Sources>
+- [Remote events and callbacks — documentation Roblox](https://create.roblox.com/docs/scripting/events/remote)
+- [Attributes — documentation Roblox](https://create.roblox.com/docs/scripting/attributes)
+- [Properties and attributes (types acceptés par les attributs) — documentation Roblox](https://create.roblox.com/docs/studio/properties)
+- [Trail — référence API](https://create.roblox.com/docs/reference/engine/classes/Trail)
+- [Best practices for data stores (une clé par joueur) — Roblox](https://create.roblox.com/docs/cloud-services/data-stores/best-practices)
+</Sources>

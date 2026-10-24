@@ -1,0 +1,252 @@
+---
+titre: Construire le premier niveau et le publier
+description: Construis les premiers sauts de l’Obby des Nuages, règle la SpawnLocation, publie une première version privée et découvre l’historique des versions et Team Create.
+duree: 45
+objectifs:
+  - Construire les premiers sauts de l’Obby des Nuages avec une difficulté progressive
+  - Configurer la SpawnLocation et rendre le parcours lisible
+  - Publier une première version privée et utiliser l’historique des versions
+  - Découvrir la collaboration avec Team Create
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Juste après ta première publication avec **File** › **Publish**, qui peut jouer à l’Obby des Nuages ?
+    options:
+      - texte: Tous les joueurs de Roblox, immédiatement
+      - texte: Toi, les personnes à qui tu as donné un accès en modification (Edit) et les testeurs que tu invites
+        correct: true
+      - texte: Uniquement tes amis Roblox
+      - texte: Personne, pas même toi, tant qu’un modérateur n’a pas validé le jeu
+    explication: "Par défaut, un jeu publié est **privé** : seuls toi, les utilisateurs disposant de l’accès **Edit** (et, pour un groupe, les membres ayant les bonnes permissions) y ont accès, plus les testeurs que tu invites. La sortie publique est une étape séparée, avec ses propres conditions (module 7)."
+  - type: vrai-faux
+    question: Si ton place contient plusieurs SpawnLocation neutres, un joueur qui réapparaît choisit toujours la plus proche du centre du monde.
+    reponse: false
+    explication: "D’après la documentation de `SpawnLocation`, quand plusieurs points d’apparition sont valables pour un joueur, l’un d’eux est **choisi au hasard**. Pour un obby, garde une seule SpawnLocation au départ ; les checkpoints seront gérés par script au module 2."
+  - type: qcm
+    question: Comment régler l’écart entre deux plateformes de façon fiable ?
+    options:
+      - texte: En appliquant une formule officielle de Roblox qui donne la distance de saut maximale
+      - texte: En plaçant la plateforme, puis en testant le saut avec Test Here et en ajustant
+        correct: true
+      - texte: En recopiant les distances d’un obby célèbre
+      - texte: En rendant toutes les plateformes très grandes pour qu’aucun saut ne soit difficile
+    explication: "La capacité de saut dépend des réglages des personnages (StarterPlayer) et de la forme des plateformes. Le plus fiable reste de **tester** chaque saut, et **Test Here** te fait apparaître juste devant la caméra pour l’essayer sans refaire tout le parcours."
+  - type: vrai-faux
+    question: Restaurer une ancienne version du place depuis l’historique des versions la rend automatiquement disponible aux joueurs.
+    reponse: false
+    explication: "La documentation le précise : restaurer une version crée une **nouvelle version** du place, mais ne la **publie pas**. Si ton jeu est public, il faut ensuite ouvrir le place dans Studio et le publier pour que les joueurs reçoivent cette version."
+  - type: trouve-le-bug
+    question: "Ce code, à exécuter dans la Command Bar, doit lister les Parts **non ancrées** du dossier `Plateformes`. Pourtant il affiche toutes les plateformes ancrées. Où est le bug ?"
+    code: |
+      local dossier = game:GetService("Workspace"):FindFirstChild("Plateformes")
+      if dossier then
+      	for _, objet in dossier:GetDescendants() do
+      		if objet:IsA("BasePart") and objet.Anchored then
+      			print("Non ancrée : " .. objet:GetFullName())
+      		end
+      	end
+      end
+    options:
+      - texte: "Ligne 1 : `FindFirstChild` ne fonctionne pas dans la Command Bar"
+      - texte: "Ligne 3 : il faut `GetChildren`, car `GetDescendants` n’existe pas"
+      - texte: "Ligne 4 : il faut `not objet.Anchored` pour garder les Parts non ancrées"
+        correct: true
+      - texte: "Ligne 5 : `GetFullName` ne renvoie pas de texte"
+    explication: "La condition garde les Parts dont `Anchored` vaut `true`, c’est-à-dire l’inverse de ce qu’on cherche. Avec `not objet.Anchored`, seules les Parts non ancrées sont affichées. `GetDescendants` existe bien (il parcourt tous les descendants) et `GetFullName` renvoie le chemin complet de l’objet sous forme de texte."
+  - type: qcm
+    question: Pour un jeu qui t’appartient personnellement, à qui peux-tu donner la permission **Edit** avec les outils de collaboration de Studio ?
+    options:
+      - texte: À n’importe quel utilisateur de Roblox
+      - texte: Uniquement à tes amis Roblox
+        correct: true
+      - texte: Uniquement aux membres de l’équipe de modération
+      - texte: À personne, Team Create est réservé aux groupes
+    explication: "Pour un jeu appartenant à un utilisateur, la documentation indique que l’accès **Play** peut être donné à n’importe qui, mais la permission **Edit** seulement à des **amis** Roblox. Au moment de la rédaction, collaborer avec d’autres créateurs demande aussi une vérification d’âge (age check)."
+---
+
+Tu sais construire, ranger et tester : il est temps d’assembler le **premier niveau de l’Obby des Nuages** et de le **publier**. Cette leçon termine le module 1 avec un vrai résultat : un parcours jouable, enregistré sur ton compte Roblox, que tu pourras faire essayer à quelques amis. Ce n’est que la version 0.1, et c’est très bien ainsi : un jeu publié tôt s’améliore bien plus vite qu’un jeu parfait qui reste dans un tiroir.
+
+## Le plan du niveau 1
+
+Reprends le cahier des charges du module 0. Pour ce premier niveau, vise :
+
+- une **zone de départ** sûre et lisible, avec la SpawnLocation ;
+- **six à huit sauts** qui commencent très facilement et deviennent un peu plus exigeants ;
+- une **plateforme d’arrivée** bien visible, qui donne envie d’y aller.
+
+Pas encore de pièges, de pièces ni de checkpoints : ils arrivent au module 2. Ton seul objectif ici : un parcours agréable à parcourir avec les commandes de base.
+
+## La zone de départ et la SpawnLocation
+
+La **SpawnLocation** est l’endroit où les personnages apparaissent en rejoignant le jeu, et où ils réapparaissent après une mort. C’est une Part particulière : tu la déplaces, la redimensionnes et la colores comme n’importe quelle Part, et elle doit être **ancrée**.
+
+Ses propriétés utiles pour l’instant :
+
+| Propriété | Rôle | Pour l’Obby des Nuages |
+|---|---|---|
+| **Neutral** | Si activée, tous les joueurs peuvent apparaître ici, quelle que soit leur équipe | Activée |
+| **Duration** | Durée du champ de force (*ForceField*) qui protège le joueur à son apparition ; 10 secondes par défaut, 0 pour aucun | Valeur par défaut, ou plus courte |
+| **Enabled** | Si désactivée, la SpawnLocation ne sert plus de point d’apparition | Activée |
+
+Si plusieurs SpawnLocation sont valables pour un joueur, Roblox en choisit **une au hasard**. Garde donc une seule SpawnLocation au départ. La documentation montre qu’on peut aussi utiliser des SpawnLocation comme checkpoints grâce aux équipes ; dans cette formation, nous construirons nos checkpoints par script, ce qui nous laissera plus de contrôle (module 2).
+
+### Un obby dans le ciel
+
+Pour un vrai obby dans les nuages, supprime la **Baseplate** (sélectionne-la dans l’Explorer, puis appuie sur la touche `Suppr`, *Delete* en anglais) et monte ta zone de départ en altitude. Un joueur qui rate un saut tombe alors dans le vide.
+
+Que devient-il ? Le Workspace possède une propriété `FallenPartsDestroyHeight` : sous cette altitude, le moteur retire automatiquement du jeu les Parts qui tombent. Le personnage du joueur est ainsi détruit, et le joueur réapparaît sur la SpawnLocation. C’est la « chute » classique d’un obby, sans aucun script.
+
+<Erreur titre="Supprimer la Baseplate avant d’avoir tout ancré">
+Tant que la Baseplate était là, une plateforme non ancrée posée dessus semblait tenir en place. Sans elle, cette plateforme tombe dans le vide dès le premier test, puis disparaît en passant sous `FallenPartsDestroyHeight`. Vérifie l’ancrage de toutes tes plateformes (la commande de vérification est plus bas dans cette leçon) **avant** de supprimer la Baseplate.
+</Erreur>
+
+## Construire les premiers sauts
+
+### Quelques repères de distance
+
+- L’unité est le **stud**, environ 28 cm.
+- Par défaut, un personnage marche à **16 studs par seconde** (propriété `CharacterWalkSpeed` de `StarterPlayer`).
+- La puissance du saut se règle aussi dans `StarterPlayer`. Selon la configuration de ton place, Studio y affiche soit `CharacterJumpPower` (50 par défaut), soit `CharacterJumpHeight` (une hauteur de saut, 7,2 studs par défaut). Pour la version 1, garde les valeurs par défaut.
+
+Roblox ne publie pas de « distance de saut idéale » : la bonne distance dépend de la forme des plateformes, de leur hauteur et du ressenti que tu veux donner. La méthode fiable, c’est de **placer, tester, ajuster**. Le tutoriel officiel insiste sur ce point : si les premiers sauts sont trop difficiles, des joueurs risquent d’abandonner au lieu de continuer.
+
+### La méthode pas à pas
+
+1. Dans le dossier `Plateformes`, crée la plateforme de départ, assez large pour que plusieurs joueurs y tiennent.
+2. Règle le palier de déplacement sur 1 stud, puis duplique la plateforme (`Ctrl`+`D`) et déplace la copie avec **Move**. Commence par un écart court, sans dénivelé.
+3. Place la caméra juste avant le saut, lance **Test Here**, essaie le saut plusieurs fois, puis arrête le test.
+4. Ajuste l’écart, la hauteur ou la taille de la plateforme, et teste à nouveau.
+5. Répète pour chaque saut en augmentant **une seule difficulté à la fois** : un peu plus loin, **ou** un peu plus haut, **ou** une plateforme un peu plus petite.
+6. Glisse une **plateforme de repos** (plus large, sans difficulté) après deux ou trois sauts : le joueur souffle avant la suite.
+7. Termine par une plateforme d’arrivée plus grande, d’une couleur différente.
+
+<Astuce titre="Teste comme un débutant, pas comme le créateur">
+Toi, tu connais chaque saut par cœur. Un nouveau joueur, non. Après avoir réglé un saut, réussis-le **trois fois de suite** sans effort avant de passer au suivant. Si tu dois t’y reprendre à plusieurs fois, il est sûrement trop dur pour le début du jeu. Tu approfondiras la courbe de difficulté au module 5.
+</Astuce>
+
+### Varier sans compliquer
+
+Les formes de Parts suffisent pour varier le parcours : des **cylindres** posés à plat pour des plots ronds, des **wedges** pour une petite rampe, une **TrussPart** pour une échelle. Un enchaînement de formes différentes rend le parcours plus vivant, même avec des sauts simples.
+
+## Un parcours lisible
+
+Dans un obby, le joueur doit comprendre **en un coup d’œil** où aller et où il peut poser les pieds. Quelques principes de lisibilité, couramment appliqués par les créateurs d’obbies :
+
+- **Du contraste** : des plateformes de couleur franche se détachent bien sur un ciel clair.
+- **Un code couleur cohérent** : une couleur pour les plateformes sûres, une autre pour l’arrivée. Réserve une couleur vive, par exemple le rouge, aux futurs pièges du module 2, et ne l’utilise **jamais** pour une plateforme sûre.
+- **Une direction évidente** : le parcours doit se lire depuis la zone de départ, la prochaine plateforme toujours visible.
+- **Pas de piège visuel au début** : les plateformes invisibles ou trompeuses frustrent les nouveaux joueurs. Garde-les pour plus tard, si tu en mets.
+
+## Vérifier avant de publier
+
+Avant chaque publication, fais ce rapide contrôle :
+
+- [ ] toutes les plateformes sont **ancrées** ;
+- [ ] tout le parcours est faisable avec **Test**, depuis le départ ;
+- [ ] l’**Output** ne montre aucune erreur rouge ;
+- [ ] aucun modèle de la Toolbox ne contient de script suspect ;
+- [ ] les objets sont rangés et nommés.
+
+Pour le premier point, voici une commande à lancer dans la **Command Bar** : elle affiche le chemin complet de chaque Part non ancrée du dossier `Plateformes`.
+
+```luau
+-- À exécuter dans la Command Bar, en dehors d'un test
+local dossier = game:GetService("Workspace"):FindFirstChild("Plateformes")
+if dossier then
+	for _, objet in dossier:GetDescendants() do
+		-- On ne garde que les Parts dont Anchored vaut false
+		if objet:IsA("BasePart") and not objet.Anchored then
+			-- GetFullName donne le chemin complet, par exemple Workspace.Plateformes.Saut3
+			print("Non ancrée : " .. objet:GetFullName())
+		end
+	end
+	print("Vérification terminée")
+end
+```
+
+Si seul « Vérification terminée » s’affiche, tout est ancré. Tu peux aussi taper `Anchored=false` dans la recherche de l’Explorer, comme vu dans la leçon 3.
+
+## Publier ta première version privée
+
+Publier enregistre ton place dans le cloud de Roblox et le **lie à ton compte**. Au moment de la rédaction, voici la marche à suivre décrite par la documentation :
+
+1. Arrête tout test en cours (sinon **Publish** est grisé).
+2. Ouvre **File** › **Publish** (raccourci `Alt`+`P`, `⌥`+`P` sur Mac).
+3. Dans la fenêtre **Game details**, remplis le **nom** (par exemple « Obby des Nuages »), choisis le **genre**, écris une courte **description**. Tu peux ajouter une icône et une miniature dès maintenant ou plus tard (module 7).
+4. Clique sur **Save**. Roblox crée ton jeu dans le cloud, avec un identifiant unique.
+
+Ton jeu apparaît maintenant dans le **Creator Dashboard** (create.roblox.com, rubrique **Creations**), d’où tu peux le rouvrir dans Studio sur n’importe quel ordinateur.
+
+### Privé par défaut
+
+Un jeu publié est **privé par défaut** : seuls toi et les personnes ayant un accès en modification peuvent y entrer. Pour recueillir de premiers avis, le menu **File** › **Invite early testers** permet d’inviter jusqu’à **10 amis** d’une tranche d’âge compatible avec la tienne (les règles exactes dépendent de ton âge et sont détaillées sur la page officielle). Ces testeurs voient un filigrane qui leur rappelle qu’il s’agit d’un aperçu, et les règles de la communauté s’appliquent toujours.
+
+<Attention titre="La sortie publique, c’est pour plus tard">
+Rendre un jeu public est une étape à part, avec des conditions qui évoluent : au moment de la rédaction, il faut notamment un compte en règle, une vérification d’âge (age check) et répondre au questionnaire de maturité du contenu. Ne la fais pas maintenant : l’Obby des Nuages n’est pas prêt. Tu prépareras le lancement au module 7, en suivant la page officielle à jour.
+</Attention>
+
+### Save to Roblox ou Publish ?
+
+Une fois ton jeu publié, deux commandes du menu **File** envoient ton travail dans le cloud :
+
+- **Save to Roblox** enregistre une nouvelle version du place, **sans** la rendre disponible aux joueurs ;
+- **Publish** enregistre une version **et** en fait la version que les joueurs chargent. Studio te demande alors un nom de version et des notes.
+
+Pour sauvegarder ton travail en cours, **Save to Roblox** suffit. Pour livrer une version aux joueurs (même à tes seuls testeurs), utilise **Publish**.
+
+## L’historique des versions
+
+Roblox conserve les versions enregistrées et publiées de ton place. La fenêtre **Version History** (menu **Window** › **Version History**) les liste, avec des filtres par date, par type d’enregistrement ou par collaborateur.
+
+- **Ajoute des notes** : **File** › **Save to Roblox with Notes** (`Ctrl`+`Alt`+`S`, `⌘`+`⌥`+`S` sur Mac) enregistre une version avec un nom et une description. Exemple : « v0.1 : 8 sauts, sans pièges ».
+- **Restaure une ancienne version** : dans Version History, clique sur **⋮** à côté de la version voulue, puis **Open Local Copy**. Dans la nouvelle session, utilise **File** › **Save to Roblox As** pour écraser le place. C’est aussi possible depuis le Creator Dashboard (**Configurations** › **Places** › **Version History** › **Restore**).
+
+Restaurer une version **ne la publie pas** : si le jeu est public, il faut ensuite la publier.
+
+<Erreur titre="Des versions sans aucune note">
+Dans trois semaines, « Version 47 » ne te dira rien. Une note de dix mots (« ajout de la zone 2, sauts 9 à 14 ») te permettra de retrouver en quelques secondes la dernière version qui fonctionnait, le jour où une modification cassera tout.
+</Erreur>
+
+## Travailler à plusieurs : Team Create (aperçu)
+
+**Team Create** est la fonctionnalité de Studio qui permet de construire et de coder à plusieurs, en temps réel, sur le même jeu. Voici l’essentiel, d’après la documentation actuelle :
+
+- Le bouton **Collaborate**, à droite du mezzanine, ouvre la fenêtre de gestion des collaborateurs.
+- Pour un jeu qui t’appartient, tu peux donner l’accès **Play** à n’importe qui, mais la permission **Edit** seulement à tes **amis** Roblox.
+- Au moment de la rédaction, collaborer avec d’autres créateurs demande une **vérification d’âge**, et la collaboration est limitée par défaut aux tranches d’âge compatibles. Tu peux utiliser Team Create seul sans cette vérification.
+- Pendant une session collaborative, Studio enregistre automatiquement le projet dans le cloud à intervalles réguliers, et chaque collaborateur a une couleur qui montre ce qu’il sélectionne.
+- Les **commentaires** (bouton **Comment** à droite du mezzanine, raccourci `C`) permettent d’épingler une remarque sur un objet du niveau.
+- Le mode de test **Team Test** permet de tester ensemble.
+
+Les conditions d’âge et de permissions évoluent : vérifie toujours la page officielle avant d’inviter quelqu’un.
+
+<Defi>
+
+1. Vérifie que toutes tes plateformes sont ancrées, puis supprime la Baseplate et monte ta zone de départ et la SpawnLocation en altitude.
+2. Construis 6 à 8 sauts dans `Plateformes`, avec une plateforme de repos et une arrivée colorée.
+3. Teste chaque saut avec **Test Here**, puis tout le parcours avec **Test**.
+4. Lance la commande de vérification des Parts non ancrées.
+5. Publie le jeu en privé (**File** › **Publish**), puis enregistre une version avec la note « v0.1 : premier niveau ».
+6. Bonus : invite un ami comme testeur et regarde-le jouer **sans l’aider**. Note où il hésite.
+
+</Defi>
+
+<Resume>
+- La **SpawnLocation** est le point d’apparition : neutre, ancrée, une seule au départ.
+- Supprime la Baseplate pour un obby dans le ciel : sous `FallenPartsDestroyHeight`, le personnage est retiré et le joueur réapparaît.
+- Construis les sauts par la méthode **placer, tester (Test Here), ajuster**, une difficulté à la fois, avec un code couleur lisible.
+- **File** › **Publish** (`Alt`+`P`) lie le jeu à ton compte ; il reste **privé** par défaut.
+- **Save to Roblox** sauvegarde, **Publish** livre aux joueurs ; **Version History** garde et restaure les versions (restaurer ne publie pas).
+- **Team Create** permet de collaborer ; permissions et vérification d’âge sont à vérifier sur la page officielle.
+</Resume>
+
+<Sources>
+- [Create and publish games and places — publication, accès privé, early testers, sortie publique](https://create.roblox.com/docs/production/publishing/publish-games-and-places)
+- [Version History — notes, restauration](https://create.roblox.com/docs/projects/version-history)
+- [Collaboration — Team Create, permissions, conditions d’âge](https://create.roblox.com/docs/projects/collaboration)
+- [SpawnLocation — référence API (Neutral, Duration, Enabled)](https://create.roblox.com/docs/reference/engine/classes/SpawnLocation)
+- [Workspace — FallenPartsDestroyHeight (référence API)](https://create.roblox.com/docs/reference/engine/classes/Workspace)
+- [StarterPlayer — vitesse et saut des personnages (référence API)](https://create.roblox.com/docs/reference/engine/classes/StarterPlayer)
+- [Work with parts — conseils sur la distance des sauts d’un obby](https://create.roblox.com/docs/tutorials/curriculums/building/work-with-parts)
+- [Test and save — publier depuis Studio](https://create.roblox.com/docs/tutorials/curriculums/building/test-and-save)
+</Sources>

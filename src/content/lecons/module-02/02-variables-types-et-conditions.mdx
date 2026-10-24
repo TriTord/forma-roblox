@@ -1,0 +1,337 @@
+---
+titre: Variables, types et conditions
+description: Apprends à stocker des valeurs dans des variables, à manipuler nombres, textes et booléens, et à prendre des décisions avec if. Puis crée ta première kill brick.
+duree: 30
+objectifs:
+  - Déclarer des variables locales et choisir de bons noms
+  - Manipuler les types de base (nil, boolean, number, string) et leurs opérateurs
+  - Écrire des conditions avec if, elseif, else et les opérateurs logiques
+  - Programmer une kill brick pour l’Obby des Nuages
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Que vaut `17 // 5` en Luau ?"
+    options:
+      - texte: "3.4"
+      - texte: "3"
+        correct: true
+      - texte: "2"
+      - texte: "4"
+    explication: "`//` est la **division entière** : elle divise puis arrondit vers le bas (`math.floor(17 / 5)`), soit `3`. La division classique `17 / 5` donnerait `3.4`, et le reste `17 % 5` vaudrait `2`."
+  - type: vrai-faux
+    question: "Le bloc `if 0 then print(\"oui\") end` affiche « oui »."
+    reponse: true
+    explication: "En Luau, **seuls `nil` et `false` sont faux**. Le nombre `0` et le texte vide `\"\"` sont considérés comme vrais, contrairement à d’autres langages."
+  - type: qcm
+    question: Une variable `position` contient un `Vector3`. Quelle fonction te renvoie le texte `"Vector3"` ?
+    options:
+      - texte: "`type(position)`"
+      - texte: "`typeof(position)`"
+        correct: true
+      - texte: "`position.Type`"
+    explication: "`typeof` connaît les types propres à Roblox (`Vector3`, `CFrame`, `Instance`…). La fonction `type` de Luau, elle, répondrait simplement `\"userdata\"` pour ces objets."
+  - type: qcm
+    question: "Quelle condition est vraie uniquement quand `etape` est différente de 10 ?"
+    options:
+      - texte: "`if etape != 10 then`"
+      - texte: "`if etape ~= 10 then`"
+        correct: true
+      - texte: "`if etape <> 10 then`"
+      - texte: "`if not etape == 10 then`"
+    explication: "En Luau, « différent de » s’écrit `~=`. Les syntaxes `!=` et `<>` n’existent pas. Quant à `not etape == 10`, Luau calcule d’abord `not etape` (qui vaut `false`), puis compare `false == 10` : le résultat est toujours `false`."
+  - type: trouve-le-bug
+    question: "Ce Script, placé dans une kill brick, doit tuer le joueur qui la touche. Il ne tue personne. Où est le bug ?"
+    code: |
+      local killBrick = script.Parent
+
+      local function surContact(autrePart)
+      	local personnage = autrePart.Parent
+      	local humanoid = personnage:FindFirstChildOfClass("Humanoid")
+      	if humanoid == nil then
+      		humanoid.Health = 0
+      	end
+      end
+
+      killBrick.Touched:Connect(surContact)
+    options:
+      - texte: "Ligne 4 : `autrePart.Parent` renvoie toujours le Workspace"
+      - texte: "Ligne 6 : la condition est inversée, il faut `if humanoid then` (ou `~= nil`)"
+        correct: true
+      - texte: "Ligne 7 : il faut écrire `humanoid.Health == 0`"
+      - texte: "Ligne 11 : il faut écrire `surContact()` avec des parenthèses"
+    explication: "Avec `== nil`, le bloc ne s’exécute que lorsqu’il n’y a **pas** de Humanoid… et il plante alors en essayant de modifier `nil`. Quand c’est un joueur qui touche, la condition est fausse et rien ne se passe. Il faut tester `if humanoid then`. À la ligne 7, `=` est bien une affectation."
+---
+
+Dans la leçon précédente, tu as utilisé `local plateforme = script.Parent` sans trop savoir ce que c’était. Il est temps de comprendre les **variables**, les **types** de valeurs et les **conditions**. Avec ces trois briques, ton code pourra se souvenir de choses et prendre des décisions. À la fin, tu programmeras la première vraie mécanique de l’Obby des Nuages : la **kill brick**, la plateforme qui renvoie le joueur au dernier checkpoint.
+
+## Les variables
+
+Une **variable** est une étiquette qui porte un nom et retient une valeur. On la crée avec le mot-clé **`local`**, suivi du nom, du signe `=` et de la valeur.
+
+```luau
+local nomDuJeu = "Obby des Nuages" -- un texte
+local nombreEtapes = 10             -- un nombre
+local partieLancee = true           -- un booléen (vrai / faux)
+
+print(nomDuJeu, nombreEtapes, partieLancee)
+
+-- On peut changer la valeur plus tard (sans remettre "local")
+nombreEtapes = 12
+print("Nouveau nombre d'étapes :", nombreEtapes)
+```
+
+Le signe `=` ne veut pas dire « est égal à » comme en maths : il veut dire « **range** cette valeur dans cette variable ».
+
+### Pourquoi toujours écrire `local` ?
+
+Sans `local`, une variable est **globale** : elle est visible dans tout le script, ce qui provoque vite des collisions de noms. La documentation Roblox recommande de déclarer presque toujours les variables avec `local` : elles sont plus rapides d’accès pour Luau et libèrent leur mémoire quand on n’en a plus besoin. Dans cette formation, **toutes** nos variables seront locales.
+
+### Bien nommer ses variables
+
+Les règles de Luau :
+
+- un nom contient des lettres, des chiffres et des tirets bas `_`, et **ne commence pas par un chiffre** ;
+- les noms sont **sensibles à la casse** : `etape` et `Etape` sont deux variables différentes ;
+- certains mots sont **réservés** et ne peuvent pas servir de nom : `and`, `break`, `do`, `else`, `elseif`, `end`, `false`, `for`, `function`, `if`, `in`, `local`, `nil`, `not`, `or`, `repeat`, `return`, `then`, `true`, `until`, `while`.
+
+Dans cette formation, on écrit les noms en **camelCase** (`nombreEtapes`, `vitesseRotation`), en français et **sans accents** (évite `étape` comme nom de variable). Les constantes, des valeurs qu’on ne change jamais, s’écrivent souvent en MAJUSCULES : `VALEUR_PIECE`.
+
+<Astuce titre="Un nom qui explique tout">
+Préfère `tempsAvantReapparition` à `t` ou `x`. Un bon nom remplace un commentaire. Tu dois pouvoir comprendre une ligne de code sans relire les vingt précédentes.
+</Astuce>
+
+## Les types de base
+
+Chaque valeur a un **type**. Voici les quatre types de base que tu manipuleras tout le temps :
+
+| Type | Exemples | Rôle |
+|---|---|---|
+| `nil` | `nil` | « Rien », l’absence de valeur |
+| `boolean` | `true`, `false` | Vrai ou faux |
+| `number` | `3`, `-12`, `0.5` | Les nombres (entiers comme décimaux) |
+| `string` | `"Bonjour"`, `'Obby'` | Du texte, entre guillemets doubles ou simples |
+
+Une variable déclarée sans valeur vaut `nil` : `local checkpointActuel` crée une variable qui ne contient rien pour l’instant.
+
+### `typeof` : connaître le type d’une valeur
+
+La fonction **`typeof`** renvoie le nom du type sous forme de texte. Elle connaît aussi les types propres à Roblox, comme `Vector3` (une position ou une taille en 3D), `Color3` (une couleur) ou `Instance` (n’importe quel objet de l’Explorer).
+
+```luau
+print(typeof(42))                    --> number
+print(typeof("Obby"))                --> string
+print(typeof(true))                  --> boolean
+print(typeof(nil))                   --> nil
+print(typeof(Vector3.new(0, 10, 0))) --> Vector3
+print(typeof(workspace))             --> Instance
+
+-- La fonction type() de Luau ne connaît pas les types Roblox :
+print(type(Vector3.new(0, 10, 0)))   --> userdata (moins précis)
+```
+
+Retiens : sur Roblox, utilise **`typeof`**, plus précis que `type`.
+
+## Les nombres et les opérateurs arithmétiques
+
+```luau
+local a = 17
+local b = 5
+
+print(a + b)  --> 22   addition
+print(a - b)  --> 12   soustraction
+print(a * b)  --> 85   multiplication
+print(a / b)  --> 3.4  division
+print(a // b) --> 3    division entière (arrondie vers le bas)
+print(a % b)  --> 2    reste de la division (modulo)
+print(2 ^ 3)  --> 8    puissance
+```
+
+Comme en maths, la multiplication passe avant l’addition : `2 + 3 * 4` vaut `14`. Utilise des parenthèses pour changer l’ordre : `(2 + 3) * 4` vaut `20`.
+
+### Les affectations composées
+
+Pour modifier une variable à partir de sa propre valeur, Luau propose des raccourcis :
+
+```luau
+local pieces = 10
+pieces += 5  -- équivaut à : pieces = pieces + 5   (15)
+pieces -= 3  -- équivaut à : pieces = pieces - 3   (12)
+pieces *= 2  -- équivaut à : pieces = pieces * 2   (24)
+print(pieces) --> 24
+```
+
+## Les textes (strings)
+
+### Coller des textes avec `..`
+
+Pour **concaténer** (coller) des textes, on utilise deux points `..`, jamais `+`. Les nombres sont convertis automatiquement en texte.
+
+```luau
+local pseudo = "Lea"
+local etape = 3
+
+print("Bravo " .. pseudo .. " !")                 --> Bravo Lea !
+print(pseudo .. " est à l'étape " .. etape)       --> Lea est à l'étape 3
+print("Longueur du pseudo : " .. #pseudo)         --> Longueur du pseudo : 3
+print("Étape suivante : " .. tostring(etape + 1)) --> Étape suivante : 4
+```
+
+`..` n’ajoute **pas** d’espace : pense à les mettre dans tes textes. Le `#` devant un texte donne son nombre de caractères. `tostring` convertit une valeur en texte, et `tonumber` fait l’inverse (il renvoie `nil` si le texte n’est pas un nombre) : `tonumber("12")` vaut `12`.
+
+### L’interpolation avec les accents graves
+
+Luau propose une écriture plus lisible : l’**interpolation de chaînes**. On entoure le texte d’**accents graves** (le caractère `` ` `` ; sur un clavier AZERTY français : AltGr + 7, puis Espace) et on place les valeurs entre accolades.
+
+```luau
+local pseudo = "Lea"
+local etape = 3
+
+print(`{pseudo} est à l'étape {etape}`)         --> Lea est à l'étape 3
+print(`Prochaine étape : {etape + 1} sur 10`)   --> Prochaine étape : 4 sur 10
+```
+
+Tu peux mettre n’importe quel calcul entre les accolades. Seule contrainte : pour passer un texte à accents graves à une fonction, garde toujours les parenthèses, comme ci-dessus.
+
+## Comparer des valeurs
+
+Les opérateurs de **comparaison** renvoient toujours un booléen (`true` ou `false`) :
+
+| Opérateur | Signification | Exemple vrai |
+|---|---|---|
+| `==` | égal à | `3 == 3` |
+| `~=` | différent de | `3 ~= 4` |
+| `<` / `>` | plus petit / plus grand | `2 < 5` |
+| `<=` / `>=` | plus petit ou égal / plus grand ou égal | `5 >= 5` |
+
+<Erreur titre="Confondre = et ==, ou écrire !=">
+`=` **range** une valeur dans une variable, `==` **compare** deux valeurs. Écrire `if etape = 3 then` provoque une erreur de syntaxe. Et « différent de » s’écrit `~=` en Luau : `!=`, qu’on voit dans d’autres langages, n’existe pas.
+</Erreur>
+
+## Les opérateurs logiques : `and`, `or`, `not`
+
+- `a and b` est vrai si **les deux** sont vrais ;
+- `a or b` est vrai si **au moins un** des deux est vrai ;
+- `not a` inverse : `not true` vaut `false`.
+
+```luau
+local aUnePiece = true
+local etape = 4
+
+print(aUnePiece and etape >= 3)   --> true  (les deux conditions sont vraies)
+print(etape > 10 or aUnePiece)    --> true  (une seule suffit)
+print(not aUnePiece)              --> false
+```
+
+### Vrai, faux… et tout le reste (truthy / falsy)
+
+Règle capitale en Luau : **seuls `nil` et `false` sont considérés comme faux**. Tout le reste est considéré comme vrai, y compris `0` et le texte vide `""`. On dit que `nil` et `false` sont « falsy », et tout le reste « truthy ».
+
+Cette règle permet une astuce très utilisée : `or` pour donner une **valeur par défaut**. En effet, `or` renvoie la première valeur si elle est vraie, sinon la seconde.
+
+```luau
+local recordPerso = nil
+local record = recordPerso or 0 -- recordPerso vaut nil, donc on prend 0
+print(record) --> 0
+```
+
+<Attention>
+Ne compte pas sur `if nombre then` pour vérifier qu’un nombre est différent de zéro : `0` est vrai en Luau ! Écris explicitement `if nombre ~= 0 then`.
+</Attention>
+
+## Prendre des décisions avec `if`
+
+La structure **`if`** exécute un bloc de code seulement si une condition est vraie. Elle se termine toujours par `end`.
+
+```luau
+local etape = 7
+
+if etape == 10 then
+	print("Tu as terminé l'Obby des Nuages !")
+elseif etape >= 5 then
+	print("Tu as passé la moitié du parcours.")
+else
+	print("Courage, tu débutes !")
+end
+```
+
+Luau teste les conditions **dans l’ordre** et n’exécute que le **premier** bloc dont la condition est vraie. Ici, `etape` vaut 7 : la première condition est fausse, la deuxième vraie, donc seul « Tu as passé la moitié du parcours. » s’affiche. Le `else` final, facultatif, attrape tous les autres cas.
+
+<Erreur titre="Mettre les conditions dans le mauvais ordre">
+Si tu écris `if etape >= 5 then ... elseif etape == 10 then ...`, le second bloc ne s’exécutera **jamais** : 10 est aussi `>= 5`, donc c’est toujours le premier bloc qui gagne. Place les conditions les plus précises en premier.
+</Erreur>
+
+<Astuce titre="L’expression if en une ligne">
+Pour choisir entre deux valeurs, Luau propose une version courte : `local message = if etape == 10 then "Victoire !" else "Continue !"`. Le `else` y est obligatoire. C’est plus sûr que l’ancienne astuce `a and b or c`, qui donne un résultat inattendu quand `b` vaut `false` ou `nil`.
+</Astuce>
+
+## Fil rouge : la kill brick de l’Obby des Nuages
+
+Une **kill brick** est une Part qui élimine le joueur qui la touche ; il réapparaît alors à son point de départ (on gérera le retour au checkpoint à la leçon 5). Pour éliminer un personnage, il suffit de mettre la santé (`Health`) de son **Humanoid** à `0`. Le Humanoid est l’objet qui gère la vie, la marche et le saut d’un personnage.
+
+### Préparer la scène
+
+1. Dans le Workspace, crée un **Folder** nommé `KillBricks` (respecte bien ce nom, on le réutilisera).
+2. Crée une Part rouge en matériau `Neon`, ancrée (**Anchored** coché), placée sous ou entre deux plateformes, et range-la dans `KillBricks`.
+3. Insère un **Script** à l’intérieur de cette Part.
+
+### Le code
+
+```luau
+-- Script placé DANS une Part du dossier Workspace.KillBricks
+local killBrick = script.Parent
+
+-- Cette fonction est appelée chaque fois que quelque chose touche la Part.
+-- autrePart = la partie qui a touché (une jambe, un bras, un objet...)
+local function surContact(autrePart)
+	local personnage = autrePart.Parent -- le Model qui contient cette partie
+	local humanoid = personnage:FindFirstChildOfClass("Humanoid")
+
+	-- On vérifie que c'est bien un personnage (il a un Humanoid)
+	-- ET qu'il est encore vivant (inutile de le tuer deux fois)
+	if humanoid and humanoid.Health > 0 then
+		humanoid.Health = 0
+	end
+end
+
+-- On relie la fonction à l'événement Touched de la Part (détaillé à la leçon 5)
+killBrick.Touched:Connect(surContact)
+```
+
+Lance le jeu et saute sur la Part : ton personnage s’effondre puis réapparaît au SpawnLocation.
+
+Ce qui compte ici, c’est la **condition** :
+
+- `FindFirstChildOfClass("Humanoid")` cherche un enfant de classe Humanoid et renvoie `nil` s’il n’en trouve pas (par exemple si c’est une balle ou une autre Part qui touche) ;
+- `if humanoid and ...` protège donc le code : sans ce test, `humanoid.Health` provoquerait l’erreur `attempt to index nil with 'Health'` dès qu’un objet non-personnage touche la brique ;
+- `humanoid.Health > 0` évite de « retuer » un personnage déjà mort.
+
+La syntaxe `local function` et `:Connect` seront expliquées en détail aux leçons 3 et 5. Pour l’instant, retiens que `surContact` s’exécute à chaque contact.
+
+<Info>
+D’après la documentation Roblox, mettre `Health` à `0` fait passer le Humanoid dans l’état « mort » (`Dead`), même si le joueur a un ForceField (bouclier de protection). La méthode `humanoid:TakeDamage(20)` retire seulement 20 points de vie, mais elle n’a aucun effet si le personnage est protégé par un ForceField.
+</Info>
+
+<Defi>
+1. Crée ta kill brick dans `Workspace.KillBricks` et teste-la.
+2. Duplique-la (Ctrl+D) deux ou trois fois et place les copies dans ton niveau : chaque copie embarque son propre script. (À la leçon 4, on remplacera toutes ces copies de script par un seul script qui gère tout le dossier.)
+3. Bonus : dans un nouveau Script, déclare une variable `etape`, puis écris un `if / elseif / else` qui affiche « Début », « Milieu » ou « Fin » selon sa valeur (1 à 3 : début, 4 à 7 : milieu, 8 et plus : fin). Teste plusieurs valeurs.
+</Defi>
+
+<Resume>
+- On déclare les variables avec **`local`** ; les noms sont sensibles à la casse et ne commencent pas par un chiffre.
+- Types de base : **`nil`**, **`boolean`**, **`number`**, **`string`** ; `typeof` donne le type, y compris les types Roblox.
+- Opérateurs : `+ - * / // % ^`, comparaisons `== ~= < > <= >=`, textes collés avec **`..`** ou interpolés avec les accents graves.
+- **Seuls `nil` et `false` sont faux** ; `0` et `""` sont vrais. `or` sert à donner une valeur par défaut.
+- `if / elseif / else / end` exécute le premier bloc dont la condition est vraie.
+- Une kill brick met `Health` à `0` après avoir vérifié qu’un Humanoid a bien été trouvé.
+</Resume>
+
+<Sources>
+- [Variables — documentation Luau de Roblox](https://create.roblox.com/docs/luau/variables)
+- [Operators — documentation Luau de Roblox](https://create.roblox.com/docs/luau/operators)
+- [Strings — documentation Luau de Roblox](https://create.roblox.com/docs/luau/strings)
+- [Syntaxe de Luau (interpolation, expressions if, affectations composées) — luau.org](https://luau.org/syntax)
+- [typeof — Roblox globals, référence API](https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals)
+- [Humanoid (Health, TakeDamage) — référence API](https://create.roblox.com/docs/reference/engine/classes/Humanoid)
+- [Tutoriel officiel « Deadly lava »](https://create.roblox.com/docs/tutorials/use-case-tutorials/scripting/basic-scripting/deadly-lava)
+</Sources>

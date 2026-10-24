@@ -1,0 +1,238 @@
+---
+titre: Fixer ses prix et monétiser éthiquement
+description: Choisis des prix cohérents, découvre les outils officiels de test de prix et respecte les règles de Roblox sur les promotions et les objets aléatoires payants.
+duree: 35
+objectifs:
+  - Choisir des prix cohérents et une gamme de prix adaptée
+  - Connaître les outils officiels de prix régionaux et de test de prix
+  - Distinguer cosmétique, confort et pay-to-win
+  - Appliquer les règles de Roblox sur les promotions et les objets aléatoires payants
+miseAJour: 2026-10-24
+quiz:
+  - type: vrai-faux
+    question: "Afficher « PROMO -50 % » sur un objet qui est en réalité toujours vendu à ce prix est autorisé, tant que le prix est correct."
+    reponse: false
+    explication: "Selon les règles de Roblox, une réduction doit être **authentique** : un objet toujours « en promo » au même prix n’est pas une vraie réduction. C’est une pratique trompeuse, interdite."
+  - type: qcm
+    question: "Ton jeu vend des œufs mystère contre une monnaie achetable avec des Robux. Que dois-tu faire ? (plusieurs réponses possibles)"
+    options:
+      - texte: Afficher toutes les récompenses possibles et leurs probabilités en pourcentage, avant l’achat
+        correct: true
+      - texte: Utiliser `PolicyService` pour bloquer ou remplacer l’offre chez les joueurs à qui elle est interdite
+        correct: true
+      - texte: Rien de spécial, car le joueur ne paie pas directement en Robux
+      - texte: Afficher les probabilités seulement après l’ouverture de l’œuf
+    explication: "Les règles s’appliquent aussi aux achats **indirects** (monnaie achetée avec des Robux). Toutes les issues et leurs probabilités doivent être visibles **avant** l’achat, et `ArePaidRandomItemsRestricted` doit être respecté pour chaque joueur."
+  - type: qcm
+    question: Pourquoi la plupart des petits jeux ne peuvent-ils pas utiliser l’optimisation des prix (price optimization) de Roblox ?
+    options:
+      - texte: Elle est réservée aux jeux appartenant à une Communauté
+      - texte: Elle demande assez de transactions, en général au moins 60 000 sur les 30 derniers jours
+        correct: true
+      - texte: Elle coûte des Robux à chaque test
+    explication: "Pour obtenir des résultats fiables, la documentation indique qu’il faut en général au moins **60 000 transactions sur 30 jours**. Un petit jeu n’a pas assez d’achats pour que les différences de prix soient significatives."
+  - type: trouve-le-bug
+    question: "Ce script doit afficher le coffre payant **uniquement** aux joueurs autorisés. Où est le bug ?"
+    code: |
+      local PolicyService = game:GetService("PolicyService")
+      local Players = game:GetService("Players")
+
+      Players.PlayerAdded:Connect(function(player)
+      	local ok, politique = pcall(function()
+      		return PolicyService:GetPolicyInfoForPlayerAsync(player)
+      	end)
+      	local autorise = ok and politique.ArePaidRandomItemsRestricted == true
+      	player:SetAttribute("CoffresPayantsAutorises", autorise)
+      end)
+    options:
+      - texte: "Ligne 5 : `GetPolicyInfoForPlayerAsync` ne doit pas être dans un `pcall`"
+      - texte: "Ligne 8 : la condition est inversée, il faut `ArePaidRandomItemsRestricted == false`"
+        correct: true
+      - texte: "Ligne 9 : un attribut ne peut pas contenir un booléen"
+    explication: "`ArePaidRandomItemsRestricted` vaut `true` quand le joueur **n’a pas le droit** d’utiliser des objets aléatoires payants. Ici, on autorise précisément les joueurs interdits. Le `pcall` est obligatoire pour un appel asynchrone, et un attribut accepte bien les booléens."
+  - type: vrai-faux
+    question: Un compte à rebours « Offre spéciale, plus que 10 minutes ! » qui recommence à zéro à chaque connexion est une technique autorisée pour encourager les achats.
+    reponse: false
+    explication: "Roblox interdit les comptes à rebours inexacts ou qui redémarrent pour le même objet, ainsi que les fausses raretés (« presque épuisé »). Ces techniques créent une fausse urgence, particulièrement nocive pour un public jeune."
+---
+
+Tu sais maintenant créer et vendre un Game Pass, un Developer Product et un abonnement. Reste une question délicate : **à quel prix**, et **jusqu’où** aller ? Sur Roblox, beaucoup de joueurs sont mineurs. Monétiser éthiquement n’est pas seulement une question de morale : c’est aussi une question de **règles** que Roblox impose, et de **confiance** de tes joueurs.
+
+## Fixer un prix cohérent
+
+Il n’existe pas de « bon prix » universel, et Roblox ne publie pas de grille de prix idéaux. En revanche, sa documentation donne des principes solides.
+
+### Un objet doit avoir une valeur claire
+
+Le guide officiel « Monetization foundations » le résume : quand un joueur achète un objet, il doit y trouver de la **valeur** et comprendre facilement **à quoi il sert** dans le jeu. La description doit être **exacte et honnête**. La boutique doit aussi donner du **contexte** : un prix seul, sans comparaison avec les autres offres, ne dit pas au joueur ce que vaut l’objet.
+
+### Une gamme de prix plutôt qu’un seul prix
+
+La page officielle sur les statistiques de monétisation conseille de proposer des objets à **plusieurs niveaux de prix** : certains joueurs ne dépenseront qu’un petit montant, d’autres davantage. Elle suggère aussi des **offres de bienvenue** pour les premiers achats, afin de réduire la barrière de la première dépense.
+
+Pour l’Obby des Nuages, cela pourrait donner :
+
+- « Passer l’étape » : un petit prix, car on peut l’acheter plusieurs fois ;
+- « Traînée dorée » : un prix moyen, pour un avantage permanent mais purement cosmétique ;
+- l’abonnement « Nuage+ » : seulement s’il apporte quelque chose de nouveau chaque mois.
+
+Les montants exacts sont **ton choix**. Observe les jeux similaires au tien, puis ajuste avec tes propres statistiques (module 8).
+
+<Info titre="Une contrainte chiffrée officielle">
+Si tu veux que ton Game Pass soit mis en avant (« promoted ») sur la page d’achat de Robux, il doit, quand il est en vente, coûter **plus de 49 Robux et moins de 801 Robux** (documentation consultée en octobre 2026). Un tel pass ne peut pas donner d’objets aléatoires payants.
+</Info>
+
+## Prix régionaux et tests de prix : les outils officiels
+
+### Managed Pricing
+
+Au moment de la rédaction (octobre 2026), Roblox regroupe deux outils sous le nom de **Managed Pricing**, dans **Monetization ⟩ Managed Pricing** du Creator Hub :
+
+- **Regional pricing** (prix régionaux) : Roblox ajuste le prix selon la « localisation économique » du joueur (pouvoir d’achat, taux de change, habitudes de dépense). Le prix régional reste **entre 30 % et 100 %** de ton prix par défaut. Il est activé par défaut pour les passes et les abonnements en Robux.
+- **Price optimization** (optimisation des prix) : Roblox répartit automatiquement tes joueurs en groupes qui voient des prix différents, mesure les achats, puis te recommande les meilleurs prix. Un test dure environ **3 semaines**, et les nouveaux prix ne sont appliqués que s’ils augmentent le revenu total.
+
+Les tests de prix ne concernent que les Game Passes et les Developer Products : les abonnements en Robux sont régionalisés automatiquement, mais exclus des tests. Et la documentation prévient : pour un test de prix fiable, il faut en général **au moins 60 000 transactions sur les 30 derniers jours**. Un premier jeu en est souvent loin, et c’est normal.
+
+<Info titre="Échanges et cadeaux entre joueurs">
+Avec les prix régionaux, un même objet peut coûter moins cher dans certains pays. Si ton jeu permet d’offrir ou d’échanger des objets achetés, la documentation recommande `MarketplaceService:GetUsersPriceLevelsAsync` pour éviter qu’on profite des écarts de prix.
+</Info>
+
+### Le prérequis : des prix lus dynamiquement
+
+Tous ces outils, ainsi que les réductions Roblox Plus, supposent que ton interface lit le prix **depuis Roblox**. La documentation fournit même un outil, **Dynamic Price Check**, qui affiche de faux prix à des comptes de test pour repérer les prix écrits « en dur ». Voici le bouton « Passer l’étape » de la leçon 3, avec un prix toujours exact :
+
+```luau
+-- LocalScript dans le bouton « BoutonPasserEtape » (StarterGui > Boutique)
+local MarketplaceService = game:GetService("MarketplaceService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local ID_PASSER_ETAPE = 0 -- l'ID de ton Developer Product
+local bouton = script.Parent :: TextButton
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local demanderPasserEtape = remotes:WaitForChild("DemanderPasserEtape") :: RemoteEvent
+
+-- Lit le prix réel (régional, réduit ou en test) depuis Roblox
+local function afficherPrix()
+	local ok, infos = pcall(function()
+		return MarketplaceService:GetProductInfoAsync(ID_PASSER_ETAPE, Enum.InfoType.Product)
+	end)
+	if ok and infos.PriceInRobux then
+		bouton.Text = "Passer l'étape (" .. infos.PriceInRobux .. " Robux)"
+	else
+		bouton.Text = "Passer l'étape" -- mieux vaut aucun prix qu'un prix faux
+	end
+end
+
+bouton.Activated:Connect(function()
+	demanderPasserEtape:FireServer() -- le serveur vérifie puis ouvre la fenêtre d'achat
+end)
+
+afficherPrix()
+```
+
+<Astuce titre="Tester sans Managed Pricing">
+Même sans assez de transactions pour un test de prix officiel, tu peux mesurer l’effet d’un changement : modifie **un seul** prix à la fois, note la date, et compare les ventes et la rétention avant et après dans tes statistiques (module 8). Roblox propose aussi des **Experiments** (tests A/B) dont la documentation cite la tarification parmi les usages possibles.
+</Astuce>
+
+## Cosmétique, confort ou pay-to-win ?
+
+On peut classer ce qu’on vend en trois familles :
+
+- **Cosmétique** : change l’apparence, pas le jeu (la traînée dorée). Aucun joueur n’est désavantagé s’il ne paie pas.
+- **Confort** : fait gagner du temps sans écraser les autres (« passer l’étape » dans un obby où l’on ne joue pas les uns contre les autres).
+- **Pay-to-win** (« payer pour gagner ») : l’argent donne un avantage décisif sur les autres joueurs, par exemple une arme surpuissante dans un jeu de combat.
+
+Les recommandations de Roblox vont dans ce sens : pour les anciens avantages Premium, la documentation conseillait de ne **pas** donner d’avantage tactique face aux joueurs non payants. Et elle déconseille les minuteurs qu’on paie pour raccourcir, très impopulaires auprès des joueurs.
+
+<Erreur titre="Fausser un classement avec un achat">
+Si ton Obby des Nuages affiche un classement des étapes, « Passer l’étape » permet d’y grimper en payant. Les joueurs qui ont tout fait à la main le vivront comme une injustice. Solutions possibles : ne pas compter les étapes achetées dans le classement, ou afficher un classement basé sur autre chose (le temps, par exemple). C’est un choix de design à faire **avant** de vendre le produit.
+</Erreur>
+
+## Les règles de Roblox à respecter
+
+Ces règles viennent de la documentation officielle et des Community Standards. Les enfreindre peut entraîner la modération du jeu.
+
+### Présenter honnêtement ses offres
+
+Selon la page officielle « Monetization » (octobre 2026) :
+
+- une réduction doit être **authentique** (pas toujours « en promo » au même prix) et **équitable** (pas limitée à un délai très court pour presser l’achat) ;
+- interdit de prétendre qu’un objet est **presque épuisé** ou disponible peu de temps si c’est faux ;
+- interdit d’afficher un **compte à rebours inexact** ou qui **redémarre** pour le même objet ;
+- les joueurs ne doivent jamais être trompés, embrouillés ou poussés à acheter ce qu’ils ne voulaient pas.
+
+Roblox donne même des exemples de formulations à éviter avec les mineurs : remplace « GET IT NOW » (« Achète-le maintenant ») par « View Item » (« Voir l’objet »), et « LAST CHANCE, ACT NOW » par « See Price » (« Voir le prix »).
+
+### Les objets aléatoires payants (loot boxes)
+
+Un **objet aléatoire payant** est une récompense au hasard obtenue, **directement ou indirectement**, avec des Robux : tourner une roue, ouvrir un coffre, faire éclore un œuf, mais aussi les potions de chance qui modifient les probabilités. Payer des Robux pour acheter des gemmes qu’on dépense ensuite à la roue compte aussi.
+
+Les règles officielles (octobre 2026) :
+
+- **Afficher toutes les issues possibles et leurs probabilités chiffrées**, **avant** l’achat, en pourcentages dont la somme fait exactement 100 % (un arrondi est permis avec une mention).
+- Si la liste est longue, elle peut être dans une fenêtre ouverte par un bouton portant un **mot** comme « Info » ou « Détails » : une simple icône (i) **ne suffit pas**.
+- Les objets qui **modifient les chances** (potion de chance, canne à pêche magique) doivent expliquer chiffres à l’appui leur effet, et les probabilités affichées doivent se mettre à jour quand ils sont actifs.
+- Une récompense aléatoire **gratuite** (trouver une clé dans le jeu pour ouvrir un coffre) n’exige pas d’afficher les probabilités.
+
+### PolicyService : obligatoire
+
+Selon les pays et l’âge, certains joueurs **n’ont pas le droit** d’utiliser des objets aléatoires payants. Roblox fournit `PolicyService:GetPolicyInfoForPlayerAsync(player)`, et sa documentation précise que tu **dois** l’intégrer. Le champ `ArePaidRandomItemsRestricted` vaut `true` pour les joueurs concernés. Pour eux, tu dois appliquer une solution officielle : chemin gratuit pour obtenir l’objet, ordre des récompenses fixé et annoncé, vente directe de l’objet, retrait de l’offre, message d’indisponibilité, ou éloignement de la zone concernée.
+
+```luau
+-- Script (côté serveur) dans ServerScriptService, nommé « Politiques »
+-- Exemple si ton jeu proposait un coffre payant (l'Obby des Nuages n'en a pas)
+local PolicyService = game:GetService("PolicyService")
+local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player)
+	local ok, politique = pcall(function()
+		return PolicyService:GetPolicyInfoForPlayerAsync(player)
+	end)
+	-- En cas d'erreur, on choisit l'option la plus prudente : pas de coffre payant
+	local autorise = ok and politique.ArePaidRandomItemsRestricted == false
+	player:SetAttribute("CoffresPayantsAutorises", autorise)
+	-- Le serveur doit AUSSI refuser l'achat si l'attribut est faux (module 3)
+end)
+```
+
+Le même service indique aussi si un joueur peut **échanger** des objets payants (`IsPaidItemTradingAllowed`), voir des **publicités immersives** (`AreAdsAllowed`) ou acheter un **abonnement** (`IsEligibleToPurchaseSubscription`, vu à la leçon 4).
+
+<Attention titre="Le choix de l’Obby des Nuages">
+Notre obby ne vend **aucun** objet aléatoire payant. C’est un choix volontaire : moins de règles à gérer, pas de risque de mal afficher des probabilités, et une boutique plus simple à comprendre pour un public jeune. Si un jour tu en ajoutes, relis la page officielle « Paid random items » en entier avant de publier.
+</Attention>
+
+## La checklist éthique de ta boutique
+
+Avant de publier une offre, pose-toi ces questions :
+
+1. Le joueur comprend-il **exactement** ce qu’il achète, pour combien, et pour combien de temps ?
+2. Le prix affiché est-il **lu depuis Roblox** ?
+3. Un joueur qui ne paie jamais peut-il quand même **finir le jeu et s’amuser** ?
+4. Mes promotions sont-elles **vraies** (prix, durée, stock) ?
+5. Mes textes évitent-ils la **pression** (« DERNIÈRE CHANCE ! ») ?
+6. Si j’ai du hasard payant : probabilités affichées **avant** l’achat et `PolicyService` intégré ?
+
+<Defi>
+Passe la boutique de l’Obby des Nuages au crible de la checklist ci-dessus. Note chaque point « non » ou « je ne sais pas », corrige-le, puis réécris les textes de tes boutons avec des formulations neutres (« Voir », « Acheter », « Détails »).
+</Defi>
+
+<Resume>
+- Un prix se justifie par une **valeur claire** ; propose une **gamme de prix** plutôt qu’un seul niveau.
+- **Managed Pricing** regroupe prix régionaux (30 à 100 % du prix par défaut) et tests de prix, ces derniers demandant en général au moins 60 000 transactions sur 30 jours.
+- Lis toujours les prix avec `GetProductInfoAsync` pour afficher le **prix réel**.
+- Interdits : fausses promotions, fausse rareté, comptes à rebours trompeurs, pression sur les joueurs.
+- Objets aléatoires payants : probabilités en pourcentage **avant** l’achat et intégration **obligatoire** de `PolicyService` (`ArePaidRandomItemsRestricted`).
+</Resume>
+
+<Sources>
+- [Monetization — règles de présentation des offres et PolicyService](https://create.roblox.com/docs/production/monetization)
+- [Paid random items — règles officielles sur les objets aléatoires payants](https://create.roblox.com/docs/production/monetization/paid-random-items)
+- [PolicyService — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/PolicyService)
+- [Managed pricing — vue d’ensemble](https://create.roblox.com/docs/production/monetization/managed-pricing)
+- [Price optimization — fonctionnement des tests de prix](https://create.roblox.com/docs/production/monetization/price-optimization)
+- [Regional pricing — prix régionaux et GetUsersPriceLevelsAsync](https://create.roblox.com/docs/production/monetization/regional-pricing)
+- [Monetization foundations — valeur des objets et boutique](https://create.roblox.com/docs/production/game-design/monetization-foundations)
+- [Monetization analytics — conseils sur les niveaux de prix](https://create.roblox.com/docs/production/analytics/monetization)
+- [Experiments — tests A/B officiels](https://create.roblox.com/docs/production/experiments)
+- [Passes — conditions des passes mis en avant](https://create.roblox.com/docs/production/monetization/passes)
+</Sources>

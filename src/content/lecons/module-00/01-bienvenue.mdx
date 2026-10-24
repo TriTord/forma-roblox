@@ -1,11 +1,13 @@
 ---
 titre: Bienvenue dans la formation
-description: Comment fonctionne cette formation, ce que tu vas construire, et comment en tirer le maximum, même si tu pars de zéro.
-duree: 10
+description: Comment fonctionne cette formation, ce que tu vas construire, ce qu’il te faut pour commencer et comment suivre ta progression, même si tu pars de zéro.
+duree: 15
 objectifs:
   - Comprendre comment la formation est organisée (modules, leçons, quiz, examens)
   - Découvrir le projet fil rouge, l’Obby des Nuages
-  - Savoir comment suivre ta progression et gagner des badges
+  - Préparer ton matériel et ton rythme de travail
+  - Savoir suivre ta progression et gagner des badges
+miseAJour: 2026-10-24
 quiz:
   - type: qcm
     question: Combien de modules compte la formation, en comptant le module 0 ?
@@ -15,21 +17,30 @@ quiz:
       - texte: "11"
         correct: true
       - texte: "20"
-    explication: Les modules vont de 0 à 10, soit **11 modules** au total. Le module 0 pose les bases avant d’ouvrir Roblox Studio.
+    explication: Les modules sont numérotés de 0 à 10, soit **11 modules**. Le module 0 pose les bases (comprendre Roblox, adopter la bonne méthode) avant d’ouvrir Roblox Studio au module 1.
   - type: qcm
-    question: Qu’est-ce qui marque automatiquement une leçon comme terminée ? (plusieurs réponses possibles)
+    question: Qu’est-ce qui marque une leçon comme terminée ? (plusieurs réponses possibles)
     options:
       - texte: Réussir le quiz de fin de leçon (au moins 70 %)
         correct: true
       - texte: Cliquer sur le bouton « Marquer comme terminée »
         correct: true
-      - texte: Lire la leçon jusqu’en bas de la page
+      - texte: Faire défiler la leçon jusqu’en bas
       - texte: Ouvrir la leçon suivante
-    explication: Une leçon est terminée quand tu réussis son quiz **ou** quand tu cliques sur le bouton prévu. Faire défiler la page ne suffit pas.
+    explication: "Une leçon est terminée quand tu réussis son quiz **ou** quand tu cliques sur le bouton prévu. Le site ne sait pas si tu as vraiment lu : faire défiler la page ne compte pas."
   - type: vrai-faux
-    question: Ta progression est sauvegardée sur un serveur et te suit sur tous tes appareils.
+    question: Ta progression est enregistrée sur ton compte Roblox et te suit sur tous tes appareils.
     reponse: false
-    explication: La progression est enregistrée uniquement dans ton navigateur (stockage local). Sur un autre appareil ou un autre navigateur, tu repars de zéro.
+    explication: La progression est stockée **dans ton navigateur**, sur cet appareil seulement. Elle n’a aucun lien avec ton compte Roblox. Sur un autre appareil, un autre navigateur ou après un effacement des données de navigation, tu repars de zéro.
+  - type: qcm
+    question: Sur quels systèmes la documentation officielle indique-t-elle que Roblox Studio est disponible ?
+    options:
+      - texte: Windows et macOS
+        correct: true
+      - texte: Windows, macOS, Android et iOS
+      - texte: Uniquement sur navigateur web
+      - texte: Uniquement Windows
+    explication: "La page officielle d’installation présente Studio comme une application gratuite **pour Windows et Mac**. On peut jouer à Roblox sur téléphone ou tablette, mais pour créer avec Studio, il te faut un ordinateur."
   - type: trouve-le-bug
     question: "Ce script doit afficher un message de bienvenue quand un joueur rejoint la partie. Où est le bug ?"
     code: |
@@ -47,90 +58,177 @@ quiz:
         correct: true
       - texte: "Ligne 8 : il faut écrire `accueillir()` avec des parenthèses"
       - texte: Il n’y a aucun bug
-    explication: "En Luau, `+` sert aux additions de nombres. Pour coller (concaténer) deux textes, on utilise `..` : `\"Bienvenue, \" .. player.Name`. À la ligne 8, on passe bien la fonction elle-même, sans parenthèses."
+    explication: "En Luau, `+` sert à additionner des nombres. Pour coller (concaténer) deux textes, on utilise `..` : `\"Bienvenue, \" .. player.Name`. `GetService` est la bonne façon de récupérer un service, et à la ligne 8 on passe bien la fonction elle-même, sans parenthèses, pour qu’elle soit appelée plus tard."
 ---
 
-Salut et bienvenue ! 👋 Tu es sur le point d’apprendre à créer un jeu Roblox **complet** : le construire, le programmer, le rendre amusant, le publier et l’améliorer grâce aux statistiques. Pas besoin d’avoir déjà programmé : on part de zéro et on avance une marche à la fois.
+Salut et bienvenue ! Tu es sur le point d’apprendre à créer un jeu Roblox **complet** : le construire, le programmer, le rendre amusant, le publier, puis l’améliorer grâce aux statistiques. Pas besoin d’avoir déjà programmé : on part de zéro et on monte une marche à la fois. Dans cette première leçon, tu découvres comment la formation fonctionne, ce que tu vas construire et comment t’organiser pour aller au bout.
 
-## Comment la formation est organisée
+## Ce que tu vas apprendre
 
-La formation compte **11 modules**, numérotés de 0 à 10. Chaque module contient plusieurs leçons courtes et se termine par un **examen**.
+La formation compte **11 modules**, numérotés de 0 à 10. Chaque module regroupe quelques leçons courtes et se termine par un **examen**. Voici le parcours complet :
 
-Chaque leçon suit toujours la même structure :
+| Module | Thème | Ce que tu sauras faire |
+|---|---|---|
+| 0 | Bienvenue : comprendre Roblox avant de créer | Savoir comment fonctionne la plateforme et comment les jeux sont découverts |
+| 1 | Roblox Studio de zéro | Construire un premier niveau et le publier en privé |
+| 2 | Luau de A à Z | Écrire des scripts (le langage de programmation de Roblox) |
+| 3 | Client, serveur et sécurité | Protéger ton jeu contre la triche |
+| 4 | Systèmes de jeu | Sauvegarder la progression, créer une interface, animer |
+| 5 | Un game design qui retient les joueurs | Rendre ton jeu amusant du début à la fin |
+| 6 | Monétisation et DevEx | Vendre des objets de façon honnête et comprendre les revenus |
+| 7 | Publication et croissance | Préparer la page du jeu et le lancer |
+| 8 | Analytics : mesurer pour progresser | Lire les statistiques et prendre de bonnes décisions |
+| 9 | Optimisation et performances | Faire tourner ton jeu partout, même sur un petit téléphone |
+| 10 | Les erreurs qui tuent un jeu et la checklist de lancement | Vérifier ton jeu de bout en bout avant de le lancer |
 
-1. les **objectifs** de la leçon (l’encadré tout en haut) ;
-2. les **explications**, avec des exemples de code commentés ;
-3. des encadrés **Astuce pro** et **Erreur à éviter** ;
-4. un **résumé** de ce qu’il faut retenir ;
-5. les **sources**, pour vérifier et aller plus loin ;
-6. un **quiz** pour vérifier que tu as compris.
+Le **module 0**, celui où tu es, ne demande pas encore d’ouvrir Studio. Il t’aide à comprendre l’environnement dans lequel ton jeu va vivre : qui sont les joueurs, comment ils trouvent les jeux, et quel état d’esprit permet de terminer un projet. C’est souvent ce qui manque aux débutants, bien plus que la technique.
+
+## Comment une leçon est construite
+
+Toutes les leçons suivent la même structure, pour que tu saches toujours où chercher :
+
+1. les **objectifs**, dans l’encadré tout en haut ;
+2. les **explications**, découpées en sections (la table des matières te permet de sauter directement à l’une d’elles) ;
+3. des **exemples de code** commentés, dès que c’est utile ;
+4. des encadrés colorés : **Astuce pro**, **Erreur à éviter**, **Bon à savoir**, **Attention** et **À toi de jouer** (un petit exercice) ;
+5. un **résumé** de ce qu’il faut retenir ;
+6. les **sources** : des liens vers la documentation officielle de Roblox, pour vérifier et aller plus loin ;
+7. un **quiz** de quelques questions.
+
+Les quiz utilisent trois types de questions : le QCM (une ou plusieurs bonnes réponses), le vrai/faux et le « trouve le bug », où tu dois repérer l’erreur dans un petit extrait de code.
 
 <Info>
 Les quiz ne sont pas des pièges : chaque réponse est suivie d’une explication. Se tromper fait partie de l’apprentissage, et tu peux recommencer autant de fois que tu veux.
 </Info>
 
+### Pourquoi autant de sources ?
+
+Roblox évolue vite : de nouvelles fonctionnalités arrivent, d’autres disparaissent, des règles changent. Chaque leçon s’appuie donc sur la documentation officielle (le site **create.roblox.com**) et sur les annonces officielles de Roblox. Quand une information peut changer, comme un prix, un pourcentage ou une règle, la leçon l’indique avec sa date de vérification. Prends l’habitude de cliquer sur les sources : savoir lire la documentation officielle est une compétence aussi utile que savoir coder.
+
 ## Le projet fil rouge : l’Obby des Nuages
 
-Plutôt que des exercices isolés, tu vas construire **un vrai jeu** au fil des modules : l’*Obby des Nuages*, un parcours d’obstacles dans le ciel avec des pièces à ramasser et une petite boutique.
+Plutôt que des exercices isolés, tu vas construire **un vrai jeu** au fil des modules : l’*Obby des Nuages*, un parcours d’obstacles (un « obby ») dans le ciel, avec des **checkpoints** (points de sauvegarde), des **pièces** à ramasser et une petite **boutique** de traînées lumineuses (les « trails ») pour personnaliser son personnage.
+
+Chaque module ajoute une brique : le premier niveau construit à la main au module 1, les premiers scripts au module 2, la sécurité au module 3, la sauvegarde et la boutique au module 4, et ainsi de suite jusqu’au lancement. Tu découvriras le cahier des charges complet dans la dernière leçon de ce module.
 
 ### Pourquoi un obby ?
 
-Un obby est simple à démarrer (quelques plateformes suffisent), mais il permet d’aborder presque toutes les notions importantes : checkpoints, sauvegarde, interface, sécurité, monétisation, analytics…
+Un obby est simple à démarrer : quelques plateformes et un point d’apparition suffisent pour avoir quelque chose de jouable. Pourtant, il permet d’aborder presque toutes les notions importantes : checkpoints, sauvegarde, interface, sécurité, monétisation, statistiques et optimisation. Surtout, c’est un projet assez petit pour être **terminé et publié** par un débutant. Et un jeu terminé, même modeste, t’apprend beaucoup plus qu’un grand projet abandonné à moitié.
 
-Voici un aperçu du genre de script que tu sauras écrire et comprendre à la fin du module 2 :
+### Un aperçu du code que tu sauras écrire
+
+Voici le genre de script que tu sauras lire et écrire à la fin du module 2. Il détecte quand un joueur touche l’un des checkpoints de l’obby et affiche un message dans la fenêtre Output (la sortie de Studio, où s’affichent les messages et les erreurs).
 
 ```luau
--- Script placé dans une Part « Checkpoint » (côté serveur)
+-- Script (côté serveur) à placer dans ServerScriptService.
+-- Il suppose un dossier Workspace.Checkpoints contenant des Parts nommées "1", "2", "3"…
 local Players = game:GetService("Players")
-local checkpoint = script.Parent
+local Workspace = game:GetService("Workspace")
 
--- Cette fonction s'exécute à chaque fois que quelque chose touche la Part
-local function onTouched(hit: BasePart)
-	-- On cherche le joueur à qui appartient la partie du corps qui a touché
-	local player = Players:GetPlayerFromCharacter(hit.Parent)
-	if player == nil then
-		return -- ce n'est pas un joueur (une balle, un objet…) : on ignore
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+
+-- Appelée quand une partie du corps touche un checkpoint
+local function surContact(checkpoint: BasePart, partieTouchee: BasePart)
+	-- On cherche le joueur à qui appartient le personnage qui a touché
+	local joueur = Players:GetPlayerFromCharacter(partieTouchee.Parent)
+	if joueur == nil then
+		return -- ce n'est pas un joueur (un objet, un projectile…) : on ignore
 	end
-	print(player.Name .. " a atteint le checkpoint !")
+	print(joueur.Name .. " a atteint le checkpoint " .. checkpoint.Name)
 end
 
-checkpoint.Touched:Connect(onTouched)
+-- On branche la fonction sur chaque checkpoint du dossier
+for _, checkpoint in dossierCheckpoints:GetChildren() do
+	if checkpoint:IsA("BasePart") then
+		checkpoint.Touched:Connect(function(partieTouchee)
+			surContact(checkpoint, partieTouchee)
+		end)
+	end
+end
 ```
 
-Pas de panique si tout n’est pas clair : chaque ligne sera expliquée en détail plus tard.
+Pas de panique si tout n’est pas clair : chaque ligne sera expliquée en détail plus tard. Retiens seulement l’idée générale : un script **réagit à des événements** (ici, un contact) et **agit** en conséquence.
 
 <Astuce>
-Garde Roblox Studio ouvert pendant que tu lis. Taper le code toi-même, même en le recopiant, t’aide beaucoup plus à retenir que de simplement le lire.
+Garde Roblox Studio ouvert pendant que tu lis (à partir du module 1). Taper le code toi-même, même en le recopiant, t’aide bien plus à retenir que de simplement le lire. Et quand un exemple marche, modifie-le : change un texte, un nombre, une couleur. C’est en « cassant » les choses qu’on comprend comment elles fonctionnent.
 </Astuce>
+
+## Ce qu’il te faut pour commencer
+
+### Un ordinateur sous Windows ou macOS
+
+Roblox Studio, le logiciel gratuit qui sert à créer les jeux, est disponible **sur Windows et sur Mac**. On peut jouer à Roblox sur téléphone, tablette ou console, mais pour créer avec Studio, il te faut un ordinateur.
+
+Au moment de la rédaction (octobre 2026), la documentation officielle indique la configuration suivante :
+
+| | Minimum | Recommandé |
+|---|---|---|
+| Système | Windows 10 ou macOS 10.14 | Windows 11 ou macOS 14 et plus récent |
+| Mémoire vive (RAM) | 3 Go | 8 Go |
+| Résolution d’écran | 1600 × 900 ou plus | |
+
+Ces chiffres peuvent changer : vérifie la page officielle d’installation (lien dans les sources) avant d’installer. Une souris est aussi vivement conseillée : naviguer dans un monde 3D au pavé tactile est possible, mais beaucoup plus fatigant.
+
+### Un compte Roblox
+
+Le même compte sert à jouer et à créer. Si tu n’en as pas encore, crée-le sur roblox.com. Si tu es mineur, fais-le avec un parent ou un tuteur : les conditions d’utilisation de Roblox prévoient leur accord, et certaines fonctionnalités passent par le contrôle parental.
+
+<Attention>
+Ne partage jamais ton mot de passe, même avec quelqu’un qui prétend vouloir « t’aider à publier ton jeu ». Active la validation en deux étapes (2-Step Verification) dans les paramètres de ton compte. Ton compte de créateur deviendra précieux : c’est lui qui possédera ton jeu.
+</Attention>
+
+### Un carnet de bord
+
+Ce n’est pas obligatoire, mais c’est l’outil le plus sous-estimé des créateurs : un simple carnet ou un document texte où tu notes tes idées, ce que tu as fait à chaque séance, les bugs rencontrés et comment tu les as résolus. Tu t’en serviras dès la fin de cette leçon.
+
+## Le bon rythme : lire, pratiquer, recommencer
+
+La formation est pensée pour un cycle simple :
+
+1. **Lire** la leçon une première fois, sans chercher à tout retenir.
+2. **Pratiquer** tout de suite dans Studio : refaire l’exemple, puis le modifier.
+3. **Vérifier** avec le quiz. Si une question te bloque, relis la section concernée.
+4. **Avancer** l’Obby des Nuages avec ce que tu viens d’apprendre.
+
+Mieux vaut des séances courtes et régulières, par exemple trente minutes à une heure, plusieurs fois par semaine, qu’une journée entière tous les mois. Le cerveau retient mieux ce qu’il revoit souvent. Tu verras dans la leçon sur le mindset du créateur que cette régularité est aussi ce qui permet de terminer un jeu.
+
+<Erreur>
+Vouloir tout lire d’un coup sans pratiquer. On retient très peu en lisant seulement : après chaque leçon technique, ouvre Studio et refais l’exemple, même s’il te paraît simple. Un code qui « a l’air facile » à lire révèle souvent ses pièges quand on le tape soi-même.
+</Erreur>
 
 ## Suivre ta progression
 
 Ta progression est enregistrée automatiquement :
 
-- une leçon est **terminée** quand tu réussis son quiz (au moins 70 %) ou quand tu cliques sur « Marquer comme terminée » ;
-- chaque examen de module réussi débloque un **badge** ;
-- la page **Ma progression** récapitule tout.
+- une leçon est **terminée** quand tu réussis son quiz (au moins 70 % de bonnes réponses) ou quand tu cliques sur « Marquer comme terminée » ;
+- chaque **examen de module** réussi (au moins 70 %) débloque le **badge** du module ; celui du module 0 s’appelle « Explorateur » ;
+- d’autres badges récompensent ton parcours global : ta première leçon terminée, la moitié de la formation, des quiz parfaits, un examen sans faute, et bien sûr la formation complète ;
+- la page **Ma progression** récapitule tout, et la page **Programme** montre l’ensemble des modules et des leçons.
 
 <Attention>
-La progression est stockée **dans ton navigateur**, sur cet appareil uniquement. Si tu effaces les données de navigation ou si tu changes d’appareil, elle repart de zéro.
+La progression est stockée **dans ton navigateur**, sur cet appareil uniquement. Aucun compte n’est nécessaire, mais si tu effaces les données de navigation, si tu utilises la navigation privée ou si tu changes d’appareil, elle repart de zéro.
 </Attention>
 
-<Erreur>
-Vouloir tout lire d’un coup sans pratiquer. On retient très peu en lisant seulement : après chaque leçon, ouvre Studio et refais l’exemple, même s’il te paraît simple.
-</Erreur>
-
 <Defi>
-Avant la prochaine leçon, crée-toi un compte Roblox si ce n’est pas déjà fait, puis note sur une feuille **trois jeux Roblox** auxquels tu as aimé jouer et, pour chacun, une phrase sur ce qui te donne envie d’y revenir.
+Avant la prochaine leçon :
+
+1. Crée ton compte Roblox si ce n’est pas déjà fait (avec un parent si tu es mineur) et active la validation en deux étapes.
+2. Ouvre ton carnet de bord et note **trois jeux Roblox** auxquels tu as aimé jouer. Pour chacun, écris une phrase sur ce qui te donne envie d’y revenir.
+3. Note aussi le créneau de la semaine que tu réserves à la formation.
 </Defi>
 
 <Resume>
-- La formation compte **11 modules** (0 à 10), chacun terminé par un examen.
-- Chaque leçon suit la même structure : objectifs, explications, code, astuces, résumé, sources, quiz.
-- Tu construis un vrai jeu au fil des modules : l’**Obby des Nuages**.
+- La formation compte **11 modules** (0 à 10), chacun terminé par un examen qui débloque un badge.
+- Chaque leçon suit la même structure : objectifs, explications, code, encadrés, résumé, sources officielles, quiz.
+- Tu construis un vrai jeu au fil des modules : l’**Obby des Nuages**, assez petit pour être terminé.
+- Studio fonctionne sur **Windows et macOS** ; vérifie la configuration requise sur la page officielle.
+- Le bon rythme : lire, pratiquer tout de suite, vérifier, avancer, en séances courtes et régulières.
 - Ta progression est sauvegardée **dans ce navigateur** uniquement.
 </Resume>
 
 <Sources>
+- [Roblox Studio setup — configuration requise et installation (documentation officielle)](https://create.roblox.com/docs/studio/setup)
 - [Documentation officielle de Roblox (Creator Hub)](https://create.roblox.com/docs)
+- [Conditions d’utilisation de Roblox (Terms of Use)](https://www.roblox.com/info/terms)
 - [Site officiel du langage Luau](https://luau.org)
 </Sources>

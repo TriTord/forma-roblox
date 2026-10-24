@@ -1,0 +1,249 @@
+---
+titre: Tester son jeu comme un pro
+description: "Maîtrise les modes de test de Studio (Test, Test Here, Run, Server & Clients), la vue client et serveur, la fenêtre Output et la Command Bar."
+duree: 30
+objectifs:
+  - Choisir le bon mode de test (Test, Test Here, Run, Server & Clients)
+  - Lire la fenêtre Output pour comprendre un message ou une erreur
+  - Tester à plusieurs joueurs en local et passer de la vue client à la vue serveur
+  - Utiliser la Command Bar pour des actions rapides
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Tu veux observer ton niveau en mouvement (plateformes, physique) sans que ton avatar apparaisse. Quel mode choisis-tu ?
+    options:
+      - texte: Test (`F5`)
+      - texte: Test Here
+      - texte: Run (`F8`)
+        correct: true
+      - texte: Team Test
+    explication: "**Run** lance la simulation **sans insérer ton avatar** : tu te déplaces avec la caméra de Studio. **Test** et **Test Here** insèrent ton personnage, et **Team Test** sert à tester avec tes collaborateurs."
+  - type: vrai-faux
+    question: Les modifications que tu fais dans le niveau pendant un test sont conservées quand tu cliques sur **Stop**.
+    reponse: false
+    explication: "**Stop** (`Shift`+`F5`) remet tous les objets dans l’état où ils étaient **avant** le test. Tout ce que tu as construit ou modifié pendant le test disparaît. Arrête toujours le test avant de reprendre la construction."
+  - type: qcm
+    question: Pendant un test en solo, le viewport est entouré d’une bordure **verte**. Qu’est-ce que cela signifie ?
+    options:
+      - texte: Le test est en pause
+      - texte: Tu es en vue **Server**, avec une caméra libre
+        correct: true
+      - texte: Tu es en vue **Client**, tu contrôles ton personnage
+      - texte: Une erreur est apparue dans l’Output
+    explication: "Selon la documentation, la bordure **verte** indique la vue **Server** (caméra libre, objets du serveur visibles) et la bordure **bleue** la vue **Client** (tu contrôles ton personnage, comme un vrai joueur)."
+  - type: qcm
+    question: Tu veux vérifier ce que voit un joueur quand un autre joueur atteint un checkpoint. Quel outil utilises-tu ?
+    options:
+      - texte: Le mode Run
+      - texte: Le mode **Server & Clients** avec au moins deux clients
+        correct: true
+      - texte: La Command Bar
+      - texte: Le bouton Pause
+    explication: "**Server & Clients** lance un serveur et plusieurs clients (jusqu’à huit) sur ton ordinateur. C’est le seul moyen, en local, de voir comment un joueur perçoit les actions d’un autre."
+  - type: trouve-le-bug
+    question: "Ce Script (dans ServerScriptService) doit ancrer la Part `PlateformeDepart`. Au lancement, l’Output affiche une erreur rouge. Où est le bug ?"
+    code: |
+      local Workspace = game:GetService("Workspace")
+      local plateforme = Workspace:FindFirstChild("PlateformeDepart")
+
+      if plateforme and plateforme:IsA("BasePart") then
+      	plateforme.Anchored = "true"
+      	print("Plateforme ancrée !")
+      end
+    options:
+      - texte: "Ligne 2 : `FindFirstChild` doit recevoir le nom sans guillemets"
+      - texte: "Ligne 4 : `IsA` n’existe pas, il faut comparer `plateforme.ClassName`"
+      - texte: "Ligne 5 : `Anchored` attend un booléen `true`, pas le texte `\"true\"`"
+        correct: true
+      - texte: "Ligne 6 : `print` ne fonctionne pas dans un Script serveur"
+    explication: "`\"true\"` entre guillemets est un **texte** (string), alors que la propriété `Anchored` attend un **booléen** (`true` ou `false`, sans guillemets). L’Output affiche une erreur qui indique le script et la ligne 5. `FindFirstChild` prend bien un nom entre guillemets, `IsA` existe sur toutes les instances, et `print` fonctionne partout."
+  - type: qcm
+    question: Que fait la **Command Bar** ?
+    options:
+      - texte: Elle affiche la liste des raccourcis clavier
+      - texte: Elle exécute immédiatement du code Luau dans le place ouvert, sans créer de script
+        correct: true
+      - texte: Elle publie le jeu sur Roblox
+      - texte: Elle lance un test à plusieurs joueurs
+    explication: "La **Command Bar** exécute du code Luau tout de suite, en dehors de tout script. C’est idéal pour des actions rapides sur ton place (par exemple ancrer toutes les plateformes). Ses effets sont réels : enregistre ton travail avant de l’utiliser."
+---
+
+Construire, c’est bien. Vérifier que ça marche, c’est indispensable. Un obby où l’on ne peut pas atteindre la troisième plateforme, ou un script qui plante en silence, ça fait fuir les joueurs en quelques secondes. Dans cette leçon, tu apprends à utiliser les outils de test de Studio comme les créateurs expérimentés : choisir le bon mode, lire les erreurs et tester à plusieurs.
+
+## Les commandes de test
+
+Les commandes de test se trouvent sur la **gauche du mezzanine**, en haut de Studio : un **menu déroulant** pour choisir le mode, et le bouton **Play** juste à droite pour lancer le test.
+
+<Info titre="Des noms qui ont changé">
+Dans les anciens tutoriels, tu verras souvent les modes « Play » et « Play Here », dans un onglet « Test ». Dans la version actuelle décrite par la documentation officielle, les modes s’appellent **Test** et **Test Here**, et **Play** est le bouton qui lance le mode choisi. Le fonctionnement est le même.
+</Info>
+
+### Les trois modes de base
+
+| Mode | Raccourci | Ce qu’il fait |
+|---|---|---|
+| **Test** | `F5` | Lance le jeu et fait apparaître ton avatar sur une SpawnLocation (ou vers la position (0, 100, 0) s’il n’y en a pas) |
+| **Test Here** | — | Fait apparaître ton avatar juste devant la position actuelle de la caméra |
+| **Run** | `F8` | Lance la simulation **sans** avatar ; tu te déplaces avec la caméra de Studio |
+
+Quand le test tourne, de nouveaux boutons apparaissent dans le mezzanine :
+
+| Action | Raccourci | Effet |
+|---|---|---|
+| **Pause** / **Resume** | — | Met en pause ou relance la physique et les animations (les scripts continuent de tourner) |
+| **Step Forward** | — | En pause, avance d’un soixantième de seconde |
+| **Stop** | `Shift`+`F5` | Arrête le test et **remet tous les objets dans leur état d’avant le test** |
+| **Client** / **Server** | — | En test solo, bascule entre vue client et vue serveur |
+
+### Quel mode pour quoi ?
+
+- **Test** : le test « normal », comme un joueur qui arrive dans ton jeu. Utilise-le pour vérifier le début de partie.
+- **Test Here** : parfait pour régler un saut précis au milieu du niveau. Place la caméra juste avant le saut, lance **Test Here**, et tu n’as pas à refaire tout le parcours.
+- **Run** : pour observer ton monde en mouvement sans personnage, par exemple vérifier que rien ne tombe.
+
+<Astuce titre="Garder une modification faite pendant un test">
+Tu as trouvé la position parfaite d’une plateforme pendant un test ? Sélectionne-la et copie-la (`Ctrl`+`C`) **avant** d’arrêter le test. Après **Stop**, colle-la : un clic droit sur son futur parent dans l’Explorer, puis **Paste Options** › **Paste Into At Original Location**, la colle exactement à la même position. Supprime ensuite l’ancienne version.
+</Astuce>
+
+<Erreur titre="Construire pendant un test">
+C’est un piège classique : tu lances un test, tu remarques un problème, tu le corriges tout de suite… puis tu cliques sur **Stop** et ta correction disparaît. Pendant un test, les boutons du mezzanine et une bordure colorée autour du viewport te rappellent que la simulation tourne. Prends l’habitude : **je teste, j’arrête, puis je corrige**.
+</Erreur>
+
+## Vue client et vue serveur
+
+Un jeu Roblox tourne en deux endroits à la fois : sur un **serveur** de Roblox, qui fait autorité, et sur l’appareil de chaque joueur, le **client**. Même en test solo, Studio lance **deux simulations séparées**, une pour le client et une pour le serveur, pour reproduire au plus près le comportement du jeu publié.
+
+Le bouton **Client** / **Server** permet de passer de l’une à l’autre :
+
+- **Vue Client**, bordure **bleue** autour du viewport : tu contrôles ton personnage et la caméra du jeu, comme un vrai joueur.
+- **Vue Server**, bordure **verte** : ton personnage est présent mais tu ne le contrôles plus. Tu te déplaces avec une caméra libre, tu peux sélectionner des objets et inspecter leurs propriétés.
+
+L’Explorer change aussi selon la vue. Par exemple, en vue Client, tu ne vois pas le contenu de `ServerScriptService` ni de `ServerStorage` : ces services ne sont jamais envoyés aux joueurs.
+
+Fais l’expérience : pendant un test, passe en vue **Server**, sélectionne une plateforme et déplace-la. Repasse en vue **Client** : la plateforme a bougé aussi pour le joueur, car le serveur transmet ses changements aux clients. L’inverse n’est pas vrai : sauf exceptions (comme les mouvements de ton propre personnage), un changement fait uniquement sur le client n’est pas renvoyé au serveur. Ce mécanisme s’appelle la **réplication**, et tout le module 3 lui est consacré.
+
+## Tester à plusieurs : Server & Clients
+
+Certains bugs n’apparaissent qu’avec plusieurs joueurs. Le mode **Server & Clients** lance sur ton ordinateur un serveur et plusieurs clients, chacun dans sa propre fenêtre Studio.
+
+1. Dans le menu déroulant des tests, choisis **Server & Clients**.
+2. Choisis le nombre de clients. La documentation précise que 1 ou 2 clients suffisent généralement, et que tu peux en simuler jusqu’à 8.
+3. Clique sur **Play** (ou appuie sur `F7`).
+4. Pour tout fermer, clique sur **End Session** dans n’importe laquelle des fenêtres.
+
+Chaque fenêtre de client est une session Studio de plus : sur un ordinateur modeste, commence avec deux clients. Tu utiliseras ce mode très souvent à partir du module 3, pour vérifier par exemple que deux joueurs qui touchent le même checkpoint reçoivent chacun la bonne étape.
+
+Le menu propose aussi **Team Test**, qui sert à tester avec tes collaborateurs quand tu travailles à plusieurs sur le même jeu (tu en verras un aperçu dans la leçon 5).
+
+## La fenêtre Output
+
+La fenêtre **Output** (menu **Window** ou onglet **Script**) affiche :
+
+- les messages écrits par tes scripts avec `print` ;
+- les **avertissements** écrits avec `warn`, en jaune ;
+- les **erreurs** des scripts, en rouge ;
+- des messages du moteur Roblox lui-même.
+
+Pendant un test, chaque message porte une étiquette de couleur qui indique son origine : **bleue** pour le client, **verte** pour le serveur.
+
+### Ton premier message dans l’Output
+
+1. Dans l’Explorer, survole **ServerScriptService**, clique sur le bouton ⊕ et choisis **Script**.
+2. Le nouveau script contient déjà une ligne : `print("Hello world!")`.
+3. Lance un test avec `F5` : `Hello world!` apparaît dans l’Output.
+
+Remplace maintenant son contenu par ce petit script de vérification :
+
+```luau
+-- Script (côté serveur) à placer dans ServerScriptService
+local Workspace = game:GetService("Workspace")
+
+print("L'Obby des Nuages démarre !")
+
+-- On cherche une SpawnLocation directement dans le Workspace
+local pointDeDepart = Workspace:FindFirstChildOfClass("SpawnLocation")
+
+if pointDeDepart then
+	-- print accepte plusieurs valeurs séparées par des virgules
+	print("Point de départ trouvé à la position", pointDeDepart.Position)
+else
+	-- warn affiche un avertissement (en jaune) au lieu d'un simple message
+	warn("Aucune SpawnLocation : les joueurs apparaîtront vers (0, 100, 0) !")
+end
+```
+
+### Lire une erreur
+
+Une erreur dans l’Output te dit trois choses : **ce qui s’est mal passé**, **dans quel script** et **à quelle ligne**. Le script s’arrête à cet endroit : les lignes suivantes ne s’exécutent pas. Lis toujours le message en entier avant de modifier ton code. Même s’il est en anglais, quelques mots-clés suffisent souvent : *nil* (une valeur vide, souvent un objet introuvable), *expected* (« attendu »), *not a valid member* (cet enfant n’existe pas).
+
+Quelques outils pour t’y retrouver quand l’Output se remplit :
+
+- les **filtres** en haut de la fenêtre trient par type (erreurs, avertissements), par contexte (client, serveur) ou par texte ;
+- `Ctrl`+`K` (`⌘`+`K`) efface tous les messages ;
+- le menu d’options permet d’afficher l’heure (**Show Timestamp**), le contexte (**Show Context**) et le script et la ligne d’origine (**Show Source**).
+
+<Astuce titre="Garde l’Output toujours ouverte">
+Beaucoup de « mon jeu ne marche pas » se résolvent en lisant l’Output. Garde cette fenêtre visible en permanence, même quand tu construis sans coder : les modèles insérés, les plugins et le moteur y signalent aussi des problèmes.
+</Astuce>
+
+Dans un jeu publié, tu n’as pas accès à la fenêtre Output de Studio. À la place, la **Developer Console** s’ouvre avec `F9` (ou en tapant `/console` dans le chat) : elle montre les messages du client et du serveur. Tu l’exploreras au module 9.
+
+## La Command Bar
+
+La **Command Bar** (barre de commande) exécute du code Luau **immédiatement**, sans créer de script. Ouvre-la depuis l’onglet **Script** (ou le menu **Window** › **Script**), ou appuie sur `Ctrl`+`9` (`⌘`+`9`) pour y placer directement le curseur.
+
+C’est l’outil idéal pour les tâches répétitives. Exemple : ancrer d’un coup toutes les Parts du dossier `Plateformes`.
+
+```luau
+-- À exécuter dans la Command Bar (pas dans un script), en dehors d'un test
+local dossier = game:GetService("Workspace"):FindFirstChild("Plateformes")
+if dossier then
+	-- GetDescendants parcourt les enfants, les enfants des enfants, etc.
+	for _, objet in dossier:GetDescendants() do
+		if objet:IsA("BasePart") then
+			objet.Anchored = true
+		end
+	end
+	print("Toutes les plateformes sont ancrées")
+end
+```
+
+Au moment de la rédaction, la saisie sur plusieurs lignes dans la Command Bar est une fonctionnalité bêta (**File** › **Beta Features** › **Multi-line Command Bar**). Si ta Command Bar n’accepte qu’une ligne, rien de grave : Luau accepte d’écrire tout ce code sur une seule ligne, en séparant les instructions par des espaces. Retire alors les commentaires : tout ce qui suit `--` sur une ligne est ignoré.
+
+<Attention>
+La Command Bar agit **pour de vrai** sur ton place : supprimer, déplacer ou modifier des objets en masse se fait en une fraction de seconde. Enregistre ton travail avant de lancer une commande, et relis-la deux fois.
+</Attention>
+
+## Émulation d’appareils : un aperçu
+
+Ton jeu sera joué sur ordinateur, mais aussi sur téléphone, tablette ou console. Studio propose un **Device Simulator** qui reproduit la taille d’écran, la densité de pixels, le clavier virtuel et le tactile de différents appareils (téléphones, consoles, casques VR…). Au moment de la rédaction, sa nouvelle version, une barre au-dessus du viewport, est en **bêta** : elle s’active dans **File** › **Beta Features** › **New Device Simulator**. Comme cet outil évolue, réfère-toi à la page officielle ; tu l’utiliseras en détail au module 9.
+
+<Defi>
+
+1. Crée le script de vérification de la SpawnLocation ci-dessus dans ServerScriptService et lance un test avec `F5`. Observe l’étiquette verte des messages dans l’Output.
+2. Pendant le test, passe en vue **Server**, déplace une plateforme, puis reviens en vue **Client**.
+3. Arrête le test et constate que la plateforme est revenue à sa place.
+4. Place la caméra devant un saut et lance **Test Here**.
+5. Lance **Server & Clients** avec 2 clients et observe chaque joueur depuis la fenêtre de l’autre. Termine avec **End Session**.
+
+</Defi>
+
+<Resume>
+- Les commandes de test sont à gauche du mezzanine : **Test** (`F5`), **Test Here**, **Run** (`F8`), puis le bouton **Play**.
+- **Stop** (`Shift`+`F5`) annule tout ce qui a changé pendant le test.
+- En test solo, Studio simule un client (bordure bleue) et un serveur (bordure verte) ; le bouton **Client** / **Server** bascule de l’un à l’autre.
+- **Server & Clients** simule jusqu’à 8 joueurs en local ; **End Session** ferme tout.
+- L’**Output** affiche `print`, `warn` (jaune) et les erreurs (rouge) avec le script et la ligne.
+- La **Command Bar** (`Ctrl`+`9`) exécute du Luau immédiatement : puissant, donc à utiliser avec prudence.
+</Resume>
+
+<Sources>
+- [Studio testing modes — modes, raccourcis, client/serveur, multi-clients](https://create.roblox.com/docs/studio/testing-modes)
+- [Output — filtres, options et raccourci](https://create.roblox.com/docs/studio/output)
+- [Studio interface — Command Bar](https://create.roblox.com/docs/studio/overview)
+- [Explorer window — Paste Into At Original Location](https://create.roblox.com/docs/studio/explorer)
+- [Create a script — premier script et lecture de l’Output](https://create.roblox.com/docs/tutorials/fundamentals/coding-1/create-a-script)
+- [Debugging — Developer Console](https://create.roblox.com/docs/studio/debugging)
+- [Device Simulator — émulation d’appareils (bêta)](https://create.roblox.com/docs/studio/device-simulator)
+- [warn — référence des fonctions globales Roblox](https://create.roblox.com/docs/reference/engine/globals/RobloxGlobals)
+</Sources>

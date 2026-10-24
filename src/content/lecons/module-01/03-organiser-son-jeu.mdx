@@ -1,0 +1,226 @@
+---
+titre: "Organiser son jeu : services, Models et Folders"
+description: Découvre le rôle des principaux services de l’Explorer, range ton projet avec des Folders et des Models, et nomme tes objets pour que tes futurs scripts les trouvent.
+duree: 25
+objectifs:
+  - Connaître le rôle des principaux services de l’Explorer
+  - Ranger un projet avec des Folders et des Models
+  - Nommer tes objets de façon claire et cohérente
+  - Comprendre la hiérarchie parent/enfant
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Où places-tu un Script qui doit s’exécuter sur le serveur sans jamais être envoyé aux joueurs ?
+    options:
+      - texte: Dans ReplicatedStorage
+      - texte: Dans ServerScriptService
+        correct: true
+      - texte: Dans StarterGui
+      - texte: Dans Lighting
+    explication: "**ServerScriptService** est fait pour les scripts côté serveur : son contenu n’est jamais répliqué (copié) vers les joueurs. ReplicatedStorage, au contraire, est visible à la fois par le serveur et par les joueurs."
+  - type: vrai-faux
+    question: Un Script placé dans ServerStorage s’exécute au lancement du jeu.
+    reponse: false
+    explication: "Les scripts ne s’exécutent pas dans **ServerStorage** : ce service sert à **stocker** des objets côté serveur (par exemple des éléments à cloner plus tard). Les scripts serveur vont dans **ServerScriptService**."
+  - type: qcm
+    question: Tu construis un nuage décoratif composé de six Parts que tu veux déplacer d’un bloc. Quel conteneur choisis-tu ?
+    options:
+      - texte: Un Folder, car il déplace ses enfants ensemble
+      - texte: Un Model, fait pour regrouper des objets physiques qu’on manipule comme un tout
+        correct: true
+      - texte: Le service Lighting
+      - texte: Aucun, il faut laisser les Parts en vrac dans le Workspace
+    explication: "Un **Model** regroupe des objets physiques : tu peux le sélectionner, le déplacer et le tourner d’un seul geste, et lui donner une **PrimaryPart**. Un **Folder** sert seulement à ranger, il n’a aucun comportement propre."
+  - type: qcm
+    question: Au lancement du jeu, où le contenu de **StarterGui** est-il copié pour chaque joueur ?
+    options:
+      - texte: Dans `Player.PlayerGui`
+        correct: true
+      - texte: Dans `Player.Backpack`
+      - texte: Dans `ServerStorage`
+      - texte: Nulle part, StarterGui s’affiche directement
+    explication: "Le contenu de **StarterGui** est copié dans le **PlayerGui** de chaque joueur. De la même façon, StarterPack est copié dans le **Backpack** et StarterPlayerScripts dans **PlayerScripts**."
+  - type: trouve-le-bug
+    question: "Dans l’Explorer, le Workspace contient un Folder nommé `Checkpoints`. Ce Script (dans ServerScriptService) n’affiche jamais le nombre de checkpoints, et l’Output finit par signaler une attente infinie possible. Où est le bug ?"
+    code: |
+      local Workspace = game:GetService("Workspace")
+
+      local dossier = Workspace:WaitForChild("checkpoints")
+      local liste = dossier:GetChildren()
+      print("Nombre de checkpoints : " .. #liste)
+    options:
+      - texte: "Ligne 1 : il faut écrire `game.Workspace`, `GetService` ne marche pas pour Workspace"
+      - texte: "Ligne 3 : le nom est `Checkpoints` avec une majuscule ; les noms sont sensibles à la casse"
+        correct: true
+      - texte: "Ligne 4 : `GetChildren` n’existe pas sur un Folder"
+      - texte: "Ligne 5 : `#` ne fonctionne pas sur une liste d’objets"
+    explication: "Pour Roblox, `checkpoints` et `Checkpoints` sont deux noms différents. `WaitForChild` attend donc un enfant qui n’arrivera jamais, et affiche un avertissement après 5 secondes. Les autres lignes sont correctes : `GetService(\"Workspace\")` fonctionne, `GetChildren` existe sur tout objet et `#` compte les éléments d’une liste."
+  - type: vrai-faux
+    question: Deux objets enfants d’un même parent peuvent porter le même nom sans aucun risque pour les scripts qui les cherchent par leur nom.
+    reponse: false
+    explication: "Un script qui cherche un enfant par son nom (`FindFirstChild`, `WaitForChild`…) obtient **le premier trouvé** : impossible de savoir à l’avance lequel des deux. Donne un nom unique à chaque objet que tes scripts doivent retrouver."
+---
+
+Ton niveau commence à se remplir de Parts. Sans rangement, tu auras vite des dizaines d’objets nommés « Part » dans le désordre, et tes futurs scripts ne sauront pas les retrouver. Cette leçon t’apprend comment Roblox organise un jeu, à quoi sert chaque grand service, et comment ranger l’Obby des Nuages dès maintenant pour ne pas le regretter au module 2.
+
+## Le data model : l’arbre de ton jeu
+
+Tout ce qui compose un place (Parts, scripts, lumières, sons, interfaces) forme un grand arbre appelé le **data model**. C’est exactement ce que montre l’**Explorer**. Chaque élément de cet arbre est une **instance** (un objet) : toutes héritent de la même classe de base, `Instance`, qui leur donne des propriétés communes comme `Name` (le nom) et `Parent` (le parent).
+
+Le moteur de Roblox se sert de ce data model comme **source de vérité** : c’est à partir de lui qu’il simule et affiche le jeu sur l’appareil de chaque joueur.
+
+## Parents et enfants
+
+Dans l’arbre, chaque objet a un **parent** (l’objet qui le contient) et peut avoir des **enfants** (les objets qu’il contient). Une Part posée dans le monde a pour parent le `Workspace`. Si tu la ranges dans un dossier, son parent devient ce dossier.
+
+Quelques manipulations utiles dans l’Explorer :
+
+- clique sur la flèche à gauche d’un objet pour déplier ou replier sa branche (maintiens `Shift` pour tout déplier d’un coup) ;
+- **fais glisser** un objet sur un autre pour changer son parent ;
+- clic droit puis **Hierarchy** › **Select Children** pour sélectionner tous les enfants d’un objet ;
+- `Ctrl`+`Shift`+`V` (**Paste Into**) colle le contenu du presse-papiers **à l’intérieur** de l’objet sélectionné.
+
+Quand tu supprimes ou déplaces un parent, **tous ses enfants le suivent**. C’est ce qui rend le rangement si puissant : déplacer un dossier déplace tout ce qu’il contient dans l’arbre.
+
+## Les services à connaître
+
+Au premier niveau de l’arbre se trouvent les **services** : des conteneurs fournis par Roblox, chacun avec un rôle précis. Le moteur s’attend à trouver certains objets dans certains services : un script mal placé peut tout simplement ne pas s’exécuter.
+
+| Service | Rôle | Ce que tu y mettras |
+|---|---|---|
+| `Workspace` | Le monde 3D : tout ce qui y est s’affiche chez les joueurs | Plateformes, SpawnLocation, décor |
+| `Players` | Contient un objet `Player` par joueur connecté (créé automatiquement) | Rien à la main |
+| `Lighting` | L’éclairage global, le ciel, l’atmosphère | Réglages d’ambiance |
+| `ReplicatedStorage` | Objets accessibles à la fois par le serveur et par les joueurs | ModuleScripts partagés, RemoteEvents |
+| `ServerScriptService` | Scripts côté serveur, jamais envoyés aux joueurs | La logique du jeu |
+| `ServerStorage` | Objets côté serveur uniquement ; les scripts ne s’y exécutent pas | Objets à cloner plus tard |
+| `StarterGui` | Interfaces copiées dans le `PlayerGui` de chaque joueur | Écrans, boutons, compteurs |
+| `StarterPlayer` | Réglages des personnages et deux dossiers de scripts côté joueur | Voir ci-dessous |
+| `StarterPack` | Outils copiés dans le `Backpack` (sac) de chaque joueur | Outils |
+
+`StarterPlayer` contient deux dossiers importants :
+
+- **StarterPlayerScripts** : ses scripts sont copiés dans les `PlayerScripts` du joueur à son arrivée ;
+- **StarterCharacterScripts** : ses scripts sont copiés dans le **personnage** à chaque apparition, donc à nouveau après chaque mort.
+
+Tu croiseras aussi `ReplicatedFirst` (des objets envoyés aux joueurs avant tout le reste), `SoundService` ou `TextChatService`. Pas besoin de les maîtriser maintenant.
+
+<Info>
+Pourquoi certains services sont « côté serveur » et d’autres « côté joueur » ? Parce qu’un jeu Roblox tourne à la fois sur un **serveur** de Roblox et sur l’appareil de chaque joueur (le **client**). Tu découvriras ce modèle client/serveur en détail au module 3. Pour l’instant, retiens seulement : **ServerScriptService pour les scripts du serveur, ReplicatedStorage pour ce qui est partagé.**
+</Info>
+
+Certains services sont masqués par défaut pour garder l’arbre lisible. Un clic droit dans l’Explorer puis **Show Services…** permet de les afficher.
+
+## Folder ou Model ?
+
+Pour regrouper des objets, tu as deux conteneurs. Ils se ressemblent dans l’Explorer, mais leurs rôles sont différents.
+
+| | Folder | Model |
+|---|---|---|
+| Rôle | Ranger, comme un dossier sur ton ordinateur | Regrouper des **objets physiques** qui forment un tout |
+| Comportement propre | Aucun | Se sélectionne et se transforme d’un bloc, peut avoir une **PrimaryPart** |
+| Exemple | Toutes les plateformes du niveau 1 | Un nuage fait de six sphères, un portail décoratif |
+| Créer | `Ctrl`+`Alt`+`G`, ou clic droit › **Group As a Folder** | `Ctrl`+`G`, ou clic droit › **Group** |
+
+### La PrimaryPart d’un Model
+
+Quand tu déplaces ou tournes un Model, Studio s’appuie par défaut sur le centre de sa boîte englobante. Tu peux désigner une **PrimaryPart** : la Part de référence que suivent le point de pivot et la boîte englobante du Model. Pour la régler :
+
+1. sélectionne le Model dans l’Explorer ;
+2. dans Properties, clique sur la propriété **PrimaryPart** (le curseur change) ;
+3. clique sur la Part voulue dans l’Explorer.
+
+C’est surtout utile quand des scripts déplacent un Model, ou quand ses Parts sont reliées par des articulations. Les personnages des joueurs sont d’ailleurs eux-mêmes des Models.
+
+<Astuce titre="Dossiers pour ranger, Models pour les objets">
+Une règle simple : si tu peux décrire le groupe comme **un objet** (« un nuage », « une porte »), c’est un **Model**. Si c’est **une catégorie** (« les plateformes », « les checkpoints »), c’est un **Folder**.
+</Astuce>
+
+## Bien nommer ses objets
+
+La documentation officielle le résume ainsi : nomme toujours tes objets de façon **descriptive**, pour les retrouver et les modifier facilement. Pour l’Obby des Nuages, on adopte les conventions suivantes :
+
+- **Un nom qui dit ce que c’est** : `PlateformeDepart`, `NuageDecor`, plutôt que `Part` ou `Model`.
+- **Majuscule à chaque mot, sans espace ni accent** : `KillBricks`, `Pieces`. Les noms affichés aux joueurs pourront avoir des accents, mais les noms d’objets que tes scripts utilisent restent simples.
+- **Des noms uniques** parmi les enfants d’un même parent, surtout pour les objets que tes scripts chercheront.
+- **La bonne casse, toujours** : pour Roblox, `Checkpoints` et `checkpoints` sont deux noms différents. Le tutoriel officiel le rappelle : une faute de majuscule suffit à casser un script.
+
+<Erreur titre="Laisser des dizaines de « Part » identiques">
+Dans un niveau de cinquante plateformes toutes nommées `Part`, impossible de savoir laquelle est trop haute, laquelle est piégée, laquelle a un script. Et un script qui cherche un objet par son nom obtient **le premier trouvé** : avec des noms en double, il peut viser le mauvais. Renomme au fur et à mesure (propriété **Name** dans Properties) : c’est trente secondes maintenant contre une heure de recherche plus tard.
+</Erreur>
+
+### Retrouver un objet avec la recherche de l’Explorer
+
+Le champ de recherche en haut de l’Explorer (`Ctrl`+`Shift`+`X`) est bien plus puissant qu’il n’y paraît :
+
+- `plateforme` : tous les objets dont le nom contient ce mot (sans tenir compte des majuscules) ;
+- `is:Part` : toutes les Parts ;
+- `Anchored=false` : toutes les Parts **non ancrées**. Parfait pour vérifier ton obby avant un test !
+- `Plateformes.*` : tous les enfants directs de l’objet nommé `Plateformes`.
+
+## L’organisation de l’Obby des Nuages
+
+Voici la structure que nous allons suivre pendant toute la formation. Crée dès maintenant les dossiers du Workspace, même vides : les modules suivants les rempliront.
+
+```text
+Workspace
+├── SpawnLocation          (le point de départ)
+├── Plateformes            (Folder : toutes les plateformes, rangées par zone si besoin)
+├── Checkpoints            (Folder : des Parts nommées "1", "2", "3"… — module 2)
+├── KillBricks             (Folder : les pièges qui éliminent le joueur — module 2)
+└── Pieces                 (Folder : les pièces à ramasser — module 2)
+ReplicatedStorage
+├── Remotes                (Folder : la communication client/serveur — module 3)
+└── Modules                (Folder : les ModuleScripts partagés, comme Config — module 2)
+ServerScriptService        (les scripts du serveur)
+```
+
+Les checkpoints seront nommés par leur **numéro d’étape** (`1`, `2`, `3`…) : un script pourra ainsi savoir à quelle étape correspond chaque checkpoint simplement en lisant son nom.
+
+## Aperçu : pourquoi les noms comptent pour les scripts
+
+Tu apprendras à écrire du code au module 2. Mais regarde déjà comment un script retrouve un objet : **par son chemin dans l’arbre et par son nom**.
+
+```luau
+-- Script (côté serveur) à placer dans ServerScriptService
+-- Aperçu : chaque ligne sera expliquée au module 2.
+local Workspace = game:GetService("Workspace")
+
+-- On attend que le dossier « Plateformes » existe dans le Workspace, puis on le récupère
+local dossierPlateformes = Workspace:WaitForChild("Plateformes")
+
+-- GetChildren renvoie la liste des enfants directs du dossier
+local plateformes = dossierPlateformes:GetChildren()
+
+-- Le signe # donne le nombre d'éléments de la liste
+print("L'Obby des Nuages contient " .. #plateformes .. " plateformes")
+```
+
+Si tu renommes le dossier `plateformes` (sans majuscule), ce script ne le trouve plus : `WaitForChild` attend indéfiniment et, au bout de 5 secondes, l’Output affiche un avertissement d’attente infinie possible. Un simple renommage peut donc casser un jeu entier : choisis tes noms tôt et n’en change plus.
+
+<Defi>
+
+1. Dans le Workspace, crée les Folders `Plateformes`, `Checkpoints`, `KillBricks` et `Pieces` (bouton ⊕ au survol du Workspace, puis **Folder**).
+2. Range toutes tes Parts de la leçon précédente dans `Plateformes` et donne-leur des noms clairs.
+3. Construis un petit nuage décoratif avec trois sphères blanches et regroupe-les dans un Model nommé `NuageDecor`.
+4. Dans ReplicatedStorage, crée les Folders `Remotes` et `Modules`.
+5. Tape `Anchored=false` dans la recherche de l’Explorer : si une de tes plateformes apparaît, ancre-la.
+
+</Defi>
+
+<Resume>
+- L’Explorer montre le **data model** : un arbre d’instances où chaque objet a un parent et des enfants.
+- Chaque service a un rôle : `Workspace` (monde 3D), `ServerScriptService` (scripts serveur), `ReplicatedStorage` (partagé), `ServerStorage` (stockage serveur, scripts inactifs), `StarterGui`, `StarterPlayer`, `Lighting`, `Players`.
+- **Folder** = ranger une catégorie ; **Model** = un objet physique composé, avec une **PrimaryPart** possible.
+- Des noms descriptifs, uniques et sans accent ; la casse compte.
+- La structure de l’Obby des Nuages (`Plateformes`, `Checkpoints`, `KillBricks`, `Pieces`, `Remotes`, `Modules`) servira dans tous les modules.
+</Resume>
+
+<Sources>
+- [Data model — services, Folders et Models](https://create.roblox.com/docs/projects/data-model)
+- [Explorer window — hiérarchie, Folders, recherche](https://create.roblox.com/docs/studio/explorer)
+- [Models — création, PrimaryPart, comportements](https://create.roblox.com/docs/parts/models)
+- [Greybox a playable area — rappel sur la casse des noms](https://create.roblox.com/docs/tutorials/curriculums/core/building/greybox-a-playable-area)
+- [Instance — FindFirstChild et WaitForChild (référence API)](https://create.roblox.com/docs/reference/engine/classes/Instance)
+- [Services — récupérer un service avec GetService](https://create.roblox.com/docs/scripting/services)
+</Sources>

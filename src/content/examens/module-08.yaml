@@ -1,0 +1,157 @@
+module: "08"
+titre: "Examen du module 8 : Analytics"
+description: "Rétention, engagement, monétisation et événements personnalisés : vérifie que tu sais lire les chiffres de ton jeu et instrumenter l’Obby des Nuages."
+seuil: 70
+questions:
+  - type: qcm
+    question: "Tu veux savoir si tes nouveaux joueurs arrivent surtout par les recommandations de la page d’accueil ou par la recherche. Quelle page du tableau de bord ouvres-tu ?"
+    options:
+      - texte: Retention
+      - texte: Acquisition
+        correct: true
+      - texte: Monetization
+      - texte: Performance
+    explication: "La page **Acquisition** montre d’où viennent les joueurs (recommandations, recherche, amis, publicités, téléportations…) et combien cliquent pour jouer après avoir vu ton jeu."
+
+  - type: vrai-faux
+    question: "Ton benchmark de rétention D1 affiche la fourchette 9 % – 14 % (50e–90e percentile). Cela signifie que la moitié des jeux similaires ont une D1 de 9 % ou moins."
+    reponse: true
+    explication: "La borne basse est le **50e percentile** : la moitié des jeux similaires sont à ce niveau ou en dessous. La borne haute est le **90e percentile** : seuls 10 % des jeux similaires font mieux."
+
+  - type: qcm
+    question: "Ton jeu a une quinzaine de joueurs par jour. Le lendemain d’une petite mise à jour, ta D1 passe de 20 % à 27 %. Que faut-il en penser ?"
+    options:
+      - texte: La mise à jour est un grand succès, il faut faire pareil partout
+      - texte: Avec si peu de joueurs, un ou deux joueurs suffisent à faire bouger ce chiffre ; il faut observer la tendance sur plusieurs semaines
+        correct: true
+      - texte: Le tableau de bord est forcément en panne
+    explication: "Avec 15 joueurs, un seul joueur représente près de 7 points de rétention. C’est le piège des **petits échantillons** : regarde des cohortes hebdomadaires et compare-toi à toi-même dans le temps avant de conclure."
+
+  - type: qcm
+    question: "Exemple fictif : 500 joueurs découvrent l’Obby des Nuages le 5 octobre. 25 d’entre eux reviennent le 12 octobre. Quelle est la rétention D7 de cette cohorte ?"
+    options:
+      - texte: "5 %"
+        correct: true
+      - texte: "25 %"
+      - texte: "7 %"
+      - texte: "20 %"
+    explication: "Le 12 octobre est le jour 7 de la cohorte du 5 octobre. D7 = 25 ÷ 500 × 100 = **5 %**."
+
+  - type: vrai-faux
+    question: "Selon la page Retention de Roblox, la rétention D30 compte les nouveaux joueurs revenus au moins une fois à n’importe quel moment pendant leurs 30 premiers jours."
+    reponse: false
+    explication: "La documentation de Roblox décrit la D30 comme le pourcentage de nouveaux joueurs qui reviennent **le 31e jour** (le jour 30), pas à n’importe quel moment du mois. Même logique pour D7 : le 8e jour."
+
+  - type: qcm
+    question: "Selon la grille de lecture de Roblox, quel indicateur reflète le mieux la qualité de ton onboarding et de ton tout premier contact avec le joueur ?"
+    options:
+      - texte: La rétention D1
+        correct: true
+      - texte: La rétention D30
+      - texte: L’ARPPU
+      - texte: Le MAU
+    explication: "Roblox associe une D1 faible à un problème de core loop, de premier contact (FTUE) ou de performances : le joueur est perdu, frustré, ou n’arrive pas assez vite au plaisir."
+
+  - type: qcm
+    question: "Ton jeu affiche 2 000 DAU, mais jamais plus de 80 joueurs connectés en même temps. Comment l’expliquer ?"
+    options:
+      - texte: Le DAU compte les joueurs uniques de toute la journée, le CCU ceux qui sont présents au même instant
+        correct: true
+      - texte: Le tableau de bord compte chaque joueur 25 fois
+      - texte: Les serveurs sont limités à 80 joueurs par jour
+    explication: "Le **DAU** additionne tous les joueurs uniques venus dans la journée ; le **CCU** compte les joueurs présents au même moment. Des visites de quelques minutes réparties sur 24 heures donnent un CCU bien plus faible que le DAU."
+
+  - type: vrai-faux
+    question: "Si chaque joueur ne fait qu’une seule session par jour, la durée moyenne de session et le temps de jeu moyen par joueur de cette journée sont égaux."
+    reponse: true
+    explication: "Durée de session = temps total ÷ nombre de sessions ; temps par joueur = temps total ÷ nombre de joueurs. Avec une session par joueur, les deux diviseurs sont identiques."
+
+  - type: qcm
+    question: "Exemple fictif : ton taux de conversion est de 4 % et ton ARPPU de 50 Robux. Quel est ton ARPDAU ?"
+    options:
+      - texte: "2 Robux"
+        correct: true
+      - texte: "12,5 Robux"
+      - texte: "200 Robux"
+      - texte: "54 Robux"
+    explication: "ARPDAU = conversion × ARPPU = 0,04 × 50 = **2 Robux**. Vérification : (payeurs ÷ DAU) × (revenu ÷ payeurs) = revenu ÷ DAU."
+
+  - type: trouve-le-bug
+    question: "Cette fonction (à lancer dans la Command Bar) doit afficher le taux de conversion d’une journée. Où est le bug ?"
+    code: |
+      local function tauxDeConversion(dau: number, payeurs: number): number
+      	if dau == 0 then
+      		return 0
+      	end
+      	return dau / payeurs * 100
+      end
+
+      print(tauxDeConversion(1000, 20) .. " %")
+    options:
+      - texte: "Ligne 2 : il faut tester `payeurs == 0` au lieu de `dau == 0`"
+      - texte: "Ligne 5 : la division est inversée, c’est `payeurs / dau * 100`"
+        correct: true
+      - texte: "Ligne 8 : on ne peut pas coller un nombre et un texte avec `..`"
+    explication: "Le taux de conversion est la part des joueurs actifs qui ont payé : **payeurs ÷ DAU**. Ici, le code afficherait 5000 % au lieu de 2 %. Le test de la ligne 2 protège bien la bonne division, et `..` convertit automatiquement un nombre en texte."
+
+  - type: vrai-faux
+    question: "Au moment de la rédaction, les Premium Payouts (paiements selon le temps de jeu des abonnés Premium) sont toujours le programme en vigueur pour récompenser l’engagement."
+    reponse: false
+    explication: "Selon la documentation de Roblox, le programme des paiements basés sur l’engagement (Premium Payouts) est **déprécié depuis le 24 juillet 2025** et remplacé par les **Creator Rewards** (Daily Engagement Rewards, Audience Expansion Rewards)."
+
+  - type: qcm
+    question: "Quelles affirmations sur AnalyticsService sont exactes ? (plusieurs réponses possibles)"
+    options:
+      - texte: Les événements sont envoyés depuis le serveur, dans un jeu publié
+        correct: true
+      - texte: Les valeurs des custom fields doivent être des chaînes de caractères
+        correct: true
+      - texte: Les étapes d’un entonnoir commencent à 1
+        correct: true
+      - texte: Les événements envoyés depuis Studio apparaissent dans le tableau de bord après 24 heures
+    explication: "La documentation précise que les événements ne partent **ni du client, ni de Studio**, que tous les entonnoirs commencent à l’étape 1 et que les valeurs de custom fields sont des **chaînes**. Pour tester dans Studio, affiche plutôt tes événements dans l’Output."
+
+  - type: trouve-le-bug
+    question: "Ce Script serveur doit enregistrer la première étape de l’entonnoir d’onboarding. Où est le bug ?"
+    code: |
+      local AnalyticsService = game:GetService("AnalyticsService")
+      local Players = game:GetService("Players")
+
+      local ETAPES = { "Arrivée", "Personnage apparu", "Checkpoint 1" }
+
+      Players.PlayerAdded:Connect(function(player)
+      	AnalyticsService:LogOnboardingFunnelStepEvent(player, 0, ETAPES[1])
+      end)
+    options:
+      - texte: "Ligne 4 : une table ne peut pas contenir de textes avec accents"
+      - texte: "Ligne 6 : il faut utiliser `CharacterAdded` au lieu de `PlayerAdded`"
+      - texte: "Ligne 7 : les étapes d’un entonnoir commencent à **1**, pas à 0"
+        correct: true
+    explication: "La référence de l’API indique que tous les entonnoirs commencent à l’étape 1 (étapes de 1 à 100). La documentation recommande justement d’enregistrer la première étape dans `PlayerAdded` pour démarrer l’entonnoir dès l’arrivée."
+
+  - type: trouve-le-bug
+    question: "Cette fonction serveur enregistre une mort avec l’étape du joueur dans un custom field. Où est le bug ?"
+    code: |
+      local AnalyticsService = game:GetService("AnalyticsService")
+      local CHAMP_ETAPE = Enum.AnalyticsCustomFieldKeys.CustomField01.Name
+
+      local function signalerMort(player: Player, etape: number)
+      	AnalyticsService:LogCustomEvent(player, "Mort", 1, {
+      		[CHAMP_ETAPE] = etape,
+      	})
+      end
+    options:
+      - texte: "Ligne 2 : il faut utiliser `CustomField1`, sans zéro"
+      - texte: "Ligne 5 : `LogCustomEvent` n’accepte pas de valeur numérique"
+      - texte: "Ligne 6 : la valeur d’un custom field doit être une **chaîne**, par exemple `\"Etape \" .. etape`"
+        correct: true
+    explication: "Les clés valides sont bien `CustomField01`, `CustomField02` et `CustomField03`, et `LogCustomEvent` accepte une valeur numérique (1 par défaut). Mais la documentation précise que les **valeurs** des custom fields doivent être des chaînes : un nombre doit être converti en texte."
+
+  - type: qcm
+    question: "Exemple fictif d’entonnoir d’onboarding : Arrivée 800, Personnage apparu 770, Checkpoint 1 380, Checkpoint 2 350, Checkpoint 3 330. Où faut-il concentrer tes efforts en priorité ?"
+    options:
+      - texte: Sur le chargement, entre l’arrivée et l’apparition du personnage
+      - texte: Sur le parcours entre l’apparition et le checkpoint 1, où plus de la moitié des joueurs abandonnent
+        correct: true
+      - texte: Sur le passage du checkpoint 2 au checkpoint 3
+    explication: "De 770 à 380, plus de la moitié des joueurs (environ 51 %) partent avant le checkpoint 1 : c’est de loin la plus grosse fuite. Le chargement (96 % de passage) et la suite (plus de 90 %) vont bien. Formule une hypothèse sur ce premier passage, change une chose et remesure."

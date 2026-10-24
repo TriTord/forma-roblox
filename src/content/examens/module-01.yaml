@@ -1,0 +1,153 @@
+module: "01"
+titre: Examen du module 1
+description: "Vérifie que tu maîtrises Roblox Studio : interface, construction avec des Parts, organisation du projet, tests et publication de l’Obby des Nuages."
+seuil: 70
+questions:
+  - type: qcm
+    question: Un ami a fermé la fenêtre **Properties** par erreur et ne la retrouve plus. Que lui conseilles-tu ?
+    options:
+      - texte: Réinstaller Studio
+      - texte: La rouvrir depuis le menu **Window** (ou l’onglet **Home**)
+        correct: true
+      - texte: Créer un nouveau projet, la fenêtre reviendra
+      - texte: Appuyer sur `F5`
+    explication: "Toutes les fenêtres de Studio se rouvrent depuis le menu **Window**. Explorer, Properties et Toolbox sont aussi accessibles depuis l’onglet **Home**. `F5` lance un test, il ne rouvre aucune fenêtre."
+
+  - type: vrai-faux
+    question: Dès que tu publies ton jeu avec **File** › **Publish**, il devient visible et jouable par tous les joueurs de Roblox.
+    reponse: false
+    explication: "Un jeu publié est **privé par défaut** : seuls toi, les personnes ayant l’accès Edit et les testeurs invités peuvent y jouer. La sortie publique est une étape séparée, soumise à des conditions (vérification d’âge, questionnaire de maturité…)."
+
+  - type: qcm
+    question: Une plateforme se trouve tout au bout de ton niveau et tu ne la vois plus. Quel est le moyen le plus rapide d’y amener la caméra ?
+    options:
+      - texte: Avancer avec `W` jusqu’à la trouver
+      - texte: La sélectionner dans l’Explorer, survoler le viewport et appuyer sur `F`
+        correct: true
+      - texte: Lancer le mode Run
+      - texte: Zoomer avec la molette jusqu’à la voir
+    explication: "`F` centre la caméra sur l’objet sélectionné. Combiné à l’Explorer (ou à sa recherche, `Ctrl`+`Shift`+`X`), c’est le moyen le plus rapide de retrouver n’importe quel objet."
+
+  - type: qcm
+    question: Tu lances un test et toutes tes plateformes tombent dans le vide. Quelle est la cause la plus probable ?
+    options:
+      - texte: Leur propriété **CanCollide** est désactivée
+      - texte: Leur propriété **Anchored** est désactivée
+        correct: true
+      - texte: Leur **Transparency** vaut 0
+      - texte: Leur matériau est `Plastic`
+    explication: "Une Part non ancrée subit la gravité dès que le jeu tourne. **Anchored** l’empêche de bouger à cause de la physique. CanCollide règle seulement si l’on peut passer à travers ; une Transparency de 0 signifie « totalement visible »."
+
+  - type: vrai-faux
+    question: Si l’accrochage à la grille est activé, maintenir `Shift` pendant que tu déplaces une Part avec l’outil Move le désactive temporairement.
+    reponse: true
+    explication: "D’après la documentation, `Shift` inverse temporairement l’accrochage (snapping) pendant une transformation : s’il était actif, il est désactivé le temps du geste. Pratique pour un réglage fin, sans changer tes paliers habituels."
+
+  - type: qcm
+    question: "Tu veux utiliser un modèle gratuit du Creator Store dans ton jeu. Quelles pratiques sont prudentes ? (plusieurs réponses possibles)"
+    options:
+      - texte: Déplier le modèle dans l’Explorer et vérifier s’il contient des scripts
+        correct: true
+      - texte: Utiliser **Disable Scripts** (clic droit dans l’Explorer) si tu veux garder le décor sans exécuter ses scripts
+        correct: true
+      - texte: Consulter la page de détails (créateur, évaluations, nombre de scripts) avant de l’insérer
+        correct: true
+      - texte: L’insérer sans vérifier, puisque le Creator Store garantit qu’aucun modèle n’est dangereux
+    explication: "Le Creator Store restreint certaines pratiques dangereuses (code obfusqué, chargement d’objets externes…), mais cela ne remplace pas ta propre vérification. Un décor ne devrait contenir aucun script : inspecte, désactive ou supprime."
+
+  - type: qcm
+    question: Où ranges-tu un ModuleScript dont le code doit être utilisé à la fois par le serveur et par les joueurs ?
+    options:
+      - texte: Dans ServerStorage
+      - texte: Dans ServerScriptService
+      - texte: Dans ReplicatedStorage
+        correct: true
+      - texte: Dans Lighting
+    explication: "**ReplicatedStorage** est accessible à la fois par le serveur et par les clients. ServerStorage et ServerScriptService ne sont jamais envoyés aux joueurs. C’est pour cela que l’Obby des Nuages range ses modules partagés dans `ReplicatedStorage.Modules`."
+
+  - type: trouve-le-bug
+    question: "Le Folder `Plateformes` est rangé dans le **Workspace**. Ce Script (dans ServerScriptService) doit afficher le nom de chaque plateforme, mais rien ne s’affiche et l’Output signale une attente infinie possible. Où est le bug ?"
+    code: |
+      local ServerStorage = game:GetService("ServerStorage")
+
+      local dossier = ServerStorage:WaitForChild("Plateformes")
+
+      for _, plateforme in dossier:GetChildren() do
+      	print(plateforme.Name)
+      end
+    options:
+      - texte: "Ligne 1 : `ServerStorage` n’est pas accessible depuis un Script"
+      - texte: "Ligne 3 : le script cherche le dossier dans ServerStorage au lieu du Workspace"
+        correct: true
+      - texte: "Ligne 5 : `GetChildren` ne renvoie pas les enfants d’un Folder"
+      - texte: "Ligne 6 : `Name` n’existe pas sur une Part"
+    explication: "Un script trouve un objet par son **chemin** dans l’arbre. Le dossier est dans le Workspace, donc `ServerStorage:WaitForChild(\"Plateformes\")` attend un objet qui n’arrivera jamais. Il faut récupérer le service Workspace avec `game:GetService(\"Workspace\")` et y chercher le dossier."
+
+  - type: qcm
+    question: Lequel de ces conteneurs peut avoir une **PrimaryPart** servant de référence pour le déplacer ?
+    options:
+      - texte: Un Folder
+      - texte: Un Model
+        correct: true
+      - texte: Le service Players
+      - texte: StarterGui
+    explication: "La **PrimaryPart** est une propriété des **Models** : c’est la Part que suivent le point de pivot et la boîte englobante du Model. Un Folder sert seulement à ranger et n’a pas de comportement physique."
+
+  - type: qcm
+    question: Tu règles le dixième saut de ton obby. Quel mode de test t’évite de refaire les neuf premiers à chaque essai ?
+    options:
+      - texte: Test (`F5`)
+      - texte: Test Here, en plaçant d’abord la caméra juste avant le saut
+        correct: true
+      - texte: Run (`F8`)
+      - texte: Server & Clients
+    explication: "**Test Here** fait apparaître ton avatar devant la position actuelle de la caméra. **Test** te ramène toujours à la SpawnLocation, et **Run** ne fait pas apparaître d’avatar du tout."
+
+  - type: vrai-faux
+    question: Pendant un test solo en vue **Client**, l’Explorer te montre le contenu de ServerScriptService.
+    reponse: false
+    explication: "ServerScriptService n’est jamais envoyé aux clients. En vue **Client** (bordure bleue), l’Explorer montre ce que voit le joueur ; pour inspecter les objets du serveur, bascule en vue **Server** (bordure verte)."
+
+  - type: trouve-le-bug
+    question: "Avec la Command Bar, tu veux rendre toutes tes plateformes **à moitié transparentes**. Après exécution, elles sont devenues totalement invisibles. Où est le bug ?"
+    code: |
+      local dossier = game:GetService("Workspace"):FindFirstChild("Plateformes")
+      if dossier then
+      	for _, objet in dossier:GetDescendants() do
+      		if objet:IsA("BasePart") then
+      			objet.Transparency = 50
+      		end
+      	end
+      end
+    options:
+      - texte: "Ligne 1 : la Command Bar ne peut pas utiliser `GetService`"
+      - texte: "Ligne 3 : `GetDescendants` ne parcourt que le premier enfant"
+      - texte: "Ligne 4 : `IsA(\"BasePart\")` exclut les Parts de forme Block"
+      - texte: "Ligne 5 : Transparency va de 0 à 1, « à moitié » s’écrit `0.5`"
+        correct: true
+    explication: "**Transparency** va de 0 (totalement visible) à 1 (invisible). Ce n’est pas un pourcentage : pour une transparence de moitié, il faut `0.5`. `IsA(\"BasePart\")` accepte toutes les Parts, quelle que soit leur forme, et `GetDescendants` parcourt tous les descendants."
+
+  - type: qcm
+    question: Quelle est la différence entre **Save to Roblox** et **Publish** pour un jeu déjà publié ?
+    options:
+      - texte: Aucune, ce sont deux noms pour la même commande
+      - texte: Save to Roblox enregistre une version dans le cloud sans la livrer aux joueurs ; Publish en fait la version que les joueurs chargent
+        correct: true
+      - texte: Save to Roblox enregistre seulement sur ton disque dur
+      - texte: Publish rend le jeu public pour tout le monde
+    explication: "Les deux envoient ton place dans le cloud, mais seule la publication change la version jouée. Publier ne rend pas le jeu public pour autant : l’audience se règle à part. Pour une copie locale sur ton disque, c’est **Save to File**."
+
+  - type: vrai-faux
+    question: Pour faire tester ton jeu privé par quelques amis, tu dois d’abord le rendre public.
+    reponse: false
+    explication: "Le menu **File** › **Invite early testers** permet d’inviter jusqu’à 10 amis d’une tranche d’âge compatible à essayer ton jeu **avant** sa sortie publique. Ils voient un filigrane indiquant qu’il s’agit d’un aperçu."
+
+  - type: qcm
+    question: Quelle méthode de construction donne les premiers sauts les plus agréables pour un nouveau joueur ?
+    options:
+      - texte: Mettre tout de suite les sauts les plus spectaculaires pour impressionner
+      - texte: Augmenter une seule difficulté à la fois, tester chaque saut et prévoir des plateformes de repos
+        correct: true
+      - texte: Rendre toutes les plateformes invisibles pour surprendre
+      - texte: Construire tout le niveau d’un coup et tester seulement à la fin
+    explication: "Le tutoriel officiel le rappelle : des premiers sauts trop difficiles font abandonner des joueurs. Une difficulté à la fois (distance, hauteur ou taille), un test après chaque saut et des pauses régulières donnent une progression agréable."

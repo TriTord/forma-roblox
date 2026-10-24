@@ -1,0 +1,458 @@
+---
+titre: Les erreurs techniques qui font fuir les joueurs
+description: Pertes de données, remotes non validés, modèles gratuits piégés, bugs à plusieurs, lag mobile, erreurs ignorées. Le code fautif, le code corrigé et les garde-fous à mettre en place.
+duree: 35
+objectifs:
+  - Reconnaître les six erreurs techniques les plus destructrices
+  - Corriger du code fautif en appliquant les bons garde-fous
+  - Tester les cas limites avant que les joueurs ne les découvrent
+miseAJour: 2026-10-24
+quiz:
+  - type: trouve-le-bug
+    question: "Ce script serveur gère l’achat d’un trail. Un tricheur arrive pourtant à acheter tous les trails pour 0 pièce. Où est la faille ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue") :: ModuleScript)
+      local acheter = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+
+      acheter.OnServerEvent:Connect(function(player, idObjet, prixEnvoye)
+      	local objet = Catalogue[idObjet]
+      	if objet == nil then return end
+      	local prix = prixEnvoye
+      	local pieces = player.leaderstats.Pieces
+      	if pieces.Value >= prix then
+      		pieces.Value -= prix
+      	end
+      end)
+    options:
+      - texte: "Ligne 7 : il faut vérifier `objet ~= nil` et non `objet == nil`"
+      - texte: "Ligne 8 : le prix vient du client ; il faut utiliser le prix du catalogue côté serveur"
+        correct: true
+      - texte: "Ligne 5 : `OnServerEvent` ne reçoit pas le joueur en premier argument"
+      - texte: "Ligne 11 : l’opérateur `-=` n’existe pas en Luau"
+    explication: "Le client contrôle tout ce qu’il envoie : un tricheur peut envoyer `0` (voire un nombre négatif) comme prix. Le prix doit toujours être lu dans le catalogue du serveur (`objet.prix`). La ligne 7 est correcte (on sort si l’objet n’existe pas), le joueur est bien le premier argument de `OnServerEvent`, et `-=` existe en Luau."
+  - type: trouve-le-bug
+    question: "Ce script valide les checkpoints. En test solo, tout marche. À plusieurs, certains joueurs ne voient pas leur étape enregistrée. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+      local checkpoints = workspace:WaitForChild("Checkpoints")
+      local enTraitement = false
+
+      for _, checkpoint in checkpoints:GetChildren() do
+      	checkpoint.Touched:Connect(function(hit)
+      		local player = Players:GetPlayerFromCharacter(hit.Parent)
+      		if player == nil or enTraitement then return end
+      		enTraitement = true
+      		player.leaderstats.Etape.Value = tonumber(checkpoint.Name)
+      		task.wait(1)
+      		enTraitement = false
+      	end)
+      end
+    options:
+      - texte: "Ligne 3 : un seul verrou est partagé par tous les joueurs ; il en faut un par joueur"
+        correct: true
+      - texte: "Ligne 5 : on ne peut pas parcourir `GetChildren()` sans `ipairs`"
+      - texte: "Ligne 7 : `GetPlayerFromCharacter` ne fonctionne que dans un LocalScript"
+      - texte: "Ligne 11 : `task.wait` est déprécié, il faut utiliser `wait`"
+    explication: "`enTraitement` est commun à tout le serveur : quand un joueur touche un checkpoint, **tous les autres** sont ignorés pendant une seconde. En solo, ce bug est invisible. La correction : une table indexée par joueur. En Luau moderne, on peut parcourir une table directement avec `for … in`, et `task.wait` est justement la version recommandée."
+  - type: vrai-faux
+    question: "Si `GetAsync` échoue au chargement d’un joueur, le plus sûr est de lui donner des données de départ ; elles seront sauvegardées normalement quand il partira."
+    reponse: false
+    explication: "C’est la cause classique des « progressions effacées » : les données de départ écrasent la vraie sauvegarde au moment du départ. Si le chargement échoue, il ne faut **rien** sauvegarder pour ce joueur (on réessaie, ou on l’invite à revenir)."
+  - type: qcm
+    question: "Tu as inséré depuis la Toolbox un modèle gratuit « plateforme magique ». Quelles précautions sont pertinentes ? (plusieurs réponses possibles)"
+    options:
+      - texte: Lire tous les scripts qu’il contient avant de le garder
+        correct: true
+      - texte: Se méfier du code illisible (obfusqué) ou anormalement compliqué
+        correct: true
+      - texte: Lui faire confiance s’il a beaucoup de « J’aime »
+      - texte: Le placer dans un environnement isolé (Sandboxed) avec seulement les Capabilities nécessaires
+        correct: true
+    explication: "La documentation Roblox sur les vulnérabilités des assets tiers recommande de lire tous les scripts, de se méfier du code obfusqué et d’isoler les modèles avec le sandboxing. Elle précise aussi que la popularité d’un asset ne garantit pas sa sécurité."
+  - type: qcm
+    question: "Où peux-tu voir les erreurs Luau qui se produisent chez tes vrais joueurs, après publication, sans être dans leur partie ?"
+    options:
+      - texte: Dans la fenêtre Output de Studio
+      - texte: "Dans l’Error Report du Creator Dashboard (section Monitoring)"
+        correct: true
+      - texte: Dans la Toolbox
+      - texte: Nulle part, Roblox ne conserve pas ces erreurs
+    explication: "L’Error Report affiche les erreurs et avertissements Luau récents, côté serveur et côté client, de ton jeu publié. La fenêtre Output, elle, ne montre que ta session de test dans Studio."
+---
+
+Un jeu bien conçu peut quand même mourir à cause d’un problème technique : une progression effacée, un tricheur qui ruine l’économie, un lag insupportable sur téléphone. Ces erreurs ont un point commun : elles **n’apparaissent presque jamais quand tu testes seul dans Studio**. Cette leçon passe en revue les six plus destructrices, avec le code fautif, le code corrigé et le garde-fou à mettre en place.
+
+## Erreur 1 : perdre les données des joueurs
+
+Rien ne fait fuir un joueur plus vite que de revenir et de découvrir que sa progression a disparu. Et la cause la plus fréquente n’est pas une panne de Roblox, mais un script qui **sauvegarde des données qui n’ont jamais été chargées**.
+
+### Le code fautif
+
+```luau
+-- VERSION FAUTIVE : ne copie pas ce code !
+-- Script dans ServerScriptService
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+
+local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
+local donneesJoueurs = {}
+
+Players.PlayerAdded:Connect(function(player)
+	local succes, donnees = pcall(function()
+		return magasin:GetAsync("Joueur_" .. player.UserId)
+	end)
+	print("Chargement réussi ?", succes)
+	-- Si GetAsync a échoué, donnees contient le message d'erreur (ou nil)...
+	-- et le joueur repart de zéro sans que personne ne s'en rende compte.
+	if typeof(donnees) ~= "table" then
+		donnees = { Etape = 1, Pieces = 0 }
+	end
+	donneesJoueurs[player] = donnees
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	-- On sauvegarde ce qu'on a en mémoire, même si le chargement avait échoué :
+	-- les données de départ ÉCRASENT la vraie progression.
+	magasin:SetAsync("Joueur_" .. player.UserId, donneesJoueurs[player])
+	donneesJoueurs[player] = nil
+end)
+```
+
+Le scénario catastrophe : le DataStore a un raté au moment où le joueur arrive. Le script lui donne des données de départ. Le joueur, surpris, quitte le jeu. Le script sauvegarde alors « Étape 1, 0 pièce » **par-dessus** sa vraie progression. Ce scénario revient très souvent sur le DevForum (voir les sources).
+
+### Le code corrigé
+
+```luau
+-- VERSION CORRIGÉE — Script dans ServerScriptService
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+
+local magasin = DataStoreService:GetDataStore("DonneesJoueurs_v1")
+local NOMBRE_ESSAIS = 3
+
+-- Ne contient QUE les joueurs dont le chargement a réussi
+local donneesJoueurs = {}
+
+local function cleDe(player: Player): string
+	return "Joueur_" .. player.UserId
+end
+
+-- Renvoie (true, données) si le chargement a réussi, (false, nil) sinon
+local function charger(player: Player)
+	for essai = 1, NOMBRE_ESSAIS do
+		local succes, resultat = pcall(function()
+			return magasin:GetAsync(cleDe(player))
+		end)
+		if succes then
+			-- nil = nouveau joueur : ce n'est PAS une erreur
+			return true, resultat or { Etape = 1, Pieces = 0 }
+		end
+		warn("Chargement échoué (essai " .. essai .. ") : " .. tostring(resultat))
+		if essai < NOMBRE_ESSAIS then
+			task.wait(2 ^ essai) -- on patiente un peu plus à chaque essai
+		end
+	end
+	return false, nil
+end
+
+local function sauvegarder(player: Player)
+	local donnees = donneesJoueurs[player]
+	if donnees == nil then
+		return -- jamais chargé correctement : surtout ne rien écraser
+	end
+	local succes, erreur = pcall(function()
+		-- UpdateAsync lit la dernière valeur avant d'écrire (voir module 4)
+		magasin:UpdateAsync(cleDe(player), function()
+			return donnees
+		end)
+	end)
+	if not succes then
+		warn("Sauvegarde échouée pour " .. player.Name .. " : " .. tostring(erreur))
+	end
+end
+
+Players.PlayerAdded:Connect(function(player)
+	local succes, donnees = charger(player)
+	if not succes then
+		player:Kick("Impossible de charger ta progression. Réessaie dans un instant.")
+		return
+	end
+	if player.Parent then -- le joueur a pu partir pendant le chargement
+		donneesJoueurs[player] = donnees
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	sauvegarder(player)
+	donneesJoueurs[player] = nil
+end)
+
+-- Fermeture du serveur : on sauvegarde tout le monde en parallèle
+-- et on attend la fin des sauvegardes
+game:BindToClose(function()
+	local enCours = 0
+	for _, player in Players:GetPlayers() do
+		enCours += 1
+		task.spawn(function()
+			sauvegarder(player)
+			enCours -= 1
+		end)
+	end
+	while enCours > 0 do
+		task.wait()
+	end
+end)
+```
+
+Les garde-fous ajoutés :
+
+- on distingue un **échec** (`succes == false`) d’un **nouveau joueur** (`succes == true` mais aucune donnée) ;
+- on réessaie avec une attente croissante, comme le recommande la documentation (*exponential backoff*) ;
+- on ne sauvegarde **jamais** un joueur dont le chargement a échoué ;
+- on sauvegarde aussi à la **fermeture du serveur** avec `game:BindToClose`.
+
+Le module 4 va plus loin (sauvegarde périodique, structure versionnée, verrouillage de session) : relis [Sauvegarder sans perdre de données](/modules/04/datastores-fiables/).
+
+<Attention>
+Studio partage **les mêmes DataStores** que ton jeu publié quand l’option « Enable Studio Access to API Services » est activée. La documentation recommande de ne l’activer que sur une copie de test du jeu, pour ne pas abîmer les données de vrais joueurs pendant tes essais.
+</Attention>
+
+## Erreur 2 : faire confiance aux RemoteEvents
+
+La documentation Roblox sur la sécurité est sans ambiguïté : il faut partir du principe que **toute donnée envoyée par le client a pu être manipulée, inventée ou envoyée avec de mauvaises intentions**. Un tricheur peut déclencher n’importe quel RemoteEvent, à n’importe quelle fréquence, avec n’importe quels arguments.
+
+### Le code fautif
+
+```luau
+-- VERSION FAUTIVE — Script dans ServerScriptService
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+
+acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet, prix)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+	if pieces and pieces:IsA("IntValue") then
+		-- Le CLIENT choisit le prix : un tricheur envoie 0, ou -1000000...
+		pieces.Value -= prix
+		print(player.Name .. " achète " .. tostring(idObjet))
+	end
+end)
+```
+
+### Le code corrigé
+
+```luau
+-- VERSION CORRIGÉE — Script dans ServerScriptService
+-- Hypothèse : le ModuleScript Catalogue renvoie une table du type
+-- { TrailArcEnCiel = { prix = 150 }, ... } (adapte à ton propre catalogue)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet") :: RemoteEvent
+local Catalogue = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Catalogue") :: ModuleScript)
+
+local DELAI_MIN = 0.5 -- secondes minimum entre deux achats d'un même joueur
+local dernierAchat = {} -- [player] = os.clock() du dernier achat
+local possessions = {} -- [player] = { [idObjet] = true } (version simplifiée, voir module 4)
+
+acheterObjet.OnServerEvent:Connect(function(player: Player, idObjet: unknown)
+	-- 1. Limiter le spam
+	local maintenant = os.clock()
+	local precedent = dernierAchat[player]
+	if precedent and maintenant - precedent < DELAI_MIN then
+		return
+	end
+	dernierAchat[player] = maintenant
+
+	-- 2. Vérifier le TYPE de ce que le client envoie
+	if typeof(idObjet) ~= "string" then
+		return
+	end
+
+	-- 3. Le prix vient du catalogue du SERVEUR, jamais du client
+	local objet = Catalogue[idObjet]
+	if objet == nil then
+		return -- objet inexistant
+	end
+
+	-- 4. Vérifier l'état du joueur : solde suffisant, objet pas déjà possédé
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local pieces = leaderstats and leaderstats:FindFirstChild("Pieces")
+	if pieces == nil or not pieces:IsA("IntValue") then
+		return
+	end
+	local inventaire = possessions[player] or {}
+	possessions[player] = inventaire
+	if inventaire[idObjet] or pieces.Value < objet.prix then
+		return
+	end
+
+	-- 5. Tout est valide : c'est le serveur qui applique l'achat
+	pieces.Value -= objet.prix
+	inventaire[idObjet] = true
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	dernierAchat[player] = nil
+	possessions[player] = nil
+end)
+```
+
+La règle à retenir : le client **demande**, le serveur **vérifie et décide**. Tu as tout appris dans [Ne jamais faire confiance au client](/modules/03/ne-jamais-faire-confiance-au-client/) et appliqué à l’obby dans [Sécuriser l’Obby des Nuages](/modules/03/securiser-l-obby/).
+
+<Astuce titre="La question qui révèle les failles">
+Pour chaque RemoteEvent, la documentation Roblox propose de se demander : « Si un client pouvait envoyer **n’importe quelle valeur** pour chaque paramètre, quel serait le pire résultat possible ? » et « Que se passe-t-il si cette fonction est utilisée **plus de 1 000 fois par seconde** ? ». Si la réponse t’inquiète, ajoute une vérification côté serveur.
+</Astuce>
+
+## Erreur 3 : insérer des modèles gratuits piégés
+
+La Toolbox (la boîte à outils de Studio) donne accès à des milliers de modèles gratuits du Creator Store. Pratique… et risqué. La documentation officielle avertit que certains modèles contiennent des scripts malveillants appelés **backdoors** (« portes dérobées »), qui donnent à leur auteur un accès côté serveur à ton jeu. Ces scripts se cachent souvent dans des modèles qui ont l’air parfaitement légitimes, et peuvent ne s’activer que dans certaines conditions. La modération de Roblox en retire, mais elle ne peut pas garantir de tous les retirer.
+
+**Les garde-fous recommandés par Roblox :**
+
+1. **Lis tous les scripts** d’un modèle avant de le garder. La Toolbox indique quand un modèle contient des scripts.
+2. Méfie-toi du code **obfusqué** (volontairement illisible) ou anormalement compliqué, et du code caché loin à droite derrière des espaces.
+3. Rappelle-toi que la **popularité ne garantit pas la sécurité**.
+4. Isole les modèles douteux avec le **sandboxing** : propriété `SandboxedInstance` de Workspace réglée sur `Experimental`, propriété `Sandboxed` du modèle à `true`, puis seulement les **Capabilities** (autorisations) dont il a besoin. Cette fonctionnalité était encore en bêta au moment de la rédaction.
+
+Des développeurs partagent aussi leurs réflexes sur le DevForum : rechercher dans tous les scripts (Ctrl+Maj+F dans Studio) des mots comme `require` suivi d’un numéro (qui charge du code publié hors de ton jeu), `getfenv` ou `loadstring`. Ce sont des retours d’expérience, pas une liste officielle : ces mots ont aussi des usages légitimes, mais leur présence dans une simple plateforme décorative doit t’alerter.
+
+<Erreur titre="« Je vérifierai plus tard »">
+Un backdoor inséré au début du projet peut se recopier dans d’autres scripts ou rester caché pendant des mois. Vérifie un modèle **au moment où tu l’insères**, pas la veille du lancement. Et si tu as un doute sérieux, reviens à une version antérieure de ton jeu grâce à l’historique des versions. Le module 1 en parlait déjà dans [Construire avec des Parts](/modules/01/construire-avec-des-parts/).
+</Erreur>
+
+## Erreur 4 : ne jamais tester à plusieurs
+
+Certains bugs n’existent **qu’à plusieurs joueurs**. Le plus courant : un verrou anti-répétition (*debounce*) partagé par tout le serveur au lieu d’un verrou par joueur.
+
+```luau
+-- VERSION FAUTIVE — Script dans ServerScriptService
+local Players = game:GetService("Players")
+local checkpoints = workspace:WaitForChild("Checkpoints")
+
+local enTraitement = false -- UN SEUL verrou pour TOUS les joueurs !
+
+for _, checkpoint in checkpoints:GetChildren() do
+	if checkpoint:IsA("BasePart") then
+		checkpoint.Touched:Connect(function(hit)
+			local player = Players:GetPlayerFromCharacter(hit.Parent)
+			if player == nil or enTraitement then
+				return -- un autre joueur est « en cours » : celui-ci est ignoré
+			end
+			enTraitement = true
+			print(player.Name .. " atteint l'étape " .. checkpoint.Name)
+			task.wait(1)
+			enTraitement = false
+		end)
+	end
+end
+```
+
+```luau
+-- VERSION CORRIGÉE — Script dans ServerScriptService
+local Players = game:GetService("Players")
+local checkpoints = workspace:WaitForChild("Checkpoints")
+
+local DELAI = 1 -- secondes
+local dernierPassage = {} -- un horodatage PAR joueur
+
+local function surContact(checkpoint: BasePart, hit: BasePart)
+	local player = Players:GetPlayerFromCharacter(hit.Parent)
+	if player == nil then
+		return
+	end
+	local maintenant = os.clock()
+	local precedent = dernierPassage[player]
+	if precedent and maintenant - precedent < DELAI then
+		return -- seul CE joueur est ralenti, pas les autres
+	end
+	dernierPassage[player] = maintenant
+
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local etape = leaderstats and leaderstats:FindFirstChild("Etape")
+	local numero = tonumber(checkpoint.Name)
+	-- On n'accepte que l'étape suivante (voir module 3)
+	if etape and etape:IsA("IntValue") and numero and numero == etape.Value + 1 then
+		etape.Value = numero
+	end
+end
+
+for _, checkpoint in checkpoints:GetChildren() do
+	if checkpoint:IsA("BasePart") then
+		checkpoint.Touched:Connect(function(hit)
+			surContact(checkpoint, hit)
+		end)
+	end
+end
+
+Players.PlayerRemoving:Connect(function(player)
+	dernierPassage[player] = nil -- on libère la mémoire
+end)
+```
+
+Studio permet de simuler un serveur et plusieurs clients sur ton ordinateur : choisis le mode **Server & Clients** dans le menu des modes de test, indique le nombre de clients (jusqu’à huit), puis lance le test. Un ou deux clients suffisent la plupart du temps. Revois [Tester son jeu comme un pro](/modules/01/tester-son-jeu/).
+
+## Erreur 5 : un jeu qui rame ou plante sur mobile
+
+Ton ordinateur est sans doute bien plus puissant que le téléphone de la plupart de tes joueurs. Un jeu fluide dans Studio peut ramer, voire planter par manque de mémoire, sur un appareil modeste. Les causes typiques : trop de Parts non ancrées, des boucles qui tournent à chaque image, des effets et particules partout, des interfaces en pixels fixes (Offset) qui débordent de l’écran.
+
+**Garde-fous :**
+
+- teste avec le **Device Simulator** de Studio, puis sur un **vrai téléphone** ;
+- après publication, surveille le tableau **Performance** du Creator Dashboard : taux de plantage, images par seconde, mémoire, par plateforme. La documentation conseille de le consulter avant et après chaque mise à jour (les graphiques n’apparaissent qu’à partir de 100 utilisateurs actifs par jour, au moment de la rédaction).
+
+Tout le module 9 est consacré à ce sujet : commence par [Penser mobile d’abord](/modules/09/penser-mobile-d-abord/) et [Audit de performance de l’Obby des Nuages](/modules/09/optimiser-l-obby/).
+
+## Erreur 6 : ignorer les erreurs de l’Output
+
+Une ligne rouge dans l’Output, c’est un script qui s’est arrêté. Un avertissement orange « Infinite yield possible » signale un `WaitForChild` qui attend un objet qui n’arrive pas. Les ignorer, c’est laisser des fonctionnalités cassées sans le savoir.
+
+Pire : un `pcall` dont on ne regarde jamais le résultat **avale** l’erreur. Le script ne plante pas, mais rien ne se passe et personne ne sait pourquoi. Dans le code corrigé de l’erreur 1, chaque échec est signalé avec `warn`.
+
+**Après la publication**, tu as deux outils :
+
+- la **Developer Console** (touche F9 ou commande `/console` dans le chat) en jeu ; seuls le propriétaire du jeu et les membres du groupe autorisés à le modifier voient les messages du serveur ;
+- l’**Error Report** du Creator Dashboard (section Monitoring), qui affiche les erreurs et avertissements Luau récents côté serveur et côté client, avec un filtre « nouvelles erreurs depuis telle version », très utile après une mise à jour.
+
+<Astuce>
+Fixe-toi une règle simple : **zéro erreur rouge** dans l’Output avant chaque publication. Si une erreur est « normale », c’est qu’il manque une vérification dans ton code (un `if objet then`, un `pcall`, un `WaitForChild`).
+</Astuce>
+
+## Tester les cas limites
+
+Les bugs graves se cachent dans les situations que tu ne testes jamais seul. Avant chaque publication importante, essaie au moins celles-ci :
+
+| Cas limite | Comment le tester | Ce qui doit se passer |
+|---|---|---|
+| Deux joueurs touchent le même checkpoint | Server & Clients, 2 clients | Les deux étapes sont enregistrées |
+| Un joueur part pendant le chargement | Quitter tout de suite après l’arrivée | Aucune donnée écrasée |
+| Spam d’un bouton d’achat | Cliquer très vite | Un seul achat |
+| Valeurs absurdes envoyées au serveur | Command Bar côté client (prix négatif, mauvais type) | Requête ignorée |
+| Fermeture du serveur | Arrêter le test avec des joueurs connectés | Données sauvegardées |
+| Petit écran tactile | Device Simulator, puis vrai téléphone | Boutons visibles et cliquables |
+
+<Defi>
+Lance l’Obby des Nuages en mode **Server & Clients** avec deux clients. Fais toucher le même checkpoint aux deux personnages presque en même temps, puis spamme le bouton d’achat d’un trail. Note chaque comportement anormal et corrige-le avant de passer à la leçon suivante.
+</Defi>
+
+<Resume>
+- Ne sauvegarde **jamais** un joueur dont le chargement a échoué ; utilise `pcall`, des nouvelles tentatives et `BindToClose`.
+- Le client **demande**, le serveur **vérifie et décide** : type, existence, prix, solde, fréquence.
+- Lis chaque script d’un modèle gratuit avant de le garder ; la popularité ne prouve rien.
+- Teste à **plusieurs clients** : certains bugs n’existent qu’en multijoueur.
+- Surveille Output, Developer Console, **Error Report** et tableau **Performance**, surtout après une mise à jour.
+</Resume>
+
+<Sources>
+- [Data stores — documentation Roblox (accès depuis Studio)](https://create.roblox.com/docs/cloud-services/data-stores)
+- [Data stores best practices — documentation Roblox](https://create.roblox.com/docs/cloud-services/data-stores/best-practices)
+- [Security tactics — documentation Roblox](https://create.roblox.com/docs/scripting/security/security-tactics)
+- [Vulnerabilities from third-party assets — documentation Roblox](https://create.roblox.com/docs/scripting/security/third-party-vulnerabilities)
+- [Testing modes (Server & Clients, Device Simulator) — documentation Roblox](https://create.roblox.com/docs/studio/testing-modes)
+- [Error Report — documentation Roblox](https://create.roblox.com/docs/production/analytics/error-report)
+- [Performance dashboard — documentation Roblox](https://create.roblox.com/docs/production/analytics/performance)
+- [Developer Console — documentation Roblox](https://create.roblox.com/docs/studio/developer-console)
+- [« Datastore completely wiped » — fil d’entraide du DevForum (retour d’expérience)](https://devforum.roblox.com/t/datastore-completely-wiped/2064718)
+- [« Backdooring Explained [MEGATHREAD] » — fil communautaire du DevForum](https://devforum.roblox.com/t/backdooring-explained-megathread/845508)
+</Sources>

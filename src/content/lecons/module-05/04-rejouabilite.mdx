@@ -1,0 +1,310 @@
+---
+titre: Donner envie de revenir
+description: Identifie les leviers de rejouabilité (variété, objectifs quotidiens, social, collections, contenu renouvelé, notifications) et utilise-les sans manipuler tes joueurs.
+duree: 30
+objectifs:
+  - Identifier les leviers de rejouabilité recommandés par Roblox
+  - Ajouter des objectifs quotidiens simples et respectueux du temps du joueur
+  - Utiliser le social, les badges et les notifications d’expérience à bon escient
+  - Reconnaître et refuser les « dark patterns » interdits ou nuisibles
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Selon la documentation Roblox, quels leviers aident surtout la rétention à long terme (J30) ? (plusieurs réponses possibles)
+    options:
+      - texte: Des mises à jour de contenu régulières
+        correct: true
+      - texte: Des mécaniques sociales (échanges, groupes, classements…)
+        correct: true
+      - texte: Un tutoriel plus long
+      - texte: Des notifications envoyées plusieurs fois par jour
+    explication: "La page Retention relie la rétention J30 au contenu ajouté régulièrement et aux mécaniques sociales. Un long tutoriel nuit plutôt au début de partie, et les notifications sont limitées par Roblox à une par jour et par expérience pour chaque utilisateur."
+  - type: vrai-faux
+    question: Un jeu peut exiger que le joueur active les notifications d’expérience pour débloquer la zone suivante.
+    reponse: false
+    explication: La documentation Roblox est explicite, les jeux ne doivent pas obliger les utilisateurs à activer les notifications pour participer ou progresser dans le jeu.
+  - type: qcm
+    question: "Laquelle de ces notifications est un « dark pattern » interdit par Roblox ?"
+    options:
+      - texte: "« Ton ami Léo vient de battre ton record à l’étape 12 ! »"
+      - texte: "« Achète dans les 10 prochaines minutes ou tu rateras tout ! » alors qu’aucune limite n’existe"
+        correct: true
+      - texte: "« Plus que 2 étapes pour finir l’objectif de la semaine ! »"
+    explication: "Une fausse pression temporelle pour pousser à cliquer ou à acheter fait partie des pratiques interdites citées par Roblox. Les deux autres messages sont personnels, vrais et invitent à une action en jeu : c’est ce que Roblox recommande."
+  - type: qcm
+    question: Pourquoi le module `ObjectifsQuotidiens` remet-il l’objectif à zéro sans rien retirer au joueur quand il a manqué un jour ?
+    options:
+      - texte: Parce que Roblox interdit de sauvegarder une date
+      - texte: Pour ne pas punir l’absence et respecter le temps du joueur
+        correct: true
+      - texte: Parce que `os.time` ne fonctionne qu’une fois par jour
+    explication: Un objectif quotidien doit être une **invitation**, pas une menace. Faire perdre une série ou des récompenses à celui qui a manqué un jour transforme le jeu en obligation. Les recommandations Roblox sur les season passes vont dans ce sens (éviter l’épuisement, ne pas pénaliser l’attente).
+  - type: trouve-le-bug
+    question: "Cette fonction doit renvoyer le numéro du jour (en temps universel) pour réinitialiser les objectifs quotidiens. Les objectifs se réinitialisent pourtant en permanence. Où est le bug ?"
+    code: |
+      local SECONDES_PAR_JOUR = 86400
+
+      local function jourActuel(): number
+      	return os.time() / SECONDES_PAR_JOUR
+      end
+
+      local function mettreAJour(donnees)
+      	local aujourdhui = jourActuel()
+      	if donnees.JourObjectif ~= aujourdhui then
+      		donnees.JourObjectif = aujourdhui
+      		donnees.PiecesDuJour = 0
+      	end
+      end
+    options:
+      - texte: "Ligne 1 : il n’y a que 3 600 secondes dans une journée"
+      - texte: "Ligne 4 : sans `math.floor`, le résultat change à chaque seconde, donc le « jour » n’est jamais le même"
+        correct: true
+      - texte: "Ligne 9 : il faut utiliser `==` au lieu de `~=`"
+      - texte: "Ligne 7 : une fonction ne peut pas modifier une table reçue en paramètre"
+    explication: "`os.time() / 86400` donne un nombre à virgule (par exemple 20385.4127) qui augmente à chaque seconde. Il faut l’arrondir vers le bas avec `math.floor` pour obtenir un numéro de jour qui ne change qu’à minuit UTC. Une journée compte bien 86 400 secondes."
+---
+
+Ton obby est amusant la première fois. Mais un joueur qui l’a terminé a-t-il une raison d’y revenir demain ? Sur Roblox, cette question est centrale : la page officielle « Design for Roblox » distingue les **touristes**, qui passent d’un jeu à l’autre en privilégiant la variété, et les **habitués** (*locals*), qui se concentrent sur un petit nombre de jeux et forment presque toute la base de joueurs engagés d’une expérience. Cette leçon passe en revue les leviers qui transforment un touriste en habitué, et ceux qu’il ne faut **jamais** utiliser.
+
+## Ce que dit Roblox sur la rétention à long terme
+
+La page Retention du Creator Hub associe chaque horizon de rétention à une partie du jeu :
+
+- **J1** (le lendemain) : la core loop, le début de partie et les performances (leçons 1 et 2) ;
+- **J7** (une semaine plus tard) : le système de progression, avec des objectifs clairs à court et long terme, de la **variété** de contenu et une difficulté équilibrée (leçon 3) ;
+- **J30** (un mois plus tard) : ce que les joueurs peuvent faire **après** les objectifs principaux, avec du **contenu ajouté régulièrement** et des **mécaniques sociales** (échanges, groupes, compétition, classements…).
+
+Les définitions précises de ces indicateurs et leur lecture dans le Creator Dashboard sont au programme du module 8. Ici, on s’intéresse aux leviers de conception.
+
+## Levier 1 : la variété
+
+Un parcours identique à chaque visite s’épuise vite. Quelques idées adaptées à un obby :
+
+- un **mode chrono** pour ceux qui ont fini le parcours ;
+- des **pièces dorées cachées** dans des recoins à explorer ;
+- un **parcours bonus** qui change selon le jour ou la semaine.
+
+La documentation Roblox sur les quêtes rappelle aussi que des objectifs variés encouragent à essayer d’autres façons de jouer, surtout dans les jeux répétitifs.
+
+## Levier 2 : des objectifs quotidiens simples
+
+Roblox décrit les **quotidiennes** (*dailies*) comme des tâches courtes, aux objectifs simples et peu exigeants, avec des récompenses modestes, à accomplir dans les 24 heures. Elle recommande de les réserver aux objectifs à **court terme**, réalisables en une session. Ce sont aussi, selon la même page, un bon moyen de distribuer régulièrement de petites quantités de monnaie.
+
+Voici un objectif quotidien pour l’Obby des Nuages : « Ramasse 20 pièces aujourd’hui » (bonus : 15 pièces). Le module ci-dessous ne fait **aucun appel au DataStore** : il lit et modifie la table de données du joueur que ton script de sauvegarde (module 4) garde déjà en mémoire et enregistre.
+
+```luau
+-- ModuleScript « ObjectifsQuotidiens » dans ServerScriptService
+-- Objectif quotidien : ramasser un certain nombre de pièces dans la journée (UTC).
+-- Ne fait aucun appel DataStore : on travaille sur la table de données du joueur
+-- que ton script de sauvegarde (module 4) charge et sauvegarde déjà.
+local ObjectifsQuotidiens = {}
+
+ObjectifsQuotidiens.PIECES_A_RAMASSER = 20
+ObjectifsQuotidiens.BONUS = 15
+
+local SECONDES_PAR_JOUR = 86400
+
+-- Numéro du jour en temps universel : change à minuit UTC, pareil pour tous les serveurs
+local function jourActuel(): number
+	return math.floor(os.time() / SECONDES_PAR_JOUR)
+end
+
+-- Nouveau jour : on repart de zéro, sans rien retirer au joueur
+local function mettreAJour(donnees)
+	local aujourdhui = jourActuel()
+	if donnees.JourObjectif ~= aujourdhui then
+		donnees.JourObjectif = aujourdhui
+		donnees.PiecesDuJour = 0
+		donnees.BonusReclame = false
+	end
+end
+
+-- À appeler côté serveur chaque fois qu'une pièce ramassée est validée (module 3).
+-- Renvoie le bonus à verser (0 la plupart du temps).
+function ObjectifsQuotidiens.enregistrerPiece(donnees): number
+	mettreAJour(donnees)
+	donnees.PiecesDuJour += 1
+	if donnees.PiecesDuJour >= ObjectifsQuotidiens.PIECES_A_RAMASSER and not donnees.BonusReclame then
+		donnees.BonusReclame = true
+		return ObjectifsQuotidiens.BONUS
+	end
+	return 0
+end
+
+-- Pour l'interface : renvoie la progression du jour, par exemple 12 et 20
+function ObjectifsQuotidiens.progression(donnees): (number, number)
+	mettreAJour(donnees)
+	local objectif = ObjectifsQuotidiens.PIECES_A_RAMASSER
+	return math.min(donnees.PiecesDuJour, objectif), objectif
+end
+
+return ObjectifsQuotidiens
+```
+
+Dans ton Script serveur de ramassage des pièces (module 3), charge le module puis appelle-le juste après avoir validé une pièce :
+
+```luau
+-- Dans ton Script serveur de ramassage des pièces (ServerScriptService, module 3)
+local ServerScriptService = game:GetService("ServerScriptService")
+local ObjectifsQuotidiens = require(ServerScriptService:WaitForChild("ObjectifsQuotidiens"))
+
+-- À appeler juste après avoir validé une pièce ramassée.
+-- « donnees » est la table du joueur gardée par ton script de sauvegarde (module 4),
+-- « pieces » est son IntValue leaderstats.Pieces.
+local function verifierObjectifDuJour(donnees, pieces: IntValue)
+	local bonus = ObjectifsQuotidiens.enregistrerPiece(donnees)
+	if bonus > 0 then
+		pieces.Value += bonus
+	end
+end
+```
+
+Remarque les choix de conception, aussi importants que le code :
+
+- **Le jour est calculé en UTC** : tous les serveurs sont d’accord, et changer l’heure de son appareil ne sert à rien puisque tout se passe sur le serveur.
+- **Rien n’est perdu** si le joueur manque un jour. L’objectif repart simplement de zéro.
+- **L’objectif tient dans une session** et rapporte un bonus modeste, comme le recommande Roblox.
+
+<Erreur titre="La série qui punit">
+Les « séries » (*streaks*) qui remettent tout à zéro au premier jour manqué, ou qui font perdre des objets, transforment le jeu en corvée et culpabilisent les joueurs, souvent jeunes. Si tu veux récompenser la régularité, fais-le **sans punition** : par exemple un badge au 7ᵉ objectif accompli, quel que soit le délai entre deux.
+</Erreur>
+
+## Levier 3 : jouer avec ses amis
+
+Roblox insiste beaucoup sur ce point. La page « Design for Roblox » rappelle que de nombreux utilisateurs voient Roblox comme un endroit pour **passer du temps avec leurs amis**, que les invitations entre amis aident à faire grandir l’audience et que les jeux solo ont souvent plus de mal à construire et retenir une audience sur la plateforme.
+
+Pour un obby, quelques pistes simples :
+
+- un **bouton « Inviter un ami »** : Roblox fournit une invite officielle via `SocialService:PromptGameInvite()`, à précéder d’une vérification avec `SocialService:CanSendGameInviteAsync()` (dans un `pcall`) ;
+- un **classement** de la meilleure étape ou du meilleur temps (les leaderstats du module 4 forment déjà un classement par serveur) ;
+- des **passages à deux**, où un joueur active un pont pour l’autre.
+
+La même page conseille de ne pas rendre les serveurs privés trop chers, car cela peut décourager des groupes d’amis de jouer ensemble.
+
+## Levier 4 : les collections et les badges
+
+Collectionner donne un objectif à long terme. Les traînées de la boutique en sont déjà une ; les **badges** en sont une autre. Un badge est une récompense Roblox attribuée quand un joueur atteint un objectif dans ton jeu (« Sommet de l’Orage atteint », « Toutes les pièces dorées trouvées »).
+
+- Ils se créent depuis le Creator Dashboard. Au moment de la rédaction (octobre 2026), la documentation indique que tu peux en créer **5 gratuitement par période de 24 heures** (GMT) et par jeu, puis 100 Robux par badge supplémentaire dans cette période. Vérifie la page officielle avant de compter dessus.
+- Ils s’attribuent depuis un Script serveur avec `BadgeService:AwardBadgeAsync()` dans un `pcall` (l’ancienne méthode `AwardBadge` est dépréciée).
+
+<Astuce titre="Un badge doit raconter quelque chose">
+Un badge « Tu as rejoint le jeu » ne raconte rien. Réserve les badges aux étapes marquantes de ta progression (fin de zone, défi secret, parcours sans chute) : ils deviennent des objectifs à long terme que le joueur a envie de compléter.
+</Astuce>
+
+## Levier 5 : du contenu renouvelé
+
+Roblox appelle **LiveOps** (opérations en direct) tout le suivi d’un jeu après son lancement, et prévient que sans mises à jour, même les joueurs fidèles finissent par perdre intérêt. Sa documentation sur les mises à jour de contenu indique que beaucoup de jeux publient de petites nouveautés **toutes les deux semaines à un mois**, selon la capacité de l’équipe. Pour un obby : une nouvelle zone, une traînée de saison, un parcours d’Halloween à durée limitée.
+
+Deux conseils officiels à garder en tête :
+
+- construire les nouveautés **sur les systèmes existants** (ajouter une zone, pas réinventer le jeu) ;
+- protéger l’équipe avec un rythme **réaliste**. Seul, un rythme mensuel tenable vaut mieux qu’un rythme hebdomadaire abandonné au bout d’un mois.
+
+La préparation et l’annonce des mises à jour et des événements sont détaillées au module 7.
+
+## Levier 6 : les notifications d’expérience
+
+Roblox permet d’envoyer des **notifications d’expérience** personnalisées aux joueurs qui les ont acceptées. Voici ce que dit la documentation officielle au moment de la rédaction (octobre 2026) :
+
+- seuls les utilisateurs **de 13 ans et plus** qui ont donné leur accord reçoivent ces notifications personnalisées ; les moins de 13 ans ne peuvent recevoir que les notifications de mises à jour d’expérience ;
+- le jeu doit avoir au moins **100 visites** depuis son lancement et ne pas être sous modération ;
+- chaque utilisateur peut recevoir **au maximum une notification par jour** d’une même expérience ;
+- la demande d’autorisation (*opt-in*) a un texte standard non modifiable. Elle ne s’affiche pas si l’utilisateur a déjà activé les notifications ou s’il a déjà vu la demande pour ton jeu dans les 30 derniers jours.
+
+Le bon moment pour demander l’autorisation est un moment où une future notification aurait du sens : par exemple quand le joueur vient de **terminer le parcours**, pour être prévenu de la prochaine zone. Ce LocalScript reprend le modèle officiel (vérification avec `CanPromptOptInAsync`, puis `PromptOptIn`, chacun dans un `pcall`) :
+
+```luau
+-- LocalScript à placer dans StarterPlayer > StarterPlayerScripts
+-- Propose d'activer les notifications une fois le parcours terminé.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ExperienceNotificationService = game:GetService("ExperienceNotificationService")
+
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
+-- Dernière étape du parcours, tirée des zones définies dans Config (leçon 3)
+local DERNIERE_ETAPE = Config.Zones[#Config.Zones].derniereEtape
+
+local joueur = Players.LocalPlayer
+local etape = joueur:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
+
+local dejaPropose = false
+
+-- Vérifie si Roblox autorise à afficher la demande (âge, déjà accepté, déjà vue récemment…)
+local function peutProposer(): boolean
+	local ok, resultat = pcall(function()
+		return ExperienceNotificationService:CanPromptOptInAsync()
+	end)
+	return ok and resultat == true
+end
+
+etape.Changed:Connect(function(nouvelleEtape: number)
+	if nouvelleEtape < DERNIERE_ETAPE or dejaPropose then
+		return
+	end
+	dejaPropose = true
+	task.wait(3) -- on laisse d'abord le joueur savourer sa victoire
+	if peutProposer() then
+		pcall(function()
+			ExperienceNotificationService:PromptOptIn()
+		end)
+	end
+end)
+```
+
+Un joueur qui a déjà terminé le parcours verra aussi la proposition au chargement de sa sauvegarde, quand `Etape` passe de 0 à la dernière étape. Ce n’est pas gênant : Roblox ne réaffiche pas la demande à quelqu’un qui l’a vue dans les 30 derniers jours.
+
+L’envoi des notifications se fait ensuite côté serveur (avec le package Open Cloud fourni par Roblox) ou par l’API Open Cloud, à partir de textes préparés dans le Creator Dashboard. Suis la page officielle pas à pas le jour où ton jeu remplit les conditions.
+
+Roblox recommande des notifications **personnalisées**, liées à l’activité du joueur, qui l’invitent à une action immédiate, plutôt que des messages publicitaires génériques. Exemple dans l’esprit de la documentation : « Plus que 2 étapes pour finir le Sommet de l’Orage ! ».
+
+## Respecter le temps du joueur : les dark patterns
+
+Un **dark pattern** (aujourd’hui souvent appelé *deceptive pattern*, « schéma trompeur ») est une conception qui manipule l’utilisateur pour lui faire faire quelque chose qu’il n’aurait pas choisi. La documentation des notifications d’expérience en interdit explicitement plusieurs :
+
+- **les publicités déguisées** : une notification présentée comme une information importante qui mène en fait à une publicité ;
+- **la fausse pression temporelle** : pousser à cliquer ou acheter avec une urgence inventée ;
+- **les faux cadeaux** : promettre un objet gratuit qui demande en réalité autre chose ;
+- **les achats piégés** : mener vers un achat pré-rempli avec des objets que l’utilisateur n’a pas choisis.
+
+Elle précise aussi qu’un jeu ne doit **pas exiger** l’activation des notifications pour participer ou progresser. Plus largement, les Community Standards de Roblox interdisent les contenus ou métadonnées trompeurs, sensationnalistes ou mensongers utilisés pour gagner en visibilité, en monétisation ou en engagement.
+
+<Attention>
+Les mêmes pièges existent en dehors des notifications : faux compte à rebours sur une offre, « Il ne reste que 3 traînées ! » pour un objet numérique illimité, bouton « Non merci, je préfère être nul » (on appelle cela le *confirmshaming*, la culpabilisation). Le site de référence deceptive.design les recense. Ton public compte beaucoup de mineurs : n’utilise aucun de ces procédés. Les règles propres à la monétisation sont détaillées au module 6.
+</Attention>
+
+Les recommandations Roblox sur les season passes vont dans le même sens : une pause d’au moins une semaine entre deux saisons pour éviter l’épuisement des joueurs, des missions qui ne doivent pas occuper tout leur temps de jeu quotidien, et de la place pour jouer comme ils le souhaitent.
+
+<Defi>
+Choisis **deux** leviers de cette leçon pour l’Obby des Nuages. Pour chacun, écris :
+
+1. ce que le joueur fait de nouveau ;
+2. à quelle partie de la core loop il se rattache ;
+3. comment tu vérifieras qu’il ne transforme pas le jeu en obligation.
+
+Puis code l’objectif quotidien et affiche sa progression (« Pièces du jour : 12 / 20 ») avec un TextLabel.
+</Defi>
+
+<Resume>
+- Roblox relie la rétention J7 à la progression et à la variété, la rétention J30 au contenu régulier et au social.
+- Les objectifs quotidiens doivent être courts, modestes et ne jamais punir un jour manqué.
+- Le social (invitations, classements, passages à deux) est un levier majeur sur Roblox.
+- Badges et collections donnent des objectifs à long terme ; le contenu renouvelé se construit sur les systèmes existants, à un rythme tenable.
+- Notifications d’expérience : 13 ans et plus, sur accord, une par jour au maximum, jamais obligatoires, sans dark pattern.
+</Resume>
+
+<Sources>
+- [Retention — leviers J1, J7 et J30 (Roblox)](https://create.roblox.com/docs/production/analytics/retention)
+- [Design for Roblox — touristes, habitués et jeu entre amis (Roblox)](https://create.roblox.com/docs/production/game-design/design-for-roblox)
+- [Quest design — quêtes quotidiennes et succès (Roblox)](https://create.roblox.com/docs/production/game-design/introduction-to-quest-design)
+- [Experience notifications — conditions, limites et dark patterns interdits (Roblox)](https://create.roblox.com/docs/production/promotion/experience-notifications)
+- [ExperienceNotificationService — référence de l’API (Roblox)](https://create.roblox.com/docs/reference/engine/classes/ExperienceNotificationService)
+- [Invite prompts — inviter des amis avec SocialService (Roblox)](https://create.roblox.com/docs/production/promotion/invite-prompts)
+- [Badges — création et attribution (Roblox)](https://create.roblox.com/docs/production/publishing/badges)
+- [BadgeService — référence de l’API (Roblox)](https://create.roblox.com/docs/reference/engine/classes/BadgeService)
+- [Content updates — rythme des mises à jour (Roblox)](https://create.roblox.com/docs/production/game-design/content-updates)
+- [LiveOps essentials (Roblox)](https://create.roblox.com/docs/production/game-design/liveops-essentials)
+- [Season pass design — éviter l’épuisement des joueurs (Roblox)](https://create.roblox.com/docs/production/game-design/season-pass-design)
+- [Roblox Community Standards](https://about.roblox.com/community-standards)
+- [Deceptive patterns — catalogue des schémas trompeurs (deceptive.design)](https://deceptive.design/types)
+</Sources>

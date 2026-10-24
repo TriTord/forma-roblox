@@ -1,0 +1,221 @@
+---
+titre: Construire avec des Parts
+description: Crée, déplace, redimensionne et tourne des Parts, règle leurs propriétés essentielles et construis proprement, sans tomber dans les pièges de la Toolbox.
+duree: 30
+objectifs:
+  - Insérer des Parts et les transformer avec les outils Move, Scale et Rotate
+  - Régler les propriétés essentielles d’une Part (Anchored, CanCollide, Transparency, Color, Material)
+  - Construire proprement avec la grille d’accrochage, la duplication et le regroupement
+  - Utiliser la Toolbox sans mettre ton jeu en danger
+miseAJour: 2026-10-24
+quiz:
+  - type: vrai-faux
+    question: Une Part non ancrée (Anchored désactivé) reste en l’air pendant un test tant que personne ne la touche.
+    reponse: false
+    explication: "Dès que le jeu tourne, le moteur physique applique la gravité : une Part non ancrée tombe immédiatement. C’est pour cela que toutes les plateformes d’un obby doivent avoir **Anchored** activé."
+  - type: qcm
+    question: Quel est le raccourci par défaut de l’outil **Scale** (redimensionner) ?
+    options:
+      - texte: "`2`"
+      - texte: "`3`"
+        correct: true
+      - texte: "`4`"
+      - texte: "`Ctrl`+`S`"
+    explication: "Par défaut, `2` active **Move** (déplacer), `3` active **Scale** (redimensionner) et `4` active **Rotate** (tourner). `Ctrl`+`S` n’a rien à voir avec les outils de transformation."
+  - type: qcm
+    question: "Tu veux une plateforme invisible sur laquelle les joueurs peuvent quand même marcher, et qui ne tombe pas. Quels réglages faut-il ? (plusieurs réponses possibles)"
+    options:
+      - texte: Transparency à 1
+        correct: true
+      - texte: CanCollide activé
+        correct: true
+      - texte: Anchored activé
+        correct: true
+      - texte: Material réglé sur Glass
+    explication: "**Transparency** à 1 rend la Part invisible, **CanCollide** activé permet de marcher dessus, et **Anchored** l’empêche de tomber. Le matériau Glass ne rend pas une Part invisible. (Attention : en game design, une plateforme invisible frustre souvent les joueurs, garde ce genre de piège pour des secrets.)"
+  - type: qcm
+    question: Que fait le raccourci `Ctrl`+`D` (`⌘`+`D` sur Mac) quand une Part est sélectionnée ?
+    options:
+      - texte: Il supprime la Part
+      - texte: Il duplique la Part au même endroit de l’arbre
+        correct: true
+      - texte: Il désactive la Part pendant les tests
+      - texte: Il ancre la Part
+    explication: "`Ctrl`+`D` **duplique** la sélection dans la même branche de l’Explorer, avec toutes ses propriétés. Il suffit ensuite de déplacer la copie avec l’outil Move."
+  - type: qcm
+    question: "Tu insères un modèle gratuit trouvé dans la Toolbox. Quels signes doivent t’alerter ? (plusieurs réponses possibles)"
+    options:
+      - texte: Le modèle contient des scripts alors qu’il s’agit d’un simple décor
+        correct: true
+      - texte: Un script contient du code illisible ou volontairement brouillé
+        correct: true
+      - texte: Un script charge un autre objet avec `require` suivi d’un numéro
+        correct: true
+      - texte: Le modèle est entièrement composé de Parts ancrées
+    explication: "Un décor n’a normalement pas besoin de script. Le code brouillé (obfusqué) et le chargement d’objets externes par leur numéro (`require(numéro)`) sont justement des pratiques que le Creator Store restreint, car elles peuvent cacher une « porte dérobée » (backdoor). Des Parts ancrées, elles, n’ont rien de suspect."
+  - type: vrai-faux
+    question: Le matériau (Material) d’une Part change seulement son apparence, pas son comportement physique.
+    reponse: false
+    explication: "D’après la documentation, le matériau change aussi les propriétés physiques : par exemple, une Part en `Concrete` (béton) est plus dense qu’une Part en `Plastic`. Certains matériaux ont aussi des effets visuels spéciaux, comme `Neon` qui semble briller."
+---
+
+Tu as installé Studio et tu sais t’y déplacer. Place à la construction ! Tout l’Obby des Nuages sera bâti avec des **Parts**, les briques de base de Roblox. Dans cette leçon, tu apprends à les créer, à les modeler et à régler leurs propriétés, puis à construire de façon propre et sûre.
+
+## Qu’est-ce qu’une Part ?
+
+Une **Part** est un objet 3D simple, avec une position, une taille, une orientation, une couleur et un matériau. Par défaut, c’est un **corps rigide** soumis à la physique : la gravité, les collisions et l’élan s’appliquent à elle.
+
+Une Part peut prendre cinq formes :
+
+- **Block** : un pavé (la forme par défaut) ;
+- **Sphere** : une boule ;
+- **Cylinder** : un cylindre ;
+- **Wedge** : une rampe (un coin) ;
+- **Corner Wedge** : un coin d’angle.
+
+Il existe aussi la **TrussPart**, une poutre en treillis que les personnages peuvent escalader comme une échelle. Elle ne figure pas dans le menu d’insertion : on l’ajoute depuis l’Explorer (bouton ⊕ au survol d’un objet, ou `Ctrl`+`I`).
+
+<Info>
+Plus tard, tu croiseras les **MeshParts** : des objets 3D importés depuis un logiciel de modélisation comme Blender. Pour un obby, les Parts simples suffisent largement.
+</Info>
+
+## Insérer une Part
+
+Dans l’onglet **Home** (ou **Model**), clique sur le bouton **Part**. Un bloc (**Block**) apparaît au centre de ta vue. Pour choisir une autre forme, clique sur la petite flèche du bouton et sélectionne **Block**, **Sphere**, **Wedge**, **Corner Wedge** ou **Cylinder**.
+
+Comme la Part apparaît **au centre de la caméra**, place d’abord ta caméra là où tu veux construire. Une bonne habitude : sélectionne un objet voisin, appuie sur `F` pour centrer la vue dessus, puis insère ta Part.
+
+## Déplacer, redimensionner, tourner
+
+Trois outils de l’onglet **Home** transforment la Part sélectionnée. Chacun affiche des **poignées** que tu fais glisser avec la souris.
+
+| Outil | Raccourci par défaut | Ce qu’il change |
+|---|---|---|
+| **Move** | `2` | La position (poignées en forme de flèches) |
+| **Scale** | `3` | La taille (poignées sur chaque face) |
+| **Rotate** | `4` | L’orientation (anneaux de rotation) |
+
+Quelques gestes utiles, tous indiqués dans la documentation :
+
+- Après un déplacement avec **Move**, un **indicateur de distance** reste affiché : clique dedans pour taper une valeur exacte.
+- Tu peux aussi **attraper une Part directement** avec la souris et la faire glisser. Pendant le glissement, `R` la fait pivoter de 90° et `T` la bascule de 90° vers la caméra.
+- `Ctrl`+`R` fait tourner la sélection de 90° autour de l’axe vertical (Y), `Ctrl`+`T` de 90° autour de l’axe X (`⌘` au lieu de `Ctrl` sur Mac).
+- `Ctrl`+`L` (`⌘`+`L`) bascule entre l’orientation **monde** (les axes du monde) et l’orientation **locale** (les axes de la Part elle-même). Un petit **L** s’affiche en mode local.
+
+### La grille d’accrochage (snapping)
+
+Quand l’accrochage (*snapping*) est actif, les déplacements et redimensionnements avancent **par paliers** (en studs) et les rotations par paliers d’angle (en degrés). Ces paliers se règlent dans la barre d’outils, à côté des outils de transformation. C’est ce qui permet d’aligner parfaitement deux plateformes.
+
+- Maintiens `Shift` pendant une transformation pour inverser temporairement l’accrochage : s’il est actif, il est désactivé le temps du geste (pratique pour un réglage fin).
+- `Shift`+`2` place le curseur dans le champ du palier de déplacement et de taille ; `Alt`+`R` (`⌥`+`R`) dans celui du palier de rotation.
+
+<Astuce titre="Des paliers ronds pour un niveau propre">
+Choisis des paliers simples, par exemple 1 stud pour le déplacement et 15° pour la rotation, et garde-les tout au long de la construction. Tes plateformes resteront alignées, et tu pourras décrire précisément un saut (« 6 studs d’écart, 2 studs plus haut ») quand tu voudras l’ajuster.
+</Astuce>
+
+## Les propriétés essentielles
+
+Sélectionne une Part et regarde la fenêtre **Properties**. Voici les propriétés que tu utiliseras tout le temps :
+
+| Propriété | Rôle | Valeur utile pour un obby |
+|---|---|---|
+| **Anchored** | Si activée, la Part ne bouge jamais à cause de la physique (gravité, chocs) | Activée pour toutes les plateformes |
+| **CanCollide** | Si activée, la Part est solide ; sinon on passe à travers | Activée pour les plateformes |
+| **Transparency** | De 0 (totalement visible) à 1 (invisible) | 0 en général |
+| **Color** | La couleur de la Part | Contrastée avec le ciel |
+| **Material** | Le matériau : plastique, bois, métal, néon… | Selon le style |
+| **Size** | La taille sur les axes X, Y et Z, en studs | Selon le saut |
+| **Position** / **Orientation** | L’emplacement et la rotation | Réglées avec les outils |
+
+Quelques précisions :
+
+- **Anchored** est la propriété la plus importante pour un obby. Le bouton **Anchor** de l’onglet Home (raccourci `Alt`+`A`, `⌥`+`A` sur Mac) l’active ou la désactive pour toute la sélection. Les options de visualisation, en haut à droite du viewport, peuvent entourer d’un contour les Parts ancrées.
+- **Color** : le bouton **Color** de l’onglet Home applique une couleur à toute la sélection. Dans Properties, tu peux aussi taper une valeur RVB précise.
+- **Material** change l’apparence **et** le comportement physique : une Part en béton (`Concrete`) est plus dense qu’une Part en plastique (`Plastic`). Le matériau `Neon` donne un effet lumineux.
+- **Transparency** : beaucoup de Parts semi-transparentes peuvent ralentir le jeu, selon la documentation. Utilise-les avec modération.
+- **Size**, **Position** et **Orientation** se trouvent dans la section **Transform**. Selon ta version de Studio, la position et l’orientation peuvent être regroupées sous une propriété **CFrame** : ce sont les mêmes valeurs.
+
+Pour trouver vite une propriété, utilise le champ **Filter Properties** en haut de la fenêtre (`Ctrl`+`Shift`+`P`) et tape les premières lettres, par exemple `anch`.
+
+<Erreur titre="Oublier d’ancrer ses plateformes">
+C’est l’erreur numéro un des débutants. Tout semble parfait dans l’éditeur, tu lances un test… et toutes tes plateformes tombent dans le vide. Le tutoriel officiel le rappelle : dès que le jeu tourne, la gravité s’applique. Prends le réflexe : **une plateforme créée = une plateforme ancrée**. Pour en ancrer plusieurs d’un coup, sélectionne-les toutes avec `Shift` ou `Ctrl` enfoncé, puis clique sur **Anchor**.
+</Erreur>
+
+## Construire proprement
+
+Un niveau propre est plus facile à modifier, à tester et à faire évoluer. Quelques réflexes à prendre tout de suite :
+
+- **Dupliquer** plutôt que recréer : `Ctrl`+`D` (`⌘`+`D`) copie la sélection dans la même branche de l’Explorer, avec toutes ses propriétés (couleur, matériau, Anchored…). Déplace ensuite la copie avec **Move**.
+- **Copier-coller** : `Ctrl`+`C` puis `Ctrl`+`V` colle dans le Workspace ; `Ctrl`+`Shift`+`V` (**Paste Into**) colle **à l’intérieur** de l’objet sélectionné.
+- **Regrouper** : `Ctrl`+`G` regroupe la sélection dans un **Model**, `Ctrl`+`Alt`+`G` dans un **Folder** (dossier) ; `Ctrl`+`U` dégroupe. Tu verras la différence entre les deux dans la leçon suivante.
+- **Verrouiller** : le bouton **Lock** (`Alt`+`L`) empêche de sélectionner une Part dans le viewport. Pratique pour ne plus attraper le décor par erreur. Le menu **Edit** puis **Unlock All** déverrouille tout.
+- **Nommer** : pour renommer un objet, modifie sa propriété **Name** dans Properties. « Part », « Part », « Part »… devient vite illisible. Tu verras les règles de nommage dans la leçon 3.
+
+## Union et Negate : un aperçu
+
+Studio sait combiner plusieurs Parts en une forme plus complexe : c’est la **modélisation solide** (*solid modeling*). Les outils sont dans l’onglet **Model** :
+
+| Outil | Raccourci (Windows) | Effet |
+|---|---|---|
+| **Union** | `Shift`+`Ctrl`+`G` | Fusionne plusieurs Parts en un seul objet |
+| **Negate** | `Shift`+`Ctrl`+`N` | Transforme une Part en « forme négative » qui creuse les autres lors d’une Union |
+| **Intersect** | `Shift`+`Ctrl`+`I` | Garde seulement le volume commun à plusieurs Parts |
+| **Separate** | `Shift`+`Ctrl`+`U` | Défait une Union ou une intersection |
+
+Exemple : pour percer un tunnel dans un gros bloc, place un pavé qui traverse le bloc, applique-lui **Negate**, sélectionne les deux puis applique **Union**. Sur Mac, remplace `Ctrl` par `⌘`.
+
+Pour l’Obby des Nuages, garde ces outils pour quelques éléments de décor. Des Parts simples, bien alignées, font d’excellentes plateformes.
+
+## La Toolbox : pratique, mais prudence
+
+La **Toolbox** te donne accès au **Creator Store**, avec des millions de ressources gratuites ou payantes. Ses onglets :
+
+- **Creator Store** : les ressources partagées par Roblox et la communauté ;
+- **Inventory** : ce que tu as publié ou récupéré ;
+- **Recent** : ce que tu as utilisé récemment ;
+- **Creations** : uniquement ce que toi (ou tes groupes) as publié.
+
+Pour insérer une ressource, clique dessus ou fais-la glisser dans le viewport. Avant cela, survole sa vignette et clique sur l’icône loupe : la page de détails indique notamment qui la distribue, sa description, ses évaluations et son **nombre de scripts**. Le filtre avancé permet de n’afficher que les créateurs **vérifiés**.
+
+### Le risque des modèles gratuits
+
+Un modèle peut contenir des **scripts**, et un script peut faire n’importe quoi dans ton jeu. Certains modèles cachent une **porte dérobée** (*backdoor*) : un script qui donne à quelqu’un d’autre le contrôle de ton jeu, ou qui y injecte du contenu interdit. Le Creator Store restreint justement certaines pratiques dangereuses : le code **obfusqué** (volontairement illisible), le chargement de ressources externes par leur numéro (`require(numéro)`, `loadstring`…), les scripts démesurés. Mais ces règles ne te dispensent pas de vérifier toi-même.
+
+<Attention titre="Inspecte chaque modèle avant de l’utiliser">
+
+- Après l’insertion, déplie le modèle dans l’Explorer et regarde ce qu’il contient.
+- Tape `is:LuaSourceContainer` dans la recherche de l’Explorer (`Ctrl`+`Shift`+`X`) pour lister tous les scripts du place, quel que soit leur nom.
+- Un décor (arbre, nuage, rocher) n’a **aucune** raison de contenir un script : supprime-le.
+- Si tu veux garder un modèle sans exécuter ses scripts, fais un clic droit dessus dans l’Explorer et choisis **Disable Scripts**.
+- Un script illisible, très long ou qui fait `require` avec un numéro : supprime le modèle et signale-le sur le Creator Store.
+
+</Attention>
+
+<Defi>
+
+1. Dans ton projet Baseplate, insère cinq Parts de formes différentes près de la SpawnLocation.
+2. Règle le palier de déplacement sur 1 stud, puis aligne-les en escalier avec **Move** et **Scale**.
+3. Donne-leur une couleur claire et un matériau de ton choix, puis ancre-les toutes d’un coup.
+4. Duplique la dernière marche trois fois avec `Ctrl`+`D` et éloigne chaque copie.
+5. Lance un test avec `F5` et vérifie que rien ne tombe. Arrête le test avec `Shift`+`F5`.
+
+</Defi>
+
+<Resume>
+- Une **Part** est une brique 3D (Block, Sphere, Cylinder, Wedge, Corner Wedge) soumise à la physique.
+- **Move** (`2`), **Scale** (`3`) et **Rotate** (`4`) transforment la sélection ; `Shift` inverse temporairement l’accrochage à la grille.
+- **Anchored** empêche une Part de tomber : active-la sur toutes tes plateformes. **CanCollide**, **Transparency**, **Color** et **Material** règlent la solidité et l’apparence.
+- `Ctrl`+`D` duplique, `Ctrl`+`G` regroupe en Model, `Ctrl`+`Alt`+`G` en Folder.
+- **Union** et **Negate** créent des formes complexes ; à utiliser avec parcimonie.
+- Inspecte tout modèle de la Toolbox : un décor ne doit pas contenir de script.
+</Resume>
+
+<Sources>
+- [Parts — formes, propriétés, outils de transformation et raccourcis](https://create.roblox.com/docs/parts)
+- [Work with parts — tutoriel officiel (insertion, outils, ancrage)](https://create.roblox.com/docs/tutorials/curriculums/building/work-with-parts)
+- [Properties window — sections et filtre des propriétés](https://create.roblox.com/docs/studio/properties)
+- [Explorer window — duplication, collage, recherche](https://create.roblox.com/docs/studio/explorer)
+- [Solid modeling — Union, Negate, Intersect, Separate](https://create.roblox.com/docs/parts/solid-modeling)
+- [Toolbox — onglets et insertion de ressources](https://create.roblox.com/docs/projects/assets/toolbox)
+- [Creator Store — règles de sécurité des ressources](https://create.roblox.com/docs/production/creator-store)
+</Sources>

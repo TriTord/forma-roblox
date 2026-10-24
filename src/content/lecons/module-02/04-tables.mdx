@@ -1,0 +1,361 @@
+---
+titre: "Les tables : listes et dictionnaires"
+description: Range plusieurs valeurs dans une seule variable avec les tables de Luau, parcours-les avec des boucles, et gère toutes les pièces et kill bricks de ton obby avec un seul script.
+duree: 35
+objectifs:
+  - Créer, modifier et parcourir des tableaux (listes)
+  - Utiliser des dictionnaires clé/valeur et des tables imbriquées
+  - Comprendre qu’une table est partagée par référence, et savoir la copier
+  - Choisir la bonne structure pour chaque besoin
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Après `local couleurs = {\"Rouge\", \"Vert\", \"Bleu\"}`, que vaut `couleurs[1]` ?"
+    options:
+      - texte: "`\"Rouge\"`"
+        correct: true
+      - texte: "`\"Vert\"`"
+      - texte: "`nil`"
+      - texte: Une erreur, les indices commencent à 0
+    explication: "En Luau, les tableaux commencent à l’indice **1**, pas 0. `couleurs[1]` est donc le premier élément, `\"Rouge\"`. `couleurs[0]` vaudrait `nil`."
+  - type: qcm
+    question: "Que renvoie `table.find({\"Feu\", \"Glace\", \"Nuage\"}, \"Nuage\")` ?"
+    options:
+      - texte: "`true`"
+      - texte: "`3`"
+        correct: true
+      - texte: "`\"Nuage\"`"
+      - texte: "`2`"
+    explication: "`table.find` renvoie l’**indice** de la première valeur égale à celle cherchée, ou `nil` si elle est absente. `\"Nuage\"` est le 3e élément, donc le résultat est `3`."
+  - type: vrai-faux
+    question: "Après `local a = {1, 2, 3}` puis `local b = a` et `b[1] = 99`, `a[1]` vaut toujours 1."
+    reponse: false
+    explication: "`local b = a` ne copie pas la table : `a` et `b` désignent **la même table**. Modifier `b[1]` modifie donc aussi `a[1]`, qui vaut 99. Pour une copie, il faut `table.clone(a)`."
+  - type: qcm
+    question: Tu dois retrouver rapidement le prix d’un objet de la boutique à partir de son nom. Quelle structure choisis-tu ?
+    options:
+      - texte: "Un tableau : `{\"TraineeRouge\", 50, \"TraineeBleue\", 75}`"
+      - texte: "Un dictionnaire : `{TraineeRouge = 50, TraineeBleue = 75}`"
+        correct: true
+      - texte: Une variable par objet
+    explication: "Un dictionnaire associe une **clé** (le nom) à une **valeur** (le prix) : `prix.TraineeRouge` donne directement 50. Avec un tableau, il faudrait parcourir toute la liste pour trouver le bon nom."
+  - type: trouve-le-bug
+    question: "Ce script doit afficher le nom de chaque étape. L’Output affiche une erreur dès le premier tour. Où est le bug ?"
+    code: |
+      local etapes = {"Décollage", "Nuages", "Tempête", "Sommet"}
+
+      for i = 0, #etapes do
+      	print("Étape : " .. etapes[i])
+      end
+    options:
+      - texte: "Ligne 1 : une table ne peut pas contenir de textes avec des accents"
+      - texte: "Ligne 3 : les indices commencent à 1, le premier tour lit `etapes[0]`, qui vaut `nil`"
+        correct: true
+      - texte: "Ligne 3 : `#etapes` vaut 3, il manque la dernière étape"
+      - texte: "Ligne 4 : il faut utiliser `+` pour coller les textes"
+    explication: "Au premier tour, `i` vaut 0 et `etapes[0]` vaut `nil` : la concaténation `\"Étape : \" .. nil` provoque l’erreur « attempt to concatenate string with nil ». La boucle doit commencer à 1, ou mieux, utiliser `for i, nom in etapes do`."
+---
+
+Jusqu’ici, chaque variable contenait **une seule** valeur. Mais un jeu manipule des collections : la liste des joueurs, les étapes d’un niveau, les objets de la boutique… En Luau, un seul outil sert à tout ça : la **table**. C’est la structure de données la plus importante du langage. À la fin de cette leçon, un seul script gérera toutes les kill bricks et toutes les pièces de l’Obby des Nuages.
+
+## Qu’est-ce qu’une table ?
+
+Une **table** est un conteneur qui range plusieurs valeurs. On la crée avec des accolades. Elle peut servir de deux façons :
+
+- comme **tableau** (ou liste) : des valeurs rangées dans l’ordre et numérotées 1, 2, 3… ;
+- comme **dictionnaire** : des valeurs rangées sous un nom (une **clé**).
+
+```luau
+local vide = {}                                    -- une table vide
+local etapes = {"Décollage", "Nuages", "Sommet"}   -- un tableau
+local joueur = {pseudo = "Lea", etape = 3}         -- un dictionnaire
+```
+
+## Les tableaux
+
+### Lire et modifier un élément
+
+Chaque élément d’un tableau a un **indice** (sa position). En Luau, **le premier indice est 1** (et non 0 comme dans beaucoup d’autres langages).
+
+```luau
+local etapes = {"Décollage", "Nuages", "Tempête", "Sommet"}
+
+print(etapes[1])  --> Décollage
+print(etapes[4])  --> Sommet
+print(etapes[5])  --> nil (il n'y a pas de 5e élément)
+print(#etapes)    --> 4 (le # donne la longueur du tableau)
+
+etapes[2] = "Mer de nuages" -- on remplace le 2e élément
+print(etapes[2])  --> Mer de nuages
+```
+
+### Ajouter, retirer, chercher
+
+La bibliothèque **`table`** fournit les fonctions essentielles :
+
+```luau
+local inventaire = {"TraineeRouge"}
+
+-- table.insert(t, valeur) ajoute à la fin
+table.insert(inventaire, "TraineeBleue")
+-- table.insert(t, position, valeur) insère à une position et décale la suite
+table.insert(inventaire, 1, "TraineeDoree")
+print(inventaire[1], inventaire[2], inventaire[3]) --> TraineeDoree TraineeRouge TraineeBleue
+
+-- table.remove(t, position) retire l'élément et décale la suite vers la gauche
+local retire = table.remove(inventaire, 2)
+print("Retiré :", retire) --> Retiré : TraineeRouge
+-- table.remove(t) sans position retire le dernier élément
+table.remove(inventaire)
+print(#inventaire) --> 1
+
+-- table.find(t, valeur) renvoie l'indice de la valeur, ou nil si elle est absente
+print(table.find(inventaire, "TraineeDoree")) --> 1
+print(table.find(inventaire, "TraineeVerte")) --> nil
+```
+
+<Astuce titre="table.find pour tester « est-ce que j’ai déjà… ? »">
+Comme `table.find` renvoie `nil` quand la valeur est absente, elle s’utilise directement dans un `if` : `if table.find(inventaire, "TraineeBleue") then print("Déjà possédée") end`. Tu t’en serviras pour l’inventaire de traînées au module 4.
+</Astuce>
+
+## Parcourir une table
+
+### L’itération générale : `for ... in`
+
+La façon la plus simple de parcourir une table en Luau moderne est l’**itération générale** : on écrit directement la table après `in`. À chaque tour, on reçoit l’indice (ou la clé) et la valeur.
+
+```luau
+local etapes = {"Décollage", "Nuages", "Tempête", "Sommet"}
+
+for indice, nom in etapes do
+	print(`Étape {indice} : {nom}`)
+end
+--> Étape 1 : Décollage
+--> Étape 2 : Nuages
+--> ...
+```
+
+Pour un tableau, l’ordre est garanti : 1, 2, 3… jusqu’à `#etapes`. Si tu n’as pas besoin de l’indice, la convention est de l’appeler `_` (tiret bas), ce qui signifie « je l’ignore » :
+
+```luau
+local etapes = {"Décollage", "Nuages", "Tempête", "Sommet"}
+
+for _, nom in etapes do
+	print(nom)
+end
+```
+
+### `ipairs`, `pairs` et la boucle numérique
+
+Tu croiseras aussi ces écritures, notamment dans du code plus ancien. Elles restent valables :
+
+```luau
+local etapes = {"Décollage", "Nuages", "Tempête", "Sommet"}
+
+-- La boucle numérique classique, de 1 à la longueur du tableau
+for i = 1, #etapes do
+	print(i, etapes[i])
+end
+
+-- ipairs : parcourt les indices 1, 2, 3... (s'arrête au premier trou)
+for i, nom in ipairs(etapes) do
+	print(i, nom)
+end
+
+-- pairs : parcourt toutes les clés (utile pour les dictionnaires)
+for cle, valeur in pairs({pseudo = "Lea", etape = 3}) do
+	print(cle, valeur)
+end
+```
+
+Dans cette formation, on utilise surtout l’itération générale `for cle, valeur in t do`, plus courte et qui marche aussi bien pour les tableaux que pour les dictionnaires.
+
+<Erreur titre="Retirer des éléments en parcourant la liste vers l’avant">
+`table.remove` décale les éléments suivants vers la gauche. Si tu retires des éléments pendant une boucle qui avance de 1 à `#t`, tu sautes l’élément qui vient d’être décalé. Pour supprimer pendant un parcours, **parcours à l’envers** : `for i = #t, 1, -1 do ... end`. Et évite de modifier une table pendant une boucle `for ... in` : le résultat n’est pas garanti.
+</Erreur>
+
+## Les dictionnaires
+
+Un **dictionnaire** associe des **clés** (souvent des textes) à des **valeurs**. On accède à une valeur par sa clé, avec un point ou avec des crochets.
+
+```luau
+local prixBoutique = {
+	TraineeRouge = 50,
+	TraineeBleue = 75,
+	TraineeDoree = 200,
+}
+
+print(prixBoutique.TraineeRouge)     --> 50  (notation avec point)
+print(prixBoutique["TraineeBleue"])  --> 75  (notation avec crochets)
+
+-- Les crochets permettent d'utiliser une clé contenue dans une variable
+local objetChoisi = "TraineeDoree"
+print(prixBoutique[objetChoisi])     --> 200
+
+-- Ajouter ou modifier une entrée
+prixBoutique.TraineeVerte = 60
+prixBoutique.TraineeRouge = 40
+
+-- Supprimer une entrée : on lui donne la valeur nil
+prixBoutique.TraineeBleue = nil
+
+-- Parcourir le dictionnaire (l'ordre n'est PAS garanti)
+for nom, prix in prixBoutique do
+	print(`{nom} coûte {prix} pièces`)
+end
+```
+
+Trois choses à retenir sur les dictionnaires :
+
+- l’ordre de parcours est **imprévisible** : ne compte jamais dessus ;
+- l’opérateur `#` ne compte **pas** les entrées d’un dictionnaire (il ne mesure que la partie « tableau » numérotée, ici il donnerait 0) ; pour les compter, il faut une boucle ;
+- une clé absente renvoie simplement `nil`, sans erreur.
+
+<Info>
+La notation avec point (`prixBoutique.TraineeRouge`) ne marche que pour des clés qui ressemblent à des noms de variables. Pour une clé qui contient un espace ou commence par un chiffre, utilise les crochets : `t["Trainée rouge"]`, `t["1"]`.
+</Info>
+
+## Les tables imbriquées
+
+Une valeur de table peut elle-même être une table. C’est ainsi qu’on décrit des données riches, comme les niveaux de l’Obby des Nuages :
+
+```luau
+local niveaux = {
+	{nom = "Les premiers nuages", nombreEtapes = 5, couleur = Color3.fromRGB(255, 255, 255)},
+	{nom = "La tempête", nombreEtapes = 8, couleur = Color3.fromRGB(90, 90, 120)},
+	{nom = "Le sommet", nombreEtapes = 4, couleur = Color3.fromRGB(255, 215, 0)},
+}
+
+print(niveaux[2].nom)          --> La tempête
+print(niveaux[3].nombreEtapes) --> 4
+
+local total = 0
+for _, niveau in niveaux do
+	total += niveau.nombreEtapes
+end
+print("Nombre total d'étapes :", total) --> 17
+```
+
+Ici, `niveaux` est un **tableau** de **dictionnaires**. C’est un motif très courant : la liste des niveaux est ordonnée, et chaque niveau a des propriétés nommées. On rangera ce genre de données dans le module `Config` à la leçon 6.
+
+## Copie ou même table ? Les références
+
+Point crucial : **une variable ne contient pas la table elle-même, mais une référence vers elle**. Affecter une table à une autre variable ne la copie pas.
+
+```luau
+local original = {"TraineeRouge", "TraineeBleue"}
+local autreNom = original -- PAS une copie : même table, deux noms
+
+table.insert(autreNom, "TraineeDoree")
+print(#original) --> 3 ! La table "original" a aussi changé
+
+-- Pour obtenir une vraie copie, utilise table.clone
+local copie = table.clone(original)
+table.insert(copie, "TraineeVerte")
+print(#original, #copie) --> 3 4 : cette fois, l'original n'a pas bougé
+```
+
+<Attention>
+`table.clone` fait une copie **superficielle** : si la table contient d’autres tables (comme `niveaux` plus haut), ces sous-tables restent partagées entre l’original et la copie. Pour tout copier en profondeur, il faut une fonction récursive (la documentation Roblox en donne un exemple).
+</Attention>
+
+## Les objets Roblox renvoient aussi des tables
+
+Beaucoup de méthodes Roblox renvoient des tableaux. Par exemple, **`:GetChildren()`** renvoie un tableau contenant tous les enfants directs d’un objet, et `Players:GetPlayers()` la liste des joueurs connectés. C’est ce qui va nous permettre de simplifier l’Obby des Nuages.
+
+### Fil rouge : un seul script pour toutes les kill bricks
+
+À la leçon 2, chaque kill brick contenait sa propre copie du script. Si tu veux changer le comportement, il faut modifier chaque copie : c’est fragile. Remplaçons-les par **un seul** Script.
+
+1. **Supprime** les Scripts qui se trouvent dans tes kill bricks (sinon chaque brique réagirait deux fois).
+2. Crée un **Script** nommé `KillBricks` dans **ServerScriptService** :
+
+```luau
+-- Script « KillBricks » dans ServerScriptService
+-- Gère toutes les Parts rangées dans le dossier Workspace.KillBricks
+local Workspace = game:GetService("Workspace")
+
+-- WaitForChild attend que le dossier existe (détaillé à la leçon 5)
+local dossierKillBricks = Workspace:WaitForChild("KillBricks")
+
+local function surContact(autrePart)
+	local personnage = autrePart.Parent
+	local humanoid = personnage and personnage:FindFirstChildOfClass("Humanoid")
+	if humanoid and humanoid.Health > 0 then
+		humanoid.Health = 0
+	end
+end
+
+-- On parcourt tous les enfants du dossier
+for _, killBrick in dossierKillBricks:GetChildren() do
+	-- On ne garde que les Parts (un Folder peut contenir autre chose)
+	if killBrick:IsA("BasePart") then
+		killBrick.Touched:Connect(surContact)
+	end
+end
+
+print(`{#dossierKillBricks:GetChildren()} objets dans le dossier KillBricks`)
+```
+
+`:IsA("BasePart")` vérifie que l’objet est bien une Part (de n’importe quelle forme). Désormais, pour ajouter une kill brick, il suffit de **glisser une Part dans le dossier** : aucun script à copier.
+
+### Fil rouge : toutes les pièces qui tournent
+
+Même principe pour les pièces. Supprime les Scripts placés dans chaque `Piece`, puis crée un Script `PiecesTournantes` dans ServerScriptService :
+
+```luau
+-- Script « PiecesTournantes » dans ServerScriptService
+-- Fait tourner toutes les Parts du dossier Workspace.Pieces
+local Workspace = game:GetService("Workspace")
+
+local dossierPieces = Workspace:WaitForChild("Pieces")
+local VITESSE_ROTATION = 90 -- degrés par seconde
+
+while true do
+	local ecoule = task.wait()
+	local rotation = CFrame.Angles(0, math.rad(VITESSE_ROTATION * ecoule), 0)
+	for _, piece in dossierPieces:GetChildren() do
+		if piece:IsA("BasePart") then
+			piece.CFrame = piece.CFrame * rotation
+		end
+	end
+end
+```
+
+On ne calcule la rotation qu’une fois par image, puis on l’applique à chaque pièce. Une seule boucle, autant de pièces que tu veux.
+
+<Info>
+Ce script prend la liste des enfants à chaque tour : si une pièce est retirée du dossier (parce qu’elle a été ramassée, par exemple), elle cesse simplement de tourner. Le ramassage des pièces sera programmé et sécurisé côté serveur au module 3.
+</Info>
+
+## Tableau ou dictionnaire : comment choisir ?
+
+| Besoin | Structure | Exemple |
+|---|---|---|
+| Une liste ordonnée, parcourue dans l’ordre | Tableau | Étapes du niveau, classement |
+| Retrouver une valeur à partir d’un nom | Dictionnaire | Prix par objet, réglages du jeu |
+| Une liste d’éléments qui ont chacun des propriétés | Tableau de dictionnaires | Niveaux, catalogue de la boutique |
+| Savoir rapidement si un élément est présent | Dictionnaire `{[cle] = true}` | Objets déjà possédés |
+
+<Defi>
+1. Remplace tes scripts de kill bricks et de pièces par les deux scripts uniques de cette leçon, et vérifie que tout fonctionne comme avant.
+2. Crée une table `messagesEncouragement` contenant cinq phrases. Écris une boucle qui les affiche toutes, numérotées.
+3. Choisis une phrase au hasard avec `messagesEncouragement[math.random(1, #messagesEncouragement)]` et affiche-la dans l’Output toutes les 10 secondes.
+4. Bonus : crée un dictionnaire `meilleursTemps` (pseudo → temps en secondes) avec trois joueurs, puis trouve et affiche le meilleur temps avec une boucle.
+</Defi>
+
+<Resume>
+- Une **table** sert de **tableau** (indices à partir de **1**) ou de **dictionnaire** (clé → valeur).
+- `#t` donne la longueur d’un tableau ; `table.insert`, `table.remove` et `table.find` ajoutent, retirent et cherchent.
+- On parcourt une table avec `for cle, valeur in t do` ; l’ordre n’est garanti que pour la partie tableau.
+- Une variable contient une **référence** vers la table : utilise `table.clone` pour une copie (superficielle).
+- `:GetChildren()` renvoie un tableau d’objets : un seul script peut gérer tout un dossier de Parts.
+</Resume>
+
+<Sources>
+- [Tables — documentation Luau de Roblox](https://create.roblox.com/docs/luau/tables)
+- [Control structures (itération générale, ipairs, pairs) — documentation Luau de Roblox](https://create.roblox.com/docs/luau/control-structures)
+- [Bibliothèque standard Luau (table.find, table.insert, table.remove, table.clone) — luau.org](https://luau.org/library)
+- [Syntaxe de Luau (itération générale) — luau.org](https://luau.org/syntax)
+- [Instance:GetChildren — référence API](https://create.roblox.com/docs/reference/engine/classes/Instance)
+</Sources>

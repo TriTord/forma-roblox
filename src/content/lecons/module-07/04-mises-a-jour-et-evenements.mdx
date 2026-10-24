@@ -1,0 +1,295 @@
+---
+titre: Mises à jour et événements
+description: Trouve un rythme de mises à jour tenable, publie sans casser les sauvegardes, redémarre les serveurs proprement et organise des événements avec les outils officiels.
+duree: 35
+objectifs:
+  - Établir un rythme de mises à jour réaliste et tenable
+  - Publier une mise à jour sans casser les sauvegardes ni surprendre les joueurs
+  - Redémarrer les serveurs et prévenir les joueurs avec ServerRestartScheduled
+  - Créer un événement limité dans le temps avec l’outil Events du Creator Hub
+miseAJour: 2026-10-24
+quiz:
+  - type: vrai-faux
+    question: Quand tu publies une nouvelle version, tous les joueurs passent immédiatement sur cette version.
+    reponse: false
+    explication: "Les serveurs déjà ouverts continuent à faire tourner l’ancienne version. Les joueurs passent à la nouvelle quand ces serveurs se vident, sauf si tu **redémarres les serveurs** depuis le Creator Dashboard."
+  - type: qcm
+    question: "Pourquoi cocher **Restart only servers with outdated versions** lors d’un redémarrage ?"
+    options:
+      - texte: Pour redémarrer aussi les serveurs de Studio
+      - texte: Pour ne pas déconnecter inutilement les joueurs déjà sur la dernière version
+        correct: true
+      - texte: Pour supprimer les anciennes versions de l’historique
+      - texte: Pour que la mise à jour soit annoncée automatiquement aux joueurs
+    explication: "Cette option ne redémarre que les serveurs qui font tourner une ancienne version. La documentation la recommande dans presque tous les cas, pour éviter de déranger des joueurs qui ont déjà la bonne version."
+  - type: qcm
+    question: "Tu ajoutes un champ `ZoneOragesDebloquee` aux données sauvegardées. Que faut-il faire pour les anciens joueurs ?"
+    options:
+      - texte: Effacer toutes les anciennes sauvegardes pour repartir de zéro
+      - texte: Changer le nom du DataStore à chaque mise à jour
+      - texte: Au chargement, donner une valeur par défaut aux champs absents des anciennes sauvegardes
+        correct: true
+      - texte: Rien, Luau ajoute automatiquement les nouveaux champs
+    explication: "Les anciennes sauvegardes ne contiennent pas le nouveau champ : il vaut `nil`. On complète donc les données au chargement avec des valeurs par défaut. Effacer les sauvegardes ou changer de DataStore ferait perdre leur progression aux joueurs."
+  - type: qcm
+    question: "Que dit la documentation sur les annonces de mise à jour (*update announcements*) au moment de la rédaction ?"
+    options:
+      - texte: Elles sont envoyées à tous les joueurs de Roblox
+      - texte: Elles sont limitées à 60 caractères et ne peuvent être envoyées qu’une fois tous les trois jours, aux joueurs qui ont activé les notifications
+        correct: true
+      - texte: Elles sont illimitées en longueur et en nombre
+      - texte: Elles remplacent automatiquement la description du jeu
+    explication: "Les annonces vont uniquement aux joueurs qui ont choisi de recevoir les notifications de ton jeu, avec une limite de **60 caractères** et d’**une annonce tous les trois jours**. Écris-les précises : « Corrections de bugs » n’informe personne."
+  - type: trouve-le-bug
+    question: "Ce Script serveur doit prévenir les joueurs du nombre de secondes avant un redémarrage. Où est le bug ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local annonce = ReplicatedStorage.Remotes.AnnonceRedemarrage
+
+      game.ServerRestartScheduled:Connect(function(restartTime, source)
+      	local secondes = restartTime - os.time()
+      	annonce:FireAllClients("Redémarrage dans " .. secondes .. " s", secondes)
+      end)
+    options:
+      - texte: "Ligne 2 : on ne peut pas ranger un RemoteEvent dans ReplicatedStorage"
+      - texte: "Ligne 4 : `ServerRestartScheduled` n’existe pas sur `game`"
+      - texte: "Ligne 5 : `restartTime` est un `DateTime`, pas un nombre ; il faut utiliser `restartTime.UnixTimestamp`"
+        correct: true
+      - texte: "Ligne 6 : `FireAllClients` ne peut pas envoyer deux valeurs"
+    explication: "`restartTime` est un objet `DateTime`. On ne peut pas le soustraire directement à un nombre : il faut lire sa propriété `UnixTimestamp` (des secondes depuis 1970, comme `os.time()`). L’événement existe bien sur `game` (le DataModel), et `FireAllClients` peut transmettre plusieurs valeurs."
+---
+
+Un jeu Roblox n’est jamais vraiment « fini ». Après le lancement, les mises à jour donnent aux joueurs des raisons de revenir et te permettent de corriger ce que les statistiques révèlent. Mais une mise à jour mal préparée peut aussi casser les sauvegardes ou couper la partie de tout le monde au mauvais moment. Dans cette leçon, on organise les mises à jour de l’Obby des Nuages et son premier événement.
+
+## Pourquoi continuer à mettre à jour
+
+Roblox appelle **LiveOps** (opérations en direct) le suivi d’un jeu après sa sortie. Sa documentation de game design le découpe en quatre types de mises à jour :
+
+- un **rythme de contenu** (*content cadence*) : des ajouts réguliers et simples qui réutilisent les systèmes existants (nouvelles étapes, nouvelles traînées) ;
+- des **grosses mises à jour** : de nouveaux systèmes (classement, mode course…) ;
+- des améliorations de **confort** (*quality of life*) : interface plus claire, performances, accessibilité ;
+- des **corrections de bugs**.
+
+La documentation sur la découverte cite d’ailleurs « ce que tu fais » (mises à jour, changements de gameplay) parmi les facteurs qui influencent les recommandations. Une mise à jour ne garantit pas plus de joueurs, mais un jeu abandonné finit par lasser même ses fans.
+
+## Un rythme réaliste
+
+D’après la documentation de Roblox sur les mises à jour de contenu :
+
+- beaucoup de jeux publient du contenu **toutes les deux semaines à un mois** ;
+- elle recommande de consacrer **moins de trois semaines de travail** à chaque mise à jour de ce type, pour garder un rythme régulier ;
+- le bon rythme dépend de **tes** capacités : il doit rester tenable dans la durée.
+
+Pour un créateur seul qui débute, un rythme comme celui-ci est plus réaliste qu’une mise à jour par semaine :
+
+| Quand | Quoi | Exemple pour l’Obby des Nuages |
+|---|---|---|
+| Chaque semaine (si besoin) | Corrections de bugs | Un checkpoint qui ne s’active pas |
+| Environ chaque mois | Contenu | 5 nouvelles étapes, 2 nouvelles traînées |
+| Quelques fois par an | Événement ou grosse nouveauté | Événement « Ciel d’automne », mode chrono |
+
+<Astuce titre="Réutilise tes systèmes">
+Le plus efficace, selon la documentation, c’est le contenu qui **réutilise ce qui existe déjà**. Ton système de checkpoints, ta boutique et ton `Catalogue` de traînées te permettent d’ajouter des étapes et des objets sans écrire de nouveau code. C’est exactement ce qui rend un rythme mensuel tenable.
+</Astuce>
+
+## Publier sans casser les sauvegardes
+
+La pire mise à jour, c’est celle qui fait perdre leur progression aux joueurs. Trois règles, en lien avec ce que tu as fait au module 4 :
+
+1. **Ne renomme jamais** une clé de sauvegarde ni le DataStore (`DonneesJoueurs_v1`) : les anciennes données deviendraient introuvables.
+2. **Ajoute** des champs, avec une **valeur par défaut** pour les anciens joueurs.
+3. **Teste** la mise à jour dans Studio avec un compte qui a déjà une ancienne sauvegarde.
+
+Voici une fonction qui complète les anciennes sauvegardes avec les champs ajoutés au fil des mises à jour. Adapte la liste à la structure de tes propres données :
+
+```luau
+-- Extrait à intégrer dans ton Script de sauvegarde (ServerScriptService), voir module 4
+-- Valeurs par défaut de TOUS les champs, y compris ceux ajoutés par les mises à jour
+local DONNEES_PAR_DEFAUT = {
+	Etape = 1,
+	Pieces = 0,
+	Inventaire = {},
+	-- Ajouté dans la mise à jour « Zone des Orages » :
+	ZoneOragesDebloquee = false,
+}
+
+-- Complète une sauvegarde chargée avec les champs qui lui manquent
+local function completerDonnees(donnees: { [string]: any }): { [string]: any }
+	for cle, valeurParDefaut in DONNEES_PAR_DEFAUT do
+		if donnees[cle] == nil then
+			if typeof(valeurParDefaut) == "table" then
+				-- On copie la table pour que chaque joueur ait la sienne
+				donnees[cle] = table.clone(valeurParDefaut)
+			else
+				donnees[cle] = valeurParDefaut
+			end
+		end
+	end
+	return donnees
+end
+
+-- Exemple : une sauvegarde d'avant la mise à jour
+local ancienneSauvegarde = { Etape = 12, Pieces = 340, Inventaire = { "TraineeBleue" } }
+local donnees = completerDonnees(ancienneSauvegarde)
+print(donnees.ZoneOragesDebloquee) --> false : le nouveau champ existe maintenant
+```
+
+<Info>
+Si quelque chose tourne mal malgré tout, l’**historique des versions** (vu au module 1) permet de revenir à une version précédente d’un lieu. Note quand même la version qui fonctionnait avant de publier.
+</Info>
+
+## Redémarrer les serveurs
+
+### Ce qui se passe quand tu publies
+
+D’après la documentation officielle, publier une nouvelle version **ne déplace pas** les joueurs déjà en jeu. Les serveurs ouverts continuent avec l’ancienne version, et les joueurs passent à la nouvelle au fur et à mesure que ces serveurs se vident. C’est sans risque, mais des joueurs peuvent rester longtemps sur des versions différentes. La documentation conseille de redémarrer les serveurs si le **format des données** sauvegardées change.
+
+### Le bouton « Restart Servers »
+
+Au moment de la rédaction, sur le Creator Dashboard : ouvre ton jeu, puis **Configurations > Server management**, sélectionne les lieux, et clique sur **Restart Servers**. Deux options sont proposées :
+
+- **Restart only servers with outdated versions** : ne redémarre que les serveurs qui font tourner une ancienne version. La documentation recommande de la cocher presque toujours.
+- **Delay server restart** : laisse aux joueurs un délai de **1 à 60 minutes** avant la fermeture, pour qu’ils puissent finir ce qu’ils font.
+
+Ensuite, Roblox arrête d’envoyer de nouveaux joueurs vers ces serveurs, attend le délai choisi, puis **téléporte** automatiquement les joueurs vers un serveur à jour. Les joueurs d’un même serveur arrivent ensemble sur le même nouveau serveur.
+
+<Erreur titre="Redémarrer sans sauvegarde fiable">
+Un redémarrage ferme des serveurs pleins de joueurs. Si ta sauvegarde ne se fait qu’à intervalles longs, ou si tu n’as pas de `game:BindToClose` (module 4), les joueurs peuvent perdre leurs dernières minutes de progression. Vérifie ta sauvegarde de fermeture **avant** ta première mise à jour avec redémarrage.
+</Erreur>
+
+### Prévenir les joueurs avec ServerRestartScheduled
+
+Quand tu lances un redémarrage **avec délai**, l’événement `game.ServerRestartScheduled` se déclenche sur les serveurs concernés. Il transmet :
+
+- `restartTime` : un `DateTime`, l’heure la plus proche à laquelle le serveur peut s’arrêter ;
+- `source` : `Enum.CloseReason.DeveloperUpdate` pour tes mises à jour, ou `Enum.CloseReason.RobloxMaintenance` quand Roblox fait de la maintenance ;
+- `attributes` : une table d’informations facultatives (vide si aucune).
+
+On s’en sert pour afficher un compte à rebours aux joueurs. Crée d’abord un RemoteEvent nommé `AnnonceRedemarrage` dans `ReplicatedStorage.Remotes`.
+
+```luau
+-- Script (côté serveur) à placer dans ServerScriptService
+-- Prévient tous les joueurs quand un redémarrage est programmé
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local annonceRedemarrage = remotes:WaitForChild("AnnonceRedemarrage") :: RemoteEvent
+
+game.ServerRestartScheduled:Connect(function(restartTime, source)
+	-- restartTime est un DateTime : on compare des secondes « Unix »
+	local secondesRestantes = restartTime.UnixTimestamp - DateTime.now().UnixTimestamp
+	secondesRestantes = math.max(0, secondesRestantes)
+	local minutes = math.ceil(secondesRestantes / 60)
+
+	local message
+	if source == Enum.CloseReason.DeveloperUpdate then
+		message = "Nouvelle version de l'Obby des Nuages ! Le serveur redémarre dans "
+			.. minutes .. " min. Ta progression est sauvegardée."
+	else
+		message = "Maintenance de Roblox : le serveur redémarre dans " .. minutes .. " min."
+	end
+
+	-- On envoie le message à tous les joueurs présents sur ce serveur
+	annonceRedemarrage:FireAllClients(message)
+end)
+```
+
+```luau
+-- LocalScript (côté client) à placer dans StarterPlayer > StarterPlayerScripts
+-- Affiche l'annonce de redémarrage dans une notification Roblox
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local annonceRedemarrage = remotes:WaitForChild("AnnonceRedemarrage") :: RemoteEvent
+
+annonceRedemarrage.OnClientEvent:Connect(function(message: string)
+	-- SetCore peut échouer si l'interface Roblox n'est pas encore prête : on protège l'appel
+	local ok, erreur = pcall(function()
+		StarterGui:SetCore("SendNotification", {
+			Title = "Mise à jour",
+			Text = message,
+			Duration = 15,
+		})
+	end)
+	if not ok then
+		warn("Notification impossible : " .. tostring(erreur))
+	end
+end)
+```
+
+<Info titre="Mettre à jour sans redémarrer">
+Pour certaines nouveautés, Roblox propose les **configs** du Creator Hub : des valeurs (activer un événement, régler un prix…) que tes scripts lisent avec `ConfigService` et que tu modifies **sans publier ni redémarrer**. La documentation suggère par exemple de publier du contenu en avance, caché derrière une config, puis de l’activer au bon moment. C’est un outil plus avancé : retiens simplement qu’il existe.
+</Info>
+
+## Communiquer les nouveautés
+
+Une mise à jour que personne ne remarque ne sert pas à grand-chose. Plusieurs canaux existent :
+
+- **La description du jeu** : une courte ligne « Nouveautés » en haut (leçon 1), qui ne repousse pas trop bas le reste.
+- **En jeu** : un panneau ou un message au spawn qui présente la nouveauté.
+- **Les annonces de mise à jour** (*update announcements*), dans **Engagement > Events & Updates** au moment de la rédaction : elles arrivent dans les notifications Roblox des joueurs qui ont activé les notifications de ton jeu. Elles sont limitées à **60 caractères** et à **une tous les trois jours**. La documentation conseille d’être précis (« Nouvelle Zone des Orages : 5 étapes ! » plutôt que « Corrections de bugs »).
+- **Ta communauté** (leçon 5).
+
+Les **notifications d’expérience**, que ton jeu envoie lui-même aux joueurs qui les ont acceptées, sont abordées au module 5 (rejouabilité). Retiens juste que leurs règles d’usage interdisent les notifications publicitaires déguisées et la fausse urgence.
+
+## Organiser un événement
+
+### Pourquoi des événements
+
+La documentation de Roblox décrit le **contenu à durée limitée** comme un bon moyen de relancer l’intérêt : des objectifs à accomplir ou des objets à gagner pendant une période donnée. Pour l’Obby des Nuages, un événement « Ciel d’automne » pourrait proposer pendant deux semaines une étape spéciale et une traînée orange à débloquer.
+
+<Attention titre="Limité dans le temps, pas sous pression">
+« Limité dans le temps » ne veut pas dire « pression ». Les règles de Roblox sur les notifications interdisent par exemple les fausses urgences qui poussent à acheter (« Achète dans les 10 prochaines minutes ! »). Comme on l’a vu au module 6, ton public est souvent jeune : un événement doit donner envie de jouer, pas angoisser les joueurs qui ne peuvent pas venir.
+</Attention>
+
+### L’outil Events du Creator Hub
+
+Au moment de la rédaction, les événements se créent dans **Engagement > Events & Updates**, bouton **Create Event or Update**. Tu y définis :
+
+- une **miniature** propre à l’événement (la documentation conseille qu’elle soit différente de celles du jeu) ;
+- une **catégorie**, un **titre**, un **sous-titre** et une **description** facultative ;
+- les **dates** de début et de fin ;
+- le **lieu** où arrivent les joueurs qui rejoignent l’événement ;
+- la **visibilité** : **privé** pendant la préparation, **public** quand tu es prêt à le promouvoir.
+
+Tu peux publier au maximum **10 événements** en cours ou à venir. Une fois public, l’événement apparaît :
+
+- dans une section **Events** de la page du jeu, avec un bouton **Join Event** (pendant l’événement) ou **Notify Me** (avant) ;
+- sur une **page dédiée** que tu peux partager ;
+- dans l’onglet **Events** de ta communauté, si le jeu appartient à une communauté.
+
+Les joueurs qui cliquent sur **Notify Me** reçoivent une notification au début de l’événement.
+
+### Les vitrines supplémentaires
+
+- La liste **Trending Events in Experiences** de la page Charts met en avant des événements actifs. Au moment de la rédaction, il faut notamment un événement public, commencé depuis moins de 7 jours, avec au moins **1 000 inscriptions** (*RSVPs*).
+- Le programme **Off-Platform Featuring** permet de proposer un événement pour être mis en avant hors de Roblox (magasins d’applications, canaux marketing de Roblox). Il faut avoir au moins 13 ans, soumettre l’événement au moins 7 jours avant son début, et c’est Roblox qui sélectionne, sans garantie.
+
+Pour un premier jeu, ces vitrines sont difficiles à atteindre : concentre-toi sur un événement simple, bien annoncé à tes joueurs actuels.
+
+<Defi>
+1. Ajoute la fonction `completerDonnees` à ton script de sauvegarde et teste-la avec une ancienne sauvegarde.
+2. Crée le RemoteEvent `AnnonceRedemarrage` et les deux scripts de redémarrage.
+3. Publie une petite mise à jour (une nouvelle étape), puis redémarre les serveurs avec **Restart only servers with outdated versions** et un délai de 2 minutes. Rejoins le jeu avant pour voir la notification.
+4. Prépare en privé un événement « Ciel d’automne » de deux semaines avec sa miniature.
+</Defi>
+
+<Resume>
+- Choisis un rythme **tenable** : corrections quand il faut, contenu environ chaque mois, événements de temps en temps.
+- Ne renomme jamais tes clés de sauvegarde ; complète les anciennes données avec des **valeurs par défaut**.
+- Publier ne déplace pas les joueurs : **Restart Servers** (avec « outdated versions » et un délai) les envoie vers la nouvelle version.
+- `game.ServerRestartScheduled` permet d’afficher un compte à rebours avant un redémarrage programmé.
+- L’outil **Events & Updates** crée des événements visibles sur la page du jeu, avec notifications pour les joueurs inscrits ; évite toute fausse urgence.
+</Resume>
+
+<Sources>
+- [Release game updates (redémarrage des serveurs) — documentation Roblox](https://create.roblox.com/docs/projects/update-games)
+- [DataModel.ServerRestartScheduled — référence de l’API Roblox](https://create.roblox.com/docs/reference/engine/classes/DataModel#ServerRestartScheduled)
+- [Experience events and updates — documentation Roblox](https://create.roblox.com/docs/production/promotion/experience-events)
+- [Content updates — documentation Roblox](https://create.roblox.com/docs/production/game-design/content-updates)
+- [LiveOps essentials — documentation Roblox](https://create.roblox.com/docs/production/game-design/liveops-essentials)
+- [Experience configs — documentation Roblox](https://create.roblox.com/docs/production/configs)
+- [Experience notifications (règles d’usage) — documentation Roblox](https://create.roblox.com/docs/production/promotion/experience-notifications)
+- [Discovery — documentation Roblox](https://create.roblox.com/docs/discovery)
+</Sources>

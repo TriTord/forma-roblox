@@ -1,0 +1,175 @@
+---
+titre: Le mindset qui permet de finir un jeu
+description: Choisir un périmètre réaliste, prototyper vite, publier tôt, écouter les joueurs et tenir dans la durée. La méthode pour terminer ton jeu au lieu de l’abandonner.
+duree: 20
+objectifs:
+  - Choisir un périmètre réaliste pour une « version 1 »
+  - Reconnaître et contenir la dérive du périmètre (scope creep)
+  - Adopter le cycle publier, mesurer, améliorer
+  - Gérer ta motivation et transformer les échecs en apprentissages
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Selon la documentation de Roblox, qu’est-ce qu’un MVP (minimum viable product) ?"
+    options:
+      - texte: La version la plus aboutie du jeu, prête pour une grosse campagne de publicité
+      - texte: "La version minimale du jeu qui permet de démontrer ses fonctionnalités clés et sa boucle de jeu"
+        correct: true
+      - texte: Une démo vidéo du jeu, sans rien de jouable
+      - texte: Le joueur le plus actif d’un jeu
+    explication: "Roblox conseille d’identifier les fonctionnalités clés et la boucle de jeu (core loop), puis la **version minimale** du jeu qui les démontre. Elle est jouable, mais réduite à l’essentiel, pour obtenir des retours le plus tôt possible."
+  - type: qcm
+    question: "En plein développement de ton obby, tu as l’idée d’ajouter un système de familiers (pets) qui suivent le joueur. Quelle est la meilleure réaction ?"
+    options:
+      - texte: L’ajouter tout de suite, sinon tu vas oublier l’idée
+      - texte: Recommencer le projet en partant des familiers, c’est plus vendeur
+      - texte: "La noter dans une liste « plus tard » et terminer d’abord la version 1"
+        correct: true
+      - texte: Abandonner l’idée définitivement
+    explication: "C’est le réflexe anti-**scope creep** (dérive du périmètre) : l’idée n’est ni perdue ni ignorée, elle est mise de côté. Tu la réévalueras une fois la version 1 publiée, à la lumière des retours des joueurs."
+  - type: vrai-faux
+    question: Selon la documentation de Roblox, un jeu qui a mal démarré dans les recommandations est pénalisé définitivement.
+    reponse: false
+    explication: "La FAQ officielle sur la découverte indique qu’il n’y a **pas de pénalité** pour un jeu qui a mal démarré : les signaux sont calculés sur une période glissante, et l’algorithme continue de tester le jeu avec de nouveaux joueurs. Corriger puis republier a donc du sens."
+  - type: qcm
+    question: "Quelles pratiques correspondent au cycle « publier, mesurer, améliorer » ? (plusieurs réponses possibles)"
+    options:
+      - texte: Faire tester un prototype à quelques amis avant qu’il soit beau
+        correct: true
+      - texte: Comparer les statistiques du jeu aux objectifs que tu t’étais fixés
+        correct: true
+      - texte: Attendre que le jeu soit parfait avant de le montrer à qui que ce soit
+      - texte: Observer où les joueurs se perdent ou abandonnent, puis corriger
+        correct: true
+    explication: "Le cycle repose sur des allers-retours rapides avec de vrais joueurs : on montre tôt, on mesure (retours et statistiques), on corrige, et on recommence. Attendre la perfection retarde tous les apprentissages."
+  - type: vrai-faux
+    question: "Publier un jeu qui reprend le titre et les visuels d’un jeu existant est une stratégie efficace pour profiter de son succès."
+    reponse: false
+    explication: "Roblox indique que les jeux dont les métadonnées (titre, images) et le contenu ressemblent de près à des jeux existants **ne sont plus mis en avant** dans les recommandations et peuvent être moins bien classés en recherche. S’inspirer, oui ; copier, non."
+---
+
+Tu sais maintenant comment fonctionne Roblox côté créateurs. Reste une question que beaucoup de débutants sous-estiment : comment **aller au bout** ? La difficulté principale d’un premier jeu n’est souvent pas technique. C’est de garder un projet assez petit pour le terminer, et de continuer à avancer quand la motivation baisse. Cette leçon te donne une méthode concrète, appuyée sur les recommandations officielles de Roblox.
+
+## Pourquoi tant de projets restent inachevés
+
+Le scénario classique ressemble à ceci : un jeu immense imaginé d’un coup (un monde ouvert, des dizaines d’armes, des quêtes, un système de clans…), quelques semaines d’enthousiasme, puis l’abandon devant l’ampleur de la tâche. Sur le DevForum, quand un débutant demande par quel jeu commencer, les développeurs plus expérimentés répondent souvent la même chose. Dans un fil de 2020, l’un d’eux résume : concentre-toi sur les fonctionnalités principales avant d’élargir, car l’erreur la plus fréquente des nouveaux développeurs est de prévoir des concepts trop vastes avant même de commencer.
+
+Ce n’est pas une statistique, c’est un retour d’expérience. Voici les causes d’abandon que l’on retrouve le plus souvent dans ce genre de témoignages :
+
+- **un périmètre trop grand** pour le temps et les compétences disponibles ;
+- **pas de version jouable** avant très longtemps, donc aucun retour, aucune victoire ;
+- **des idées qui s’ajoutent sans cesse**, si bien que la ligne d’arrivée recule ;
+- **le perfectionnisme** : on refait trois fois le même décor au lieu d’avancer.
+
+Bonne nouvelle : chacune de ces causes a une parade simple.
+
+## La version 1 : petit, mais jouable
+
+Dans ses stratégies recommandées, Roblox conseille de commencer par un **MVP** (*minimum viable product*, ou produit minimum viable) : identifier les fonctionnalités clés et la **boucle de jeu** (*core loop*, l’action que le joueur répète encore et encore), puis la version minimale du jeu qui permet de les démontrer. La documentation précise pourquoi : il est tentant de construire tout de suite le jeu complet, mais commencer par un MVP permet d’obtenir des retours et d’itérer tôt, ce qui donne un meilleur jeu au final.
+
+Dans cette formation, on parle de **version 1**. Pour la définir, pose-toi trois questions :
+
+1. **Quelle est l’action principale ?** Dans un obby : sauter de plateforme en plateforme sans tomber.
+2. **Qu’est-ce qui donne envie de continuer ?** Atteindre le checkpoint suivant, ramasser des pièces.
+3. **Quel est le minimum pour que ce soit amusant ?** Quelques étapes bien dosées, des checkpoints qui fonctionnent, un début immédiat.
+
+Tout le reste va dans une liste « plus tard ». Tu découvriras dans la dernière leçon de ce module la version 1 exacte de l’Obby des Nuages.
+
+### La dérive du périmètre (scope creep)
+
+Le **scope creep**, ou dérive du périmètre, c’est quand un projet grossit petit à petit, une « petite » idée après l’autre, jusqu’à devenir impossible à finir. Chaque ajout semble raisonnable pris isolément : « juste un système de familiers », « juste un deuxième monde », « juste un mode compétitif »… Ensemble, ils peuvent multiplier la durée du projet.
+
+La parade tient en une règle : **une idée nouvelle ne rentre jamais directement dans la version en cours**. Elle va d’abord dans une liste « plus tard ». Une fois la version 1 publiée, tu relis cette liste avec les retours des joueurs en main, et tu choisis ce qui mérite vraiment d’être fait.
+
+<Astuce titre="Le parking à idées">
+Garde une page « Parking à idées » dans ton carnet de bord. Noter une idée suffit souvent à calmer l’envie de l’ajouter tout de suite : tu sais qu’elle n’est pas perdue. Et en relisant la liste quelques semaines plus tard, tu découvriras peut-être que certaines idées ne te plaisent plus du tout.
+</Astuce>
+
+## Prototyper vite
+
+Avant de construire une fonctionnalité pour de bon, on peut la **prototyper**. La documentation de Roblox décrit le prototypage comme un processus expérimental où l’on explore et itère des idées préliminaires avant d’en faire de vraies fonctionnalités. Elle distingue deux techniques :
+
+- le **prototype papier** : simuler le jeu avec des objets physiques (feuilles, dés, figurines) pour tester des règles ;
+- le **prototype dans Studio** : construire rapidement une version grossière et jouable, facile à partager pour avoir des retours.
+
+L’intérêt, selon la même documentation : repérer les défauts de conception, les oublis et les besoins techniques inattendus **au tout début**, plutôt qu’après des mois de développement. Et un bon prototype est rapide : il teste un aspect précis, pas la fonctionnalité entière.
+
+Pour un obby, prototyper veut dire poser des blocs gris sans décoration, tester les sauts, ajuster les distances, puis seulement ensuite habiller le niveau. Un saut trop long reste trop long, même avec de jolies textures.
+
+<Erreur titre="Peaufiner avant de tester">
+Passer des heures sur le décor, les effets et le logo avant d’avoir vérifié que le cœur du jeu est amusant. Si le saut principal de ton obby est frustrant, aucun décor ne le sauvera. Teste d’abord le gameplay avec des formes simples, embellis ensuite.
+</Erreur>
+
+## Le cycle publier, mesurer, améliorer
+
+Les stratégies officielles de Roblox insistent sur un point : mets ta version minimale **entre les mains des joueurs** dès qu’elle est prête, parce que leurs premiers retours servent à repérer les problèmes et à « trouver le fun », et parce qu’il ne faut pas attendre qu’il soit trop tard pour changer de direction.
+
+Le cycle à adopter ressemble à ceci :
+
+1. **Publier** une version jouable, d’abord à un petit cercle (amis, famille, quelques testeurs), puis plus largement.
+2. **Mesurer** : observer les joueurs, recueillir leurs avis, puis lire les statistiques du Creator Dashboard. Roblox recommande de fixer tes objectifs (tes indicateurs clés, ou *KPI*) avant de développer, puis de comparer les statistiques à ces objectifs pour voir ce qui doit être amélioré.
+3. **Améliorer** : corriger le problème le plus important, republier, et recommencer le cycle jusqu’à atteindre tes objectifs.
+
+Tu apprendras à organiser des tests au module 5 et à lire les statistiques au module 8. Pour l’instant, retiens l’état d’esprit : **un jeu publié n’est pas un jeu fini**, c’est le début d’une conversation avec les joueurs.
+
+<Info>
+La FAQ officielle sur la découverte des jeux contient une phrase rassurante : il n’y a **pas de pénalité** pour un jeu qui a mal démarré. Si les premiers joueurs ne reviennent pas, tu peux corriger l’onboarding ou les mécaniques, et le système continue de tester ton jeu auprès de nouveaux joueurs. Un départ raté n’est pas une condamnation.
+</Info>
+
+## Écouter les joueurs (sans tout prendre au pied de la lettre)
+
+La documentation de Roblox conseille de parler à tes joueurs (ce qu’ils aiment, ce qu’ils n’aiment pas, ce qu’ils changeraient) et de **les regarder jouer**, pour repérer la confusion ou les comportements inattendus. Les deux sont complémentaires :
+
+- **ce que les joueurs font** te montre où est le problème (ils tombent tous au même saut, ils ne trouvent pas la boutique) ;
+- **ce que les joueurs disent** t’aide à comprendre pourquoi.
+
+Attention, un joueur qui propose une solution (« ajoute des pets ! ») exprime souvent un besoin caché (« je m’ennuie entre deux checkpoints »). C’est le besoin qu’il faut traiter, pas forcément la solution proposée.
+
+## S’inspirer sans copier
+
+Jouer beaucoup aux jeux qui marchent est une excellente école. Roblox le recommande d’ailleurs : connaître les genres populaires augmente tes chances d’attirer et de garder des joueurs. Analyse ce qui rend un jeu agréable : comment il démarre, ce qui donne envie de revenir, comment il récompense le joueur.
+
+Mais il y a une limite nette entre s’inspirer et copier. La documentation officielle sur la découverte indique que les jeux dont le titre, les images et le contenu ressemblent de près à des jeux existants **ne sont plus mis en avant** dans les recommandations et peuvent être moins bien classés en recherche. Elle conseille plutôt d’**apporter ta touche personnelle** aux tendances que tu suis, avec des images et un nom originaux. Copier n’est donc pas seulement malhonnête : c’est aussi une mauvaise stratégie.
+
+## Motivation, régularité et échecs
+
+### La régularité bat l’intensité
+
+Quarante-cinq minutes trois fois par semaine pendant trois mois, c’est souvent plus efficace qu’un week-end entier suivi d’un mois sans rouvrir Studio. La régularité garde le projet « chaud » dans ta tête : tu sais où tu en étais, tu n’as pas à tout redécouvrir.
+
+Quelques habitudes qui aident :
+
+- **termine chaque séance par une note** dans ton carnet de bord : ce que tu as fait, et la toute prochaine petite tâche. La séance suivante démarre sans hésitation ;
+- **découpe en tâches de moins d’une heure** : « construire les étapes 1 à 3 » plutôt que « faire le niveau » ;
+- **célèbre les petites victoires** : un checkpoint qui marche, un premier testeur qui finit le parcours.
+
+### Un échec est une information
+
+Ton premier jeu n’aura probablement pas beaucoup de joueurs, et c’est normal (on a vu pourquoi dans la leçon précédente). Ce qui compte, c’est ce que tu en retires : ce que tu sais faire maintenant, ce que les joueurs ont aimé, ce que tu ferais autrement. Chaque projet terminé rend le suivant meilleur : tu réutilises ce que tu as appris, tes méthodes, parfois même ton code.
+
+<Defi>
+Dans ton carnet de bord, crée trois listes pour un jeu que tu aimerais faire un jour (pas forcément l’obby) :
+
+1. **Version 1** : au maximum cinq fonctionnalités indispensables.
+2. **Plus tard** : tout le reste.
+3. **Jamais** : les idées que tu abandonnes consciemment.
+
+Si ta liste « Version 1 » dépasse cinq lignes, recommence en étant plus strict. C’est exactement l’exercice qu’on fera pour l’Obby des Nuages dans la leçon 5.
+</Defi>
+
+<Resume>
+- Un **périmètre trop grand** est l’une des causes d’abandon les plus citées par les développeurs : la parade, c’est de viser petit.
+- Commence par une **version 1** (MVP) : la boucle de jeu et le minimum pour qu’elle soit amusante.
+- Contre le **scope creep**, chaque nouvelle idée passe par une liste « plus tard ».
+- **Prototype** vite et teste le gameplay avant de peaufiner le décor.
+- Adopte le cycle **publier, mesurer, améliorer** : un jeu publié n’est pas un jeu fini.
+- **Inspire-toi sans copier**, travaille avec régularité et considère chaque échec comme une information.
+</Resume>
+
+<Sources>
+- [Recommended strategies — MVP, playtests et itération (documentation officielle)](https://create.roblox.com/docs/get-started/strategies)
+- [Prototyping — prototypes papier et Studio (documentation officielle)](https://create.roblox.com/docs/production/game-design/prototyping)
+- [Discovery — bonnes pratiques et jeux non originaux](https://create.roblox.com/docs/discovery)
+- [Discovery FAQ — pas de pénalité pour un mauvais départ](https://create.roblox.com/docs/discovery-faq)
+- [DevForum — « I need help making a game » (conseils de développeurs à un débutant, 2020)](https://devforum.roblox.com/t/i-need-help-making-a-game/573814)
+</Sources>

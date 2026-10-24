@@ -1,0 +1,199 @@
+---
+titre: "Ton projet : l’Obby des Nuages"
+description: Le cahier des charges du jeu que tu vas construire, sa boucle de jeu, ce qui entre dans la version 1 et ce qui attend, la carte des modules et les critères de « terminé ».
+duree: 20
+objectifs:
+  - Comprendre le cahier des charges de l’Obby des Nuages
+  - Définir la boucle de jeu d’un obby
+  - Distinguer la version 1 de ce qui viendra plus tard
+  - Planifier la construction module par module et savoir quand le jeu est « terminé »
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Dans la boucle de jeu de l’Obby des Nuages, quel élément joue le rôle de « moteur de progression » ?"
+    options:
+      - texte: Le fait de déplacer son personnage avec le clavier
+      - texte: "Les étapes franchies et les pièces accumulées, qui débloquent des trails dans la boutique"
+        correct: true
+      - texte: La couleur du ciel
+      - texte: Le chat entre joueurs
+    explication: "Selon la documentation de Roblox, une boucle de jeu combine l’interaction de chaque instant (se déplacer, sauter), l’action la plus répétée (franchir un obstacle jusqu’au checkpoint) et un **moteur de progression**. Dans l’obby, ce sont les étapes atteintes et les pièces dépensées en trails qui font avancer le joueur."
+  - type: qcm
+    question: "Laquelle de ces fonctionnalités fait partie de la version 1 de l’Obby des Nuages ?"
+    options:
+      - texte: Un système de familiers (pets) à faire évoluer
+      - texte: Plusieurs mondes reliés par des téléporteurs
+      - texte: Des checkpoints qui sauvegardent l’étape atteinte
+        correct: true
+      - texte: Un mode combat entre joueurs
+    explication: "Les checkpoints sont au cœur d’un obby : sans eux, chaque chute renvoie au départ. Les familiers, les mondes multiples et le combat sont des idées « plus tard » : elles agrandiraient le projet sans être nécessaires pour qu’il soit amusant."
+  - type: vrai-faux
+    question: "Dans l’Obby des Nuages, les objets de la boutique (trails) donnent un avantage de vitesse ou de saut."
+    reponse: false
+    explication: "Les trails sont **purement cosmétiques** : ils changent l’apparence, pas les capacités. C’est un choix volontaire pour un jeu équitable, où l’on ne peut pas acheter la victoire. On reparlera de ce choix éthique au module 6."
+  - type: qcm
+    question: "Lesquels de ces critères font partie de la définition de « terminé » pour la version 1 ? (plusieurs réponses possibles)"
+    options:
+      - texte: On peut finir le parcours du début à la fin, sur ordinateur et sur mobile
+        correct: true
+      - texte: "La progression (étape, pièces, trails) est conservée d’une session à l’autre"
+        correct: true
+      - texte: Le jeu a atteint au moins 1 000 joueurs simultanés
+      - texte: Des personnes extérieures ont testé le jeu et les problèmes bloquants sont corrigés
+        correct: true
+    explication: "« Terminé » dépend de critères **que tu contrôles** : un jeu complet, stable, sauvegardé, testé. Un nombre de joueurs n’est pas un critère de fin : il dépend aussi de facteurs extérieurs (concurrence, saisonnalité, recommandations)."
+  - type: qcm
+    question: "Pendant le module 4, tu as envie d’ajouter un deuxième monde sur le thème de l’espace. Que fais-tu ?"
+    options:
+      - texte: Tu l’ajoutes tout de suite, c’est motivant
+      - texte: "Tu le notes dans la liste « plus tard » et tu continues la version 1"
+        correct: true
+      - texte: Tu recommences le projet sur le thème de l’espace
+    explication: "C’est l’application directe de la leçon sur le mindset : une idée nouvelle n’entre jamais directement dans la version en cours. Un deuxième monde pourra devenir une excellente mise à jour **après** le lancement, si les joueurs en redemandent."
+---
+
+Place à l’action ! Dans cette leçon, tu découvres le cahier des charges du jeu que tu vas construire tout au long de la formation : l’**Obby des Nuages**. Tu vas appliquer immédiatement ce que tu as appris dans la leçon sur le mindset : une version 1 précise, une liste « plus tard » assumée, et des critères clairs pour savoir quand le jeu est terminé.
+
+## Le pitch
+
+Un bon projet se résume en deux phrases. Voici celui de l’Obby des Nuages :
+
+> Un parcours d’obstacles suspendu dans le ciel, où chaque étape est un îlot de nuages à atteindre en sautant. Ramasse des pièces en chemin, sauvegarde ta progression aux checkpoints et dépense tes pièces pour obtenir des traînées lumineuses qui te suivent pendant tes sauts.
+
+Un **obby** (de l’anglais *obstacle course*, parcours d’obstacles) est un genre que tu as sûrement déjà croisé sur Roblox. C’est aussi un premier projet souvent conseillé aux débutants sur le DevForum, parce qu’il demande moins de construction et de programmation que d’autres genres, tout en couvrant les bases des deux.
+
+## La boucle de jeu
+
+La documentation de Roblox décrit la **boucle de jeu** (*core loop*) comme la partie centrale autour de laquelle tout le jeu est construit. Elle se découpe en trois couches. Appliquons-les à notre obby :
+
+1. **L’interaction de chaque instant** : se déplacer, sauter, viser la plateforme suivante, éviter le vide et les obstacles.
+2. **L’action la plus répétée** : franchir une étape pour atteindre le checkpoint suivant, en ramassant les pièces au passage.
+3. **Le moteur de progression** : le numéro d’étape qui grimpe, les pièces qui s’accumulent et qui se dépensent en **trails** dans la boutique.
+
+En une phrase : **je saute, j’atteins un checkpoint, je gagne des pièces, je débloque un trail, et j’ai envie d’aller plus loin**. Tout ce qui ne sert pas cette boucle attendra. Tu approfondiras ce sujet au module 5.
+
+## Le cahier des charges de la version 1
+
+### Le cœur jouable
+
+| Fonctionnalité | Description |
+|---|---|
+| **Parcours** | Une série d’étapes de difficulté croissante, flottant dans le ciel |
+| **Point d’apparition** | Un SpawnLocation (point d’apparition) au départ, avec un premier saut immédiat et facile |
+| **Kill bricks** | Des blocs piégés : les toucher fait perdre le personnage, qui réapparaît à son dernier checkpoint, comme après une chute dans le vide |
+| **Checkpoints** | Des plateformes numérotées qui enregistrent l’étape atteinte ; après une chute, le joueur réapparaît au dernier checkpoint validé |
+| **Pièces** | Des pièces qui tournent sur elles-mêmes, à ramasser en chemin |
+| **Statistiques visibles** | L’étape et le nombre de pièces affichés dans le classement en haut à droite de l’écran (les leaderstats) |
+| **Sauvegarde** | L’étape, les pièces et les trails possédés sont conservés d’une session à l’autre |
+| **Boutique** | Une interface pour acheter et équiper des trails avec ses pièces |
+| **Plateformes animées** | Quelques plateformes mobiles pour varier le parcours |
+| **Victoire** | Une animation et un message à l’arrivée |
+
+### Pour être prêt au lancement
+
+| Fonctionnalité | Description |
+|---|---|
+| **Sécurité** | Le serveur vérifie les checkpoints, les pièces et les achats : impossible de tricher en modifiant son client |
+| **Premières secondes soignées** | Un début clair, sans mur de texte, avec un objectif visible tout de suite |
+| **Monétisation éthique** | Un Game Pass cosmétique (un trail exclusif) et un achat optionnel « passer l’étape », sans pression sur le joueur |
+| **Page du jeu** | Un titre clair, une description honnête, une icône et des miniatures personnalisées qui montrent le vrai jeu |
+| **Statistiques** | Des événements qui mesurent où les joueurs abandonnent le parcours |
+| **Mobile** | Une interface et des contrôles confortables sur téléphone, sans lag |
+
+<Info>
+Les trails de l’Obby des Nuages sont **uniquement cosmétiques** : ils ne rendent ni plus rapide, ni meilleur sauteur. Personne ne peut acheter la victoire. Ce choix rend le jeu équitable pour tous, et tu verras au module 6 pourquoi c’est aussi une monétisation plus saine, surtout pour un public souvent jeune.
+</Info>
+
+### La liste « plus tard »
+
+Ces idées sont bonnes, mais elles n’entrent **pas** dans la version 1 :
+
+- plusieurs mondes thématiques (espace, volcan, océan…) ;
+- un mode contre-la-montre avec classement mondial ;
+- des familiers (pets) ou des capacités spéciales ;
+- des objectifs quotidiens et des événements saisonniers ;
+- un mode de jeu en équipe.
+
+Elles pourront devenir des mises à jour après le lancement, si les statistiques et les retours des joueurs montrent qu’elles en valent la peine.
+
+<Erreur titre="Agrandir le parcours au lieu de le finir">
+Ajouter « encore dix étapes » avant d’avoir des checkpoints fiables, une sauvegarde qui marche et un test par de vrais joueurs. Un obby court mais complet et sans bug vaut mieux qu’un obby immense où l’on perd sa progression. Tu pourras toujours ajouter des étapes dans une mise à jour.
+</Erreur>
+
+## La carte des modules
+
+Chaque module ajoute une brique à l’Obby des Nuages :
+
+| Module | Ce que l’Obby des Nuages gagne |
+|---|---|
+| 0 | Le cahier des charges (cette leçon) |
+| 1 | Le premier niveau construit à la main (plateformes, point d’apparition), publié en privé |
+| 2 | Kill bricks, pièces qui tournent, premiers checkpoints et un module de configuration |
+| 3 | Checkpoints et pièces validés par le serveur, achat en boutique sécurisé |
+| 4 | Statistiques Étape et Pièces, sauvegarde, inventaire de trails, interface de boutique, plateformes animées, animation de victoire |
+| 5 | Premières secondes, courbe de difficulté, récompenses et objectifs |
+| 6 | Game Pass cosmétique, achat « passer l’étape », prix et éthique |
+| 7 | Page du jeu, icône, miniatures, lancement et première mise à jour |
+| 8 | Mesure de la progression étape par étape et lecture du Creator Dashboard |
+| 9 | Version mobile soignée et chasse au lag |
+| 10 | Passage de la checklist de lancement complète |
+
+### Les noms qu’on utilisera partout
+
+Pour que tous les scripts de la formation s’emboîtent, on fixe dès maintenant quelques noms. Tu n’as pas besoin de les comprendre aujourd’hui, mais garde cette liste sous la main, elle reviendra souvent :
+
+- dans **Workspace** (le monde 3D) : un dossier `Checkpoints` qui contient des Parts nommées `1`, `2`, `3`… selon le numéro d’étape, un dossier `KillBricks` et un dossier `Pieces` ;
+- dans **ReplicatedStorage** (un espace partagé entre le serveur et les joueurs) : un dossier `Remotes` pour la communication entre le serveur et les joueurs, et un dossier `Modules` avec les réglages du jeu (`Config`) et la liste des objets de la boutique (`Catalogue`) ;
+- les statistiques affichées s’appellent `Etape` et `Pieces`, **sans accents** dans les noms d’objets (les textes affichés à l’écran, eux, pourront avoir des accents).
+
+<Astuce titre="Des noms clairs dès le départ">
+Renommer des objets en cours de projet casse les scripts qui les cherchent par leur nom. Choisir des noms simples, sans accents ni espaces, et s’y tenir t’épargnera des heures de débogage. C’est pour cela que la formation fixe ces conventions dès le module 0.
+</Astuce>
+
+## Quand le jeu sera-t-il « terminé » ?
+
+Sans définition claire, un projet n’est jamais fini : on trouve toujours un détail à améliorer. Voici la **définition de « terminé »** de la version 1. Le jeu est prêt quand :
+
+1. on peut finir le parcours **du début à la fin**, sur ordinateur et sur mobile ;
+2. l’étape, les pièces et les trails sont **conservés** d’une session à l’autre ;
+3. la fenêtre Output ne montre **aucune erreur** pendant une partie complète ;
+4. les checkpoints, les pièces et les achats sont **validés par le serveur** ;
+5. au moins trois personnes extérieures au projet l’ont **testé**, et les problèmes bloquants qu’elles ont trouvés sont corrigés ;
+6. la **page du jeu** est complète : titre, description, icône et miniatures personnalisées ;
+7. la **checklist de lancement** du module 10 est entièrement cochée.
+
+Remarque bien ce qui n’est **pas** dans la liste : un nombre de joueurs, de visites ou de Robux. Ces chiffres dépendent aussi de facteurs que tu ne contrôles pas (on l’a vu dans la leçon sur la découverte). Ta définition de « terminé » ne doit contenir que des critères qui dépendent de toi.
+
+<Info>
+Publier en public ne veut pas dire toucher tout le monde dès le premier jour. Au moment de la rédaction (octobre 2026), Roblox impose des vérifications côté créateur et une évaluation du jeu avant qu’il soit accessible aux joueurs de moins de 16 ans (voir la leçon 2 et la page officielle « Roblox Kids and Select »). On préparera tout cela au module 7.
+</Info>
+
+## Planifier ta construction
+
+Tu suivras la formation dans l’ordre, mais il est utile d’avoir une vision d’ensemble :
+
+- **Étape 1, le cœur jouable** (modules 1 à 4) : construire, programmer, sécuriser et sauvegarder. À la fin, l’Obby des Nuages est jouable de bout en bout par tes amis.
+- **Étape 2, le rendre bon** (module 5) : peaufiner l’expérience avec de vrais testeurs.
+- **Étape 3, le lancer** (modules 6 à 10) : monétisation éthique, page du jeu, statistiques, mobile, checklist.
+
+Dans ton carnet de bord, note la date à laquelle tu commences chaque étape. Ce n’est pas une course : le but est de voir que tu avances, et de repérer si une étape te prend beaucoup plus de temps que prévu.
+
+<Defi>
+Dessine sur papier les trois premières étapes de l’Obby des Nuages, vues de dessus ou de côté : le point d’apparition, les plateformes, un checkpoint, deux ou trois pièces et une kill brick. Note à côté de chaque saut s’il doit être facile, moyen ou difficile. C’est ton premier **prototype papier**, et tu le construiras dans Studio au module 1.
+</Defi>
+
+<Resume>
+- L’**Obby des Nuages** : un parcours dans le ciel, avec checkpoints, pièces et une boutique de trails **cosmétiques**.
+- Sa **boucle de jeu** : sauter, atteindre un checkpoint, gagner des pièces, débloquer un trail, recommencer plus loin.
+- La **version 1** contient le cœur jouable et ce qu’il faut pour lancer ; les autres idées vont dans la liste « plus tard ».
+- Chaque module ajoute une brique, avec des **noms fixés** dès maintenant (Checkpoints, KillBricks, Pieces, Remotes, Modules, Etape, Pieces).
+- Le jeu est « terminé » selon des critères **que tu contrôles** : complet, sauvegardé, sécurisé, testé, page soignée, checklist cochée.
+</Resume>
+
+<Sources>
+- [Core loops — la boucle de jeu (documentation officielle)](https://create.roblox.com/docs/production/game-design/core-loops)
+- [Recommended strategies — MVP et objectifs mesurables (documentation officielle)](https://create.roblox.com/docs/get-started/strategies)
+- [Prototyping — prototypes papier et Studio (documentation officielle)](https://create.roblox.com/docs/production/game-design/prototyping)
+- [Roblox Kids and Select — exigences de publication selon le public](https://create.roblox.com/docs/production/publishing/kids-and-select)
+- [DevForum — « I need help making a game » (l’obby comme premier projet, 2020)](https://devforum.roblox.com/t/i-need-help-making-a-game/573814)
+</Sources>

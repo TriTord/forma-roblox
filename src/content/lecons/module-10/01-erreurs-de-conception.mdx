@@ -1,0 +1,202 @@
+---
+titre: Les erreurs de conception qui tuent un jeu
+description: Projet trop gros, boucle floue, début trop lent, copie sans différence, difficulté, économie, monétisation agressive. Apprends à les repérer dans ton propre jeu et à corriger le tir.
+duree: 25
+objectifs:
+  - Reconnaître les sept erreurs de conception les plus fréquentes
+  - Diagnostiquer ton propre projet à partir de symptômes concrets
+  - Choisir la bonne correction en t’appuyant sur les leçons de la formation
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Ton obby a été publié il y a deux semaines. Les statistiques montrent que beaucoup de nouveaux joueurs quittent dans la première minute. Quelle erreur de conception faut-il suspecter en premier ?"
+    options:
+      - texte: Une économie déséquilibrée
+      - texte: Un début de partie trop lent ou peu clair
+        correct: true
+      - texte: Un manque de Game Passes
+      - texte: Un projet trop gros
+    explication: "Un abandon massif dans la première minute pointe vers l’onboarding : le joueur ne comprend pas quoi faire, ou il attend trop avant la première action amusante. La documentation Roblox rappelle que les nouveaux joueurs décident souvent en quelques minutes s’ils aiment un jeu. L’économie ou la monétisation n’entrent en jeu que bien plus tard dans la partie."
+  - type: vrai-faux
+    question: "Selon la documentation officielle de Roblox, un jeu dont les métadonnées et les fichiers ressemblent fortement à un jeu existant est moins souvent mis en avant dans les recommandations."
+    reponse: true
+    explication: "La page officielle sur la découverte indique que les jeux qui ressemblent fortement à des titres existants sont moins susceptibles d’être recommandés et peuvent être moins bien classés dans la recherche. S’inspirer est normal ; recopier sans rien apporter te pénalise."
+  - type: qcm
+    question: "Dans l’Obby des Nuages, les joueurs gagnent beaucoup de pièces, mais la boutique ne contient que trois trails bon marché. Que va-t-il probablement se passer ? (plusieurs réponses possibles)"
+    options:
+      - texte: Les pièces vont perdre leur intérêt, car il n’y a plus rien à acheter
+        correct: true
+      - texte: Les joueurs vont jouer plus longtemps pour accumuler des pièces inutiles
+      - texte: Il manque des « puits » (sinks) pour retirer des pièces de la circulation
+        correct: true
+      - texte: Le problème se règle tout seul avec le temps
+    explication: "Une économie a besoin de **sources** (ce qui crée la monnaie) et de **puits** (ce qui la consomme). Si les sources dépassent largement les puits, la monnaie s’accumule et perd sa valeur : récompenser le joueur ne le motive plus. Il faut ajouter des choses à acheter ou ajuster les gains."
+  - type: qcm
+    question: "Lequel de ces choix est une monétisation agressive à éviter ?"
+    options:
+      - texte: Un trail cosmétique exclusif vendu en Game Pass
+      - texte: Un faux compte à rebours « Offre qui expire dans 30 secondes ! » qui recommence à chaque connexion
+        correct: true
+      - texte: Un Developer Product « Passer l’étape » proposé après plusieurs échecs, avec un prix clair
+      - texte: Un bouton de boutique visible dans le menu principal
+    explication: "Un faux compte à rebours crée une urgence mensongère pour pousser à l’achat, souvent auprès de joueurs mineurs. C’est malhonnête et ça détruit la confiance. Les trois autres options sont transparentes : le joueur sait ce qu’il achète et n’est pas manipulé."
+  - type: vrai-faux
+    question: "Pour éviter un projet trop gros, la bonne méthode est de tout prévoir dès le départ, puis de tout construire avant de faire tester le jeu."
+    reponse: false
+    explication: "C’est l’inverse. On définit une petite « version 1 », on prototype vite et on fait tester tôt. La documentation Roblox sur le prototypage explique que le temps passé à prototyper est bien inférieur au temps nécessaire pour corriger des oublis découverts tard."
+---
+
+Tu as construit, programmé, sécurisé, monétisé et mesuré l’Obby des Nuages. Ce dernier module prend du recul : il rassemble les erreurs qui font échouer des jeux, puis te donne une checklist pour lancer le tien sereinement. Cette première leçon commence par les erreurs de **conception**. Ce sont les plus coûteuses, parce qu’aucune ligne de code ne peut sauver un jeu dont l’idée de départ est bancale.
+
+## Comment utiliser ce module
+
+Ce module est une **synthèse**. Plutôt que de tout réexpliquer, chaque erreur te renvoie vers la leçon où la notion a été traitée en détail. Pour chaque erreur, tu trouveras :
+
+- les **symptômes**, ce que tu observes dans ton jeu ou tes statistiques ;
+- la **cause**, ce qui se passe vraiment ;
+- la **correction**, et la leçon à relire.
+
+<Info>
+Les « erreurs » de cette leçon ne sont pas des règles absolues. Elles s’appuient sur la documentation officielle de Roblox et sur des retours d’expérience de développeurs. Un jeu peut réussir malgré l’une d’elles, mais chacune réduit tes chances. Aucune correction ne garantit le succès : elle met simplement toutes les chances de ton côté.
+</Info>
+
+## Erreur 1 : un projet trop gros
+
+C’est l’erreur numéro un des débutants, et des moins débutants. Tu imagines un jeu de rôle avec dix mondes, des quêtes, des familiers, du commerce entre joueurs… Six mois plus tard, rien n’est jouable et la motivation s’est envolée.
+
+**Symptômes :**
+
+- tu travailles depuis des semaines et personne n’a encore joué à ton jeu ;
+- ta liste de fonctionnalités s’allonge plus vite que tu ne les termines (on parle de *scope creep*, la « dérive du périmètre ») ;
+- tu recommences souvent « à zéro, mais en mieux ».
+
+**Correction :** reviens à une **version 1** minuscule mais complète, comme tu l’as fait dans [Ton projet : l’Obby des Nuages](/modules/00/le-projet-fil-rouge/). Une version 1 se termine, se publie et se teste. Les idées supplémentaires vont dans une liste « plus tard ».
+
+La documentation Roblox sur le prototypage le résume bien : un prototype sert à détecter tôt les défauts de conception, et la différence entre « travailler sur une fonctionnalité » et « prototyper », c’est le **périmètre**. Un prototype ne teste que l’essentiel, et il le teste vite.
+
+<Astuce titre="La règle des deux semaines">
+Si ta version 1 ne peut pas être jouable par quelqu’un d’autre en deux à trois semaines de travail régulier, elle est probablement trop grosse. Coupe jusqu’à ce que ce soit le cas. Ce n’est pas une règle officielle, juste un garde-fou pratique : relis [Le mindset qui permet de finir un jeu](/modules/00/mindset-du-createur/) si tu sens que tu dérives.
+</Astuce>
+
+## Erreur 2 : une boucle de jeu floue
+
+La **boucle de jeu** (*core loop*) est l’enchaînement d’actions que le joueur répète en permanence. Roblox la définit comme le gameplay central autour duquel tout le jeu est construit, et rappelle que sans système de progression, un jeu devient vite répétitif et ennuyeux.
+
+**Symptômes :**
+
+- tu n’arrives pas à expliquer ce que fait le joueur en une phrase ;
+- les testeurs demandent « Et là, je fais quoi ? » ;
+- ton jeu empile des fonctionnalités sans lien entre elles.
+
+**Correction :** écris ta boucle en une ligne. Pour l’Obby des Nuages : *sauter → atteindre un checkpoint → ramasser des pièces → débloquer un trail → affronter une étape plus dure*. Chaque fonctionnalité doit nourrir cette boucle. Si elle ne la nourrit pas, elle attend la version 2. Tout est détaillé dans [La boucle de jeu](/modules/05/core-loop/).
+
+## Erreur 3 : un début de partie trop lent
+
+La documentation officielle sur l’onboarding (l’accueil des nouveaux joueurs) est claire : les nouveaux joueurs décident généralement en **quelques minutes** si un jeu les intéresse. Et parmi les signaux que Roblox cite pour ses recommandations figure le **taux de rebond à la première partie** (*first play bounce rate*) : un taux élevé indique que les joueurs ne trouvent pas de quoi rester dès le début.
+
+**Symptômes :**
+
+- un long écran de chargement, un menu ou un mur de texte avant de pouvoir bouger ;
+- un premier obstacle trop difficile ou pas assez visible ;
+- dans ton entonnoir d’onboarding, une grosse chute dès les premières étapes.
+
+**Correction :** le joueur doit agir dans les toutes premières secondes et réussir quelque chose très vite. Enseigne en faisant jouer, pas en faisant lire. Tout est dans [Les 60 premières secondes](/modules/05/les-60-premieres-secondes/), et la mesure de ce moment dans [Instrumenter son jeu avec AnalyticsService](/modules/08/evenements-personnalises/).
+
+<Erreur titre="Un tutoriel de dix bulles de texte">
+Expliquer les contrôles avec une série de fenêtres à fermer, c’est la meilleure façon de perdre les joueurs avant même le premier saut. Dans un obby, le premier saut **est** le tutoriel : il doit être facile, évident et récompensé (un son, une pièce, un checkpoint).
+</Erreur>
+
+## Erreur 4 : copier sans apporter de différence
+
+S’inspirer des jeux populaires est normal et même conseillé : c’est comme ça qu’on apprend. Le problème, c’est de publier un clone sans rien de plus.
+
+Ce n’est pas qu’une question d’originalité. La documentation officielle sur la découverte indique que les jeux qui **ressemblent fortement à des titres existants** sont moins susceptibles d’être recommandés et peuvent être moins bien classés dans la recherche. La documentation d’Ads Manager précise aussi que les campagnes publicitaires pour ces jeux risquent d’être peu efficaces. Enfin, les règles communautaires de Roblox interdisent les contenus trompeurs ou dupliqués utilisés pour gagner en visibilité, ainsi que les violations de propriété intellectuelle.
+
+**Correction :** pose-toi la question « Pourquoi un joueur choisirait-il mon jeu plutôt que celui que j’imite ? ». La réponse peut être modeste : un thème, une mécanique, une ambiance. L’Obby des Nuages, par exemple, peut se distinguer par ses plateformes animées et sa progression de trails. Revois [Comment les joueurs découvrent les jeux](/modules/00/comment-les-jeux-sont-decouverts/).
+
+<Attention>
+Ne reprends jamais des visuels, des noms, des musiques ou des personnages qui appartiennent à quelqu’un d’autre (autre jeu, film, marque). Les règles communautaires de Roblox interdisent les violations de propriété intellectuelle, et ton jeu peut être retiré.
+</Attention>
+
+## Erreur 5 : une difficulté mal dosée
+
+Dans un obby, c’est l’erreur la plus visible. Les retours de développeurs et de testeurs pointent souvent les mêmes défauts :
+
+- des sauts « au pixel près » dès la première étape ;
+- des kill bricks peu visibles, qui tuent sans prévenir ;
+- des checkpoints trop espacés : rater un saut renvoie trois minutes en arrière ;
+- à l’inverse, un parcours si facile qu’il n’y a aucune satisfaction.
+
+**Correction :** construis une **courbe de difficulté** qui monte progressivement, avec des paliers et des moments de repos. Place des checkpoints réguliers. Puis vérifie avec les données : si ton entonnoir de progression montre qu’une étape fait chuter le nombre de joueurs bien plus que les autres, c’est elle qu’il faut retravailler. Voir [Progression, difficulté et récompenses](/modules/05/progression-et-recompenses/) et [Tester avec de vrais joueurs](/modules/05/tester-avec-de-vrais-joueurs/).
+
+## Erreur 6 : une économie déséquilibrée
+
+Une économie de jeu repose sur des **sources** (ce qui crée de la monnaie : pièces ramassées, récompenses) et des **puits** ou *sinks* (ce qui la retire : achats, améliorations). La documentation Roblox sur l’équilibrage des économies virtuelles montre ce qui arrive quand on sous-estime les sources : un **surplus** de monnaie, des joueurs qui dépensent sans compter… et qui n’ont plus de raison de continuer à en gagner.
+
+**Symptômes :**
+
+- les joueurs possèdent tout au bout d’une heure ;
+- ou, à l’inverse, le premier trail demande des heures de jeu répétitif ;
+- une nouvelle source de pièces (un événement, un bonus) fait exploser les soldes.
+
+**Correction :** chaque fois que tu ajoutes une source, prévois le puits correspondant. Pour un événement, la documentation suggère une **monnaie d’événement** séparée, qui ne déstabilise pas l’économie principale. Note les gains et les prix dans ton module `Config` pour les ajuster facilement. Tout est détaillé dans [Progression, difficulté et récompenses](/modules/05/progression-et-recompenses/).
+
+## Erreur 7 : une monétisation agressive
+
+Monétiser n’est pas un problème. C’est même prévu dès le départ selon la documentation Roblox, qui ajoute deux principes : un joueur qui achète un objet doit y **trouver de la valeur**, et les descriptions doivent être **exactes et honnêtes**.
+
+Les dérives fréquentes :
+
+- le **pay-to-win**, où payer devient le seul moyen raisonnable d’avancer ;
+- les **pop-ups d’achat** à répétition, dès l’arrivée dans le jeu ;
+- les **fausses urgences** : comptes à rebours qui recommencent, « dernière chance » permanente ;
+- les **objets aléatoires payants** (œufs, coffres, roues) sans afficher les probabilités. Roblox impose d’afficher toutes les issues possibles et leurs probabilités en pourcentage, et de respecter les restrictions de certains pays (voir [la leçon 4](/modules/10/checklist-de-lancement/)).
+
+Rappelle-toi que beaucoup de joueurs de Roblox sont mineurs : Roblox a d’ailleurs créé en 2026 des comptes dédiés aux 5-8 ans (Roblox Kids) et aux 9-15 ans (Roblox Select). Une monétisation qui manipule, en plus d’être contraire à l’éthique, abîme la confiance et la réputation de ton jeu. Relis [Fixer ses prix et monétiser éthiquement](/modules/06/prix-et-ethique/).
+
+<Erreur titre="Monétiser avant d’avoir un jeu">
+Ajouter cinq Game Passes à un jeu dont la rétention est faible ne le rendra pas rentable. Les revenus sont une **conséquence** d’un jeu auquel les gens ont envie de revenir. Commence par le plaisir de jeu, puis propose des achats qui l’enrichissent.
+</Erreur>
+
+## Diagnostiquer ton propre projet
+
+Voici une grille pour relier ce que tu observes à l’erreur probable. Les données mentionnées sont celles du Creator Dashboard et de tes événements AnalyticsService (module 8).
+
+| Ce que tu observes | Erreur probable | Où regarder | Leçon à relire |
+|---|---|---|---|
+| Personne n’a encore joué après des semaines | Projet trop gros | Ta liste de tâches | [Mindset](/modules/00/mindset-du-createur/) |
+| Les testeurs demandent quoi faire | Boucle floue | Notes de playtest | [Core loop](/modules/05/core-loop/) |
+| Forte chute dans la première minute | Début trop lent | Entonnoir d’onboarding, rétention D1 | [60 premières secondes](/modules/05/les-60-premieres-secondes/) |
+| Peu d’impressions malgré une bonne page | Copie sans différence (entre autres) | Acquisition | [Découverte](/modules/00/comment-les-jeux-sont-decouverts/) |
+| Une étape précise fait fuir | Difficulté mal dosée | Entonnoir de progression | [Progression](/modules/05/progression-et-recompenses/) |
+| Les joueurs ont tout trop vite | Économie déséquilibrée | Événements d’économie | [Récompenses](/modules/05/progression-et-recompenses/) |
+| Achats en hausse, rétention en baisse | Monétisation agressive | Monétisation + rétention | [Prix et éthique](/modules/06/prix-et-ethique/) |
+
+<Info>
+Attention aux conclusions hâtives : avec quelques dizaines de joueurs seulement, les chiffres varient beaucoup d’un jour à l’autre. Corrélation ne veut pas dire causalité. Revois [Pourquoi et quoi mesurer](/modules/08/pourquoi-mesurer/) avant de tout changer.
+</Info>
+
+<Defi titre="Audit de conception de l’Obby des Nuages">
+Prends une feuille et note, pour chacune des sept erreurs, une note de 0 (pas concerné) à 2 (clairement concerné) pour l’Obby des Nuages. Pour chaque note de 2, écris **une** action concrète et la leçon à relire. Garde cette feuille : elle te servira pour la checklist de lancement de la leçon 4.
+</Defi>
+
+<Resume>
+- Les erreurs de conception coûtent plus cher que les bugs : corrige-les le plus tôt possible.
+- Garde une **version 1** petite et jouable, avec une **boucle de jeu** que tu sais expliquer en une phrase.
+- Le joueur doit agir et réussir dans les **premières secondes** : Roblox mesure le rebond à la première partie.
+- Apporte une **différence** : les jeux trop proches de titres existants sont moins recommandés.
+- Dose la difficulté, équilibre **sources et puits** de monnaie, et monétise de façon **honnête**.
+</Resume>
+
+<Sources>
+- [Prototyping — documentation Roblox](https://create.roblox.com/docs/production/game-design/prototyping)
+- [Core loops — documentation Roblox](https://create.roblox.com/docs/production/game-design/core-loops)
+- [Onboarding — documentation Roblox](https://create.roblox.com/docs/production/game-design/onboarding)
+- [Discovery (signaux de recommandation) — documentation Roblox](https://create.roblox.com/docs/discovery)
+- [Ads Manager — documentation Roblox](https://create.roblox.com/docs/production/promotion/ads-manager)
+- [Balance virtual economies — documentation Roblox](https://create.roblox.com/docs/production/game-design/balance-virtual-economies)
+- [Monetization foundations — documentation Roblox](https://create.roblox.com/docs/production/game-design/monetization-foundations)
+- [Paid random items — documentation Roblox](https://create.roblox.com/docs/production/monetization/paid-random-items)
+- [Règles communautaires de Roblox (Community Standards)](https://about.roblox.com/community-standards)
+- [Roblox Kids and Select — documentation Roblox](https://create.roblox.com/docs/production/publishing/kids-and-select)
+</Sources>

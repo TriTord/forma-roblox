@@ -1,0 +1,294 @@
+---
+titre: Afficher des statistiques avec les leaderstats
+description: Crée le tableau des scores de l’Obby des Nuages (Étape et Pièces) avec les leaderstats, et apprends à le mettre à jour uniquement depuis le serveur.
+duree: 20
+objectifs:
+  - Créer des leaderstats pour chaque joueur qui rejoint la partie
+  - Mettre à jour les valeurs depuis le serveur, et seulement depuis le serveur
+  - Choisir les statistiques utiles à afficher et leur ordre
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Comment doit s’appeler le dossier que Roblox transforme en tableau des scores ?
+    options:
+      - texte: "`Leaderstats`"
+      - texte: "`leaderstats`"
+        correct: true
+      - texte: "`LeaderStats`"
+      - texte: "N’importe quel nom, tant que c’est un Folder"
+    explication: "Le nom doit être exactement `leaderstats`, tout en minuscules. La documentation officielle précise que Roblox n’affiche pas le joueur dans le tableau si le dossier porte un autre nom."
+  - type: vrai-faux
+    question: Si un LocalScript augmente `Pieces.Value` dans les leaderstats du joueur, le serveur et les autres joueurs voient la nouvelle valeur.
+    reponse: false
+    explication: Un changement fait par le client n’est pas répliqué vers le serveur. Seul le joueur concerné verrait le chiffre changer, et ta sauvegarde (côté serveur) garderait l’ancienne valeur. Les leaderstats se modifient toujours depuis un Script serveur.
+  - type: qcm
+    question: Quel objet choisir pour afficher un nombre entier de pièces ?
+    options:
+      - texte: Un `IntValue`
+        correct: true
+      - texte: Un `StringValue`
+      - texte: Un `Folder`
+      - texte: Un `TextLabel`
+    explication: "Un `IntValue` stocke un nombre entier. Un `StringValue` stocke du texte (on ne pourrait pas faire `+= 1` dessus), un `Folder` ne stocke aucune valeur, et un `TextLabel` est un élément d’interface, pas une statistique."
+  - type: trouve-le-bug
+    question: "Ce Script serveur doit afficher l’étape de chaque joueur dans le tableau des scores. Rien ne s’affiche. Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      Players.PlayerAdded:Connect(function(player)
+      	local dossier = Instance.new("Folder")
+      	dossier.Name = "Leaderstats"
+
+      	local etape = Instance.new("IntValue")
+      	etape.Name = "Etape"
+      	etape.Value = 1
+      	etape.Parent = dossier
+
+      	dossier.Parent = player
+      end)
+    options:
+      - texte: "Ligne 3 : il faut utiliser `Players.PlayerRemoving`"
+      - texte: "Ligne 5 : le dossier doit s’appeler `leaderstats` en minuscules"
+        correct: true
+      - texte: "Ligne 7 : il faut un `NumberValue`, pas un `IntValue`"
+      - texte: "Ligne 12 : le dossier doit être rangé dans `Workspace`"
+    explication: "Le nom est sensible à la casse : `Leaderstats` avec une majuscule n’est pas reconnu. Le reste est correct : `PlayerAdded` est le bon événement, un `IntValue` convient pour un entier, et le dossier doit bien être placé dans le joueur."
+  - type: qcm
+    question: Comment faire apparaître `Pieces` en premier dans le tableau, même s’il a été créé après `Etape` ?
+    options:
+      - texte: Renommer la statistique en `1Pieces`
+      - texte: Ajouter dans `Pieces` un `BoolValue` nommé `IsPrimary` avec la valeur `true`
+        correct: true
+      - texte: Mettre `Pieces` dans un second dossier `leaderstats`
+    explication: "La documentation propose trois méthodes : l’ordre de création, un `BoolValue` enfant nommé `IsPrimary` (valeur `true`), ou un `NumberValue` enfant nommé `Priority` (plus la valeur est haute, plus la statistique apparaît tôt)."
+---
+
+Dans un obby, les joueurs adorent voir où en sont les autres : « Il est déjà à l’étape 12 ? ». Roblox propose pour ça un tableau des scores intégré, et il suffit d’un petit dossier bien nommé pour le remplir. Dans cette leçon, tu donnes à l’Obby des Nuages ses deux statistiques : **Étape** et **Pièces**. Ces valeurs seront ensuite sauvegardées (leçon suivante) et dépensées en boutique (leçon 3).
+
+## Ce que sont les leaderstats
+
+En haut à droite de l’écran, Roblox affiche la **liste des joueurs** (PlayerList). Elle sert aussi de **tableau des scores** (leaderboard). Pour y faire apparaître des colonnes, tu ranges dans chaque joueur un dossier nommé `leaderstats`, qui contient des objets « valeur ». Roblox lit ce dossier et affiche une colonne par valeur.
+
+<Info>
+Au moment de la rédaction (octobre 2026), la documentation présente trois vues de ce tableau : **Here** (les joueurs du serveur, alimentée par les leaderstats), et **Friends** / **Global** (classements persistants). Ces deux dernières vues sont en **bêta** et reposent sur un OrderedDataStore enregistré dans le Creator Hub. Dans cette leçon, on s’occupe uniquement de la vue **Here**.
+</Info>
+
+Les objets « valeur » les plus courants :
+
+| Objet | Contient | Exemple |
+|---|---|---|
+| `IntValue` | un nombre entier | étape, pièces, victoires |
+| `NumberValue` | un nombre à virgule | meilleur temps en secondes |
+| `StringValue` | un texte | rang, équipe |
+
+Chaque objet stocke sa donnée dans sa propriété `Value`. On écrit donc `pieces.Value = 10`, et pas `pieces = 10`.
+
+## Créer les leaderstats de l’Obby des Nuages
+
+Les leaderstats se créent **côté serveur**, au moment où le joueur arrive. Crée un **Script** (pas un LocalScript) dans **ServerScriptService** et nomme-le `Leaderstats`.
+
+```luau
+-- Script « Leaderstats » dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+
+-- Crée le tableau des scores d'un joueur
+local function creerLeaderstats(player: Player)
+	-- 1. Le dossier DOIT s'appeler « leaderstats », tout en minuscules
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+
+	-- 2. L'étape atteinte : on commence à l'étape 1
+	local etape = Instance.new("IntValue")
+	etape.Name = "Etape" -- ce nom s'affiche tel quel dans le tableau
+	etape.Value = 1
+	etape.Parent = leaderstats
+
+	-- 3. Les pièces ramassées
+	local pieces = Instance.new("IntValue")
+	pieces.Name = "Pieces"
+	pieces.Value = 0
+	pieces.Parent = leaderstats
+
+	-- 4. On range le dossier dans le joueur en dernier :
+	--    il arrive d'un coup, déjà rempli
+	leaderstats.Parent = player
+end
+
+-- Chaque nouveau joueur reçoit ses leaderstats
+Players.PlayerAdded:Connect(creerLeaderstats)
+
+-- Sécurité : les joueurs déjà présents avant le démarrage du script
+for _, player in Players:GetPlayers() do
+	task.spawn(creerLeaderstats, player)
+end
+```
+
+Lance un test (**Play**) : ton nom apparaît en haut à droite avec deux colonnes, `Etape` à 1 et `Pieces` à 0.
+
+<Info titre="Pourquoi pas d’accents ?">
+Le nom de l’objet s’affiche tel quel dans le tableau. Dans cette formation, on garde des noms d’instances **sans accents** (`Etape`, `Pieces`) pour que tous les scripts les retrouvent sans risque de faute de frappe. Tes interfaces (leçon 4) pourront afficher « Étape » et « Pièces » avec leurs accents.
+</Info>
+
+### Pourquoi la boucle à la fin ?
+
+`PlayerAdded` ne se déclenche que pour les joueurs qui arrivent **après** la connexion. En test dans Studio, il arrive que ton joueur soit déjà là quand le script démarre. La boucle sur `Players:GetPlayers()` rattrape ce cas. `task.spawn` lance chaque appel sans attendre le précédent.
+
+<Erreur titre="Écrire « Leaderstats » avec une majuscule">
+C’est l’erreur la plus fréquente : `Leaderstats`, `LeaderStats` ou `leaderStats` ne fonctionnent pas. La documentation est formelle : le dossier doit s’appeler `leaderstats`, entièrement en minuscules. Si ton tableau reste vide, vérifie ce nom en premier.
+</Erreur>
+
+## Mettre à jour les valeurs depuis le serveur
+
+Pour changer une statistique, on modifie la propriété `Value` de l’objet, **depuis un Script serveur**. Comme tes autres scripts (checkpoints, pièces, boutique) en auront besoin, voici une petite fonction qui retrouve une statistique de façon sûre :
+
+```luau
+-- Fonction utilitaire, à copier dans un Script serveur qui modifie les stats
+-- Renvoie l'IntValue demandée (« Etape » ou « Pieces »), ou nil si elle n'existe pas encore
+local function obtenirStat(player: Player, nomStat: string): IntValue?
+	local leaderstats = player:FindFirstChild("leaderstats")
+	if leaderstats == nil then
+		return nil -- les leaderstats ne sont pas encore créées
+	end
+	local stat = leaderstats:FindFirstChild(nomStat)
+	if stat and stat:IsA("IntValue") then
+		return stat
+	end
+	return nil
+end
+```
+
+On utilise `FindFirstChild` plutôt que `player.leaderstats.Pieces` : si le dossier n’existe pas encore (joueur qui vient d’arriver), `FindFirstChild` renvoie `nil` au lieu de provoquer une erreur.
+
+### Exemple : les checkpoints mettent à jour l’étape
+
+Au module 3, tu as validé les checkpoints côté serveur. Voici la version branchée sur les leaderstats. Rappel de la convention : `Workspace.Checkpoints` est un Folder qui contient des Parts nommées `"1"`, `"2"`, `"3"`…
+
+```luau
+-- Script « Checkpoints » dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+local dossierCheckpoints = Workspace:WaitForChild("Checkpoints")
+
+local function obtenirStat(player: Player, nomStat: string): IntValue?
+	local leaderstats = player:FindFirstChild("leaderstats")
+	if leaderstats == nil then
+		return nil
+	end
+	local stat = leaderstats:FindFirstChild(nomStat)
+	if stat and stat:IsA("IntValue") then
+		return stat
+	end
+	return nil
+end
+
+local function brancherCheckpoint(checkpoint: Instance)
+	if not checkpoint:IsA("BasePart") then
+		return
+	end
+	local numero = tonumber(checkpoint.Name) -- "3" devient 3
+	if numero == nil then
+		return
+	end
+
+	checkpoint.Touched:Connect(function(autrePartie)
+		local player = Players:GetPlayerFromCharacter(autrePartie.Parent)
+		if player == nil then
+			return -- ce n'est pas un personnage de joueur
+		end
+		local etape = obtenirStat(player, "Etape")
+		-- On n'accepte que l'étape suivante : pas de saut d'étapes
+		if etape and numero == etape.Value + 1 then
+			etape.Value = numero
+		end
+	end)
+end
+
+for _, checkpoint in dossierCheckpoints:GetChildren() do
+	brancherCheckpoint(checkpoint)
+end
+```
+
+Si, au module 3, tu avais rangé l’étape dans un attribut ou une variable, remplace-la simplement par `etape.Value`. Les leaderstats deviennent la **référence** de l’étape et des pièces pendant la partie. Pour les pièces, la ligne clé de ton script de ramassage devient `pieces.Value += 1`.
+
+## Pourquoi « uniquement côté serveur » ?
+
+Souviens-toi du module 3 : ce que fait un LocalScript reste sur la machine du joueur. Si un LocalScript écrit `pieces.Value = 9999`, seul ce joueur voit 9999 ; le serveur, les autres joueurs et la sauvegarde gardent la vraie valeur. C’est pour ça que :
+
+- toutes les modifications de leaderstats passent par des **Scripts** serveur ;
+- le client peut **lire** les leaderstats (pour afficher un compteur, par exemple), mais jamais décider de leur valeur ;
+- quand le client veut une action (acheter un objet), il **demande** au serveur via un RemoteEvent, et le serveur vérifie avant de modifier quoi que ce soit.
+
+<Attention>
+Un exploiteur peut modifier ce qu’il voit sur son écran, mais pas ce qui est stocké sur le serveur. Tant que ta logique (gains, dépenses, étapes) vit côté serveur, un chiffre truqué sur un client n’a aucun effet réel.
+</Attention>
+
+## Choisir quoi afficher
+
+Le tableau est petit, surtout sur téléphone. Quelques principes simples :
+
+- **Deux ou trois statistiques maximum.** Chaque colonne prend de la place.
+- **Ce qui donne envie de progresser** ou de comparer : l’étape atteinte est parfaite pour un obby. Le nombre de morts, par exemple, est plutôt démotivant.
+- **Des noms courts** : `Etape` plutôt que `EtapeMaximaleAtteinte`.
+- **Pas de données privées** ou techniques : tout le monde voit ce tableau.
+
+### Changer l’ordre des colonnes
+
+La documentation officielle propose trois façons de contrôler l’ordre :
+
+1. créer les statistiques dans l’ordre voulu ;
+2. ajouter dans une statistique un `BoolValue` nommé `IsPrimary`, avec la valeur `true`, pour la placer en premier ;
+3. ajouter un `NumberValue` nommé `Priority` : plus la valeur est haute, plus la colonne apparaît tôt.
+
+```luau
+-- À ajouter dans le Script « Leaderstats », au-dessus de creerLeaderstats
+-- Fait d'une statistique la colonne principale du tableau
+local function rendrePrincipale(stat: IntValue)
+	local estPrincipale = Instance.new("BoolValue")
+	estPrincipale.Name = "IsPrimary"
+	estPrincipale.Value = true
+	estPrincipale.Parent = stat
+end
+```
+
+Il suffit ensuite d’appeler `rendrePrincipale(etape)` dans `creerLeaderstats`, juste après la création de `etape`.
+
+<Astuce>
+La colonne principale sert aussi à classer les joueurs dans la liste. Pour un obby, mets `Etape` en principale : les joueurs les plus avancés apparaissent en haut, ce qui motive ceux qui suivent.
+</Astuce>
+
+### Masquer le tableau
+
+Pendant un menu ou une cinématique, tu peux masquer la liste depuis un **LocalScript** :
+
+```luau
+-- LocalScript (par exemple dans StarterPlayerScripts)
+local StarterGui = game:GetService("StarterGui")
+
+-- Cache la liste des joueurs pour ce joueur uniquement
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+```
+
+C’est un réglage d’affichage local : il ne touche pas aux valeurs.
+
+<Defi>
+1. Crée le Script `Leaderstats` dans ServerScriptService et teste : tu dois voir `Etape` et `Pieces`.
+2. Ajoute le `BoolValue` `IsPrimary` sur `Etape`.
+3. Lance un test à 2 joueurs (onglet **Test**, section client/serveur) et vérifie que chaque joueur a ses propres valeurs.
+4. Bonus : dans la fenêtre **Explorer**, pendant le test côté client, change à la main `Pieces.Value`. Passe ensuite en vue serveur : la valeur n’a pas bougé. Tu viens de constater la règle du serveur autoritaire.
+</Defi>
+
+<Resume>
+- Un dossier `leaderstats` (tout en minuscules) rangé dans le joueur remplit le tableau des scores.
+- Chaque colonne est un objet valeur (`IntValue`, `NumberValue`, `StringValue`) dont on modifie la propriété `Value`.
+- On crée les leaderstats dans un Script serveur, à `PlayerAdded`, sans oublier les joueurs déjà présents.
+- On ne modifie les leaderstats **que depuis le serveur** ; le client se contente de les lire.
+- Peu de colonnes, des noms courts, et `IsPrimary` ou `Priority` pour choisir l’ordre.
+</Resume>
+
+<Sources>
+- [Leaderboards — documentation Roblox](https://create.roblox.com/docs/players/leaderboards)
+- [Players.PlayerAdded — référence API](https://create.roblox.com/docs/reference/engine/classes/Players#PlayerAdded)
+- [IntValue — référence API](https://create.roblox.com/docs/reference/engine/classes/IntValue)
+- [StarterGui:SetCoreGuiEnabled — référence API](https://create.roblox.com/docs/reference/engine/classes/StarterGui#SetCoreGuiEnabled)
+</Sources>

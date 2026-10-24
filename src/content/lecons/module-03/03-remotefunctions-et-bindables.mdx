@@ -1,0 +1,275 @@
+---
+titre: RemoteFunctions et BindableEvents
+description: Pose une question au serveur et attends sa réponse avec une RemoteFunction, évite les pièges d’InvokeClient et fais dialoguer des scripts d’un même côté.
+duree: 25
+objectifs:
+  - Faire une requête avec réponse grâce à InvokeServer et OnServerInvoke
+  - Connaître les risques d’InvokeClient et les éviter
+  - Faire communiquer des scripts d’un même côté avec BindableEvent et BindableFunction
+  - Choisir le bon outil de communication selon la situation
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: "Que fait un LocalScript qui appelle `InvokeServer` ?"
+    options:
+      - texte: Il continue immédiatement, la réponse arrive plus tard dans un événement
+      - texte: Il attend (il est mis en pause) jusqu’à ce que le serveur renvoie une réponse
+        correct: true
+      - texte: Il s’arrête avec une erreur si le serveur met plus d’une seconde à répondre
+      - texte: Il envoie le message à tous les autres clients
+    explication: "Une RemoteFunction est **synchrone** : l’appelant « cède » (yield) et attend le retour du callback `OnServerInvoke`. Il n’y a pas de délai maximum intégré, d’où l’importance d’un callback serveur rapide."
+  - type: qcm
+    question: "Pourquoi la documentation déconseille-t-elle `InvokeClient` ? (plusieurs réponses possibles)"
+    options:
+      - texte: Si le client lève une erreur, le serveur lève aussi l’erreur
+        correct: true
+      - texte: Si le client ne renvoie rien, le serveur attend pour toujours
+        correct: true
+      - texte: Si le client se déconnecte pendant l’appel, `InvokeClient` lève une erreur
+        correct: true
+      - texte: "`InvokeClient` est dépréciée et ne fonctionne plus"
+    explication: "Ces trois risques sont listés dans la documentation. `InvokeClient` fonctionne encore, mais elle met ton serveur à la merci du client. Pour informer un client, utilise plutôt `FireClient` (sans attente)."
+  - type: vrai-faux
+    question: Un BindableEvent permet à un Script serveur d’envoyer un message à un LocalScript.
+    reponse: false
+    explication: "Les Bindables ne fonctionnent que **du même côté** : serveur ↔ serveur, ou client ↔ client. Pour traverser la frontière client/serveur, il faut un RemoteEvent ou une RemoteFunction."
+  - type: vrai-faux
+    question: "Si deux scripts assignent chacun une fonction à `OnServerInvoke` sur la même RemoteFunction, seule la dernière assignée sera utilisée."
+    reponse: true
+    explication: "`OnServerInvoke` est un **callback** : une seule fonction à la fois. Une nouvelle affectation remplace la précédente. C’est différent d’un événement, auquel on peut connecter plusieurs fonctions avec `:Connect`."
+  - type: trouve-le-bug
+    question: "Ce Script serveur doit répondre à la RemoteFunction `ObtenirInventaire`. Il provoque une erreur au démarrage. Où est le bug ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local remotes = ReplicatedStorage:WaitForChild("Remotes")
+      local obtenirInventaire = remotes:WaitForChild("ObtenirInventaire")
+
+      obtenirInventaire.OnServerInvoke:Connect(function(player)
+      	return { "TraineeAzur" }
+      end)
+    options:
+      - texte: "Ligne 4 : une RemoteFunction ne peut pas être rangée dans un Folder"
+      - texte: "Ligne 6 : `OnServerInvoke` est un callback, on lui affecte une fonction avec `=` au lieu de `:Connect`"
+        correct: true
+      - texte: "Ligne 7 : une RemoteFunction ne peut pas renvoyer de table"
+      - texte: "Ligne 6 : le paramètre `player` n’existe pas pour une RemoteFunction"
+    explication: "On écrit `obtenirInventaire.OnServerInvoke = function(player) ... end`. `:Connect` sert aux événements (comme `OnServerEvent`), pas aux callbacks. Et oui, le premier paramètre est bien le joueur, comme pour `OnServerEvent`."
+---
+
+Avec un RemoteEvent, on envoie un message et on continue sa vie sans attendre de réponse. Mais parfois, le client a besoin d’une **réponse** : « quelles traînées est-ce que je possède ? ». C’est le travail de la **RemoteFunction**. Dans cette leçon, tu vas aussi découvrir pourquoi l’inverse (le serveur qui questionne un client) est risqué, et comment des scripts **du même côté** peuvent se parler avec les **Bindables**.
+
+## La RemoteFunction : une question, une réponse
+
+Une `RemoteFunction` se range au même endroit que les RemoteEvents, dans `ReplicatedStorage.Remotes`. Elle fonctionne comme un appel téléphonique :
+
+- le client appelle `InvokeServer(...)` et **attend** (son script est mis en pause) ;
+- le serveur exécute la fonction qu’il a assignée à `OnServerInvoke` ;
+- ce que cette fonction **renvoie** (avec `return`) revient au client, et son script reprend.
+
+Comme pour `OnServerEvent`, le serveur reçoit **le joueur en premier paramètre**, puis les arguments du client. Et les mêmes limites s’appliquent aux arguments **et** aux valeurs renvoyées : tables copiées, fonctions transformées en `nil`, tables mixtes à éviter, etc.
+
+### Exemple : demander son inventaire
+
+Dans l’Obby des Nuages, l’interface de la boutique doit savoir quelles traînées le joueur possède déjà. Crée une **RemoteFunction** nommée `ObtenirInventaire` dans `ReplicatedStorage.Remotes`.
+
+```luau
+-- Script placé dans ServerScriptService (côté serveur)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local obtenirInventaire = remotes:WaitForChild("ObtenirInventaire") :: RemoteFunction
+
+-- L'inventaire vit sur le serveur (source de vérité). Au module 4, il sera sauvegardé.
+local inventaires: { [Player]: { string } } = {}
+
+Players.PlayerAdded:Connect(function(player: Player)
+	inventaires[player] = {} -- nouvelle partie : aucun objet
+end)
+
+Players.PlayerRemoving:Connect(function(player: Player)
+	inventaires[player] = nil
+end)
+
+-- Callback : on lui AFFECTE une fonction avec =, on ne le « connecte » pas
+obtenirInventaire.OnServerInvoke = function(player: Player)
+	local inventaire = inventaires[player] or {}
+	-- On renvoie une liste pure de textes : elle arrive au client sous forme de copie
+	return table.clone(inventaire)
+end
+```
+
+```luau
+-- LocalScript placé dans StarterPlayer > StarterPlayerScripts (côté client)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local obtenirInventaire = remotes:WaitForChild("ObtenirInventaire") :: RemoteFunction
+
+-- pcall : si l'appel échoue, notre script ne s'arrête pas net
+local ok, resultat = pcall(function()
+	return obtenirInventaire:InvokeServer()
+end)
+
+if ok and typeof(resultat) == "table" then
+	print("Je possède", #resultat, "objet(s) :", table.concat(resultat, ", "))
+else
+	warn("Impossible de récupérer l'inventaire :", resultat)
+end
+```
+
+Remarque le `typeof(resultat) == "table"` côté client : on vérifie ce qu’on reçoit avant de l’utiliser. Bonne habitude, même si c’est le serveur qui répond.
+
+### Trois règles pour des RemoteFunctions saines
+
+1. **Un seul callback.** `OnServerInvoke` n’accepte qu’une fonction à la fois : si tu en affectes plusieurs, seule la **dernière** s’exécute.
+2. **Répondre vite.** Le client attend pendant tout le temps que met ton callback. Évite les longues attentes (`task.wait`) dans `OnServerInvoke`.
+3. **Pas de réponse utile ? Pas de RemoteFunction.** La documentation recommande un RemoteEvent quand on n’a pas besoin du résultat : c’est asynchrone et personne n’attend.
+
+<Erreur titre="Renvoyer des informations secrètes">
+Tout ce que `OnServerInvoke` renvoie arrive sur l’appareil du joueur, où un tricheur peut le lire. Ne renvoie que le strict nécessaire : son inventaire à lui, oui ; les données de tous les joueurs, ou la position d’un objet caché qu’il est censé chercher, non. Et bien sûr, le callback serveur doit **valider** les arguments reçus, exactement comme un `OnServerEvent`.
+</Erreur>
+
+## InvokeClient : la fausse bonne idée
+
+La RemoteFunction marche aussi dans l’autre sens : le serveur appelle `InvokeClient(player, ...)` et le client répond via `OnClientInvoke`. La documentation déconseille fortement cette direction et liste trois risques :
+
+- si le client lève une erreur, le serveur lève **aussi** l’erreur ;
+- si le client se déconnecte pendant l’appel, `InvokeClient` lève une erreur ;
+- si le client ne renvoie jamais de valeur, le serveur **attend pour toujours**.
+
+Or un tricheur contrôle entièrement le code de son client. Il peut donc bloquer volontairement ton script serveur. De plus, il n’existe pas de paramètre de délai maximum (timeout) dans `InvokeClient` : rien ne vient débloquer l’attente à ta place.
+
+### La bonne alternative : deux RemoteEvents
+
+Dans la grande majorité des cas, le serveur n’a pas besoin d’attendre. La documentation fait remarquer que le client a rarement une information que le serveur n’a pas. Si le serveur veut quand même une réponse, utilise deux messages à sens unique :
+
+1. le serveur envoie une question avec `FireClient` (sans attendre) ;
+2. le client répond plus tard avec `FireServer` ;
+3. le serveur traite la réponse **s’il la reçoit**, et la valide comme n’importe quel message client.
+
+### Si tu dois vraiment utiliser InvokeClient
+
+Isole l’appel dans un fil d’exécution séparé (`task.spawn`), protège-le avec `pcall`, et fixe ta propre limite de temps :
+
+```luau
+-- Extrait d'un Script serveur (ServerScriptService)
+-- Pose une question à un client sans risquer de bloquer le script appelant pour toujours
+local function invoquerAvecDelai(remote: RemoteFunction, player: Player, delaiMax: number, question: string): (boolean, any)
+	local termine = false
+	local reussi = false
+	local reponse: any = nil
+
+	-- L'appel risqué tourne dans un fil séparé, protégé par pcall
+	task.spawn(function()
+		local ok, valeur = pcall(function()
+			return remote:InvokeClient(player, question)
+		end)
+		reussi = ok
+		reponse = valeur
+		termine = true
+	end)
+
+	-- On attend au maximum delaiMax secondes
+	local debut = os.clock()
+	while not termine and os.clock() - debut < delaiMax do
+		task.wait(0.1)
+	end
+
+	if not termine then
+		return false, "Délai dépassé"
+	end
+	return reussi, reponse -- la réponse vient du client : à valider avant usage !
+end
+```
+
+Même ainsi, si le client ne répond jamais, le fil séparé reste en attente indéfiniment. C’est une raison de plus de préférer la solution avec deux RemoteEvents.
+
+<Astuce titre="Le réflexe à adopter">
+Dans ton jeu, `InvokeClient` ne devrait presque jamais apparaître. Si tu en écris un, demande-toi : « est-ce que `FireClient` suffirait ? ». Pour afficher une interface, jouer un son ou mettre à jour un compteur, la réponse est toujours oui.
+</Astuce>
+
+## Les Bindables : parler à un script du même côté
+
+Parfois, deux scripts **du même côté** doivent communiquer : par exemple, le script des checkpoints veut prévenir un autre script serveur (récompenses, statistiques…) qu’un joueur a atteint une étape. Les RemoteEvents ne servent pas à ça. On utilise les **Bindables** :
+
+| Objet | Rôle | Envoyer | Recevoir |
+|---|---|---|---|
+| `BindableEvent` | Message à sens unique | `Fire(...)` | `.Event:Connect(...)` |
+| `BindableFunction` | Question avec réponse | `Invoke(...)` | `OnInvoke = function` |
+
+La documentation recommande de les placer dans **ServerScriptService** pour la communication entre scripts serveur, et dans **ReplicatedStorage** pour la communication entre scripts client.
+
+### Exemple : l’événement « étape atteinte »
+
+Crée un **BindableEvent** nommé `EtapeAtteinte` dans `ServerScriptService`.
+
+```luau
+-- Extrait du Script des checkpoints (ServerScriptService) : on annonce l'étape aux autres scripts serveur
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local etapeAtteinte = ServerScriptService:WaitForChild("EtapeAtteinte") :: BindableEvent
+
+-- À appeler par le code des checkpoints quand une étape est validée (voir leçon 5)
+local function quandEtapeValidee(player: Player, numeroEtape: number)
+	-- Fire ne met pas le script en pause : les scripts abonnés réagissent de leur côté
+	etapeAtteinte:Fire(player, numeroEtape)
+end
+```
+
+```luau
+-- Script « Recompenses » placé dans ServerScriptService (côté serveur)
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local etapeAtteinte = ServerScriptService:WaitForChild("EtapeAtteinte") :: BindableEvent
+
+etapeAtteinte.Event:Connect(function(player: Player, numeroEtape: number)
+	print(player.Name .. " a atteint l'étape " .. numeroEtape)
+	-- Ici : bonus de pièces toutes les 5 étapes, statistiques (module 8)…
+end)
+```
+
+L’avantage : le script des checkpoints n’a pas besoin de connaître tous les scripts qui s’intéressent aux étapes. Chacun s’abonne de son côté.
+
+### Ce qu’il faut savoir sur les Bindables
+
+- Les arguments subissent **les mêmes limites** que les remotes : clés non textuelles converties en textes, tables mixtes à éviter, métatables perdues, tables copiées.
+- Si plusieurs fonctions sont connectées au même `BindableEvent`, leur **ordre d’exécution n’est pas garanti**.
+- `BindableFunction:Invoke()` attend la réponse. Si aucun `OnInvoke` n’a jamais été défini, le script qui appelle **ne reprend jamais**. Et comme pour les RemoteFunctions, seul le dernier `OnInvoke` affecté compte.
+- La documentation rappelle que les **ModuleScripts** sont souvent une meilleure solution pour partager des données ou des fonctions entre scripts. Garde les Bindables pour les vrais « événements ».
+
+<Info>
+Les Bindables ne traversent **jamais** la frontière client/serveur. Un `BindableEvent` déclenché par un Script serveur n’atteint pas un LocalScript, même s’il est rangé dans ReplicatedStorage.
+</Info>
+
+## Quel outil choisir ?
+
+| Besoin | Outil |
+|---|---|
+| Le client demande une action au serveur | `RemoteEvent` (`FireServer`) |
+| Le serveur prévient un joueur ou tout le monde | `RemoteEvent` (`FireClient` / `FireAllClients`) |
+| Effet visuel éphémère, donnée continue | `UnreliableRemoteEvent` |
+| Le client a besoin d’une réponse du serveur | `RemoteFunction` (`InvokeServer`) |
+| Le serveur a besoin d’une réponse du client | Deux `RemoteEvent` (éviter `InvokeClient`) |
+| Deux scripts du même côté | `BindableEvent`, `BindableFunction` ou un ModuleScript |
+
+<Defi>
+Crée la RemoteFunction `ObtenirInventaire` et les deux scripts de l’exemple. Côté serveur, ajoute temporairement `"TraineeAzur"` dans l’inventaire de chaque nouveau joueur et vérifie que le LocalScript l’affiche. Ensuite, ajoute un `task.wait(3)` dans le callback serveur : observe que le LocalScript attend trois secondes avant d’afficher le résultat.
+</Defi>
+
+<Resume>
+- Une **RemoteFunction** fait une requête avec réponse : `InvokeServer` côté client, `OnServerInvoke = function(player, ...)` côté serveur.
+- L’appelant **attend** la réponse ; le callback serveur doit être rapide et valider ses arguments.
+- `OnServerInvoke` est un **callback** : on l’affecte avec `=`, un seul à la fois.
+- **Évite `InvokeClient`** : erreur relayée, déconnexion, attente infinie. Préfère `FireClient` puis `FireServer`.
+- **BindableEvent / BindableFunction** : communication entre scripts **du même côté** ; mêmes limites d’arguments que les remotes.
+</Resume>
+
+<Sources>
+- [Remote events and callbacks — documentation Roblox](https://create.roblox.com/docs/scripting/events/remote)
+- [RemoteFunction — référence de l’API (avertissements sur InvokeClient)](https://create.roblox.com/docs/reference/engine/classes/RemoteFunction)
+- [Bindable events and callbacks — documentation Roblox](https://create.roblox.com/docs/scripting/events/bindable)
+- [BindableFunction — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/BindableFunction)
+- [BindableEvent — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/BindableEvent)
+</Sources>

@@ -1,0 +1,246 @@
+---
+titre: Installer Studio et découvrir l’interface
+description: "Installe Roblox Studio, crée ton premier projet à partir d’un modèle et repère les fenêtres essentielles : Explorer, Properties, Toolbox, Output."
+duree: 25
+objectifs:
+  - Installer Roblox Studio et créer un projet à partir du modèle Baseplate
+  - Repérer les zones et les fenêtres essentielles de l’interface
+  - Te déplacer dans la vue 3D avec la caméra de Studio
+  - Personnaliser ton espace de travail et distinguer sauvegarde locale et publication
+miseAJour: 2026-10-24
+quiz:
+  - type: qcm
+    question: Que contient le modèle de départ **Baseplate** quand tu l’ouvres ?
+    options:
+      - texte: Un parcours d’obstacles complet avec des checkpoints
+      - texte: Une SpawnLocation et un sol quadrillé (la Baseplate)
+        correct: true
+      - texte: Un terrain d’herbe et un ciel personnalisé
+      - texte: Rien du tout, le monde est vide
+    explication: "Le modèle **Baseplate** ne contient que deux objets : une **SpawnLocation** (là où les personnages apparaissent) et une **Baseplate**, un sol avec une grille alignée sur les studs. C’est un point de départ neutre, idéal pour construire ton propre jeu."
+  - type: qcm
+    question: Quelle fenêtre affiche la liste hiérarchique de tous les objets et services de ton place ?
+    options:
+      - texte: Properties
+      - texte: Toolbox
+      - texte: Explorer
+        correct: true
+      - texte: Output
+    explication: "L’**Explorer** montre l’arbre complet de ton place (le data model) : Workspace, Lighting, ServerScriptService… **Properties** affiche les réglages de l’objet sélectionné, la **Toolbox** donne accès à des ressources, et l’**Output** affiche les messages des scripts."
+  - type: qcm
+    question: "Selon la documentation (clavier QWERTY), quelles touches font avancer, reculer et glisser la caméra sur les côtés dans la vue 3D ? (plusieurs réponses possibles)"
+    options:
+      - texte: "`W` et `S`"
+        correct: true
+      - texte: "`A` et `D`"
+        correct: true
+      - texte: "`T` et `Y`"
+      - texte: "`F5` et `F8`"
+    explication: "Selon la documentation (clavier QWERTY), `W` `A` `S` `D` déplacent la caméra vers l’avant, la gauche, l’arrière et la droite, et `Q` `E` la font descendre et monter. Sur un clavier AZERTY, ce sont en principe les touches situées au même endroit (`Z` `Q` `S` `D`). `F5` et `F8` lancent des modes de test, ils ne déplacent pas la caméra."
+  - type: vrai-faux
+    question: Sélectionner une Part puis appuyer sur `F` centre la caméra sur cette Part.
+    reponse: true
+    explication: "`F` (comme « focus ») place la caméra face à l’objet sélectionné. C’est le moyen le plus rapide de retrouver un objet perdu dans un grand niveau : sélectionne-le dans l’Explorer, survole la vue 3D, puis appuie sur `F`."
+  - type: vrai-faux
+    question: Enregistrer ton projet avec **Save to File** suffit pour le retrouver sur n’importe quel autre ordinateur.
+    reponse: false
+    explication: "**Save to File** crée un fichier `.rbxl` sur ton disque, et seulement là. Pour que le jeu soit lié à ton compte et accessible depuis n’importe quel ordinateur, il faut le **publier sur Roblox** (**File** puis **Publish**)."
+  - type: qcm
+    question: Dans l’interface actuelle de Studio, où se trouvent les commandes pour lancer un test ?
+    options:
+      - texte: Dans le menu Help
+      - texte: À gauche du mezzanine, la bande tout en haut de la fenêtre
+        correct: true
+      - texte: Dans la fenêtre Properties
+      - texte: Dans la Toolbox, onglet Recent
+    explication: "La documentation officielle place les commandes de test (choix du mode et bouton **Play**) sur la **gauche du mezzanine**, la bande supérieure de Studio. Le centre du mezzanine contient les onglets (Home, Model, Script…) et la droite la collaboration et le compte."
+---
+
+Avant de construire l’Obby des Nuages, il te faut un atelier : **Roblox Studio**. C’est le logiciel gratuit qui sert à créer, tester et publier tous les jeux Roblox. Dans cette leçon, tu l’installes, tu ouvres ton premier projet et tu apprends à t’y repérer. Ne cherche pas à tout retenir : tu reviendras souvent à cette leçon les premiers jours, et c’est normal.
+
+## Installer Roblox Studio
+
+Studio est une application gratuite pour ordinateur, disponible sur **Windows** et **Mac**.
+
+Au moment de la rédaction (octobre 2026), la documentation officielle indique la configuration suivante :
+
+| | Minimum | Recommandé |
+|---|---|---|
+| Système | Windows 10 ou macOS 10.14 | Windows 11 ou macOS 14 et plus récent |
+| Mémoire vive (RAM) | 3 Go | 8 Go |
+| Résolution d’écran | — | 1600×900 ou plus |
+
+Pour l’installer :
+
+1. Ouvre la page officielle d’installation de Studio (lien dans les sources en bas de la leçon) et clique sur **Download Studio**.
+2. Dans ton navigateur, retrouve le fichier téléchargé : `RobloxStudio.exe` sur Windows, `RobloxStudio.dmg` sur Mac. Double-clique dessus.
+3. À la fin de l’installation, clique sur **Launch Studio**.
+4. Connecte-toi avec ton compte Roblox. Si tu n’en as pas, crée-le d’abord sur roblox.com.
+
+<Info>
+Tous les jeux Roblox tournent sur la **dernière version** du moteur. Studio se met donc à jour très souvent. Quand une mise à jour est disponible, un bouton **Update** apparaît en haut à droite : clique dessus, Studio te propose d’enregistrer ton travail, puis redémarre.
+</Info>
+
+## Créer ton premier projet
+
+Au lancement, Studio affiche une page d’accueil avec des **modèles de départ** (en anglais *templates*). Un modèle est un projet déjà préparé, avec quelques objets placés pour toi. Il en existe beaucoup : Platformer, Racing, Classic Obby, Village…
+
+Pour l’Obby des Nuages, choisis le plus simple : **Baseplate**. Il ne contient que deux objets :
+
+- une **SpawnLocation** (point d’apparition) : la plaque où les personnages apparaissent en arrivant dans le jeu, et où ils réapparaissent quand ils meurent ;
+- une **Baseplate** : un grand sol gris quadrillé, dont la grille est alignée sur les **studs**.
+
+Le **stud** est l’unité de longueur de Roblox. D’après la documentation, un stud correspond à environ **28 cm**. Toutes les tailles et positions que tu verras dans Studio sont exprimées en studs.
+
+<Astuce titre="Pourquoi ne pas partir du modèle Classic Obby ?">
+Le modèle **Classic Obby** contient déjà des checkpoints, des tremplins et des pièges. Il est génial pour voir à quoi ressemble un obby fini, et tu peux l’ouvrir pour l’explorer. Mais pour apprendre, construire toi-même chaque brique est bien plus formateur : tu sauras exactement comment fonctionne ton jeu, et tu pourras le réparer quand quelque chose cassera.
+</Astuce>
+
+### Place, jeu, expérience : un peu de vocabulaire
+
+Quand tu ouvres un modèle, Studio crée un **place**. Un place est un « niveau » complet : son décor, ses objets et ses scripts. Un **jeu** peut contenir un ou plusieurs places (par exemple un lobby et plusieurs mondes). L’Obby des Nuages tiendra dans un seul place.
+
+Roblox a longtemps appelé les jeux des **experiences** (« expériences »). Tu croiseras les deux mots dans Studio, sur le Creator Hub et dans la documentation : ils désignent la même chose.
+
+## Faire le tour de l’interface
+
+L’interface de Studio a été profondément remaniée ces dernières années. Cette leçon décrit la version actuelle, telle que la présente la documentation officielle au moment de la rédaction. Si tu suis un ancien tutoriel vidéo, tu verras peut-être des onglets ou des boutons placés autrement : le principe reste le même, seuls les emplacements changent.
+
+### Le mezzanine et la barre d’outils
+
+Tout en haut de la fenêtre se trouve le **mezzanine**, une bande qui contient :
+
+- **à gauche**, les commandes de test : un menu pour choisir le mode de test et le bouton **Play** (tu les maîtriseras dans la leçon 4) ;
+- **au centre**, les onglets d’outils : **Home**, **Model**, **Avatar**, **UI**, **Script** et **Plugins** ;
+- **à droite**, la collaboration, le partage, l’**Assistant** (l’aide IA intégrée à Studio), les notifications et ton compte.
+
+Juste en dessous, la **barre d’outils** (*toolbar*) affiche les outils de l’onglet actif. Par exemple, l’onglet **Home** contient les outils de transformation (déplacer, redimensionner, tourner), le bouton pour insérer une **Part**, les réglages de couleur et de matériau, et le bouton **Anchor**. L’onglet **Script** contient les outils pour écrire et tester des scripts.
+
+Studio possède aussi des menus classiques, en haut à gauche : **File** (fichier), **Edit** (édition), **Window** (fenêtres)…
+
+### La vue 3D (viewport)
+
+Le **viewport** est la grande zone centrale : c’est ta fenêtre sur le monde 3D. Il montre le contenu du **Workspace**, c’est-à-dire tout ce qui existe physiquement dans ton place. Tu y sélectionnes des objets en cliquant dessus, et tu y joues pendant les tests.
+
+En haut à droite du viewport, un bouton d’**options de visualisation** permet d’afficher des aides visuelles, par exemple un contour autour des Parts ancrées.
+
+### Explorer
+
+L’**Explorer** affiche sous forme d’arbre **tout** ce que contient ton place : chaque objet, chaque script, chaque service. On appelle cet arbre le **data model**. En haut de l’arbre se trouvent les **services**, de grands conteneurs aux rôles précis comme `Workspace`, `Lighting` ou `ServerScriptService`. Tu les découvriras en détail dans la leçon 3.
+
+Cliquer sur un objet dans l’Explorer le sélectionne aussi dans le viewport, et inversement.
+
+### Properties
+
+La fenêtre **Properties** (propriétés) affiche les réglages de l’objet sélectionné : couleur, taille, position, matériau… Elle se met à jour chaque fois que tu sélectionnes un autre objet. Les propriétés sont rangées par sections, comme **Appearance** (apparence) ou **Transform** (taille et position).
+
+### Toolbox
+
+La **Toolbox** (boîte à outils) donne accès au **Creator Store** : des millions de modèles, images, sons, plugins et polices partagés par Roblox et par la communauté. Elle a quatre onglets : **Creator Store**, **Inventory**, **Recent** et **Creations**. Tu verras dans la leçon suivante pourquoi il faut l’utiliser avec prudence.
+
+### Output et Command Bar
+
+La fenêtre **Output** (sortie) affiche les messages des scripts et surtout leurs **erreurs**. La **Command Bar** (barre de commande) permet d’exécuter une ligne de code immédiatement. Tu les utiliseras beaucoup à partir de la leçon 4.
+
+### Où retrouver une fenêtre fermée ?
+
+Pas de panique si tu fermes une fenêtre par erreur : le menu **Window** permet de toutes les rouvrir.
+
+| Fenêtre | Rôle | Où l’ouvrir |
+|---|---|---|
+| Explorer | Arbre de tous les objets du place | Menu **Window** ou onglet **Home** |
+| Properties | Réglages de l’objet sélectionné | Menu **Window** ou onglet **Home** |
+| Toolbox | Ressources du Creator Store et ton inventaire | Menu **Window** ou onglet **Home** |
+| Output | Messages et erreurs des scripts | Menu **Window** ou onglet **Script** |
+| Command Bar | Exécuter du code tout de suite | Onglet **Script** ou menu **Window** puis **Script** |
+
+<Erreur titre="Travailler sans Explorer ni Properties">
+Beaucoup de débutants ferment ces deux fenêtres pour « gagner de la place », puis ne trouvent plus rien. L’Explorer et Properties sont tes deux outils les plus importants : garde-les toujours visibles, en général sur la droite de l’écran.
+</Erreur>
+
+## Te déplacer dans la vue 3D
+
+Clique d’abord une fois dans le viewport pour lui donner le « focus » clavier, sinon la caméra ne bougera pas. Voici les commandes de caméra indiquées par la documentation :
+
+| Commande | Action |
+|---|---|
+| `W` `A` `S` `D` | Avancer, aller à gauche, reculer, aller à droite |
+| `Q` / `E` | Descendre / monter |
+| `Shift` + touche de déplacement | Changer la vitesse de la caméra |
+| Clic droit maintenu + souris | Tourner la caméra (regarder autour) |
+| Molette | Zoomer et dézoomer |
+| Clic molette maintenu + souris | Faire glisser la caméra (panoramique) |
+| `F` | Centrer la caméra sur l’objet sélectionné |
+
+La documentation décrit un clavier **QWERTY**. Un membre de l’équipe Roblox a expliqué sur le DevForum que Roblox repère les touches selon leur **position** sur un clavier QWERTY. Sur un clavier français (AZERTY), les touches de déplacement devraient donc être `Z` `Q` `S` `D`, avec `A` et `E` pour descendre et monter. Vérifie sur ton propre clavier : quelques secondes d’essai suffisent.
+
+<Astuce titre="Une souris, pas un pavé tactile">
+La documentation officielle recommande **fortement** une souris à deux boutons avec molette. Naviguer en 3D avec un pavé tactile est possible, mais beaucoup plus lent et fatigant.
+</Astuce>
+
+## Personnaliser ton espace de travail
+
+Studio te laisse organiser les fenêtres comme tu veux :
+
+- **Déplacer** : fais glisser une fenêtre par sa barre de titre. Des zones d’ancrage apparaissent ; lâche la fenêtre sur l’une d’elles.
+- **Grouper en onglets** : lâche une fenêtre au centre d’une autre zone, elles deviennent des onglets côte à côte.
+- **Épingler** : le bouton de réduction replie une fenêtre sur le bord de l’écran. Un clic sur son onglet la déplie temporairement.
+- **Faire flotter** : lâche une fenêtre n’importe où, hors des zones d’ancrage.
+
+Pour la barre d’outils, fais un clic droit dans une zone vide du mezzanine ou de la barre :
+
+- **Manage tabs** : afficher, masquer ou réordonner les onglets ;
+- **Collapse toolbar** : masquer la barre d’outils (elle réapparaît au survol d’un onglet) ;
+- **Compact toolbar** : icônes plus petites, pratique sur un ordinateur portable ;
+- **Show labels** : afficher ou masquer le texte sous les outils.
+
+Tu peux aussi créer tes **propres onglets** avec le bouton `+` à droite des onglets, et y ranger les outils que tu utilises le plus.
+
+Enfin, les **Studio Settings** (réglages de Studio) s’ouvrent avec `Alt`+`S` (`⌥`+`S` sur Mac). Tape un mot-clé dans leur champ de recherche, par exemple `theme`, pour passer en thème clair ou sombre. Le menu **File** puis **Customize Shortcuts** permet de modifier les raccourcis clavier.
+
+<Info titre="Les fonctionnalités bêta">
+Le menu **File** puis **Beta Features** donne accès à des fonctionnalités en test. Elles peuvent changer ou disparaître : pour suivre cette formation, tu n’en as pas besoin, sauf mention contraire.
+</Info>
+
+## Sauvegarder ou publier : ne perds pas ton travail
+
+C’est LE point à comprendre dès le premier jour. Il existe deux façons de garder ton travail :
+
+- **Save to File** (menu **File**) : enregistre une copie sur ton ordinateur, au format `.rbxl`. Le fichier n’existe que sur ce disque.
+- **Publish to Roblox** (menu **File** puis **Publish**, raccourci `Alt`+`P` ou `⌥`+`P`) : envoie ton place dans le cloud de Roblox et le **lie à ton compte**. Tu peux alors le rouvrir depuis n’importe quel ordinateur.
+
+Rassure-toi : publier ne veut pas dire montrer ton jeu à tout le monde. Par défaut, un jeu publié n’est accessible qu’à toi (et aux personnes à qui tu donnes un accès en modification). Tu publieras ta première version privée dans la leçon 5.
+
+<Erreur titre="Fermer Studio sans avoir enregistré">
+Un place tout neuf qui n’a jamais été publié ni enregistré n’existe nulle part ailleurs que dans Studio. Studio dispose de réglages de récupération automatique (Auto-Recovery), mais ne compte pas dessus : si tu fermes la fenêtre sans enregistrer, considère ton travail comme perdu. Le tutoriel officiel conseille de publier **toutes les dix minutes environ, ou après chaque gros changement**. Prends l’habitude dès maintenant.
+</Erreur>
+
+<Defi>
+
+1. Ouvre Studio et crée un projet à partir du modèle **Baseplate**.
+2. Sélectionne la **SpawnLocation** dans l’Explorer, survole le viewport et appuie sur `F`.
+3. Fais le tour de la SpawnLocation avec le clic droit et la molette, puis éloigne-toi avec `S` et monte avec `E`.
+4. Range tes fenêtres : Explorer et Properties à droite, Toolbox et Output groupées en onglets en bas.
+5. Enregistre ton projet avec **File** puis **Save to File** sous le nom `ObbyDesNuages.rbxl`.
+
+</Defi>
+
+<Resume>
+- Roblox Studio est gratuit, sur Windows et Mac ; il se met à jour souvent.
+- Le modèle **Baseplate** contient une SpawnLocation et un sol quadrillé ; l’unité de longueur est le **stud** (environ 28 cm).
+- Le **mezzanine** regroupe les commandes de test (à gauche), les onglets d’outils (au centre) et la collaboration (à droite).
+- **Explorer** (l’arbre du place) et **Properties** (les réglages de l’objet sélectionné) sont tes fenêtres principales ; le menu **Window** rouvre toutes les fenêtres.
+- Caméra : `W` `A` `S` `D`, `Q` `E`, clic droit pour tourner, `F` pour centrer.
+- **Save to File** garde une copie locale ; **Publish** lie le jeu à ton compte, sans le rendre public.
+</Resume>
+
+<Sources>
+- [Roblox Studio setup — installation et configuration requise](https://create.roblox.com/docs/studio/setup)
+- [Studio interface — mezzanine, barre d’outils, caméra, fenêtres](https://create.roblox.com/docs/studio/overview)
+- [Explore Studio UI — tutoriel officiel pour débutants](https://create.roblox.com/docs/tutorials/curriculums/studio/explore-ui)
+- [AZERTY keyboard binding issue — explication sur la position des touches (DevForum)](https://devforum.roblox.com/t/azerty-keyboard-binding-issue/4070475)
+- [Templates — liste des modèles de départ](https://create.roblox.com/docs/resources/templates)
+- [Create your first game — projet, Baseplate et studs](https://create.roblox.com/docs/tutorials/first-experience)
+- [Place files — Save to File et formats .rbxl / .rbxlx](https://create.roblox.com/docs/projects/place-files)
+- [Test and save — conseil de publier régulièrement](https://create.roblox.com/docs/tutorials/curriculums/building/test-and-save)
+</Sources>

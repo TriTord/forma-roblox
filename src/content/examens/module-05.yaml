@@ -1,0 +1,147 @@
+module: "05"
+titre: Examen du module 5
+description: Vérifie que tu sais concevoir une boucle de jeu, un début de partie, une progression, des raisons de revenir et un playtest, sans manipuler tes joueurs.
+seuil: 70
+questions:
+  - type: qcm
+    question: Un ami te décrit son jeu « On coupe des arbres, on vend le bois, on achète une hache plus rapide qui coupe plus vite ». Quelle partie de la core loop est « acheter une hache plus rapide » ?
+    options:
+      - texte: L’interaction minute par minute
+      - texte: Le moteur de progression
+        correct: true
+      - texte: L’onboarding
+      - texte: Un puits de monnaie sans lien avec la boucle
+    explication: La hache améliorée change durablement la façon de jouer et ramène à l’action (couper plus vite). C’est le moteur de progression, la partie qui, selon Roblox, évite que le jeu devienne répétitif et superficiel.
+
+  - type: vrai-faux
+    question: Avant d’ajouter une fonctionnalité, il est conseillé de vérifier à quelle partie de la core loop elle se rattache.
+    reponse: true
+    explication: La documentation LiveOps de Roblox demande que toute fonctionnalité ajoutée soit reliée à la core loop. Une fonctionnalité isolée complique le jeu sans le rendre plus amusant.
+
+  - type: qcm
+    question: Un nouveau joueur rejoint l’Obby des Nuages. Quelle arrivée suit le mieux les recommandations Roblox sur l’onboarding ?
+    options:
+      - texte: Un écran de règles de trois pages, puis le spawn
+      - texte: Le spawn face au premier saut facile, le premier checkpoint visible et une pièce sur le chemin
+        correct: true
+      - texte: La boutique qui s’ouvre automatiquement pour présenter les traînées
+      - texte: Un premier saut très difficile pour montrer le niveau du jeu
+    explication: Roblox recommande d’amener au plaisir de jeu le plus vite possible, avec des tutoriels brefs et visuels et des premiers succès rapides. Les écrans d’entrée et les pics de difficulté au départ retardent ou découragent le joueur.
+
+  - type: qcm
+    question: Quelles techniques d’onboarding sont décrites par la documentation Roblox ? (plusieurs réponses possibles)
+    options:
+      - texte: Les éléments visuels (flèches, traînées, mises en évidence)
+        correct: true
+      - texte: Les tutoriels contextuels, déclenchés par le jeu normal
+        correct: true
+      - texte: Les indices minutés pour les joueurs en difficulté
+        correct: true
+      - texte: Les comptes à rebours pour presser le joueur
+    explication: Roblox décrit trois techniques, les éléments visuels, les tutoriels contextuels (« juste à temps ») et les indices minutés. Un compte à rebours artificiel est une pression, pas une aide.
+
+  - type: trouve-le-bug
+    question: "Cette fonction doit dire si le faisceau de guidage est encore utile : oui tant que la prochaine étape est 1 ou 2, non ensuite. Pour un nouveau joueur (étape 0), elle affiche pourtant « false ». Où est le bug ?"
+    code: |
+      local Players = game:GetService("Players")
+
+      local ETAPES_GUIDEES = 2
+      local joueur = Players.LocalPlayer
+      local etape = joueur:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
+
+      local function guideNecessaire(): boolean
+      	local prochaine = etape.Value + 1
+      	return prochaine >= ETAPES_GUIDEES
+      end
+
+      print("Guide nécessaire :", guideNecessaire())
+    options:
+      - texte: "Ligne 5 : `Etape` doit être cherché dans `PlayerGui`"
+      - texte: "Ligne 9 : la comparaison est inversée, il faut `prochaine <= ETAPES_GUIDEES`"
+        correct: true
+      - texte: "Ligne 8 : on ne peut pas additionner un nombre à `etape.Value`"
+      - texte: "Ligne 7 : une fonction locale ne peut pas renvoyer de booléen"
+    explication: "Au départ, `etape.Value` vaut 0, donc `prochaine` vaut 1 et `1 >= 2` est faux : le guide est jugé inutile dès le début. On veut guider tant que la prochaine étape est 1 ou 2, soit `prochaine <= ETAPES_GUIDEES`."
+
+  - type: vrai-faux
+    question: Pour un petit jeu qui débute, les Experiments (tests A/B) de Roblox sont l’outil le plus fiable pour régler le début de partie.
+    reponse: false
+    explication: Au moment de la rédaction, Roblox prévient que les jeux de moins de 1 000 utilisateurs actifs par jour risquent d’avoir du mal à obtenir des résultats utiles. Pour un petit jeu, les playtests observés sont bien plus parlants.
+
+  - type: qcm
+    question: Dans ton obby, les joueurs ont en moyenne 5 000 pièces et la boutique ne propose que des traînées à 100 pièces. Quel est le problème, et quelle solution suit les conseils de Roblox ?
+    options:
+      - texte: Une inflation, car les sources dépassent largement les puits ; ajouter des objets désirables plus chers ou d’autres puits avant toute nouvelle source
+        correct: true
+      - texte: Un manque de sources ; doubler les pièces gagnées par étape
+      - texte: Aucun problème, des joueurs riches sont des joueurs heureux
+    explication: Quand la monnaie s’accumule sans rien de désirable à acheter, elle perd sa valeur et la boucle méta s’arrête. Roblox recommande de planifier les puits avant d’ajouter de nouvelles sources.
+
+  - type: qcm
+    question: Quelle règle s’applique sur Roblox aux objets aléatoires payants ?
+    options:
+      - texte: Aucune règle particulière, c’est au créateur de décider
+      - texte: Les probabilités doivent être affichées de façon exacte et chiffrée avant l’achat, et chaque résultat doit apporter un bénéfice
+        correct: true
+      - texte: Ils sont autorisés seulement le week-end
+    explication: Les Community Standards de Roblox imposent l’affichage exact et chiffré des probabilités avant l’achat, un bénéfice pour chaque résultat et un accès réservé aux utilisateurs éligibles. Le détail est vu au module 6.
+
+  - type: trouve-le-bug
+    question: "Cette fonction de Config doit donner 2 pièces par étape dans la zone 1 (étapes 1 à 5), plus un bonus de 10 à la dernière étape de la zone. Le bonus n’est jamais versé. Où est le bug ?"
+    code: |
+      local Zone1 = { premiereEtape = 1, derniereEtape = 5, piecesParEtape = 2 }
+      local BONUS_FIN_DE_ZONE = 10
+
+      local function recompensePourEtape(etape: number): number
+      	if etape < Zone1.premiereEtape or etape >= Zone1.derniereEtape then
+      		return 0
+      	end
+      	local gain = Zone1.piecesParEtape
+      	if etape == Zone1.derniereEtape then
+      		gain += BONUS_FIN_DE_ZONE
+      	end
+      	return gain
+      end
+
+      print(recompensePourEtape(5))
+    options:
+      - texte: "Ligne 5 : `>=` exclut la dernière étape de la zone, il faut `>`"
+        correct: true
+      - texte: "Ligne 9 : il faut `=` au lieu de `==`"
+      - texte: "Ligne 10 : `+=` n’existe pas en Luau"
+      - texte: "Ligne 1 : une table ne peut pas contenir de nombres"
+    explication: "Pour l’étape 5, `5 >= 5` est vrai : la fonction renvoie 0 avant même d’arriver au bonus. Avec `etape > Zone1.derniereEtape`, l’étape 5 reçoit ses 2 pièces plus le bonus de 10. À la ligne 9, `==` est bien la comparaison attendue."
+
+  - type: qcm
+    question: Quelles affirmations sur les notifications d’expérience sont exactes selon la documentation Roblox ? (plusieurs réponses possibles)
+    options:
+      - texte: Les notifications personnalisées ne sont reçues que par des utilisateurs de 13 ans et plus qui ont donné leur accord
+        correct: true
+      - texte: Un utilisateur peut recevoir au maximum une notification par jour d’une même expérience
+        correct: true
+      - texte: On peut personnaliser librement le texte de la demande d’autorisation
+      - texte: On peut bloquer la progression tant que le joueur n’a pas activé les notifications
+    explication: Le texte de la demande d’autorisation est standard et non modifiable, et Roblox interdit d’exiger l’activation des notifications pour participer ou progresser. Les deux premières affirmations sont tirées de la page officielle.
+
+  - type: qcm
+    question: Tu veux récompenser les joueurs qui reviennent souvent. Quelle option respecte le mieux leur temps ?
+    options:
+      - texte: Une série quotidienne qui retombe à zéro et fait perdre les objets gagnés au premier jour manqué
+      - texte: Un objectif quotidien court et modeste, remis à zéro chaque jour sans rien retirer au joueur
+        correct: true
+      - texte: Un message « Reviens dans 10 minutes ou tu perds tout ! » sans réelle limite
+    explication: Roblox recommande des quotidiennes courtes, réalisables en une session, avec des récompenses modestes. Punir l’absence transforme le jeu en obligation, et une fausse urgence est un dark pattern explicitement interdit dans les notifications.
+
+  - type: vrai-faux
+    question: Pendant un playtest, il vaut mieux expliquer au testeur ce qu’il doit faire dès qu’il hésite, pour gagner du temps.
+    reponse: false
+    explication: L’hésitation est justement l’information recherchée. En aidant, tu caches le problème que les vrais joueurs rencontreront seuls. On observe, on note et on n’intervient qu’en cas de blocage total.
+
+  - type: qcm
+    question: Après un playtest, un testeur te demande « Mets des dragons ! ». Que conseille la documentation Roblox sur les LiveOps ?
+    options:
+      - texte: Ajouter des dragons immédiatement pour lui faire plaisir
+      - texte: Ignorer la remarque, les joueurs ne savent pas ce qu’ils veulent
+      - texte: Chercher la raison derrière la suggestion (par exemple une zone jugée monotone)
+        correct: true
+    explication: Roblox souligne que la raison derrière une suggestion compte encore plus que la suggestion elle-même. Comprendre le besoin permet de choisir la meilleure solution, qui n’est pas forcément celle proposée.
