@@ -1,0 +1,978 @@
+---
+titre: Bibliothèque de prompts
+description: Des prompts précis et commentés, prêts à copier dans Claude Code, pour chaque système courant d’un jeu Roblox, avec ce qu’il faut vérifier dans le code produit.
+duree: 60
+objectifs:
+  - Disposer d’un prompt précis, prêt à copier, pour chaque système de jeu courant
+  - Adapter un prompt de la bibliothèque à son propre jeu en remplaçant les crochets
+  - Vérifier le code produit grâce aux points de contrôle donnés après chaque prompt
+miseAJour: 2026-10-24
+quiz:
+  - type: ameliore-le-prompt
+    question: "Tu crées un simulateur de pêche et tu veux réutiliser le prompt « Boutique sécurisée » pour vendre des cannes à pêche. Quelle version adaptée donnera le meilleur résultat ?"
+    prompt: "Reprends le prompt de la boutique, mais pour mon jeu de pêche."
+    options:
+      - texte: "Reprends le prompt de la boutique de la formation, adapte-le toi-même à mon simulateur de pêche et code tout ce qu’il faut."
+      - texte: |
+          Contexte : simulateur de pêche ; la boutique vend des cannes contre des Coquillages (leaderstats.Coquillages).
+          Ce qui existe déjà : src/ReplicatedStorage/Modules/Catalogue.luau (CanneBambou, CanneCarbone, avec nom et prix), DonneesJoueurs.luau, Validation.luau.
+          Objectif : le serveur retire le prix et ajoute la canne à l’inventaire.
+          Sécurité : le client envoie seulement l’identifiant de la canne ; le serveur vérifie le type, un achat par seconde, l’existence dans Catalogue, la possession et le solde ; le prix est lu dans Catalogue côté serveur.
+          Vérification : FireServer("CanneCarbone", 0) depuis la Command Bar achète au vrai prix ; FireServer({}) ne fait rien.
+        correct: true
+      - texte: |
+          Contexte : simulateur de pêche avec des cannes à acheter.
+          Objectif : quand le joueur clique sur une canne, le LocalScript vérifie qu’il a assez de Coquillages et envoie au serveur l’identifiant et le prix pour qu’il enregistre l’achat.
+          Vérification : acheter une canne dans Studio.
+      - texte: "Colle le prompt de la boutique tel quel, sans rien changer : Claude Code comprendra tout seul ce qu’il faut mettre à la place des crochets."
+    explication: "Claude Code ne connaît pas cette bibliothèque : « reprends le prompt de la formation » ne lui dit rien. La bonne version remplace chaque crochet par les vrais noms du jeu (monnaie, catalogue, identifiants) et garde les règles de sécurité et la vérification. La troisième fait vérifier le solde par le client et lui fait envoyer le prix : c’est exactement la faille que le prompt d’origine interdit."
+  - type: ameliore-le-prompt
+    question: "Ton projet contient déjà le script Achats (ProcessReceipt) de la bibliothèque. Tu veux ajouter un Developer Product « Pack de 500 pièces ». Quelle version du prompt est la meilleure ?"
+    prompt: "ajoute un produit Robux qui donne 500 pièces"
+    options:
+      - texte: |
+          Dans src/ServerScriptService/Achats.server.luau, ajoute le produit « Pack de 500 pièces » (constante ID_PACK_500 = 0, à remplacer) à la table produits. Sa fonction ajoute 500 à leaderstats.Pieces et à donnees.pieces, sans aucune attente.
+          Ne change pas l’ordre du callback : PurchaseId cherché dans donnees.achats, effet puis PurchaseId notés, PurchaseGranted seulement si DonneesJoueurs.Sauvegarder renvoie true, sinon NotProcessedYet.
+          Vérification : un achat en Play donne 500 pièces une seule fois ; avec la sauvegarde simulée en échec, l’achat n’est pas confirmé.
+        correct: true
+      - texte: "Crée un nouveau Script Pack500.server.luau qui définit MarketplaceService.ProcessReceipt pour ce produit : il ajoute 500 pièces au joueur puis renvoie PurchaseGranted."
+      - texte: "Ajoute un bouton qui appelle PromptProductPurchase, puis, dans PromptProductPurchaseFinished, donne 500 pièces au joueur si l’achat a réussi."
+    explication: "`ProcessReceipt` est un seul callback par jeu : un second script qui l’assigne écrase le premier, et « Passer l’étape » ne serait plus traité. Il renvoie aussi `PurchaseGranted` sans avoir sauvegardé. `PromptProductPurchaseFinished` ne prouve pas que l’achat a été payé. La bonne version s’insère dans le script existant et garde l’idempotence (PurchaseId) et la sauvegarde avant confirmation."
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur reçoit les attaques à l’épée envoyées par les clients. Où est la faille ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local attaquerEpee = ReplicatedStorage.Remotes.AttaquerEpee :: RemoteEvent
+
+      attaquerEpee.OnServerEvent:Connect(function(player: Player, cible: unknown)
+      	if typeof(cible) ~= "Instance" or not cible:IsA("Model") then return end
+      	local derniere = player:GetAttribute("DerniereAttaque") or 0
+      	if os.clock() - derniere < 0.6 then return end
+      	player:SetAttribute("DerniereAttaque", os.clock())
+      	local humanoid = cible:FindFirstChildOfClass("Humanoid")
+      	local epee = player.Character and player.Character:FindFirstChild("Epee")
+      	if humanoid and humanoid.Health > 0 and epee and cible ~= player.Character then
+      		humanoid:TakeDamage(20)
+      	end
+      end)
+    options:
+      - texte: "Ligne 5 : il faut tester `typeof(cible) ~= \"Model\"`"
+      - texte: "Ligne 8 : un tricheur peut remettre l’attribut `DerniereAttaque` à 0 depuis son client pour frapper sans limite"
+      - texte: "Ligne 11 : rien ne vérifie que la cible est à portée de l’épée, donc un tricheur peut frapper n’importe quel joueur de la carte"
+        correct: true
+      - texte: "Ligne 12 : les dégâts devraient être envoyés par le client, pour suivre la puissance de l’épée"
+    explication: "Le code vérifie le type, la cadence, la cible et l’épée équipée, mais jamais la **distance** entre l’attaquant et la cible : un tricheur peut envoyer n’importe quel personnage de la carte. Il faut comparer côté serveur les positions des deux `HumanoidRootPart` à la portée de l’épée (plus une petite marge pour la latence). `typeof` renvoie `\"Instance\"` pour un Model ; un attribut modifié par le client n’est pas répliqué au serveur, donc le cooldown tient ; et les dégâts doivent rester une constante du serveur."
+  - type: qcm
+    question: Quelles habitudes cette page recommande-t-elle pour utiliser la bibliothèque ? (plusieurs réponses possibles)
+    options:
+      - texte: "Remplacer chaque mot entre crochets par les vraies valeurs de ton jeu avant d’envoyer le prompt"
+        correct: true
+      - texte: Envoyer un seul prompt par tâche, puis tester et faire un commit avant de passer à la suivante
+        correct: true
+      - texte: Activer le mode plan pour les gros systèmes (sauvegarde, achats en Robux, combat, manches)
+        correct: true
+      - texte: Coller plusieurs prompts d’un coup pour aller plus vite
+      - texte: Supprimer la rubrique « Vérification » pour raccourcir le prompt
+    explication: "Un prompt adapté, une tâche à la fois, un plan validé avant les gros changements et un commit après chaque système qui marche : c’est ce qui permet de relire, de tester et de revenir en arrière. Plusieurs prompts d’un coup mélangent les changements, et sans critère de vérification Claude Code ne sait pas quand il a fini."
+  - type: vrai-faux
+    question: "Les prompts de la bibliothèque sont si précis que, si Claude Code annonce que le système fonctionne, tu peux sauter les points « À vérifier dans le code produit »."
+    reponse: false
+    explication: "Même un excellent prompt ne garantit pas un code juste : l’IA peut oublier une vérification, inventer une API ou mal comprendre un cas limite. C’est toi qui publies le jeu : relis les points de contrôle et teste dans Studio. On apprend à lire, diriger et **vérifier**."
+  - type: qcm
+    question: "Le Script Boutique affiche une erreur rouge dans l’Output. Que doit contenir ton prompt de débogage ?"
+    options:
+      - texte: "Juste « ça marche plus, corrige »"
+      - texte: L’erreur complète avec sa pile d’appels, le script concerné, ce que tu attendais, ce que tu obtiens et les étapes pour reproduire
+        correct: true
+      - texte: Seulement le numéro de la ligne en erreur
+      - texte: Une copie de tout le projet collée dans le prompt
+    explication: "L’erreur complète (avec les lignes de pile) dit où et comment ça casse ; l’attendu et l’obtenu disent ce qui est faux pour le joueur ; les étapes permettent de reproduire. Le numéro de ligne seul ne suffit pas, et coller tout le projet noie l’information : Claude Code sait lire les fichiers que tu lui indiques."
+---
+
+Tu connais maintenant la méthode : un prompt précis, une tâche à la fois, une vérification à la fin. Cette page est ta **boîte à outils** : un prompt prêt à copier pour chaque système courant d’un jeu Roblox, de la sauvegarde au combat en passant par la boutique. Chaque prompt suit le gabarit en huit rubriques de la [leçon 4](/modules/02/l-art-du-prompt-precis/) et reprend exactement les règles enseignées dans les leçons techniques de la formation. Garde-la sous la main : tu y reviendras à chaque nouveau système.
+
+## Comment utiliser cette bibliothèque
+
+Chaque prompt est présenté de la même façon :
+
+1. **Avant le prompt** : quand l’utiliser, ce qu’il faut adapter, et la leçon qui explique le système en détail.
+2. **Le prompt**, dans un cadre avec un bouton **Copier**.
+3. **Après le prompt** : les points à vérifier dans le code produit par Claude Code.
+
+### Adapter les crochets
+
+Tout ce qui est écrit `[EN_MAJUSCULES_ENTRE_CROCHETS]` est à remplacer par **ta** valeur : le nom de ton jeu, un prix, une durée, l’ID d’un produit. Quand un exemple est donné (`[DUREE_PARTIE, ex. 120]`), remplace tout le crochet, exemple compris. Le plus simple : colle d’abord le prompt dans un éditeur de texte (Bloc-notes sous Windows, TextEdit sous Mac, ou VS Code), remplis les crochets, puis copie le résultat dans Claude Code. Si une rubrique ne concerne pas ton jeu, supprime la ligne, mais garde toujours « Objectif » et « Vérification ».
+
+Les prompts utilisent les noms du fil rouge (`DonneesJoueurs`, `Validation`, `ReplicatedStorage.Remotes`, DataStore `DonneesJoueurs_v1`…). Si ton jeu utilise d’autres noms, remplace-les partout, sans en oublier un.
+
+<Erreur titre="Envoyer un prompt avec des crochets non remplis">
+Un prompt qui contient encore `[ID_DU_PRODUIT]` ou `[MONNAIE]` oblige Claude Code à deviner, et il devinera mal : un ID à 0 oublié, une monnaie qui n’existe pas, un fichier au mauvais endroit. Avant d’envoyer, cherche le caractère `[` dans ton texte : il ne doit plus rester aucun mot en majuscules entre crochets (seuls restent le préfixe `[DEBUG]` et le code, comme `inventaire[idObjet]`).
+</Erreur>
+
+### Un prompt, une tâche
+
+Chaque prompt construit **un** système. Entre deux systèmes, tape `/clear` pour repartir d’un contexte propre (leçon 3) : la conversation précédente ne pollue plus la suivante. Ne colle jamais plusieurs prompts à la suite dans le même message.
+
+### Le mode plan pour les gros systèmes
+
+Les prompts qui touchent plusieurs fichiers ou des données sensibles (sauvegarde, achats en Robux, combat, manches, audits) commencent par « Commence par me proposer un plan (mode plan), sans modifier de fichier. » Active en plus le mode plan avant de coller le prompt : appuie sur `Shift+Tab` jusqu’à voir `⏸ plan mode on` dans la barre d’état (sous Windows, si `Shift+Tab` ne change rien, essaie `Alt+M`). Lis le plan, corrige-le si besoin, puis accepte-le.
+
+### Tester, puis commiter
+
+Après chaque système : fais les tests de la rubrique « Vérification » dans Studio, relis les points « À vérifier », puis enregistre une version qui marche avec Git (leçon 2) :
+
+```bash
+git add -A
+git commit -m "Ajout de la boutique sécurisée"
+```
+
+Si le système suivant casse tout, tu pourras toujours revenir à ce commit.
+
+### Le CLAUDE.md fait le reste
+
+Ces prompts supposent que ton projet a déjà son fichier **CLAUDE.md** ([leçon 3](/modules/02/claude-code-de-a-a-z/)). Il rappelle à chaque session l’architecture, les conventions de nommage, « toujours `task.wait`, jamais `wait` », les `pcall` autour des DataStores et de MarketplaceService, et la règle d’or : le serveur valide tout. C’est pour ça que les prompts ne répètent pas toutes ces règles et se concentrent sur ce qui est propre à chaque système.
+
+<Attention>
+Ne colle **jamais** dans un prompt un mot de passe, ton cookie `.ROBLOSECURITY`, une clé d’API ou un autre secret, même pour « aider » Claude Code. Les IDs de Game Pass et de Developer Product ne sont pas des secrets : tu peux les écrire. Et pour tout ce qui touche aux Robux (créer un produit, faire un vrai achat de test), si tu es mineur, fais-le avec un adulte.
+</Attention>
+
+## Démarrage de projet
+
+### Le fichier CLAUDE.md du projet
+
+**Quand l’utiliser :** une fois, juste après avoir installé Rojo et Git ([leçon 2](/modules/02/installer-un-workflow-pro/)), ou pour améliorer un CLAUDE.md créé par `/init`. Le modèle complet est dans la [leçon 3](/modules/02/claude-code-de-a-a-z/) : ce prompt le fait adapter à **ton** projet réel. **À adapter :** `[NOM_DU_JEU]`, `[DESCRIPTION_EN_UNE_PHRASE]`.
+
+<Prompt titre="Générer ou adapter le CLAUDE.md">
+
+```text
+Contexte : je crée le jeu Roblox [NOM_DU_JEU] ([DESCRIPTION_EN_UNE_PHRASE]). C'est un projet Rojo versionné avec Git. Je débute et je relis chaque modification.
+Ce qui existe déjà : default.project.json et le dossier src/ (Scripts .server.luau, LocalScripts .client.luau, ModuleScripts .luau). Peut-être un CLAUDE.md créé par /init.
+Objectif : un fichier CLAUDE.md à la racine qui te permet, à chaque session, de coder avec les règles de ce projet sans que je les répète.
+Fichiers concernés : CLAUDE.md uniquement (crée-le, ou complète celui qui existe sans supprimer ce qui est juste). Ne modifie rien d'autre.
+Contraintes techniques :
+- Lis d'abord default.project.json et tous les fichiers de src/. N'invente aucun dossier, script ou remote qui n'existe pas.
+- Moins de 200 lignes, en français, en listes courtes.
+- Sections : 1) Le jeu (2 phrases) ; 2) Architecture : chaque dossier de src/ et son emplacement dans Studio d'après default.project.json ; 3) Services utilisés ; 4) Conventions de nommage : identifiants en français sans accents, PascalCase pour les scripts et les instances, camelCase pour les variables, suffixes Rojo ; 5) Remotes : liste de ReplicatedStorage.Remotes, tous déclarés dans default.project.json ; 6) Données : DataStore "DonneesJoueurs_v1", clé "Joueur_" .. player.UserId, module DonneesJoueurs ; 7) Règles de code ; 8) Règles de sécurité ; 9) Commandes de vérification ; 10) Méthode de travail.
+- Règles de code : toujours task.wait, task.spawn et task.delay, jamais wait, spawn ni delay ; game:GetService pour chaque service ; pcall autour de chaque appel DataStore et MarketplaceService ; connexions et tables indexées par joueur nettoyées (PlayerRemoving) ; aucune API dépréciée.
+- Règles de sécurité : le serveur valide tout, le client ne fait que demander ; jamais de prix, de récompense, de dégâts ni de position décidés par le client ; chaque OnServerEvent vérifie le type, la valeur (math.isfinite pour les nombres), le contexte et le débit.
+- Commandes de vérification : selene src et stylua --check src.
+- Méthode : proposer un plan avant tout changement qui touche plus de 2 fichiers ; ne modifier que les fichiers demandés ; si tu n'es pas sûr qu'une API Roblox existe, le dire au lieu de l'inventer.
+Sécurité : n'écris dans CLAUDE.md aucun mot de passe, cookie, clé d'API ni identifiant de connexion.
+Vérification : affiche le fichier final, puis indique pour chaque section le fichier du projet d'où vient l'information. Je le relirai, puis je vérifierai avec /context qu'il est bien chargé.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- chaque dossier et chaque remote cités existent vraiment dans `default.project.json` et `src/` (aucune invention) ;
+- les règles de sécurité et « `task.wait`, jamais `wait` » sont présentes ;
+- le fichier reste court (moins de 200 lignes) : une ligne inutile, c’est une ligne que Claude Code risque de mal suivre ;
+- aucun secret n’y figure.
+
+### Planifier un jeu à partir d’un GDD
+
+**Quand l’utiliser :** au début d’un nouveau jeu, quand tu as écrit ton game design doc (GDD) dans le fichier `GDD.md` à la racine du projet ([leçon 5](/modules/02/decouper-un-gros-projet/)). Active le mode plan avant. Le plan validé est enregistré dans `TACHES.md`, comme à la leçon 5. **À adapter :** `[NOM_DU_JEU]`, `[GENRE]`, `[NOMBRE_MAX_DE_TACHES]`. Le `@` devant un chemin indique à Claude Code de lire ce fichier.
+
+<Prompt titre="Planifier le jeu à partir du GDD">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : je veux créer [NOM_DU_JEU], un jeu Roblox de type [GENRE]. Mon game design doc est dans @GDD.md. Je débute : je veux une version 1 jouable et publiable, pas tout le jeu rêvé.
+Ce qui existe déjà : le projet Rojo (default.project.json, src/) et le CLAUDE.md du projet.
+Objectif : un plan de construction découpé en petites tâches, chacune faisable avec UN prompt, testable dans Studio, puis commitée avant de passer à la suivante.
+Fichiers concernés : aucun pendant le plan. Seulement après mon accord, écris la liste des tâches dans TACHES.md, et ne touche à rien d'autre.
+Contraintes techniques :
+- Sépare la « version 1 » (le minimum pour que la boucle de jeu fonctionne) et « plus tard ».
+- Au plus [NOMBRE_MAX_DE_TACHES] tâches pour la version 1, dans l'ordre des dépendances (par exemple la sauvegarde avant la boutique).
+- Pour chaque tâche : nom ; ce que le joueur voit ou fait ; fichiers à créer ou modifier (chemins Rojo) ; remotes ou champs de données ajoutés ; dépendances ; critère de réussite testable dans Studio en moins de 5 minutes.
+- Marque les tâches à risque (sécurité, sauvegarde, achats en Robux).
+Sécurité : pour chaque tâche où le client envoie une demande au serveur, écris ce que le serveur devra valider.
+Cas limites : si le GDD est flou ou contradictoire, pose-moi d'abord jusqu'à 5 questions au lieu de deviner.
+Vérification : termine par la liste des questions encore ouvertes, puis par la tâche n°1 rédigée en prompt complet avec les rubriques Contexte, Ce qui existe déjà, Objectif, Fichiers concernés, Contraintes techniques, Sécurité, Cas limites et Vérification.
+```
+
+</Prompt>
+
+**À vérifier dans le plan produit :**
+
+- la version 1 est vraiment petite (si elle contient 40 tâches, ce n’est plus une version 1) ;
+- chaque tâche a un critère de réussite que **tu** peux tester toi-même ;
+- l’ordre respecte les dépendances (pas de boutique avant la sauvegarde, pas d’achat en Robux avant la boutique) ;
+- les tâches à risque sont signalées et indiquent ce que le serveur valide.
+
+### La boîte à outils de validation
+
+**Quand l’utiliser :** avant tout système qui reçoit des demandes des clients. Plusieurs prompts de cette page utilisent ce module. Il reprend celui de la leçon [Ne jamais faire confiance au client](/modules/04/ne-jamais-faire-confiance-au-client/). **À adapter :** `[NOM_DU_JEU]`.
+
+<Prompt titre="Module Validation">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Plusieurs Scripts serveur vont recevoir des demandes des clients et des contacts (Touched) : je veux les mêmes vérifications partout.
+Ce qui existe déjà : le CLAUDE.md du projet.
+Objectif : un ModuleScript de validation réutilisable par tous les Scripts serveur.
+Fichiers concernés : crée src/ServerScriptService/Validation.luau uniquement.
+Contraintes techniques : fonctions estNombre(valeur, min, max) qui rejette NaN et l'infini avec math.isfinite ; estEntier(valeur, min, max) ; estTexte(valeur, longueurMax) : non vide, pas trop long, UTF-8 valide (utf8.len) ; racineVivante(player) : la HumanoidRootPart si le Humanoid est vivant, sinon nil ; estAPortee(player, position, distanceMax) ; creerCooldown(delai) qui renvoie une fonction (player) -> boolean, mesure le temps avec os.clock et oublie le joueur à PlayerRemoving. Les valeurs venant du client sont typées unknown.
+Sécurité : le module reste dans ServerScriptService, que les clients ne peuvent pas lire.
+Cas limites : nil, table ou texte à la place d'un nombre ; 2.5 pour un entier ; joueur sans personnage.
+Vérification : donne-moi les lignes à coller dans la Command Bar (en Play, vue serveur) qui affichent estEntier(x, 1, 10) pour 3, 2.5, 0/0, math.huge, "3" et nil : seul 3 doit donner true. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `estNombre` appelle `math.isfinite` **avant** de comparer aux bornes (NaN échappe à toutes les comparaisons) ;
+- chaque fonction teste d’abord `typeof(...)` avant d’utiliser la valeur ;
+- `creerCooldown` vide sa table à `PlayerRemoving` (sinon elle grossit sans fin) ;
+- le fichier est bien dans `src/ServerScriptService/`, pas dans `ReplicatedStorage`.
+
+## Bases de l’obby
+
+### Checkpoints sécurisés
+
+**Quand l’utiliser :** pour la progression d’un obby. Détails : [Sécuriser l’Obby des Nuages](/modules/04/securiser-l-obby/). **À adapter :** `[NOMBRE_DE_CHECKPOINTS]`, `[DISTANCE_MAX]` (15 studs dans le fil rouge, plus si tes checkpoints sont grands), `[TEMPS_MIN_ETAPE]` (2 secondes dans le fil rouge).
+
+<Prompt titre="Checkpoints sécurisés">
+
+```text
+Contexte : obby [NOM_DU_JEU]. Les checkpoints sont des Parts ancrées dans Workspace.Checkpoints, nommées "1", "2", "3"… dans l'ordre du parcours (jusqu'à [NOMBRE_DE_CHECKPOINTS]), construites dans Studio.
+Ce qui existe déjà : les leaderstats (IntValue Etape et Pieces) créées par src/ServerScriptService/GestionJoueurs.server.luau ; src/ServerScriptService/Validation.luau (estAPortee, racineVivante) ; Config.HAUTEUR_REAPPARITION dans src/ReplicatedStorage/Modules/Config.luau.
+Objectif : quand un joueur touche le checkpoint qui suit son étape actuelle, Etape augmente de 1. À chaque réapparition, il revient sur son dernier checkpoint validé (étape 0 = SpawnLocation).
+Fichiers concernés : crée ou modifie src/ServerScriptService/Progression.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : Script serveur ; BasePart.Touched sur chaque checkpoint et Players:GetPlayerFromCharacter ; numéro lu avec tonumber(part.Name) ; replacement avec character:PivotTo(checkpoint.CFrame + Config.HAUTEUR_REAPPARITION) dans CharacterAdded ; checkpoints ajoutés plus tard gérés (ChildAdded).
+Sécurité : aucun RemoteEvent ; seul le serveur modifie Etape ; un checkpoint n'est accepté que si numero == Etape.Value + 1 ET si Validation.estAPortee(player, checkpoint.Position, [DISTANCE_MAX]). Un passage d'une étape à la suivante en moins de [TEMPS_MIN_ETAPE] secondes est seulement journalisé avec warn, jamais sanctionné.
+Cas limites : checkpoint déjà validé retouché (rien) ; checkpoint sauté (refusé) ; personnage mort (ignoré) ; Part dont le nom n'est pas un nombre (ignorée) ; leaderstats pas encore créées à l'arrivée (attendre 60 s au plus) ; joueur qui part (vider ses entrées dans les tables).
+Vérification : en Play, toucher 1 puis 2 donne Etape = 2 ; toucher 3 avant 2 ne change rien ; après une chute, je réapparais sur le 2 ; en Test serveur avec 2 clients, chaque joueur a sa propre étape. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la condition est bien `numero == etape.Value + 1` (et pas `numero > etape.Value`, qui permet de sauter des étapes) ;
+- `tonumber(part.Name)` est testé contre `nil` avant toute comparaison ;
+- aucun RemoteEvent ne permet au client de changer `Etape` ;
+- la détection de passage trop rapide fait un `warn`, sans `Kick` ni bannissement ;
+- les tables indexées par joueur sont vidées à `PlayerRemoving`.
+
+### Kill bricks
+
+**Quand l’utiliser :** pour tous les pièges mortels d’un parcours. Détails : [module 3, leçon 2](/modules/03/variables-types-et-conditions/) (le principe) et [leçon 4](/modules/03/tables/) (tout un dossier de kill bricks). **À adapter :** `[NOM_DU_JEU]`.
+
+<Prompt titre="Kill bricks">
+
+```text
+Contexte : obby [NOM_DU_JEU]. Les pièges mortels (kill bricks) sont des Parts rangées dans Workspace.KillBricks, parfois dans des sous-dossiers ou des Models.
+Ce qui existe déjà : le Folder Workspace.KillBricks, construit dans Studio (il n'est pas géré par Rojo).
+Objectif : tout personnage qui touche une kill brick meurt immédiatement, puis réapparaît normalement.
+Fichiers concernés : crée src/ServerScriptService/KillBricks.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : un seul Script serveur pour toutes les kill bricks (pas un script par Part) ; parcours Workspace.KillBricks:GetDescendants() et ne garde que les BasePart ; connecte aussi les Parts ajoutées plus tard (DescendantAdded) ; Humanoid trouvé avec FindFirstChildOfClass("Humanoid") sur le parent de la Part touchée ; Humanoid.Health = 0 seulement si Health > 0.
+Sécurité : la mort est décidée par le serveur ; aucun LocalScript ni RemoteEvent.
+Cas limites : Part touchée par autre chose qu'un personnage (accessoire, Part libre) ; Humanoid déjà mort ; kill brick animée par TweenService (elle doit rester ancrée).
+Vérification : en Play, toucher une kill brick tue le personnage ; une Part non ancrée qui tombe dessus ne provoque aucune erreur dans l'Output ; une kill brick copiée dans le dossier pendant le test fonctionne aussi. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le résultat de `FindFirstChildOfClass("Humanoid")` est testé avant d’utiliser `Health` ;
+- un seul script gère tout le dossier, y compris les Parts ajoutées après le démarrage ;
+- c’est un Script serveur (`.server.luau`), pas un LocalScript.
+
+### Pièces à ramasser
+
+**Quand l’utiliser :** pour une monnaie ramassée dans le monde. Détails : [Sécuriser l’Obby des Nuages](/modules/04/securiser-l-obby/). **À adapter :** `[DELAI_REAPPARITION]` (10 s dans le fil rouge), `[DISTANCE_MAX]` (12 studs), `[DELAI_ENTRE_RAMASSAGES]` (0,2 s).
+
+<Prompt titre="Pièces à ramasser">
+
+```text
+Contexte : obby [NOM_DU_JEU]. Des pièces sont posées le long du parcours : des Parts ancrées nommées "Piece" dans Workspace.Pieces.
+Ce qui existe déjà : leaderstats.Pieces (IntValue) créé par GestionJoueurs ; src/ServerScriptService/Validation.luau (estAPortee, creerCooldown) ; Config.VALEUR_PIECE dans src/ReplicatedStorage/Modules/Config.luau. La rotation visuelle des pièces est gérée par un autre script côté client : n'y touche pas.
+Objectif : quand un joueur touche une pièce disponible, il gagne Config.VALEUR_PIECE pièces ; la pièce devient invisible et intouchable, puis réapparaît au bout de [DELAI_REAPPARITION] secondes.
+Fichiers concernés : crée ou modifie src/ServerScriptService/Pieces.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : Script serveur ; Touched et Players:GetPlayerFromCharacter ; état « disponible » mémorisé côté serveur pour chaque pièce ; pièce ramassée = Transparency 1 et CanTouch false, rétablis avec task.delay ; pièces ajoutées plus tard gérées (ChildAdded).
+Sécurité : aucun RemoteEvent ; la valeur vient de Config, jamais du client ; ramassage accepté seulement si Validation.estAPortee(player, piece.Position, [DISTANCE_MAX]) ; limite de débit par joueur avec Validation.creerCooldown([DELAI_ENTRE_RAMASSAGES]).
+Cas limites : deux joueurs touchent la même pièce au même moment (un seul gagne) ; plusieurs parties du corps touchent la pièce (un seul gain) ; joueur sans leaderstats (ignoré) ; joueur qui part pendant le délai de réapparition.
+Vérification : en Play, une pièce ajoute exactement Config.VALEUR_PIECE à Pieces puis revient après le délai ; en Test serveur avec 2 clients, une pièce n'est ramassée que par un seul joueur. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- l’indicateur « disponible » est testé **et** mis à `false` avant tout gain (sinon deux contacts simultanés donnent deux fois) ;
+- la distance est mesurée côté serveur avec la position de la pièce ;
+- le montant vient de `Config`, jamais d’un argument ;
+- la réapparition utilise `task.delay`, pas `delay` ni `wait`.
+
+### Plateformes mobiles
+
+**Quand l’utiliser :** pour des ascenseurs et des obstacles qui bougent. Détails : [TweenService](/modules/05/tweenservice/). **À adapter :** `[HAUTEUR_PAR_DEFAUT]` (8 studs dans le fil rouge), `[DUREE_PAR_DEFAUT]` (3 s).
+
+<Prompt titre="Plateformes mobiles">
+
+```text
+Contexte : obby [NOM_DU_JEU]. Certaines plateformes font l'aller-retour : des ascenseurs verticaux et des obstacles à éviter.
+Ce qui existe déjà : un Folder Workspace.PlateformesMobiles construit dans Studio. Chaque Part peut avoir deux attributs facultatifs : Deplacement (Vector3, en studs) et Duree (number, durée d'un aller en secondes).
+Objectif : chaque plateforme du dossier fait l'aller-retour à l'infini entre sa position de départ et sa position de départ + Deplacement, en douceur.
+Fichiers concernés : crée src/ServerScriptService/PlateformesMobiles.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : Script serveur, pour que tous les joueurs voient la même chose ; TweenService:Create sur la propriété CFrame (pas Position) ; TweenInfo.new(Duree, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true, 0) ; Part ancrée (Anchored = true) ; valeurs par défaut si un attribut manque ou n'a pas le bon type : Deplacement = Vector3.new(0, [HAUTEUR_PAR_DEFAUT], 0), Duree = [DUREE_PAR_DEFAUT] ; plateformes ajoutées plus tard gérées (ChildAdded).
+Sécurité : rien ne vient du client (aucun RemoteEvent, aucun LocalScript).
+Cas limites : objet du dossier qui n'est pas une BasePart (ignoré) ; Duree nulle ou négative (valeur par défaut) ; plateforme supprimée pendant le jeu (aucune erreur). Un tween ne transporte pas un joueur à l'horizontale : il glisse et tombe. Si une de mes plateformes doit transporter le joueur horizontalement, ne la code pas : propose-moi une solution physique (Part non ancrée guidée par une PrismaticConstraint en mode Servo).
+Vérification : en Play, chaque plateforme fait l'aller-retour ; un ascenseur vertical me porte sans me faire tomber ; une plateforme sans attributs utilise les valeurs par défaut ; aucune erreur dans l'Output. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le tween porte sur `CFrame` et la Part est ancrée ;
+- les attributs sont testés avec `typeof` avant d’être utilisés ;
+- les six paramètres de `TweenInfo.new` sont dans le bon ordre (durée, style, direction, répétitions `-1`, aller-retour `true`, délai `0`) ;
+- aucune plateforme horizontale « transporteuse » n’a été codée avec un tween.
+
+## Données
+
+### Leaderstats
+
+**Quand l’utiliser :** pour afficher les statistiques dans le tableau des joueurs. Détails : [Leaderstats](/modules/05/leaderstats/). **À adapter :** `[LISTE_DES_STATS, ex. Etape et Pieces]`, `[STAT_PRINCIPALE]`, et la ligne « Ce qui existe déjà » selon que ta sauvegarde existe ou non.
+
+<Prompt titre="Leaderstats">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Je veux afficher dans le tableau des joueurs les statistiques [LISTE_DES_STATS, ex. Etape et Pieces].
+Ce qui existe déjà : [RIEN / le ModuleScript src/ServerScriptService/DonneesJoueurs.luau, dont Charger(player) renvoie la table de données ou nil].
+Objectif : à l'arrivée de chaque joueur, un dossier leaderstats avec une IntValue par statistique (à 0, ou à la valeur chargée si DonneesJoueurs existe) ; [STAT_PRINCIPALE] est la colonne principale.
+Fichiers concernés : crée ou modifie src/ServerScriptService/GestionJoueurs.server.luau. Ne modifie rien d'autre. Si un autre script crée déjà un dossier leaderstats, signale-le-moi au lieu de le laisser.
+Contraintes techniques : Script serveur ; Folder nommé exactement "leaderstats" (en minuscules) ; IntValue nommées sans accents ; colonne principale avec une BoolValue enfant nommée "IsPrimary" à true ; valeurs remplies AVANT de parenter le dossier au joueur ; Players.PlayerAdded plus une boucle sur Players:GetPlayers() pour les joueurs déjà présents.
+Sécurité : seuls des Scripts serveur modifient les leaderstats ; aucun RemoteEvent ne permet au client de les changer.
+Cas limites : joueur déjà présent quand le script démarre ; joueur parti pendant le chargement (ne rien créer) ; chargement raté (ne pas créer de leaderstats à 0 qui seraient ensuite sauvegardées).
+Vérification : en Play, mon nom apparaît avec les colonnes dans l'ordre voulu ; en Test serveur avec 2 clients, chaque joueur a ses valeurs ; une valeur changée en vue client ne change pas côté serveur. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le dossier s’appelle `leaderstats`, en minuscules (sinon rien ne s’affiche) ;
+- il n’existe qu’**un** script qui crée ce dossier dans tout le projet ;
+- un chargement raté ne crée pas de leaderstats à 0.
+
+### Sauvegarde DataStore fiable
+
+**Quand l’utiliser :** pour toute donnée qui doit survivre à la déconnexion. C’est le système le plus sensible du jeu : mode plan obligatoire. Détails, règle par règle : [Sauvegarder sans perdre de données](/modules/05/datastores-fiables/). **À adapter :** `[DONNEES]`, `[MAX_TENTATIVES]` (3), `[INTERVALLE_SAUVEGARDE]` (180 s, comme l’exemple officiel).
+
+<Prompt titre="Sauvegarde DataStore fiable">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu [NOM_DU_JEU]. Je dois sauvegarder pour chaque joueur : [DONNEES, ex. etape (nombre), pieces (nombre), inventaire (table), equipe (texte)]. Une progression perdue fait fuir les joueurs : la fiabilité passe avant tout.
+Ce qui existe déjà : src/ServerScriptService/GestionJoueurs.server.luau, qui crée les leaderstats ; le CLAUDE.md du projet.
+Objectif : les données sont chargées à l'arrivée, gardées en mémoire pendant la partie, et sauvegardées au départ, régulièrement et à la fermeture du serveur, sans jamais écraser une vraie progression par erreur.
+Fichiers concernés : crée le ModuleScript src/ServerScriptService/DonneesJoueurs.luau ; modifie GestionJoueurs.server.luau pour l'utiliser. Ne modifie rien d'autre.
+Contraintes techniques :
+- DataStoreService:GetDataStore("DonneesJoueurs_v1"), clé "Joueur_" .. player.UserId, une seule clé par joueur qui contient toute sa table.
+- Fonctions du module : Charger(player) renvoie la table ou nil ; Obtenir(player) ; Sauvegarder(player) renvoie true SEULEMENT si l'écriture a vraiment eu lieu ; Liberer(player) ; SauvegarderTout().
+- Chaque appel DataStore dans un pcall, avec [MAX_TENTATIVES] tentatives et une attente croissante (environ 2 s puis 4 s) plus un peu de hasard.
+- Lecture avec GetAsync ; écriture avec UpdateAsync (pas SetAsync), dont la fonction renvoie la table ET { player.UserId } ; cette fonction n'attend jamais (pas de task.wait ni d'appel réseau).
+- Champ version (VERSION_DONNEES = 1) et fonction completer qui ajoute les champs manquants aux anciennes sauvegardes ; UpdateAsync annule l'écriture (renvoie nil) si la sauvegarde existante a une version plus récente.
+- game:BindToClose : sauvegardes en parallèle (task.spawn) et attente de TOUTES les sauvegardes en cours, 25 secondes au maximum ; ne rien faire dans Studio si RunService:IsStudio() et que la constante SAUVEGARDER_EN_STUDIO vaut false.
+- Sauvegarde automatique toutes les [INTERVALLE_SAUVEGARDE] secondes + math.random(0, 30).
+Sécurité : DataStores uniquement côté serveur ; le client ne peut ni déclencher ni modifier une sauvegarde ; les leaderstats sont recopiées dans la table avant chaque sauvegarde.
+Cas limites :
+- GetAsync renvoie nil = nouveau joueur (données par défaut). GetAsync échoue = ce n'est PAS un nouveau joueur : aucune session n'est créée, rien ne sera sauvegardé pour lui, et il est expulsé avec un message poli (player:Kick).
+- Joueur parti pendant le chargement : libérer sa session sans créer de leaderstats.
+- Même joueur sauvegardé deux fois de suite (départ puis fermeture) : sans danger.
+Vérification : sur une copie de test publiée, avec « Enable Studio Access to API Services » activé et SAUVEGARDER_EN_STUDIO à true, je gagne des pièces, j'arrête, je relance : elles sont revenues. Avec un échec de GetAsync simulé (une constante de test que tu me diras comment retirer), je suis expulsé et ma sauvegarde reste intacte dans le Data Stores Manager. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- un échec de `GetAsync` (`succes == false`) ne crée **jamais** de données par défaut : c’est le piège qui détruit des sauvegardes ;
+- l’écriture passe par `UpdateAsync`, et la fonction passée ne contient ni `task.wait` ni appel réseau ;
+- `Sauvegarder` renvoie `false` quand rien n’a été écrit (échec, chargement raté, écriture annulée) ;
+- `BindToClose` lance les sauvegardes en parallèle et attend aussi celles déjà lancées par `PlayerRemoving` ;
+- le nom du DataStore reste `DonneesJoueurs_v1` : le renommer ferait repartir tous les joueurs de zéro.
+
+<Info>
+Ce système n’a pas de verrouillage de session : pour un jeu avec des échanges entre joueurs ou des objets rares, la [leçon sur les DataStores](/modules/05/datastores-fiables/) présente ProfileStore, un module communautaire qui le gère pour toi. Demande alors à Claude Code de l’utiliser plutôt que d’écrire ta propre sauvegarde, et vérifie toi-même sa documentation.
+</Info>
+
+### Classement global
+
+**Quand l’utiliser :** pour un tableau des meilleurs joueurs de tous les serveurs, affiché dans le monde. Il n’a pas de leçon dédiée : il s’appuie sur la sauvegarde ci-dessus et sur les `OrderedDataStore`, qui ne stockent que des **entiers**. **À adapter :** `[NOMBRE_DE_LIGNES]` (100 au maximum par page d’après la référence), `[STATISTIQUE]`, `[NOM_DU_CLASSEMENT]`, `[INTERVALLE_RAFRAICHISSEMENT]`.
+
+<Prompt titre="Classement global">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Je veux un tableau des [NOMBRE_DE_LIGNES, ex. 10] meilleurs joueurs de tous les serveurs, classés par [STATISTIQUE, ex. Pieces], affiché sur un panneau dans le monde.
+Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau (sauvegarde fiable dans "DonneesJoueurs_v1") ; une Part ancrée Workspace.TableauClassement construite dans Studio (non gérée par Rojo).
+Objectif : le panneau affiche le rang, le nom et le score des meilleurs joueurs, mis à jour toutes les [INTERVALLE_RAFRAICHISSEMENT, ex. 120] secondes.
+Fichiers concernés : crée src/ServerScriptService/Classement.server.luau ; dans DonneesJoueurs.luau, ajoute seulement l'appel qui enregistre le score après une sauvegarde réussie. Ne modifie rien d'autre.
+Contraintes techniques :
+- DataStoreService:GetOrderedDataStore("[NOM_DU_CLASSEMENT, ex. ClassementPieces_v1]"), clé "Joueur_" .. player.UserId ; la valeur est un entier positif (math.floor).
+- Score enregistré avec SetAsync dans un pcall, seulement quand les données du joueur sont sauvegardées (départ, sauvegarde automatique), jamais à chaque changement.
+- Lecture avec GetSortedAsync(false, [NOMBRE_DE_LIGNES]) dans un pcall, puis GetCurrentPage() : chaque entrée contient key et value ; l'UserId est extrait de la clé.
+- Noms obtenus avec Players:GetNameFromUserIdAsync dans un pcall, avec un cache en mémoire pour ne pas redemander les mêmes noms.
+- Affichage : une SurfaceGui créée par le serveur sur Workspace.TableauClassement, une ligne TextLabel par joueur.
+Sécurité : le score vient des données du serveur, jamais du client ; aucun RemoteEvent.
+Cas limites : DataStore indisponible (garder l'affichage précédent et faire un warn) ; nom introuvable (« Joueur inconnu ») ; moins de [NOMBRE_DE_LIGNES] joueurs classés ; accès aux API désactivé dans Studio (un seul warn clair, pas d'erreur en boucle).
+Vérification : sur une copie de test publiée avec l'accès aux API activé, je quitte avec un score, je relance : mon nom apparaît au bon rang après le rafraîchissement ; aucune erreur rouge dans l'Output. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la valeur écrite est un entier (`math.floor`) : un `OrderedDataStore` refuse les nombres à virgule ;
+- `SetAsync` sur l’`OrderedDataStore` ne reçoit pas de liste d’UserIds (option non prise en charge par ce type de DataStore) ;
+- `GetSortedAsync` est appelé dans une boucle lente (toutes les deux minutes environ), jamais à chaque arrivée de joueur : ses requêtes ont une limite par minute plus basse que les lectures classiques ;
+- chaque appel réseau (`GetSortedAsync`, `SetAsync`, `GetNameFromUserIdAsync`) est dans un `pcall`.
+
+## Économie
+
+### Boutique sécurisée
+
+**Quand l’utiliser :** pour vendre des objets contre la monnaie du jeu. Détails : [Sécuriser l’Obby des Nuages](/modules/04/securiser-l-obby/) et [Un inventaire simple et sécurisé](/modules/05/inventaire/). **À adapter :** `[MONNAIE]`, `[ID_D_UN_OBJET]` (un identifiant réel de ton catalogue, comme `TrailNuage`).
+
+<Prompt titre="Boutique sécurisée">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Une boutique vend des objets cosmétiques contre la monnaie du jeu ([MONNAIE, ex. Pieces]).
+Ce qui existe déjà : le ModuleScript src/ReplicatedStorage/Modules/Catalogue.luau (identifiant -> nom, prix…) ; src/ServerScriptService/DonneesJoueurs.luau (Obtenir(player) renvoie la table en mémoire, qui contient inventaire = {}) ; src/ServerScriptService/Validation.luau (estTexte, creerCooldown) ; leaderstats.[MONNAIE], recopié dans la table à chaque sauvegarde.
+Objectif : quand le joueur demande à acheter un objet, le serveur vérifie tout, retire le prix et ajoute l'objet à son inventaire ; l'interface peut savoir ce que le joueur possède.
+Fichiers concernés : déclare le RemoteEvent AcheterObjet sous ReplicatedStorage.Remotes dans default.project.json (sans toucher aux autres entrées) ; crée ou modifie src/ServerScriptService/Boutique.server.luau. Ne modifie rien d'autre (l'interface viendra dans une autre tâche).
+Contraintes techniques : Script serveur ; le client envoie UNIQUEMENT l'identifiant de l'objet (un texte) ; après chaque achat, le serveur publie l'inventaire dans des attributs du joueur (Possede_<identifiant> = true ou false), lus par l'interface.
+Sécurité : vérifications dans cet ordre : 1) idObjet est un texte de 50 caractères au plus (Validation.estTexte) ; 2) un achat par seconde au plus par joueur (Validation.creerCooldown(1)) ; 3) Catalogue[idObjet] existe ; 4) les données du joueur sont chargées ; 5) il ne possède pas déjà l'objet ; 6) son solde suffit. Le prix est lu dans Catalogue côté serveur : n'accepte JAMAIS un prix, un solde ou un inventaire envoyé par le client.
+Cas limites : double clic (un seul achat) ; arguments absurdes (nil, nombre, table, NaN, texte énorme) ignorés sans erreur ; solde insuffisant ; joueur qui part pendant l'achat ; objet retiré du catalogue alors qu'un joueur le possède déjà.
+Vérification : en Play, depuis la Command Bar en vue client, game.ReplicatedStorage.Remotes.AcheterObjet:FireServer("[ID_D_UN_OBJET]", 0) achète l'objet au VRAI prix du catalogue ; FireServer("ObjetInexistant") et FireServer({}) ne font rien et n'affichent aucune erreur ; un second achat du même objet est refusé. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la fonction connectée à `OnServerEvent` n’a que deux paramètres, `player` et `idObjet` : aucun prix ne vient du client ;
+- le prix est lu dans `Catalogue[idObjet].prix`, **après** avoir vérifié que l’entrée existe ;
+- la vérification « déjà possédé » et celle du solde sont faites avant de débiter ;
+- le RemoteEvent est déclaré dans `default.project.json`, pas créé avec `Instance.new` dans un script.
+
+### Inventaire et équipement
+
+**Quand l’utiliser :** pour équiper un objet possédé, qui revient à chaque réapparition. Détails : [Un inventaire simple et sécurisé](/modules/05/inventaire/). **À adapter :** `[TYPE_D_OBJET]`, `[EFFET]`, `[ID_NON_POSSEDE]` (un objet du catalogue que tu n’as pas acheté).
+
+<Prompt titre="Inventaire et équipement">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Les joueurs possèdent des objets achetés en boutique ([TYPE_D_OBJET, ex. des traînées]) et peuvent en équiper un seul à la fois.
+Ce qui existe déjà : src/ReplicatedStorage/Modules/Catalogue.luau ; src/ServerScriptService/DonneesJoueurs.luau (inventaire = {} et equipe = "" dans les données) ; src/ServerScriptService/Boutique.server.luau, qui gère l'achat et publie les attributs Possede_<identifiant>.
+Objectif : le joueur équipe un objet qu'il possède, ou retire l'objet équipé ; l'objet équipé est visible par tous, revient à chaque réapparition et est retrouvé à la connexion suivante.
+Fichiers concernés : déclare le RemoteEvent EquiperObjet sous ReplicatedStorage.Remotes dans default.project.json ; modifie src/ServerScriptService/Boutique.server.luau. Ne modifie rien d'autre.
+Contraintes techniques : le client envoie un identifiant (texte), ou "" pour tout retirer ; le serveur met à jour donnees.equipe et l'attribut du joueur TrailEquipe ; [EFFET, ex. une Trail entre deux Attachments de la HumanoidRootPart, couleurs lues dans Catalogue] est posé par le serveur, après avoir retiré l'ancien ; il est reposé dans CharacterAdded et à l'arrivée, une fois les données chargées.
+Sécurité : texte de 50 caractères au plus ; cooldown de 0,5 s par joueur ; on n'équipe jamais un objet absent de donnees.inventaire ; le serveur est la seule source de vérité de l'inventaire.
+Cas limites : objet équipé retiré du catalogue (ne rien afficher, sans erreur) ; personnage pas encore chargé (WaitForChild("HumanoidRootPart", 5)) ; changement d'objet pendant une réapparition ; arguments absurdes ignorés.
+Vérification : en Play, j'équipe un objet, je meurs : il revient ; FireServer("[ID_NON_POSSEDE]") depuis la Command Bar en vue client ne fait rien ; en Test serveur avec 2 clients, l'autre joueur voit mon objet. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `""` est la seule valeur acceptée sans être dans l’inventaire ;
+- l’ancien effet est détruit avant d’en poser un nouveau (sinon les traînées s’empilent) ;
+- l’effet est créé par le serveur, donc visible par tous les joueurs ;
+- `donnees.equipe` est modifié dans la table de `DonneesJoueurs`, sauvegardée normalement.
+
+### Game Pass
+
+**Quand l’utiliser :** pour un avantage permanent payé une seule fois en Robux. Détails, et la méthode pour tester sans dépenser : [Les Game Passes](/modules/07/game-passes/). **À adapter :** `[NOM_DU_PASS]`, `[AVANTAGE]`, `[ID_DU_GAME_PASS]`, `[CHEMIN_DU_BOUTON]`, `[NOM]` (un nom court sans espace, ex. `TrailDore`).
+
+<Prompt titre="Game Pass">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Je vends un Game Pass « [NOM_DU_PASS] » (achat unique en Robux) qui donne [AVANTAGE, ex. une traînée dorée, purement cosmétique].
+Ce qui existe déjà : le pass est créé dans le Creator Hub, son ID est [ID_DU_GAME_PASS] ; un TextButton [CHEMIN_DU_BOUTON, ex. StarterGui > InterfaceObby > Boutique > Liste > BoutonTrailDore].
+Objectif : un joueur qui possède le pass reçoit l'avantage à chaque arrivée et à chaque réapparition ; un joueur qui l'achète en jeu le reçoit tout de suite ; le bouton affiche le vrai prix et ouvre la fenêtre d'achat officielle.
+Fichiers concernés : crée src/ServerScriptService/GamePass[NOM].server.luau et le LocalScript ScriptBouton.client.luau dans le dossier du bouton. Ne modifie rien d'autre.
+Contraintes techniques :
+- Serveur : MarketplaceService:UserOwnsGamePassAsync(player.UserId, ID) dans un pcall, avec 2 nouvelles tentatives, à l'arrivée ; résultat mémorisé dans un attribut du joueur Possede[NOM], que les autres scripts lisent ; MarketplaceService.PromptGamePassPurchaseFinished écouté CÔTÉ SERVEUR, avantage donné seulement si wasPurchased vaut true et si gamePassId correspond ; une fonction accorderPass(player) réutilisée partout ; avantage reposé dans CharacterAdded.
+- Client : prix lu avec MarketplaceService:GetProductInfoAsync(ID, Enum.InfoType.GamePass) dans un pcall ; clic = MarketplaceService:PromptGamePassPurchase(joueur, ID) ; le bouton affiche « Possédé » quand l'attribut est vrai.
+- Une constante ID par script, avec le commentaire « remplace par l'ID de ton pass ».
+Sécurité : seul le serveur accorde l'avantage ; le client ne fait qu'ouvrir la fenêtre d'achat. L'avantage reste cosmétique (pas de pay-to-win).
+Cas limites : UserOwnsGamePassAsync en échec (warn, considéré comme non possédé pour cette session) ; achat annulé (wasPurchased = false) ; joueur qui part pendant la vérification ; pass acheté hors du jeu (vérifié à l'arrivée suivante) ; ID resté à 0 (warn clair au démarrage).
+Vérification : en Play, le bouton affiche le prix et ouvre la fenêtre ; Annuler ne donne rien ; avec un appel temporaire à accorderPass(player) à l'arrivée, l'avantage apparaît, revient après une mort et le bouton affiche « Possédé » (je retire ensuite cet appel) ; le test réel se fait dans le jeu publié. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `UserOwnsGamePassAsync` reçoit `player.UserId` (un nombre), pas l’objet `player` ;
+- `PromptGamePassPurchaseFinished` est écouté dans le Script serveur, et `wasPurchased` est testé ;
+- le LocalScript n’accorde rien lui-même ;
+- `GetProductInfoAsync` est utilisé (la version sans `Async`, `GetProductInfo`, est dépréciée).
+
+### Developer Product
+
+**Quand l’utiliser :** pour un achat en Robux répétable (« Passer l’étape », un sac de pièces). C’est le code le plus délicat de cette page : mode plan obligatoire, et suis la leçon [Les Developer Products](/modules/07/developer-products/), dont ce prompt reprend le motif officiel de Roblox. **À adapter :** `[NOM_DU_PRODUIT]`, `[EFFET]`, `[ID_DU_PRODUIT]`, `[NOM_DU_REMOTE]`, `[CONDITION]`, `[EFFET_DE_SECOURS]`.
+
+<Prompt titre="Developer Product et ProcessReceipt">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu [NOM_DU_JEU]. Je vends le Developer Product « [NOM_DU_PRODUIT] » (achetable plusieurs fois), qui [EFFET, ex. fait passer le joueur au checkpoint suivant]. Une erreur ici ferait payer un joueur pour rien ou donnerait deux fois : je veux le motif officiel de Roblox.
+Ce qui existe déjà : le produit créé dans le Creator Hub, ID [ID_DU_PRODUIT] ; src/ServerScriptService/DonneesJoueurs.luau (Obtenir(player), et Sauvegarder(player) qui renvoie true seulement si l'écriture a réussi) ; leaderstats.Etape et Pieces.
+Objectif : l'achat n'est proposé que quand il a un sens ; chaque achat payé est donné exactement une fois, même si le serveur plante, si la sauvegarde échoue ou si le joueur part.
+Fichiers concernés : déclare le RemoteEvent [NOM_DU_REMOTE, ex. DemanderPasserEtape] sous ReplicatedStorage.Remotes dans default.project.json ; crée src/ServerScriptService/DemandesAchat.server.luau et src/ServerScriptService/Achats.server.luau ; ajoute achats = {} aux données par défaut de DonneesJoueurs.luau et augmente VERSION_DONNEES de 1. Ne modifie rien d'autre.
+Contraintes techniques :
+- DemandesAchat : à la réception de [NOM_DU_REMOTE], le serveur vérifie [CONDITION, ex. qu'une étape suivante existe dans Workspace.Checkpoints], limite à une demande toutes les 2 s par joueur, puis appelle MarketplaceService:PromptProductPurchase(player, ID).
+- Achats est le SEUL script du jeu qui assigne MarketplaceService.ProcessReceipt (avec =). Il utilise une table « ID du produit -> fonction qui le donne », pour pouvoir ajouter d'autres produits.
+- Ordre dans le callback : 1) joueur présent (Players:GetPlayerByUserId(receiptInfo.PlayerId)) et produit connu, sinon NotProcessedYet ; 2) attendre que ses données soient chargées, 60 s au plus et tant qu'il est sur le serveur, sinon NotProcessedYet ; 3) si receiptInfo.PurchaseId est déjà dans donnees.achats, ne rien redonner ; 4) sinon donner l'effet (dans les leaderstats ET dans la table) puis noter le PurchaseId, sans aucune attente entre les deux ; 5) appeler DonneesJoueurs.Sauvegarder(player) : PurchaseGranted seulement si elle renvoie true, sinon NotProcessedYet.
+- La fonction qui donne l'effet n'attend jamais (ni task.wait ni appel réseau).
+- N'utilise pas PromptProductPurchaseFinished pour accorder le produit, ni BindReceiptHandler (on garde ProcessReceipt, comme le guide officiel).
+Sécurité : le client ne choisit ni le produit, ni le prix, ni l'effet : il ne fait que demander.
+Cas limites : joueur parti avant le traitement ; même reçu arrivé deux fois ; DataStore en panne ; joueur déjà au bout ([EFFET_DE_SECOURS, ex. 100 pièces]) ; achat annulé.
+Vérification : en Play classique (pas en Team Test), un achat donne l'effet une seule fois ; en remplaçant temporairement le test de sauvegarde par if false then, l'effet est donné, un warn s'affiche et l'achat n'est pas confirmé (je remets ensuite la ligne d'origine) ; dernier test dans le jeu publié. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- `ProcessReceipt` est assigné une seule fois dans tout le projet (cherche `ProcessReceipt` dans `src/`) ;
+- **aucun** chemin du callback ne renvoie `PurchaseGranted` sans sauvegarde réussie, même « par défaut » à la fin ;
+- le `PurchaseId` est noté dans la **même table** que l’effet, sans `task.wait` entre les deux ;
+- un joueur absent ou des données pas prêtes donnent `NotProcessedYet` ;
+- `PromptProductPurchaseFinished` n’accorde rien.
+
+### Récompense quotidienne
+
+**Quand l’utiliser :** pour donner une raison de revenir, sans manipuler le joueur. Détails et règles éthiques : [Donner envie de revenir](/modules/06/rejouabilite/). **À adapter :** `[MONTANT]`, `[CHEMIN_DU_BOUTON]`.
+
+<Prompt titre="Récompense quotidienne">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Je veux une petite récompense de connexion quotidienne : [MONTANT, ex. 10] pièces, une fois par jour, sans pression : pas de série perdue, pas de compte à rebours insistant, pas de message culpabilisant.
+Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau (table en mémoire, sauvegardée) ; src/ServerScriptService/Validation.luau ; leaderstats.Pieces ; le RemoteEvent ReplicatedStorage.Remotes.Notification.
+Objectif : une fois par jour (jour UTC), le joueur peut réclamer sa récompense avec un bouton ; s'il l'a déjà réclamée, le bouton affiche « Reviens demain ».
+Fichiers concernés : déclare le RemoteEvent ReclamerRecompense sous ReplicatedStorage.Remotes dans default.project.json ; crée src/ServerScriptService/RecompenseQuotidienne.server.luau et le LocalScript du bouton [CHEMIN_DU_BOUTON] ; ajoute le champ dernierJourRecompense = -1 aux données par défaut de DonneesJoueurs.luau et augmente VERSION_DONNEES de 1. Ne modifie rien d'autre.
+Contraintes techniques : jour courant = math.floor(os.time() / 86400), calculé sur le SERVEUR (même jour UTC pour tous les serveurs) ; aucun appel DataStore dans ce script : il modifie la table de DonneesJoueurs, sauvegardée normalement ; le serveur publie sur le joueur un attribut RecompenseDisponible (booléen), que le bouton lit avec GetAttributeChangedSignal.
+Sécurité : le client ne fait que demander (FireServer() sans argument) ; le serveur vérifie que les données sont chargées, que dernierJourRecompense est différent du jour courant, et limite le débit (Validation.creerCooldown(2)) ; le montant vient du serveur ; l'heure et la date du client ne sont jamais utilisées.
+Cas limites : double clic ou spam du remote (une seule récompense) ; joueur connecté au passage de minuit UTC (l'attribut est recalculé au moins une fois par minute) ; données pas encore chargées ; ancienne sauvegarde sans le champ (complétée par completer).
+Vérification : en Play, je réclame une fois (+[MONTANT] pièces), un second clic ne donne rien ; en remplaçant temporairement le jour courant par jour + 1 côté serveur, la récompense redevient disponible (je remets ensuite le calcul d'origine). selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le jour est calculé avec `os.time()` dans un Script serveur, jamais reçu du client ;
+- `dernierJourRecompense` est mis à jour **en même temps** que le gain, avant toute attente ;
+- le nouveau champ a bien été ajouté aux données par défaut, avec `VERSION_DONNEES` augmentée ;
+- les textes affichés ne mettent aucune pression (pas de « Dernière chance ! »).
+
+## Gameplay
+
+### Système de manches (rounds)
+
+**Quand l’utiliser :** pour un mini-jeu en manches qui s’enchaînent (« dernier debout », course, chasse). Ce système n’est pas construit dans la formation : relis bien chaque cas limite. **À adapter :** toutes les durées, `[JOUEURS_MIN]`, `[CONDITION_DE_VICTOIRE]`, `[RECOMPENSE]`.
+
+<Prompt titre="Système de manches">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu [NOM_DU_JEU], [TYPE_DE_MANCHE, ex. un mini-jeu « dernier debout » dans une arène]. Les parties se jouent en manches (rounds) qui s'enchaînent sans fin.
+Ce qui existe déjà : dans Workspace, construits dans Studio (non gérés par Rojo) : un Folder Lobby avec la SpawnLocation, et un Folder Arene qui contient un Folder PointsApparition (Parts ancrées). [AUTRES_SYSTEMES, ex. DonneesJoueurs.luau et leaderstats.Victoires].
+Objectif : une boucle Intermission ([DUREE_INTERMISSION, ex. 20] s, avec au moins [JOUEURS_MIN, ex. 2] joueurs) -> Partie (les joueurs présents sont téléportés dans l'arène ; [DUREE_PARTIE, ex. 120] s au plus) -> Fin ([DUREE_FIN, ex. 5] s, annonce du ou des gagnants, [RECOMPENSE, ex. 1 victoire et 20 pièces] au gagnant) -> retour au lobby.
+Fichiers concernés : crée src/ServerScriptService/Manches.server.luau et le LocalScript src/StarterPlayer/StarterPlayerScripts/AffichageManche.client.luau. Ne modifie rien d'autre.
+Contraintes techniques :
+- Le serveur seul gère l'état. Il le publie dans deux attributs de ReplicatedStorage : EtatManche ("Intermission", "Partie" ou "Fin") et FinPhase (heure de fin, obtenue avec Workspace:GetServerTimeNow()). Le client calcule le temps restant à partir de FinPhase : aucun message n'est envoyé chaque seconde.
+- Liste des participants tenue par le serveur ; un participant est éliminé quand son Humanoid meurt (Humanoid.Died) ou quand il quitte le jeu ; la partie s'arrête dès que [CONDITION_DE_VICTOIRE, ex. il ne reste qu'un participant] ou à la fin du temps.
+- Téléportation avec character:PivotTo vers un point d'apparition tiré au hasard, un peu au-dessus de la Part.
+- Une seule boucle principale avec task.wait ; connexions Died déconnectées à la fin de chaque manche.
+- Le LocalScript affiche « Intermission : 12 s », « Partie : 1:30 » ou « Fin » dans un TextLabel en Scale, rafraîchi au plus 4 fois par seconde, et réagit aux changements d'attributs (GetAttributeChangedSignal).
+Sécurité : le client ne peut ni lancer une manche, ni se déclarer gagnant, ni rejoindre l'arène pendant une partie ; la récompense est calculée et donnée par le serveur ; aucun RemoteEvent n'est nécessaire.
+Cas limites : joueur qui arrive pendant une partie (il attend au lobby) ; tous les participants partent (manche terminée tout de suite, sans gagnant) ; moins de [JOUEURS_MIN] joueurs (l'intermission recommence) ; participant éliminé qui réapparaît (il reste éliminé, au lobby) ; égalité à la fin du temps.
+Vérification : en Test serveur avec [JOUEURS_MIN] clients, j'enchaîne deux manches complètes ; un client qui quitte pendant la partie ne bloque pas la boucle ; le temps affiché est le même sur tous les clients, à une seconde près. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la boucle principale ne peut pas se bloquer si la liste des participants se vide (test « tout le monde part ») ;
+- les connexions `Died` de la manche précédente sont déconnectées (sinon un mort compte plusieurs fois au fil des manches) ;
+- le temps restant est calculé par le client à partir de `FinPhase`, sans `FireAllClients` chaque seconde ;
+- la récompense est donnée par le serveur, au(x) gagnant(s) encore présent(s).
+
+### Combat à l’épée
+
+**Quand l’utiliser :** pour un combat simple au corps à corps, contre des joueurs ou des PNJ. Les règles de validation viennent de [Ne jamais faire confiance au client](/modules/04/ne-jamais-faire-confiance-au-client/). **À adapter :** `[DEGATS]` (ex. 20), `[CADENCE]` (ex. 0,6 s), `[PORTEE]` (ex. 8 studs), `[MARGE_LATENCE]` (ex. 3 studs), `[RÈGLE_DE_JEU]`.
+
+<Prompt titre="Combat à l'épée">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu [NOM_DU_JEU]. Les joueurs combattent à l'épée [OU : contre des PNJ]. Je veux un combat simple et juste, que les tricheurs ne peuvent pas détourner.
+Ce qui existe déjà : un Tool nommé Epee (avec sa Part Handle), construit dans Studio et placé dans StarterPack (non géré par Rojo) ; src/ServerScriptService/Validation.luau (racineVivante, creerCooldown).
+Objectif : quand le joueur clique avec l'épée en main, il frappe la cible la plus proche devant lui ; elle perd [DEGATS] points de vie si elle est à portée ; on ne peut frapper qu'une fois toutes les [CADENCE] secondes.
+Fichiers concernés : déclare le RemoteEvent AttaquerEpee sous ReplicatedStorage.Remotes dans default.project.json ; crée src/ServerScriptService/CombatEpee.server.luau et src/StarterPlayer/StarterPlayerScripts/ControleEpee.client.luau. Ne modifie rien d'autre.
+Contraintes techniques :
+- Client : écoute Tool.Activated quand Epee est dans le personnage, choisit la cible (le personnage le plus proche, devant lui, à moins de [PORTEE] studs) et envoie AttaquerEpee:FireServer(personnageCible). Il peut jouer une animation ou un son, rien de plus.
+- Serveur : DEGATS, PORTEE et CADENCE sont des constantes du serveur ; les dégâts sont appliqués avec Humanoid:TakeDamage, qui respecte les ForceField d'apparition.
+Sécurité : dans OnServerEvent, vérifier dans cet ordre : 1) personnageCible est une Instance de classe Model, qui contient un Humanoid vivant, et ce n'est pas le personnage de l'attaquant ; 2) cadence par joueur avec Validation.creerCooldown(CADENCE) ; 3) l'attaquant est vivant (Validation.racineVivante) et Epee est un enfant de son personnage (épée équipée) ; 4) distance entre les deux HumanoidRootPart inférieure ou égale à PORTEE + [MARGE_LATENCE] studs, mesurée côté serveur. Les dégâts ne viennent jamais du client. [RÈGLE_DE_JEU, ex. pas de dégâts dans le lobby : le serveur vérifie que les deux joueurs sont dans l'arène.]
+Cas limites : clic pendant la mort ou la réapparition ; cible qui meurt entre le clic et l'arrivée du message ; cible qui quitte le jeu ; spam de clics ; arguments absurdes (nil, Part, table) ignorés sans erreur.
+Vérification : en Test serveur avec 2 clients, une frappe au contact retire [DEGATS] PV ; à trois fois la portée, rien ; 10 clics rapides ne donnent pas plus de frappes que la cadence ne le permet ; un joueur protégé par le ForceField d'apparition ne perd rien. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la **distance** est vérifiée côté serveur, avec les positions des deux `HumanoidRootPart` (un oubli classique du code généré, voir le quiz) ;
+- `DEGATS` est une constante du serveur et n’apparaît dans aucun `FireServer` ;
+- le cooldown est par joueur et vérifié **sur le serveur** (celui du LocalScript n’est qu’un confort) ;
+- le code vérifie que la cible n’est pas le personnage de l’attaquant.
+
+### Zones et portes à débloquer
+
+**Quand l’utiliser :** pour une zone que l’on débloque une fois pour toutes (contre des pièces, ou en atteignant une étape). **À adapter :** `[CONDITION]`, `[INTERVALLE]` (ex. 2 s), le contenu de `Zones.luau`.
+
+<Prompt titre="Zones et portes à débloquer">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu [NOM_DU_JEU]. Des zones du monde sont fermées par des portes ; on les débloque une fois pour toutes [CONDITION, ex. contre un prix en pièces].
+Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau (table en mémoire, sauvegardée) ; src/ServerScriptService/Validation.luau ; leaderstats.Pieces ; le RemoteEvent ReplicatedStorage.Remotes.Notification. Dans Workspace, construits dans Studio : un Folder Portes avec une Part ancrée par zone, nommée par l'identifiant de la zone, et un Folder Zones avec, pour chaque zone, une Part invisible (CanCollide false) du même nom qui couvre son volume.
+Objectif : devant une porte, le joueur voit « Débloquer » avec le nom et le prix de la zone ; s'il remplit la condition, la porte devient franchissable pour lui seul, définitivement (sauvegardé).
+Fichiers concernés : crée le ModuleScript src/ReplicatedStorage/Modules/Zones.luau (identifiant -> nom, prix), le Script src/ServerScriptService/PortesZones.server.luau et le LocalScript src/StarterPlayer/StarterPlayerScripts/PortesClient.client.luau ; ajoute zonesDebloquees = {} aux données par défaut de DonneesJoueurs.luau et augmente VERSION_DONNEES de 1. Ne modifie rien d'autre.
+Contraintes techniques :
+- Le serveur crée un ProximityPrompt sur chaque porte et écoute ProximityPrompt.Triggered côté serveur (le joueur est fourni par Roblox).
+- Prix et conditions lus dans Zones.luau côté serveur ; déblocage = retrait du prix + zonesDebloquees[id] = true + attribut du joueur Zone_<id> = true.
+- Le LocalScript rend la porte franchissable pour ce joueur seulement (changement local : CanCollide false et transparence) pour chaque attribut Zone_<id> vrai, et désactive le ProximityPrompt d'une zone déjà débloquée.
+Sécurité : une porte ouverte côté client n'est qu'un confort, car un tricheur peut traverser n'importe quelle porte chez lui. Le serveur vérifie donc lui-même, toutes les [INTERVALLE] secondes, si un joueur se trouve dans le volume d'une zone qu'il n'a pas débloquée (position de sa HumanoidRootPart comparée à la CFrame et à la Size de la Part de Zones) : il le ramène devant la porte avec PivotTo et fait un warn, sans bannir. Toute récompense placée dans une zone vérifie aussi le déblocage côté serveur. Débit : un déblocage par seconde au plus par joueur (Validation.creerCooldown). Distance : Validation.estAPortee en plus de la distance du ProximityPrompt.
+Cas limites : solde insuffisant (message par Remotes.Notification) ; zone déjà débloquée ; données pas chargées ; porte ou zone sans entrée dans Zones.luau (ignorée avec un warn) ; joueur qui part pendant le déblocage.
+Vérification : sur une copie de test avec l'accès aux API, je débloque une zone, je traverse, je quitte et je reviens : la porte est toujours ouverte pour moi ; en Test serveur avec 2 clients, elle reste fermée pour l'autre joueur ; si je mets CanCollide à false sur une porte en vue client sans avoir payé, le serveur me ramène devant la porte. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le prix est lu dans `Zones.luau` par le serveur, jamais dans un attribut modifiable ou un argument ;
+- la vérification « joueur dans une zone non débloquée » existe bien côté serveur : sans elle, la porte n’est qu’un décor ;
+- le serveur ne bannit pas et ne fait pas de `Kick` : il ramène le joueur et journalise ;
+- la porte n’est jamais ouverte côté serveur (sinon elle s’ouvrirait pour tout le monde).
+
+## Interface
+
+### Interface adaptée au mobile
+
+**Quand l’utiliser :** pour les éléments permanents de l’écran (compteur, boutons). Détails : [Créer des interfaces lisibles partout](/modules/05/interfaces-ui/) et [Penser mobile d’abord](/modules/10/penser-mobile-d-abord/). **À adapter :** `[ELEMENTS_D_INTERFACE]`, `[TAILLE_TEXTE_MIN]` (ex. 14).
+
+<Prompt titre="Interface adaptée au mobile">
+
+```text
+Contexte : jeu [NOM_DU_JEU], joué en grande partie sur téléphone. Je veux [ELEMENTS_D_INTERFACE, ex. un compteur de pièces en haut à gauche et un bouton Boutique sur le bord gauche, à mi-hauteur].
+Ce qui existe déjà : le ScreenGui src/StarterGui/InterfaceObby (init.meta.json, ResetOnSpawn = false) ; leaderstats.Pieces, créé par le serveur.
+Objectif : une interface lisible et utilisable au doigt sur téléphone, tablette et ordinateur, qui affiche toujours la bonne valeur.
+Fichiers concernés : un fichier .model.json de Rojo par élément dans src/StarterGui/InterfaceObby/ (sur le modèle de CompteurPieces.model.json s'il existe) et le LocalScript src/StarterGui/InterfaceObby/ScriptInterface.client.luau. Ne modifie rien d'autre.
+Contraintes techniques :
+- Tailles et positions en Scale (pas en Offset), AnchorPoint réglé, UIAspectRatioConstraint pour garder les proportions, UICorner ; texte avec TextScaled et un UITextSizeConstraint (taille minimale [TAILLE_TEXTE_MIN]).
+- ScreenInsets du ScreenGui laissé sur CoreUISafeInsets (zone de sécurité : encoches et barre de Roblox).
+- Aucun bouton ni information importante dans les coins inférieurs gauche et droit (joystick et bouton de saut sur mobile).
+- Fond sombre semi-opaque derrière le texte, pour rester lisible sur un décor clair.
+- LocalScript : attend leaderstats.Pieces avec WaitForChild et met l'affichage à jour avec l'événement Changed, sans boucle ; agrandit les boutons au tactile avec UserInputService.PreferredInput et GetPropertyChangedSignal("PreferredInput").
+Sécurité : l'interface affiche seulement ; elle ne modifie jamais une valeur de jeu (pour agir, elle demanderait au serveur par un RemoteEvent).
+Cas limites : leaderstats pas encore créées à l'arrivée (attente sans erreur) ; écran en portrait et en paysage ; changement de mode de contrôle en cours de partie (manette branchée sur une tablette).
+Vérification : dans le Device Simulator de Studio (un petit téléphone et une tablette, en « Physical size »), tout est lisible et rien n'est caché par les contrôles tactiles ; ramasser une pièce met le compteur à jour. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- dans les `.model.json`, les `UDim2` ont un Offset à 0 (`[[0.2, 0], [0.08, 0]]`) ;
+- aucun élément n’est ancré dans un coin inférieur ;
+- `ScreenInsets` n’a pas été changé en `None` ;
+- le compteur réagit à `Changed` au lieu de relire la valeur dans une boucle.
+
+### Notifications à l’écran
+
+**Quand l’utiliser :** pour afficher de courts messages envoyés par le serveur (« Étape 5 atteinte ! »). Dans le fil rouge, le RemoteEvent `Notification` existe déjà ([La boucle de jeu](/modules/06/core-loop/)). **À adapter :** `[DUREE_AFFICHAGE]` (ex. 3 s), `[NOMBRE_MAX_EN_ATTENTE]` (ex. 5), `[LONGUEUR_MAX]` (ex. 100).
+
+<Prompt titre="Notifications à l'écran">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Le serveur doit pouvoir afficher de courts messages à un joueur (« Étape 5 atteinte ! », « Pas assez de pièces »).
+Ce qui existe déjà : le RemoteEvent ReplicatedStorage.Remotes.Notification, déclaré dans default.project.json, que les Scripts serveur déclenchent avec notification:FireClient(player, texte).
+Objectif : chaque message apparaît en haut au centre de l'écran avec une petite animation, reste [DUREE_AFFICHAGE] secondes, puis disparaît ; si plusieurs messages arrivent, ils s'affichent l'un après l'autre (file d'attente), avec au plus [NOMBRE_MAX_EN_ATTENTE] messages en attente.
+Fichiers concernés : crée le LocalScript src/StarterPlayer/StarterPlayerScripts/Notifications.client.luau [OU modifie MessagesProgression.client.luau s'il existe déjà]. Ne modifie rien d'autre.
+Contraintes techniques : LocalScript ; l'interface (ScreenGui avec ResetOnSpawn = false, TextLabel en Scale, UITextSizeConstraint, UICorner) est créée par le script dans le PlayerGui ; apparition et disparition avec TweenService (TextTransparency et BackgroundTransparency) ; l'argument est vérifié : un texte de [LONGUEUR_MAX] caractères au plus, sinon il est ignoré.
+Sécurité : seuls les Scripts serveur envoient des notifications (FireClient) ; un client ne peut pas en envoyer aux autres. Ne modifie aucun script serveur, mais signale-moi tout script serveur qui enverrait un texte écrit par un joueur sans l'avoir filtré avec TextService:FilterStringAsync.
+Cas limites : rafale de 20 messages (seuls les [NOMBRE_MAX_EN_ATTENTE] premiers sont gardés) ; message reçu pendant une animation ; réapparition du personnage (les messages restent).
+Vérification : en Play, depuis la Command Bar en vue serveur, game.ReplicatedStorage.Remotes.Notification:FireAllClients("Test") affiche le message ; cinq appels rapides s'affichent l'un après l'autre. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- la file d’attente a une taille maximale (sinon un bug serveur peut bloquer l’écran pendant des minutes) ;
+- le type et la longueur du texte reçu sont vérifiés avant l’affichage ;
+- le ScreenGui a `ResetOnSpawn = false` ;
+- les tweens ne s’empilent pas quand deux messages arrivent très vite.
+
+### Boutique (interface)
+
+**Quand l’utiliser :** une fois la boutique serveur et l’inventaire en place (prompts « Boutique sécurisée » et « Inventaire et équipement »). Détails : [Créer des interfaces lisibles partout](/modules/05/interfaces-ui/). **À adapter :** `[DELAI]` (ex. 1 s).
+
+<Prompt titre="Interface de la boutique">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. La boutique côté serveur existe déjà ; il manque son interface.
+Ce qui existe déjà : src/ReplicatedStorage/Modules/Catalogue.luau (nom, prix…) ; les RemoteEvents ReplicatedStorage.Remotes.AcheterObjet et EquiperObjet, validés par src/ServerScriptService/Boutique.server.luau ; les attributs du joueur Possede_<identifiant> et TrailEquipe, publiés par le serveur ; le bouton BoutonBoutique et la Frame Boutique (avec sa Frame Liste et son UIGridLayout) dans src/StarterGui/InterfaceObby.
+Objectif : un clic sur BoutonBoutique ouvre ou ferme la boutique ; elle affiche une carte par objet du catalogue (nom, prix, bouton) ; le bouton indique « Acheter », « Équiper » ou « Équipé » selon l'état réel du joueur.
+Fichiers concernés : modifie src/StarterGui/InterfaceObby/ScriptInterface.client.luau ; ajoute si besoin un modèle de carte en .model.json dans src/StarterGui/InterfaceObby/Boutique/. Ne modifie aucun script serveur.
+Contraintes techniques : LocalScript ; cartes générées à partir de Catalogue (ajouter un objet au catalogue l'ajoute à la boutique sans toucher à l'interface) ; état lu dans les attributs avec GetAttributeChangedSignal, sans boucle ; ouverture et fermeture animées avec TweenService ; tailles en Scale, boutons assez grands pour un doigt.
+Sécurité : le client envoie seulement l'identifiant de l'objet (AcheterObjet:FireServer(idObjet) ou EquiperObjet:FireServer(idObjet)) ; jamais de prix ni de solde ; griser un bouton trop cher n'est qu'un confort : c'est le serveur qui décide.
+Cas limites : double clic sur Acheter (bouton désactivé jusqu'au changement d'attribut, ou [DELAI] secondes au plus) ; achat refusé par le serveur (rien ne change, aucune erreur) ; boutique ouverte pendant une réapparition.
+Vérification : en Play, j'achète un objet abordable : le bouton passe à « Équiper », puis à « Équipé » ; un objet trop cher reste sur « Acheter » ; dans le Device Simulator (téléphone), la boutique tient dans l'écran et se ferme. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- chaque `FireServer` n’envoie qu’un identifiant ;
+- l’état des boutons vient des attributs publiés par le serveur, pas d’une variable locale « j’ai acheté » ;
+- la liste est construite à partir de `Catalogue`, sans objet écrit en dur dans le script ;
+- les connexions des cartes sont créées une seule fois (pas à chaque ouverture de la boutique).
+
+## Sécurité et qualité
+
+### Audit anti-exploit d’un projet
+
+**Quand l’utiliser :** avant chaque publication importante. Ce prompt ne modifie rien : il produit un rapport. Détails : [Ne jamais faire confiance au client](/modules/04/ne-jamais-faire-confiance-au-client/). **À adapter :** `[NOM_DU_JEU]`.
+
+<Prompt titre="Audit anti-exploit">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu [NOM_DU_JEU], bientôt publié. Je veux trouver les failles qu'un tricheur pourrait exploiter. Rappel : un tricheur contrôle tout sur son appareil (LocalScripts, personnage, arguments et fréquence des remotes) ; seul le paramètre player reçu par le serveur est fiable.
+Ce qui existe déjà : tout le code dans src/ ; les remotes déclarés dans default.project.json.
+Objectif : un rapport d'audit classé par gravité, sans aucune correction pour l'instant.
+Fichiers concernés : aucun. Ne modifie rien : lis seulement.
+Contraintes techniques :
+- Pour CHAQUE RemoteEvent et RemoteFunction (ceux de default.project.json et tout Instance.new("RemoteEvent") ou Instance.new("RemoteFunction") du code), trouve le gestionnaire côté serveur et vérifie les 4 couches : type (typeof), valeur (bornes, math.isfinite, existence dans le catalogue, longueur des textes), contexte (personnage vivant, distance, progression, possession) et débit (cooldown par joueur).
+- Cherche aussi : prix, récompense, dégâts, position ou solde venant du client ; protections présentes seulement dans un LocalScript ; Touched, ProximityPrompt et ClickDetector qui donnent quelque chose sans vérification de distance ni de cooldown côté serveur ; RemoteFunction appelée avec InvokeClient ; données sauvegardées modifiables à partir d'une demande du client ; tables indexées par joueur jamais nettoyées.
+Sécurité : le rapport décrit le risque et la correction, sans mode d'emploi pour tricher.
+Cas limites : gestionnaire introuvable, ou remote utilisé nulle part : signale-le.
+Vérification : rapport sous forme de tableau : fichier et ligne, remote ou événement, gravité (critique, importante ou mineure), ce qu'un tricheur peut faire, correction proposée. Termine par les 3 corrections à faire en premier. J'appliquerai chaque correction avec un prompt séparé.
+```
+
+</Prompt>
+
+**À vérifier dans le rapport produit :**
+
+- **tous** les remotes de `default.project.json` apparaissent dans le tableau (compte-les toi-même) ;
+- chaque problème cite un fichier et une ligne que tu peux ouvrir ;
+- aucune correction n’a été appliquée : si tout était commité avant l’audit, `git status` ne montre aucun fichier modifié ;
+- les corrections proposées gardent la décision côté serveur.
+
+### Revue de code par un sous-agent
+
+**Quand l’utiliser :** pour faire relire le code par un « regard neuf » avant chaque commit ([leçon 6](/modules/02/relire-et-tester-le-code-de-l-ia/)). Deux prompts : le premier crée le sous-agent **une fois pour toutes** (le fichier se commite avec le projet), le second l’utilise après chaque système. Si tu as suivi les leçons 3 et 6, ton projet a déjà `.claude/agents/relecteur-roblox.md` (la version complète, à onze points, est dans la leçon 6) : passe directement au second prompt. Le premier sert pour un nouveau projet. **À adapter :** `[NOM_DU_JEU]`.
+
+<Prompt titre="Créer le sous-agent relecteur">
+
+```text
+Contexte : jeu Roblox [NOM_DU_JEU], projet Rojo. Je veux un relecteur qui vérifie le code avant chaque commit, avec un regard neuf.
+Ce qui existe déjà : le CLAUDE.md du projet (conventions et règles de sécurité).
+Objectif : un sous-agent de projet nommé relecteur-roblox, qui relit du code Luau sans jamais le modifier.
+Fichiers concernés : crée .claude/agents/relecteur-roblox.md uniquement.
+Contraintes techniques :
+- Frontmatter : name: relecteur-roblox ; une description qui dit de l'utiliser après chaque modification de code Luau, avant un commit ; tools: Read, Grep, Glob (lecture seule).
+- Corps du fichier (le prompt du sous-agent), en français : relire les fichiers indiqués avec cette checklist, dans l'ordre :
+  1. RemoteEvents validés côté serveur (type, valeur, contexte, débit) ; rien de décisif ne vient du client ;
+  2. DataStores et MarketplaceService dans des pcall, avec nouvelles tentatives ; un échec de chargement n'est jamais traité comme un nouveau joueur ; ProcessReceipt ne renvoie PurchaseGranted qu'après une sauvegarde réussie ;
+  3. connexions et tables indexées par joueur nettoyées (PlayerRemoving, Destroy) ;
+  4. API obsolètes ou dépréciées (wait, spawn, delay, BodyVelocity…) et API qui pourraient ne pas exister, à signaler « à vérifier dans la documentation » ;
+  5. performances (boucles sans attente, Heartbeat inutile, requêtes réseau dans une boucle) ;
+  6. respect du CLAUDE.md (noms, emplacements, task.wait).
+- Format de réponse : une liste de problèmes avec fichier:ligne, gravité, explication en une phrase et correction proposée ; « Aucun problème trouvé » seulement après avoir tout relu.
+Sécurité : le sous-agent ne modifie aucun fichier et ne lance aucune commande.
+Vérification : montre-moi le fichier créé. Je le testerai ensuite sur un fichier où j'aurai mis exprès un wait() et un prix lu depuis le client : les deux doivent être signalés.
+```
+
+</Prompt>
+
+<Prompt titre="Lancer la revue avant un commit">
+
+```text
+Objectif : faire relire par le sous-agent relecteur-roblox tous les fichiers .luau modifiés ou créés depuis le dernier commit.
+Contraintes techniques : liste d'abord ces fichiers avec git status --short, puis confie leur relecture au sous-agent relecteur-roblox.
+Fichiers concernés : aucun. Ne corrige rien.
+Vérification : donne-moi le rapport du sous-agent tel quel, puis ton avis sur chaque point (d'accord ou pas, et pourquoi). Je choisirai ensuite les corrections, une par une.
+```
+
+</Prompt>
+
+**À vérifier :**
+
+- le fichier `.claude/agents/relecteur-roblox.md` commence par un frontmatter avec `name` et `description` (les deux champs obligatoires) et `tools: Read, Grep, Glob` ;
+- le relecteur trouve bien les deux défauts que tu as glissés exprès (sinon, renforce sa checklist) ;
+- tu ne corriges que les points que tu as compris : un point « pas d’accord » se discute.
+
+Pour être sûr que le sous-agent est utilisé, tu peux aussi le mentionner avec `@` : tape `@`, puis choisis `relecteur-roblox` dans la liste. Claude Code fournit aussi `/code-review`, une relecture intégrée du code modifié, qui complète bien ton relecteur spécialisé Roblox.
+
+### Ajouter des tests automatiques
+
+**Quand l’utiliser :** pour vérifier en quelques secondes que tes règles de calcul (prix, récompenses, niveaux, dégâts) donnent toujours les bons résultats après une modification. On suit la méthode de la [leçon 6](/modules/02/relire-et-tester-le-code-de-l-ia/) : la logique **pure** vit dans un ModuleScript sans aucun service Roblox, et **Lune** (installé avec `rokit add lune-org/lune`) la teste en dehors de Studio. **À adapter :** `[NOM_DU_MODULE]`, `[FONCTIONS_A_TESTER]`, `[EMPLACEMENT_ACTUEL]` et surtout `[CAS_ATTENDUS]`, que tu écris toi-même à partir de ton GDD.
+
+<Prompt titre="Tests de la logique pure avec Lune">
+
+```text
+Contexte : jeu [NOM_DU_JEU], projet Rojo. Lune est installé (lune --version fonctionne). Je veux des tests automatiques pour mes règles de calcul, que tu pourras lancer toi-même après chaque modification.
+Ce qui existe déjà : les règles [FONCTIONS_A_TESTER, ex. la récompense d'une étape et le prix d'un objet après réduction], aujourd'hui dans [EMPLACEMENT_ACTUEL, ex. src/ReplicatedStorage/Modules/Config.luau].
+Objectif : un module pur src/ReplicatedStorage/Modules/[NOM_DU_MODULE].luau et son fichier de test tests/[NOM_DU_MODULE].spec.luau, lancé avec « lune run tests/[NOM_DU_MODULE].spec.luau ».
+Fichiers concernés : [NOM_DU_MODULE].luau (à créer si besoin), tests/[NOM_DU_MODULE].spec.luau, et le script qui contenait ces calculs s'il faut l'adapter pour utiliser le module. Ne modifie rien d'autre.
+Contraintes techniques :
+- Le module est pur : aucun game:GetService, aucun type Roblox (Vector3, Color3, Instance…), seulement des nombres, des textes et des tables. Si les calculs sont dans un script ou un module qui utilise Roblox, déplace-les d'abord dans le module pur, sans changer leur comportement.
+- Le fichier de test fait require("../src/ReplicatedStorage/Modules/[NOM_DU_MODULE]") ; une fonction verifier(nom, obtenu, attendu) affiche « OK » ou « RATÉ » avec l'attendu et l'obtenu ; un résumé « X réussi(s), Y raté(s) » ; error() à la fin s'il y a au moins un échec, pour que la commande se termine en erreur.
+- Écris d'abord les tests et lance-les, puis seulement adapte le code.
+- Cas à tester (attendus écrits par moi) : [CAS_ATTENDUS, ex. recompense(5) = 12 (fin du niveau 1 : 2 pièces + bonus de 10) ; recompense(6) = 3 ; recompense(99) = 0 ; prixReduit(100, 20) = 80 ; prixReduit(100, 150) = 0].
+- Les tests décrivent le comportement attendu, pas le code actuel : si un test te semble faux, dis-le-moi au lieu de le modifier.
+Sécurité : les décisions restent côté serveur : c'est le serveur qui appelle le module pur pour décider ; le client peut seulement s'en servir pour afficher.
+Cas limites : ajoute des cas pour les bornes (0, valeur maximale, valeur négative) et pour une entrée hors de la plage prévue.
+Vérification : montre-moi la sortie complète de « lune run tests/[NOM_DU_MODULE].spec.luau » avec tous les tests OK ; en Play dans Studio, le jeu se comporte comme avant. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- le module testé ne contient aucun `game:GetService` ni type Roblox (sinon Lune ne peut pas le charger) ;
+- les valeurs attendues dans les tests sont **les tiennes**, pas celles que le code renvoie aujourd’hui ;
+- casse volontairement une règle (par exemple, retire le bonus de fin de niveau) : au moins un test doit passer à « RATÉ » ;
+- la commande `lune run …` figure dans la section « Vérification » de ton CLAUDE.md (leçon 6), pour que Claude Code la lance après chaque modification.
+
+### Optimisation mobile
+
+**Quand l’utiliser :** quand le jeu saccade sur téléphone, **après** avoir mesuré ([Mesurer les performances](/modules/10/mesurer-les-performances/), [Audit de performance de l’Obby des Nuages](/modules/10/optimiser-l-obby/)). **À adapter :** `[APPAREIL_TESTE]`, `[QUAND]`, et surtout tes mesures.
+
+<Prompt titre="Optimisation mobile">
+
+```text
+Commence par me proposer un plan (mode plan), sans modifier de fichier.
+Contexte : jeu [NOM_DU_JEU]. Sur [APPAREIL_TESTE, ex. un téléphone d'entrée de gamme], le jeu saccade [QUAND, ex. dans la zone 3]. Mes mesures (Developer Console avec F9, MicroProfiler) : [COLLE TES CHIFFRES : images par seconde, mémoire, scripts les plus coûteux].
+Ce qui existe déjà : le code dans src/ ; le décor, construit dans Studio (non géré par Rojo).
+Objectif : la liste des problèmes de performance trouvés dans le code, classés par gain probable, puis des corrections que j'appliquerai une par une en mesurant avant et après.
+Fichiers concernés : aucun pendant l'analyse ; ensuite, seulement le fichier de la correction que je choisirai.
+Contraintes techniques : cherche en priorité : boucles while true, RunService.Heartbeat ou RenderStepped qui tournent sans nécessité ; connexions jamais déconnectées et objets créés sans Destroy ; animations purement visuelles faites côté serveur ; RemoteEvents déclenchés à chaque image ou avec de grosses tables ; recherches coûteuses répétées (GetDescendants dans une boucle) ; interfaces mises à jour en boucle au lieu de réagir à un événement. Si le serveur MCP de Studio est connecté, liste aussi, sans rien modifier, les Parts du décor non ancrées et celles qui pourraient avoir CanTouch et CanQuery à false.
+Sécurité : une optimisation ne doit jamais déplacer une vérification du serveur vers le client.
+Cas limites : si Workspace.StreamingEnabled est activé, les LocalScripts doivent attendre les objets avec WaitForChild et supporter qu'ils disparaissent.
+Vérification : pour chaque problème : fichier et ligne, pourquoi c'est coûteux (surtout sur mobile), correction proposée, et comment je mesure le gain (quel onglet de la Developer Console ou quelle étiquette du MicroProfiler regarder).
+```
+
+</Prompt>
+
+**À vérifier dans le rapport produit :**
+
+- chaque problème est relié à **tes** mesures, pas à des généralités ;
+- aucune correction ne retire une validation serveur (par exemple en déplaçant le ramassage des pièces côté client) ;
+- tu mesures à nouveau après chaque correction, sur le même appareil et au même endroit.
+
+### Analytics : entonnoirs et économie
+
+**Quand l’utiliser :** une fois le jeu publié, pour savoir où les joueurs abandonnent. Détails : [Instrumenter son jeu avec AnalyticsService](/modules/09/evenements-personnalises/). D’après la documentation, ces événements ne partent que **du serveur** et **d’un jeu publié** : rien n’est envoyé depuis Studio. **À adapter :** `[LISTE_ETAPES_ONBOARDING]`, `[NOM_ENTONNOIR]`.
+
+<Prompt titre="Analytics : entonnoirs et économie">
+
+```text
+Contexte : jeu [NOM_DU_JEU], publié. Je veux savoir où les nouveaux joueurs abandonnent et comment circule la monnaie.
+Ce qui existe déjà : leaderstats.Etape et Pieces, modifiés uniquement par le serveur ; src/ServerScriptService/Pieces.server.luau (gains de pièces) et src/ServerScriptService/Boutique.server.luau (dépenses).
+Objectif : trois mesures dans le Creator Dashboard : 1) l'entonnoir d'onboarding ([LISTE_ETAPES_ONBOARDING, ex. Arrivée, Personnage apparu, Checkpoint 1, Checkpoint 2, Checkpoint 3]) ; 2) un entonnoir de progression « [NOM_ENTONNOIR, ex. ProgressionObby] », une étape par checkpoint ; 3) les gains et les dépenses de pièces.
+Fichiers concernés : crée src/ServerScriptService/AnalytiqueObby.server.luau et le ModuleScript src/ServerScriptService/AnalytiqueEconomie.luau ; dans Pieces.server.luau et Boutique.server.luau, ajoute seulement l'appel à AnalytiqueEconomie après un gain ou un achat réussi. Ne modifie rien d'autre.
+Contraintes techniques :
+- Tous les appels côté serveur, avec AnalyticsService.
+- Onboarding : AnalyticsService:LogOnboardingFunnelStepEvent(player, numero, nom), étapes numérotées à partir de 1, dans l'ordre réel du jeu.
+- Progression : AnalyticsService:LogFunnelStepEvent(player, "[NOM_ENTONNOIR]", nil, etape, "Checkpoint " .. etape), quand leaderstats.Etape augmente (GetPropertyChangedSignal("Value")), étapes 1 à 100 au plus.
+- Économie : AnalyticsService:LogEconomyEvent avec Enum.AnalyticsEconomyFlowType.Source pour un gain et Sink pour une dépense ; monnaie toujours nommée "Pieces" ; montant toujours positif ; solde après l'opération ; type de transaction tiré de Enum.AnalyticsEconomyTransactionType (avec .Name) ; identifiant de l'objet comme SKU.
+- Chaque envoi dans un pcall : une erreur d'analytics ne doit jamais casser le jeu. Dans Studio (RunService:IsStudio()), n'envoie rien et affiche l'événement dans l'Output avec print.
+- Noms d'entonnoirs et d'étapes fixes (jamais un nom qui change à chaque partie) ; 10 entonnoirs au maximum dans tout le jeu.
+Sécurité : rien n'est envoyé depuis un LocalScript ; aucun RemoteEvent n'est ajouté.
+Cas limites : joueur qui revient (une étape déjà franchie est ignorée par Roblox, rien à stocker) ; étape qui diminue ou ne change pas (rien n'est envoyé) ; joueur qui part juste après un événement.
+Vérification : en Play dans Studio, l'Output affiche les événements dans l'ordre attendu quand j'avance ; je compare les signatures avec la référence AnalyticsService. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans le code produit :**
+
+- l’ordre des paramètres correspond à la référence : `LogFunnelStepEvent(player, funnelName, funnelSessionId, step, stepName)`, avec `nil` comme session pour un entonnoir qu’on ne parcourt qu’une fois ;
+- dans `LogEconomyEvent`, le montant est positif même pour une dépense (c’est `Sink` qui indique la sortie) ;
+- aucun appel n’est fait depuis un LocalScript ;
+- chaque envoi est protégé par un `pcall`.
+
+<Astuce titre="Transforme tes prompts préférés en skills">
+Un prompt que tu réutilises souvent (par exemple « nouveau Developer Product ») peut devenir une **skill** du projet : un fichier `.claude/skills/nouveau-produit/SKILL.md` qui contient le prompt, avec `$ARGUMENTS` à l’endroit où tu veux insérer un détail. Tu le lances ensuite en tapant `/nouveau-produit Pack de 500 pièces` : `$ARGUMENTS` est remplacé par « Pack de 500 pièces ». Les skills sont présentées à la [leçon 3](/modules/02/claude-code-de-a-a-z/).
+</Astuce>
+
+## Débogage
+
+### Prompt type pour une erreur
+
+**Quand l’utiliser :** dès qu’une erreur rouge apparaît dans l’Output ou qu’un système ne fait pas ce qu’il devrait. La méthode complète est dans [Déboguer avec l’IA](/modules/02/deboguer-avec-l-ia/). C’est le même modèle que dans cette leçon, avec les six informations à donner (l’erreur complète, le script, l’attendu, l’obtenu, les étapes pour reproduire, ce que tu as déjà essayé). **À adapter :** tout ce qui est entre crochets, et surtout l’erreur **complète**.
+
+<Prompt titre="Déboguer une erreur">
+
+```text
+Contexte : jeu [NOM_DU_JEU]. Le système [NOM_DU_SYSTEME] ne marche plus depuis [QUAND, ex. mon dernier commit « ajout de la boutique »].
+Erreur complète copiée depuis l'Output (le texte rouge ET toutes les lignes entre Stack Begin et Stack End) :
+[COLLE ICI L'ERREUR]
+Fichiers concernés : @[CHEMIN_DU_SCRIPT, ex. src/ServerScriptService/Boutique.server.luau] ; lis aussi les fichiers cités dans la pile.
+Comportement attendu : [CE QUI DEVRAIT SE PASSER, du point de vue du joueur].
+Comportement obtenu : [CE QUI SE PASSE VRAIMENT].
+Pour reproduire : [ÉTAPES EXACTES, ex. Play, toucher le checkpoint 2, ouvrir la boutique, cliquer sur Acheter].
+Ce que j'ai déjà essayé : [CE QUE TU AS TESTÉ ET LE RÉSULTAT, ou « rien »].
+Objectif : trouver la cause réelle et la corriger avec le plus petit changement possible.
+Contraintes techniques : ne modifie rien tout de suite. 1) Explique l'erreur en une ou deux phrases simples. 2) Propose au plus 3 hypothèses, de la plus probable à la moins probable. 3) Pour la première, dis-moi quel print ajouter (fichier, ligne, valeur affichée, préfixe [DEBUG]) pour la confirmer. Une hypothèse à la fois. Ne réécris pas tout le script et ne touche à aucun autre système.
+Sécurité : la correction ne doit retirer aucune vérification côté serveur ni déplacer une décision vers le client.
+Vérification : une fois la cause confirmée, corrige, retire les print [DEBUG], et dis-moi exactement quoi refaire dans Studio pour vérifier que l'erreur a disparu. selene src et stylua --check src sans erreur.
+```
+
+</Prompt>
+
+**À vérifier dans la réponse :**
+
+- l’explication de l’erreur correspond à la ligne citée dans la pile d’appels ;
+- la correction est petite et ciblée (méfie-toi d’un script entièrement réécrit) ;
+- les `print` de diagnostic (préfixe `[DEBUG]`) ont été retirés ;
+- si Claude Code tourne en rond après deux corrections ratées, tape `/clear` et repars de ce prompt, complété par ce que tu as appris.
+
+<Resume>
+- Chaque prompt de la bibliothèque suit le gabarit en huit rubriques : remplace **tous** les crochets par les vraies valeurs de ton jeu avant de l’envoyer.
+- Un prompt, une tâche : mode plan pour les gros systèmes, `/clear` entre deux systèmes, tests de la rubrique « Vérification », puis commit.
+- Les règles de sécurité sont dans chaque prompt : le client demande, le serveur décide (prix, dégâts, récompenses, achats).
+- Les points « À vérifier » sont ta part du travail : un prompt précis donne un meilleur code, pas un code garanti.
+- Garde tes versions adaptées dans ton projet, et transforme les plus utilisées en skills.
+</Resume>
+
+<Sources>
+- [Best practices for Claude Code — documentation officielle](https://code.claude.com/docs/en/best-practices)
+- [Permission modes (mode plan) — documentation Claude Code](https://code.claude.com/docs/en/permission-modes)
+- [Subagents — documentation Claude Code](https://code.claude.com/docs/en/sub-agents)
+- [Skills — documentation Claude Code](https://code.claude.com/docs/en/skills)
+- [Security and cheat mitigation tactics — documentation Roblox](https://create.roblox.com/docs/scripting/security/security-tactics)
+- [OrderedDataStore — référence de l’API Roblox](https://create.roblox.com/docs/reference/engine/classes/OrderedDataStore)
+- [Data store error codes and limits — documentation Roblox](https://create.roblox.com/docs/cloud-services/data-stores/error-codes-and-limits)
+- [MarketplaceService — référence de l’API Roblox](https://create.roblox.com/docs/reference/engine/classes/MarketplaceService)
+- [Developer Products — guide Roblox](https://create.roblox.com/docs/production/monetization/developer-products)
+- [AnalyticsService — référence de l’API Roblox](https://create.roblox.com/docs/reference/engine/classes/AnalyticsService)
+- [Funnel events — documentation Roblox](https://create.roblox.com/docs/production/analytics/funnel-events)
+</Sources>
