@@ -19,13 +19,13 @@ questions:
     explication: "La borne basse est le **50e percentile** : la moitié des jeux similaires sont à ce niveau ou en dessous. La borne haute est le **90e percentile** : seuls 10 % des jeux similaires font mieux."
 
   - type: qcm
-    question: "Ton jeu a une quinzaine de joueurs par jour. Le lendemain d’une petite mise à jour, ta D1 passe de 20 % à 27 %. Que faut-il en penser ?"
+    question: "Ton jeu reçoit une quinzaine de nouveaux joueurs par jour. Le lendemain d’une petite mise à jour, ta D1 passe de 20 % à 27 %. Que faut-il en penser ?"
     options:
       - texte: La mise à jour est un grand succès, il faut faire pareil partout
       - texte: Avec si peu de joueurs, un ou deux joueurs suffisent à faire bouger ce chiffre ; il faut observer la tendance sur plusieurs semaines
         correct: true
       - texte: Le tableau de bord est forcément en panne
-    explication: "Avec 15 joueurs, un seul joueur représente près de 7 points de rétention. C’est le piège des **petits échantillons** : regarde des cohortes hebdomadaires et compare-toi à toi-même dans le temps avant de conclure."
+    explication: "La D1 se calcule sur les nouveaux joueurs du jour : avec une cohorte de 15, un seul joueur représente près de 7 points de rétention. C’est le piège des **petits échantillons** : regarde des cohortes hebdomadaires et compare-toi à toi-même dans le temps avant de conclure."
 
   - type: qcm
     question: "Exemple fictif : 500 joueurs découvrent l’Obby des Nuages le 5 octobre. 25 d’entre eux reviennent le 12 octobre. Quelle est la rétention D7 de cette cohorte ?"
