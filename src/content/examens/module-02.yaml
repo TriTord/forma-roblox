@@ -1,0 +1,277 @@
+module: "02"
+titre: "Examen du module 2 — Scripter avec l'IA"
+description: "Workflow Rojo, Git et MCP, Claude Code, prompts précis, découpage, relecture, débogage, pièges et règles : montre que tu sais diriger une IA de code et vérifier ce qu’elle produit."
+seuil: 70
+questions:
+  - type: qcm
+    question: "Léa a 15 ans et veut suivre le module 2. Que peut-elle faire, d’après la formation ? (plusieurs réponses possibles)"
+    options:
+      - texte: Créer son propre compte Claude Pro, puisque sa mère est d’accord et paie l’abonnement
+      - texte: Utiliser seule le compte Claude de son père quand il n’est pas là
+      - texte: Travailler avec un adulte (parent, enseignant) qui utilise Claude Code avec son propre compte
+        correct: true
+      - texte: Utiliser l’Assistant intégré à Roblox Studio, soumis aux règles de Roblox
+        correct: true
+      - texte: Suivre la formation en lisant et en tapant elle-même le code, avec les mêmes prompts et la même méthode de relecture
+        correct: true
+    explication: "Claude Code est réservé aux personnes de **18 ans et plus** (conditions d’utilisation d’Anthropic, octobre 2026), sans exception pour l’accord d’un parent. L’accord ou le paiement d’un parent ne change rien, et utiliser seule le compte d’un parent non plus. Les trois autres voies restent ouvertes : un adulte qui utilise son propre compte, l’Assistant de Studio, ou la formation suivie en lisant et en tapant soi-même."
+
+  - type: qcm
+    question: "Tu veux que Claude Code lance un test dans **ton** Studio, lise l’Output et te donne un diagnostic. Quelle configuration la formation recommande-t-elle ?"
+    options:
+      - texte: "Une session Claude Code sur le web (claude.ai/code), qui a accès à ton dépôt"
+      - texte: "Claude Code dans un terminal de ton ordinateur, avec **Enable Studio as MCP server** activé dans Studio et Claude Code branché par le Quick connect"
+        correct: true
+      - texte: L’Assistant de Studio, à qui tu colles le contenu de tes fichiers Rojo un par un
+      - texte: "Claude Code dans le terminal, en lui demandant de corriger les scripts directement dans Studio avec l’outil `multi_edit` du MCP"
+    explication: "Le serveur MCP intégré à Studio tourne sur ton ordinateur : seul un Claude Code lancé sur cette machine peut s’y brancher. Les sessions web tournent dans le cloud, sur une copie du dépôt, et n’atteignent pas ton Studio. Avec Rojo, on utilise le MCP surtout pour **lire** le place, lancer un test et lire la console (`get_console_output`) : un script modifié dans Studio par `multi_edit` serait écrasé par Rojo, car ce sont les fichiers qui font foi."
+
+  - type: qcm
+    question: "Avant de passer à Rojo, tu avais créé à la main dans Studio un Script `Annonces` dans ServerScriptService, sans fichier correspondant dans `src`. Tu connectes Rojo et tu cliques sur **Accept** sans lire la fenêtre « Sync changes ». Que devient `Annonces` ?"
+    options:
+      - texte: "Rojo le recopie automatiquement dans `src/ServerScriptService/Annonces.server.luau`"
+      - texte: "Il est supprimé : Rojo remplace le contenu des emplacements qu’il gère par celui de tes fichiers"
+        correct: true
+      - texte: Il reste dans Studio, car Rojo ne touche qu’aux fichiers modifiés après la connexion
+      - texte: Il est déplacé dans Workspace, que Rojo ne gère pas
+    explication: "ServerScriptService est relié à `src/ServerScriptService` par `$path` : à la connexion, Rojo y met exactement ce que contiennent tes fichiers, et un script qui n’existe que dans Studio est supprimé. La synchronisation de Studio vers les fichiers est désactivée par défaut. La fenêtre « Sync changes » annonçait cette suppression : il fallait cliquer sur **Abort**, recréer le fichier (à la main ou avec `rojo syncback --dry-run --list` d’abord), et toujours garder une sauvegarde du place."
+
+  - type: vrai-faux
+    question: "Claude Code a modifié `Boutique.server.luau` et créé un nouveau fichier `BoutiqueTest.server.luau`, jamais commité. Si tu tapes `git restore .`, les deux changements sont annulés : `Boutique.server.luau` revient au dernier commit et `BoutiqueTest.server.luau` est supprimé."
+    reponse: false
+    explication: "`git restore` remet les fichiers **suivis** par Git dans leur état du dernier commit (définitivement : lis `git diff` avant). Un fichier jamais commité n’est pas suivi : il reste sur le disque, et `git status` le liste dans « Untracked files ». Supprime-le à la main si tu n’en veux pas. Pour mettre des changements de côté sans les perdre, c’est `git stash`."
+
+  - type: qcm
+    question: "Tu prépares le prompt de la boutique. Quelles informations ont leur place dans ton `CLAUDE.md` plutôt que d’être répétées dans chaque prompt ? (plusieurs réponses possibles)"
+    options:
+      - texte: "« Toujours `task.wait`, jamais `wait` » et les conventions de nommage du projet"
+        correct: true
+      - texte: "Les commandes de vérification `selene src` et `stylua --check src`"
+        correct: true
+      - texte: "La règle « le client ne fait que demander, le serveur décide »"
+        correct: true
+      - texte: "La liste des fichiers à créer pour la boutique et ses cas limites (double clic, solde insuffisant)"
+      - texte: Le mot de passe de ton compte Roblox, pour que Claude puisse publier le jeu
+    explication: "Claude lit le `CLAUDE.md` au début de chaque conversation : on y met ce qui vaut pour **tout** le jeu (conventions, règles Luau et de sécurité, commandes de vérification), en moins de 200 lignes. Ce qui est propre à **une** tâche (fichiers, cas limites de ce système) va dans le prompt. Et aucun secret n’a sa place ni dans un prompt, ni dans un fichier du projet."
+
+  - type: qcm
+    question: "Ton `.claude/settings.json` contient `\"Bash(git push *)\"` dans `deny`. Tu passes en mode `auto`, où le classifieur autoriserait normalement un push vers ton dépôt. Claude peut-il lancer `git push origin main` avec l’outil Bash ?"
+    options:
+      - texte: "Oui : le mode `auto` passe avant les règles du fichier de réglages"
+      - texte: "Non : les règles sont appliquées par Claude Code lui-même, et `deny` est évalué en premier"
+        correct: true
+      - texte: "Seulement si tu as aussi écrit « jamais de git push » dans CLAUDE.md"
+      - texte: "Oui, car l’étoile de `git push *` ne couvre pas les mots « origin main »"
+    explication: "Claude Code évalue les règles dans l’ordre `deny`, puis `ask`, puis `allow`, et c’est le programme qui les applique, pas le modèle : l’IA ne peut pas passer outre. L’étoile précédée d’une espace remplace n’importe quelle suite (`origin main` comprise). Sous Windows, double la règle avec `PowerShell(git push *)`, car les règles `Bash(…)` ne concernent que l’outil Bash. Une phrase dans CLAUDE.md, elle, n’est qu’un conseil."
+
+  - type: qcm
+    question: "Tu es au milieu d’une longue tâche (la sauvegarde DataStore). `/context` montre que le contexte est presque plein, mais tu veux continuer **la même** tâche. Quelle commande convient le mieux ?"
+    options:
+      - texte: "`/clear`, puis tu recommences la sauvegarde depuis le début"
+      - texte: "`/compact garde la liste des fichiers modifiés et les cas limites qui restent à traiter`"
+        correct: true
+      - texte: "`/rewind`, pour revenir au premier message de la conversation"
+      - texte: "`/btw`, pour que les messages suivants ne comptent plus dans le contexte"
+    explication: "`/compact` résume la conversation pour libérer de la place **sans changer de tâche**, et la consigne guide ce qu’il faut garder. `/clear` sert entre deux tâches sans rapport. `/rewind` revient en arrière dans la conversation ou le code, ce n’est pas un outil de place. `/btw` pose une seule question annexe dont la réponse ne s’ajoute pas à l’historique."
+
+  - type: vrai-faux
+    question: "Ton hook `PostToolUse` (matcher `\"Edit|Write\"`) lance StyLua puis selene. Si Claude modifie un script par une commande du terminal (outil Bash) au lieu de l’outil Edit, le hook se déclenche quand même."
+    reponse: false
+    explication: "Le matcher limite le hook aux outils `Edit` et `Write` : une modification faite par une commande du terminal passe inaperçue. C’est pour ça que la skill `/verifier` (qui relance `stylua --check src` et `selene src`) reste utile avant chaque commit. Même limite pour `/rewind`, qui ne suit pas les fichiers changés par Bash : Git, lui, voit tout."
+
+  - type: ameliore-le-prompt
+    question: "Tu veux qu’un message s’affiche quand un joueur termine l’Obby des Nuages. Quelle version du prompt donnera le meilleur résultat ?"
+    prompt: "fais un message quand on finit l'obby"
+    options:
+      - texte: "Fais un super message de victoire, joli, fun et sécurisé, quand le joueur termine l’obby."
+      - texte: |
+          Ne modifie que src/StarterGui/InterfaceObby/MessageVictoire.client.luau.
+          Le serveur doit annoncer la victoire à tous les joueurs avec Remotes.Victoire:FireAllClients.
+          Vérification : teste-le.
+      - texte: |
+          Commence par me proposer un plan (mode plan), sans modifier de fichier.
+          Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). Rien ne se passe quand un joueur termine le parcours.
+          Ce qui existe déjà : Progression.server.luau valide les checkpoints et met à jour leaderstats.Etape ; le RemoteEvent ReplicatedStorage.Remotes.Victoire ; le ScreenGui src/StarterGui/InterfaceObby.
+          Objectif : quand un joueur valide le dernier checkpoint, tous les joueurs voient « <pseudo> a terminé l'Obby des Nuages ! » pendant 5 secondes.
+          Fichiers concernés : modifie Progression.server.luau (annonce avec Victoire:FireAllClients) et crée src/StarterGui/InterfaceObby/MessageVictoire.client.luau. Ne modifie rien d'autre.
+          Sécurité : seul le serveur décide de la victoire (dernière étape validée par Progression) ; le client ne fait qu'afficher.
+          Cas limites : joueur qui retouche le dernier checkpoint (une seule annonce), deux arrivées presque en même temps.
+          Vérification : selene et StyLua sans erreur ; en Test serveur avec 2 clients, les deux voient le message une seule fois.
+        correct: true
+      - texte: |
+          Crée un LocalScript qui détecte quand le joueur touche le dernier checkpoint.
+          Il envoie Victoire:FireServer() et le serveur annonce la victoire à tout le monde et donne 100 pièces.
+          Vérification : finir l'obby en Play.
+    explication: "La bonne version donne le contexte, ce qui existe (avec les chemins), un objectif visible par le joueur, les fichiers, la règle de sécurité, les cas limites et un test à 2 clients. La première n’a que des adjectifs. La deuxième se contredit : elle interdit de toucher au serveur tout en lui demandant d’annoncer la victoire, et « teste-le » ne dit rien. La quatrième laisse le **client** déclarer sa victoire : un tricheur enverrait `FireServer()` en boucle pour gagner des pièces."
+
+  - type: ameliore-le-prompt
+    question: "Mini-jeu Lave Montante, tâche 8 (interface). Au test à 2 clients, le bandeau reste sur « En attente de joueurs (1/2) » après l’arrivée du second joueur. Quel prompt de correction est le meilleur ?"
+    prompt: "le bandeau marche pas, corrige"
+    options:
+      - texte: "Recommence la tâche 8 de zéro et réécris toute l’interface plus proprement."
+      - texte: |
+          Contexte : tâche 8 de TACHES.md (Lave Montante). Test en Server & Clients à 2 clients : en phase Attente, le bandeau reste sur « En attente de joueurs (1/2) » après l'arrivée du second joueur ; il ne change qu'au passage en Intermission.
+          Cause probable : AffichageRound.client.luau ne met le texte à jour qu'avec GetAttributeChangedSignal, et rien ne change dans EtatRound quand un joueur arrive ou part.
+          Objectif : le nombre de joueurs affiché se met à jour dès qu'un joueur arrive ou part.
+          Fichiers concernés : src/StarterPlayer/StarterPlayerScripts/AffichageRound.client.luau uniquement.
+          Contraintes techniques : connecte la mise à jour à Players.PlayerAdded et Players.PlayerRemoving (task.defer pour un départ), sans boucle à chaque image.
+          Vérification : à 2 clients, le bandeau passe à (2/2) dès l'arrivée du second ; selene et StyLua sans erreur.
+        correct: true
+      - texte: "Ajoute une boucle `while true` qui réécrit le bandeau à chaque image, comme ça il sera toujours à jour."
+      - texte: "Le bandeau ne marche pas. Ajoute des `pcall` autour de chaque ligne d’AffichageRound pour éviter les bugs."
+    explication: "Un résultat décevant se corrige avec un **prompt ciblé** : le symptôme observé (avec le test qui le montre), la cause probable, la solution attendue, un seul fichier et une vérification. Tout recommencer fait perdre ce qui marchait. Une boucle à chaque image règle l’affichage mais vide la batterie des téléphones. Et des `pcall` ne servent à rien : il n’y a aucune erreur, juste un événement qui n’est pas écouté."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur fait réapparaître un joueur coincé, au plus une fois toutes les 5 secondes. Il marche en test, mais pose problème sur un serveur ouvert pendant des heures. Où est le défaut ?"
+    code: |
+      local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+      local demanderReapparition = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DemanderReapparition") :: RemoteEvent
+      local DELAI_MINIMUM = 5
+      local derniereDemande: { [Player]: number } = {}
+
+      demanderReapparition.OnServerEvent:Connect(function(player: Player)
+      	local derniere = derniereDemande[player]
+      	if derniere and os.clock() - derniere < DELAI_MINIMUM then
+      		return
+      	end
+      	derniereDemande[player] = os.clock()
+      	player:LoadCharacterAsync()
+      end)
+    options:
+      - texte: "Ligne 7 : le client doit envoyer son nom en argument, sinon le serveur ne sait pas qui réapparaît"
+      - texte: "Ligne 9 : `os.clock` donne une heure différente sur chaque client, le délai est donc faussé"
+      - texte: "Ligne 12 : la table `derniereDemande` n’est jamais vidée ; il faut retirer le joueur à `Players.PlayerRemoving`"
+        correct: true
+      - texte: "Ligne 13 : `LoadCharacterAsync` est déprécié, il faut utiliser `LoadCharacter`"
+    explication: "Chaque joueur qui passe sur le serveur laisse une entrée dans `derniereDemande`, et la table garde aussi son objet `Player` en mémoire : elle grossit sans fin. La règle du CLAUDE.md et de la checklist : les tables indexées par joueur sont vidées à `Players.PlayerRemoving` (`derniereDemande[player] = nil`). Le joueur est fourni automatiquement par Roblox, `os.clock` est mesuré sur le serveur, et c’est `LoadCharacter` qui est déprécié, au profit de `LoadCharacterAsync`."
+
+  - type: qcm
+    question: "Pourquoi faire relire un nouveau système par le sous-agent `relecteur-roblox` (avec `tools: Read, Grep, Glob`) plutôt que de demander « relis ton code » dans la même conversation ? (plusieurs réponses possibles)"
+    options:
+      - texte: Il travaille dans son propre contexte, donc ta conversation principale reste légère
+        correct: true
+      - texte: Il n’a pas écrit le code, donc il n’est pas tenté de défendre ses propres choix
+        correct: true
+      - texte: Avec seulement les outils de lecture, il ne peut modifier aucun fichier
+        correct: true
+      - texte: Ses remarques sont toujours justes, on peut les appliquer sans vérifier
+      - texte: Il corrige lui-même les problèmes qu’il trouve, ce qui évite un prompt de correction
+    explication: "Un sous-agent a son propre contexte et ne rend qu’un rapport : c’est un regard neuf, qui n’encombre pas ta conversation, et ses outils en lecture seule l’empêchent de rien casser. Mais il peut se tromper ou manquer un problème : tu vérifies chaque remarque (fichier et ligne), puis tu demandes les corrections dans ta session principale."
+
+  - type: qcm
+    question: "Pendant un test, l’Output affiche `Players.TonPseudo.PlayerScripts.SurbrillanceCheckpoint:12: attempt to index nil with 'Value'`. Quel fichier de ton projet Rojo dois-tu ouvrir, ou citer avec `@` dans ton prompt de débogage ?"
+    options:
+      - texte: "`src/ServerScriptService/SurbrillanceCheckpoint.server.luau`"
+      - texte: "`src/StarterPlayer/StarterPlayerScripts/SurbrillanceCheckpoint.client.luau`, à la ligne 12"
+        correct: true
+      - texte: "`src/ReplicatedStorage/Modules/SurbrillanceCheckpoint.luau`"
+      - texte: Aucun, car un script rangé dans le joueur n’existe pas dans tes fichiers
+    explication: "Pendant un test, Roblox **copie** les LocalScripts de StarterPlayerScripts dans le joueur : l’Output parle donc de `Players.<pseudo>.PlayerScripts`, mais le fichier est `src/StarterPlayer/StarterPlayerScripts/SurbrillanceCheckpoint.client.luau`. Le `:12:` donne la ligne (`Ctrl+G` dans VS Code). Dans le prompt, colle l’erreur complète avec sa pile, sans la résumer."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur vérifie, à l’arrivée de chaque joueur, s’il possède le Game Pass « Traînée dorée ». Quel défaut contredit une règle de ton CLAUDE.md ?"
+    code: |
+      local MarketplaceService = game:GetService("MarketplaceService")
+      local Players = game:GetService("Players")
+
+      local ID_PASS_TRAIL_DORE = 0 -- remplace 0 par l'ID de ton Game Pass
+
+      Players.PlayerAdded:Connect(function(player: Player)
+      	local possede = MarketplaceService:UserOwnsGamePassAsync(player.UserId, ID_PASS_TRAIL_DORE)
+      	player:SetAttribute("PossedeTrailDore", possede)
+      	if possede then
+      		print(player.Name, "possède la traînée dorée")
+      	end
+      end)
+    options:
+      - texte: "Ligne 7 : il faut passer l’objet `player`, et non `player.UserId`"
+      - texte: "Ligne 7 : `UserOwnsGamePassAsync` passe par le réseau et peut échouer ; sans `pcall`, l’erreur arrête la fonction pour ce joueur et l’attribut n’est jamais posé"
+        correct: true
+      - texte: "Ligne 8 : un attribut posé par le serveur n’est pas visible par les LocalScripts"
+      - texte: "Ligne 6 : `PlayerAdded` ne se déclenche pas dans un Script serveur"
+    explication: "Ton CLAUDE.md l’impose : chaque appel MarketplaceService est dans un `pcall`. Ici, une panne passagère du service (ou un ID resté à 0) fait planter la fonction : le joueur n’a ni l’attribut, ni son avantage. La bonne version fait 2 nouvelles tentatives, puis un `warn` et considère le pass comme non possédé pour cette session. `UserOwnsGamePassAsync` attend bien un `UserId`, et les attributs posés par le serveur sont répliqués aux clients."
+
+  - type: trouve-le-bug
+    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur replace le joueur sur son dernier checkpoint à chaque réapparition. Il fonctionne, mais une ligne utilise une API que Roblox marque Deprecated. Laquelle ?"
+    code: |
+      local Players = game:GetService("Players")
+      local Workspace = game:GetService("Workspace")
+
+      local checkpoints = Workspace:WaitForChild("Checkpoints")
+
+      Players.PlayerAdded:Connect(function(player: Player)
+      	player.CharacterAdded:Connect(function(personnage: Model)
+      		local etape = player:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
+      		local checkpoint = checkpoints:FindFirstChild(tostring(etape.Value))
+      		if checkpoint and checkpoint:IsA("BasePart") then
+      			personnage:SetPrimaryPartCFrame(checkpoint.CFrame + Vector3.new(0, 3, 0))
+      		end
+      	end)
+      end)
+    options:
+      - texte: "Ligne 7 : `CharacterAdded` ne se déclenche qu’à la première apparition du personnage"
+      - texte: "Ligne 8 : `WaitForChild` est déprécié dans un Script serveur"
+      - texte: "Ligne 9 : `tostring` est inutile, `FindFirstChild` accepte directement un nombre"
+      - texte: "Ligne 11 : `SetPrimaryPartCFrame` est déprécié ; on déplace un modèle avec `personnage:PivotTo(...)`"
+        correct: true
+    explication: "La référence de l’API marque `Model:SetPrimaryPartCFrame()` comme dépréciée, remplacée par `PVInstance:PivotTo()` : une IA entraînée sur de vieux tutoriels la propose encore souvent, et luau-lsp la souligne (`DeprecatedApi`). `CharacterAdded` se déclenche à chaque apparition, `WaitForChild` est parfaitement actuel, et `FindFirstChild` attend un nom (un texte), d’où le `tostring`. En cas de doute, cherche le nom exact dans la référence officielle : la mention **Deprecated** y figure."
+
+  - type: ameliore-le-prompt
+    question: "Ton jeu doit envoyer, depuis le serveur, le nombre de joueurs arrivés au bout à un service de statistiques qui demande une clé d’API. Quelle version du prompt est la plus précise et la plus sûre ?"
+    prompt: "envoie les stats à mon site, voici ma clé d'API : 4f9a2c…"
+    options:
+      - texte: "Écris ma clé d’API dans Config.luau pour que tous les scripts puissent s’en servir, puis envoie les statistiques avec HttpService."
+      - texte: "Envoie les statistiques à mon site de façon sécurisée et professionnelle, tu connais les bonnes pratiques."
+      - texte: |
+          Contexte : Obby des Nuages, projet Rojo (voir CLAUDE.md). La clé du service de statistiques est rangée dans le magasin de secrets de l'expérience (Creator Hub › Secrets) sous le nom cle_service_stats ; Allow HTTP Requests est activé.
+          Objectif : toutes les 10 minutes, le serveur envoie au service le nombre de joueurs qui ont terminé l'obby.
+          Fichiers concernés : crée src/ServerScriptService/Statistiques.server.luau ; ne modifie rien d'autre.
+          Contraintes techniques : HttpService:GetSecret("cle_service_stats"), puis HttpService:RequestAsync dans un pcall ; n'affiche jamais le secret dans l'Output.
+          Sécurité : aucune clé dans le code, dans un fichier du projet ou dans ce message ; rien côté client.
+          Cas limites : service injoignable, secret absent pendant un test local (un warn clair, le jeu continue).
+          Vérification : selene et StyLua sans erreur ; explique-moi comment définir un Local Secret pour tester dans Studio.
+        correct: true
+      - texte: "Voici ma clé complète : mets-la dans un LocalScript pour que chaque joueur envoie lui-même ses statistiques."
+    explication: "Tout ce qui est dans un prompt part chez le fournisseur de l’IA, et tout ce qui est dans le projet peut finir sur GitHub : une clé ne va ni dans l’un ni dans l’autre. La bonne version range la clé dans le magasin de secrets de Roblox, ne cite que son **nom**, protège l’appel réseau et prévoit le test local. `Config.luau` est dans ReplicatedStorage, donc lisible par tous les clients ; un LocalScript donnerait la clé à chaque joueur ; et « sécurisée et professionnelle » ne dit rien de vérifiable."
+
+  - type: qcm
+    question: "Tu demandes à une IA un brouillon de description pour l’Obby des Nuages (12 étapes, des pièces, une boutique de traînées). Elle propose : « Plus de 100 niveaux, des Robux gratuits et une mise à jour chaque semaine ! » Que fais-tu ?"
+    options:
+      - texte: "Tu publies le texte tel quel : c’est l’IA qui l’a écrit, c’est donc elle la responsable"
+      - texte: "Tu retires ces promesses fausses, car ce sont des métadonnées trompeuses dont tu restes responsable ; ton prompt doit lister le contenu réel du jeu et demander la liste des affirmations à vérifier"
+        correct: true
+      - texte: Tu gardes le texte, mais tu ajoutes « texte généré par IA » à la fin
+      - texte: Tu ajoutes plusieurs fois les mots « obby » et « Robux » pour que le jeu soit mieux trouvé
+    explication: "Les Community Standards interdisent les métadonnées trompeuses (nom, description, images), et les conditions de Roblox te rendent responsable de ce que tu fais des résultats d’une IA. Mentionner l’IA n’excuse pas une promesse fausse, et le bourrage de mots-clés peut faire rétrograder le jeu. D’où le prompt de la leçon : le contenu réel en entrée, aucune fonctionnalité inventée, et la liste des affirmations à contrôler en jouant."
+
+  - type: ameliore-le-prompt
+    question: "Tu as copié un extrait du prompt « Checkpoints sécurisés » de la bibliothèque pour ton obby « Tour des Étoiles », qui a 20 checkpoints. Quelle version est prête à être envoyée ?"
+    prompt: |
+      Contexte : obby [NOM_DU_JEU]. Les checkpoints sont des Parts ancrées dans Workspace.Checkpoints, nommées "1", "2", "3"… jusqu'à [NOMBRE_DE_CHECKPOINTS].
+      Objectif : quand un joueur touche le checkpoint qui suit son étape, Etape augmente de 1.
+      Sécurité : accepté seulement si numero == Etape.Value + 1 et si Validation.estAPortee(player, checkpoint.Position, [DISTANCE_MAX]).
+      Vérification : en Play, toucher 1 puis 2 donne Etape = 2 ; toucher 3 avant 2 ne change rien.
+    options:
+      - texte: |
+          Contexte : obby [NOM_DU_JEU]. Les checkpoints sont des Parts ancrées dans Workspace.Checkpoints, nommées "1", "2", "3"… jusqu'à [NOMBRE_DE_CHECKPOINTS].
+          Objectif : quand un joueur touche le checkpoint qui suit son étape, Etape augmente de 1.
+          Sécurité : accepté seulement si numero == Etape.Value + 1 et si Validation.estAPortee(player, checkpoint.Position, [DISTANCE_MAX]).
+          Remplace toi-même les valeurs entre crochets par ce qui te semble logique.
+          Vérification : en Play, toucher 1 puis 2 donne Etape = 2 ; toucher 3 avant 2 ne change rien.
+      - texte: |
+          Contexte : obby Tour des Étoiles. Les checkpoints sont des Parts ancrées dans Workspace.Checkpoints, nommées "1", "2", "3"… jusqu'à 20.
+          Objectif : quand un joueur touche le checkpoint qui suit son étape, Etape augmente de 1.
+          Vérification : en Play, toucher 1 puis 2 donne Etape = 2 ; toucher 3 avant 2 ne change rien.
+      - texte: |
+          Contexte : obby Tour des Étoiles. Les checkpoints sont des Parts ancrées dans Workspace.Checkpoints, nommées "1", "2", "3"… jusqu'à 20.
+          Objectif : quand un joueur touche le checkpoint qui suit son étape, Etape augmente de 1.
+          Sécurité : accepté seulement si numero == Etape.Value + 1 et si Validation.estAPortee(player, checkpoint.Position, 15).
+          Vérification : en Play, toucher 1 puis 2 donne Etape = 2 ; toucher 3 avant 2 ne change rien.
+        correct: true
+      - texte: |
+          Contexte : obby Tour des Étoiles. Les checkpoints sont des Parts ancrées dans Workspace.Checkpoints, nommées "1", "2", "3"… jusqu'à 20.
+          Objectif : quand un joueur touche le checkpoint qui suit son étape, Etape augmente de 1.
+          Sécurité : accepté seulement si numero == Etape.Value + 1 et si Validation.estAPortee(player, checkpoint.Position, 15).
+          Vérification : dis-moi quand c'est fini.
+    explication: "Avant d’envoyer un prompt de la bibliothèque, chaque crochet est remplacé par la vraie valeur de ton jeu (cherche le caractère `[` : il ne doit plus en rester). Laisser l’IA deviner donne des valeurs au hasard. Supprimer la ligne Sécurité pour faire disparaître un crochet retire la vérification de distance, donc un tricheur pourrait valider un checkpoint de loin. Et « dis-moi quand c’est fini » n’est pas un critère : la rubrique Vérification ne s’omet jamais."
