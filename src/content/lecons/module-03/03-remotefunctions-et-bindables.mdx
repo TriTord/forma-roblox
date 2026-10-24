@@ -23,7 +23,7 @@ quiz:
     options:
       - texte: Si le client lève une erreur, le serveur lève aussi l’erreur
         correct: true
-      - texte: Si le client ne renvoie rien, le serveur attend pour toujours
+      - texte: Si le client ne répond jamais, le serveur attend pour toujours
         correct: true
       - texte: Si le client se déconnecte pendant l’appel, `InvokeClient` lève une erreur
         correct: true
@@ -46,7 +46,7 @@ quiz:
       local obtenirInventaire = remotes:WaitForChild("ObtenirInventaire")
 
       obtenirInventaire.OnServerInvoke:Connect(function(player)
-      	return { "TraineeAzur" }
+      	return { "TrailNuage" }
       end)
     options:
       - texte: "Ligne 4 : une RemoteFunction ne peut pas être rangée dans un Folder"
@@ -141,7 +141,7 @@ La RemoteFunction marche aussi dans l’autre sens : le serveur appelle `InvokeC
 
 - si le client lève une erreur, le serveur lève **aussi** l’erreur ;
 - si le client se déconnecte pendant l’appel, `InvokeClient` lève une erreur ;
-- si le client ne renvoie jamais de valeur, le serveur **attend pour toujours**.
+- si le client ne répond jamais (son callback ne se termine pas, ou il n’en a défini aucun), le serveur **attend pour toujours**.
 
 Or un tricheur contrôle entièrement le code de son client. Il peut donc bloquer volontairement ton script serveur. De plus, il n’existe pas de paramètre de délai maximum (timeout) dans `InvokeClient` : rien ne vient débloquer l’attente à ta place.
 
@@ -215,7 +215,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local etapeAtteinte = ServerScriptService:WaitForChild("EtapeAtteinte") :: BindableEvent
 
--- À appeler par le code des checkpoints quand une étape est validée (voir leçon 5)
+-- À appeler quand une étape est validée (par exemple dans le script Progression
+-- de la leçon 5, juste après etape.Value = numero)
 local function quandEtapeValidee(player: Player, numeroEtape: number)
 	-- Fire ne met pas le script en pause : les scripts abonnés réagissent de leur côté
 	etapeAtteinte:Fire(player, numeroEtape)
@@ -259,7 +260,7 @@ Les Bindables ne traversent **jamais** la frontière client/serveur. Un `Bindabl
 | Deux scripts du même côté | `BindableEvent`, `BindableFunction` ou un ModuleScript |
 
 <Defi>
-Crée la RemoteFunction `ObtenirInventaire` et les deux scripts de l’exemple. Côté serveur, ajoute temporairement `"TraineeAzur"` dans l’inventaire de chaque nouveau joueur et vérifie que le LocalScript l’affiche. Ensuite, ajoute un `task.wait(3)` dans le callback serveur : observe que le LocalScript attend trois secondes avant d’afficher le résultat.
+Crée la RemoteFunction `ObtenirInventaire` et les deux scripts de l’exemple. Côté serveur, ajoute temporairement `"TrailNuage"` dans l’inventaire de chaque nouveau joueur et vérifie que le LocalScript l’affiche. Ensuite, ajoute un `task.wait(3)` dans le callback serveur : observe que le LocalScript attend trois secondes avant d’afficher le résultat.
 </Defi>
 
 <Resume>

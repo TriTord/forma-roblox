@@ -127,14 +127,14 @@ Avant d’écrire un remote, pose-toi les questions que recommande la documentat
 
 ## Les quatre couches de validation
 
-Pour chaque message reçu d’un client, vérifie dans cet ordre :
+Pour chaque message reçu d’un client, vérifie ces quatre points :
 
 1. **Le type** : est-ce bien un nombre, un texte, une instance ? Avec `typeof(valeur)`.
 2. **La valeur** : est-elle dans les bornes attendues ? Un nombre fini, un entier positif, un texte de longueur raisonnable, un identifiant qui existe vraiment dans ton catalogue.
 3. **Le contexte** : le joueur a-t-il le droit de faire ça **maintenant** ? Est-il vivant ? Assez près ? A-t-il atteint cette étape ? Possède-t-il déjà cet objet ?
 4. **Le débit** : ne fait-il pas cette demande trop souvent ?
 
-Si un seul test échoue, on **ignore la demande** (un simple `return`), sans faire planter le script.
+Si un seul test échoue, on **ignore la demande** (un simple `return`), sans faire planter le script. L’ordre exact peut varier : dans les exemples de ce module, le débit est vérifié juste après le type, pour refuser le spam avant de faire le moindre travail.
 
 ### Le piège de NaN
 
@@ -243,7 +243,7 @@ return Validation
 
 ### Exemple complet : se téléporter à un checkpoint déjà atteint
 
-Imaginons un menu qui permet de revenir à une étape déjà franchie. Le client envoie le **numéro** de l’étape voulue au RemoteEvent `AllerAuCheckpoint`. Voici comment le serveur applique les quatre couches. On suppose que le serveur range l’étape atteinte dans `leaderstats.Etape` : tu la créeras dans la leçon 5.
+Imaginons un menu qui permet de revenir à une étape déjà franchie. Le client envoie le **numéro** de l’étape voulue au RemoteEvent `AllerAuCheckpoint` (à créer dans `ReplicatedStorage.Remotes`). Voici comment le serveur applique les quatre couches. On suppose que le serveur range l’étape atteinte dans `leaderstats.Etape` : tu la créeras dans la leçon 5.
 
 ```luau
 -- Script placé dans ServerScriptService (côté serveur)
@@ -371,7 +371,7 @@ end
 
 Limites à connaître :
 
-- si ton jeu **téléporte** un joueur (bouton « retour au checkpoint », trampoline, tapis roulant rapide), remets `dernieresPositions[player]` à `nil` juste après, ou augmente les marges ;
+- si ton jeu **téléporte** un joueur (bouton « retour au checkpoint », trampoline, tapis roulant rapide), le détecteur risque de le signaler : augmente les marges, ou préviens le détecteur (par exemple avec un BindableEvent, leçon 3) pour qu’il remette `dernieresPositions[player]` à `nil` juste après ;
 - la latence crée des « sauts » de position : d’où la tolérance et le fait de ne compter qu’un **score de suspicion** ;
 - un tricheur prudent peut rester juste sous la limite. Ce détecteur complète tes **validations de conception** (étapes obligatoires dans l’ordre, distances), il ne les remplace pas.
 

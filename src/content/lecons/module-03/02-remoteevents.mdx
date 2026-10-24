@@ -251,19 +251,20 @@ La documentation détaille ces limites, à connaître absolument :
 
 ```luau
 -- LocalScript (côté client) : exemples d'envois vers un RemoteEvent de test
+-- (pour l'essayer, crée un RemoteEvent « RemoteTest » dans ReplicatedStorage.Remotes)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local remoteTest = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("RemoteTest") :: RemoteEvent
 
 -- Bien : une liste pure
-remoteTest:FireServer({ "TraineeAzur", "TraineeArcEnCiel" })
+remoteTest:FireServer({ "TrailNuage", "TrailSoleil" })
 
 -- Bien : un dictionnaire pur
-remoteTest:FireServer({ nom = "Traînée azur", couleur = Color3.fromRGB(0, 170, 255) })
+remoteTest:FireServer({ nom = "Traînée Nuage", couleur = Color3.fromRGB(0, 170, 255) })
 
 -- À éviter : table mixte (liste + dictionnaire)
-remoteTest:FireServer({ "TraineeAzur", equipee = true })
+remoteTest:FireServer({ "TrailNuage", equipee = true })
 
 -- Le serveur recevra nil : cette Part n'existe que sur ce client
 local partLocale = Instance.new("Part")
@@ -294,6 +295,7 @@ Il sert pour les **effets éphémères** et les **données qui changent en conti
 
 ```luau
 -- Extrait d'un Script serveur : effet purement visuel, la perte d'un message est sans gravité
+-- (crée d'abord un UnreliableRemoteEvent « EffetEtincelles » dans ReplicatedStorage.Remotes)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local effetEtincelles = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("EffetEtincelles") :: UnreliableRemoteEvent

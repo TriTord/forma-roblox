@@ -39,7 +39,7 @@ questions:
     explication: "`FireAllClients` envoie le message à tous les clients connectés, sans attendre de réponse. Un BindableEvent ne traverse pas la frontière client/serveur, et `InvokeClient` exposerait le serveur à une attente infinie."
 
   - type: qcm
-    question: "Un LocalScript envoie `{ \"TraineeAzur\", equipee = true }` au serveur. Quel est le problème ?"
+    question: "Un LocalScript envoie `{ \"TrailNuage\", equipee = true }` au serveur. Quel est le problème ?"
     options:
       - texte: Les tables ne peuvent jamais passer par un RemoteEvent
       - texte: C’est une table mixte (liste et dictionnaire), à éviter ; il faut envoyer soit une liste, soit un dictionnaire
@@ -57,14 +57,14 @@ questions:
       local acheterObjet = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("AcheterObjet")
       local player = Players.LocalPlayer
 
-      acheterObjet:FireServer(player, "TraineeAzur")
+      acheterObjet:FireServer(player, "TrailNuage")
     options:
       - texte: "Ligne 4 : il faut utiliser `FindFirstChild` sur le client"
       - texte: "Ligne 5 : `LocalPlayer` est `nil` dans un LocalScript"
       - texte: "Ligne 7 : il ne faut pas passer le joueur, Roblox l’ajoute déjà ; le serveur reçoit ici le joueur à la place de l’identifiant"
         correct: true
       - texte: "Ligne 7 : il faut appeler `FireClient` depuis un LocalScript"
-    explication: "Roblox ajoute automatiquement le joueur en premier paramètre côté serveur. Avec ce code, `idObjet` reçoit le `Player` et l’identifiant arrive en troisième position. Il faut écrire `acheterObjet:FireServer(\"TraineeAzur\")`."
+    explication: "Roblox ajoute automatiquement le joueur en premier paramètre côté serveur. Avec ce code, `idObjet` reçoit le `Player` et l’identifiant arrive en troisième position. Il faut écrire `acheterObjet:FireServer(\"TrailNuage\")`."
 
   - type: vrai-faux
     question: Un message envoyé par un UnreliableRemoteEvent dont le contenu dépasse 1 000 octets est abandonné.
