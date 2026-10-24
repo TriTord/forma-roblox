@@ -41,4 +41,5 @@
 - Désaccord passe1/passe2 module 08 (Daily Engagement Rewards) tranché par le chef d'orchestre sur create.roblox.com/docs/creator-rewards : la passe 2 a raison (ordre de lancement).
 - Cohérence : harmoniser la présentation des seuils Kids & Select entre modules 01, 07, 10 (07 : 500 en juin puis 250 depuis le 19/08/2026).
 - Creator Rewards (modules 06 et 08) : règle revérifiée par le chef d'orchestre sur la source officielle (exemples 1 et 2) : parmi les jeux où l'Active Spender passe ≥ 10 min, les 3 premiers dans l'ordre des visites. Les deux modules sont cohérents.
-- Étape 5b (EN COURS) : passe de COHÉRENCE inter-modules : (A) code du fil rouge assemblé en projet de référence `projet-reference/` + luau-lsp avec sourcemap ; (B) faits et renvois répétés entre modules.
+- Étape 5b FAITE : cohérence inter-modules (19 incohérences éditoriales + ~12 d intégration code) ; projet-reference/ (0 diagnostic luau-lsp).
+- Étape 9 (EN COURS) : 3 relecteurs finaux (00-03, 04-06, 07-10).
