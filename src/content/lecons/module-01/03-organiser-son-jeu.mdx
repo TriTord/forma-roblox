@@ -25,12 +25,12 @@ quiz:
   - type: qcm
     question: Tu construis un nuage décoratif composé de six Parts que tu veux déplacer d’un bloc. Quel conteneur choisis-tu ?
     options:
-      - texte: Un Folder, car il déplace ses enfants ensemble
+      - texte: Un Folder, car il peut avoir une PrimaryPart
       - texte: Un Model, fait pour regrouper des objets physiques qu’on manipule comme un tout
         correct: true
       - texte: Le service Lighting
       - texte: Aucun, il faut laisser les Parts en vrac dans le Workspace
-    explication: "Un **Model** regroupe des objets physiques : tu peux le sélectionner, le déplacer et le tourner d’un seul geste, et lui donner une **PrimaryPart**. Un **Folder** sert seulement à ranger, il n’a aucun comportement propre."
+    explication: "Un **Model** regroupe des objets physiques : tu peux le sélectionner, le déplacer et le tourner d’un seul geste, et lui donner une **PrimaryPart**. Un **Folder** sert seulement à ranger : il n’a aucun comportement propre, et pas de PrimaryPart."
   - type: qcm
     question: Au lancement du jeu, où le contenu de **StarterGui** est-il copié pour chaque joueur ?
     options:
@@ -91,7 +91,7 @@ Au premier niveau de l’arbre se trouvent les **services** : des conteneurs fou
 | `Workspace` | Le monde 3D : tout ce qui y est s’affiche chez les joueurs | Plateformes, SpawnLocation, décor |
 | `Players` | Contient un objet `Player` par joueur connecté (créé automatiquement) | Rien à la main |
 | `Lighting` | L’éclairage global, le ciel, l’atmosphère | Réglages d’ambiance |
-| `ReplicatedStorage` | Objets accessibles à la fois par le serveur et par les joueurs | ModuleScripts partagés, RemoteEvents |
+| `ReplicatedStorage` | Objets accessibles à la fois par le serveur et par les joueurs | Code partagé (ModuleScripts, module 2), objets de communication (RemoteEvents, module 3) |
 | `ServerScriptService` | Scripts côté serveur, jamais envoyés aux joueurs | La logique du jeu |
 | `ServerStorage` | Objets côté serveur uniquement ; les scripts ne s’y exécutent pas | Objets à cloner plus tard |
 | `StarterGui` | Interfaces copiées dans le `PlayerGui` de chaque joueur | Écrans, boutons, compteurs |

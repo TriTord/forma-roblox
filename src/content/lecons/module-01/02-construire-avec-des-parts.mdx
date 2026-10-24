@@ -184,7 +184,7 @@ Un modèle peut contenir des **scripts**, et un script peut faire n’importe qu
 <Attention titre="Inspecte chaque modèle avant de l’utiliser">
 
 - Après l’insertion, déplie le modèle dans l’Explorer et regarde ce qu’il contient.
-- Tape `is:LuaSourceContainer` dans la recherche de l’Explorer (`Ctrl`+`Shift`+`X`) pour lister tous les scripts du place, quel que soit leur nom. La documentation indique que `is:` trouve aussi les sous-classes, et Script, LocalScript et ModuleScript sont tous des `LuaSourceContainer`. Si cette recherche ne donne rien chez toi, essaie `is:Script`, puis `is:LocalScript` et `is:ModuleScript`.
+- Tape `is:Script or is:ModuleScript` dans la recherche de l’Explorer (`Ctrl`+`Shift`+`X`) pour lister tous les scripts du place, quel que soit leur nom. D’après la documentation, `is:Script` trouve aussi les « sous-types » de Script, donc les **LocalScripts** (des scripts qui tournent chez le joueur, tu les découvriras plus tard) ; `or` ajoute les **ModuleScripts**.
 - Un décor (arbre, nuage, rocher) n’a **aucune** raison de contenir un script : supprime-le.
 - Si tu veux garder un modèle sans exécuter ses scripts, fais un clic droit dessus dans l’Explorer et choisis **Disable Scripts**.
 - Un script illisible, très long ou qui fait `require` avec un numéro : supprime le modèle et signale-le avec l’option **Report Item** de sa page de détails sur le Creator Store.
@@ -215,7 +215,8 @@ Un modèle peut contenir des **scripts**, et un script peut faire n’importe qu
 - [Work with parts — tutoriel officiel (insertion, outils, ancrage)](https://create.roblox.com/docs/tutorials/curriculums/building/work-with-parts)
 - [Properties window — sections et filtre des propriétés](https://create.roblox.com/docs/studio/properties)
 - [Explorer window — duplication, collage, recherche](https://create.roblox.com/docs/studio/explorer)
-- [Data model — les scripts sont des LuaSourceContainer](https://create.roblox.com/docs/projects/data-model)
+- [Data model — les trois types de scripts (Script, LocalScript, ModuleScript)](https://create.roblox.com/docs/projects/data-model)
+- [LocalScript — référence API (hérite de Script)](https://create.roblox.com/docs/reference/engine/classes/LocalScript)
 - [Solid modeling — Union, Negate, Intersect, Separate](https://create.roblox.com/docs/parts/solid-modeling)
 - [Toolbox — onglets et insertion de ressources](https://create.roblox.com/docs/projects/assets/toolbox)
 - [Creator Store — règles de sécurité des ressources](https://create.roblox.com/docs/production/creator-store)
