@@ -92,7 +92,8 @@ Tant que tu n’as pas répondu `PurchaseGranted`, l’achat reste **non résolu
 
 La référence officielle de l’API apporte des précisions importantes :
 
-- Le callback est appelé pour les achats non résolus quand l’achat se termine, et **quand le joueur rejoint un serveur** du jeu.
+- Le callback est appelé pour les achats non résolus quand l’achat se termine, et **quand le joueur rejoint un serveur** du jeu (donc souvent avant que ses données soient chargées). D’après le guide officiel des Developer Products, un produit peut d’ailleurs aussi être acheté **en dehors du jeu** (onglet **Store** de la page du jeu, ou ailleurs sur Roblox s’il est marqué « Listed ») : il est alors donné via `ProcessReceipt` quand le joueur entre dans le jeu.
+- Le callback peut **attendre** (yield) sans limite de temps : sa réponse est acceptée même tardive, tant que le serveur tourne.
 - Il n’y a **aucune nouvelle tentative automatique avec le temps** : après un `NotProcessedYet`, le reçu revient seulement si le joueur fait un autre achat de produit ou rejoint un serveur du jeu.
 - Le joueur doit être **sur le serveur** pour que le callback soit appelé.
 - Un même reçu peut être traité **sur deux serveurs en même temps** si le joueur change de serveur pendant le traitement.
@@ -170,6 +171,7 @@ local achatsTraites = DataStoreService:GetDataStore("AchatsTraites_v1")
 
 local ID_PASSER_ETAPE = 0 -- remplace 0 par l'ID de ton Developer Product
 local PIECES_DE_SECOURS = 100 -- si le joueur est déjà tout au bout
+local ATTENTE_MAX_DONNEES = 60 -- secondes d'attente maximum du chargement des données
 
 -- Chaque produit a une fonction « preparer » : elle vérifie que TOUT est prêt
 -- sans rien modifier, puis renvoie une fonction « appliquer » (ou nil si pas prêt).
@@ -206,6 +208,21 @@ local produits: { [number]: (Player) -> (() -> ())? } = {
 	[ID_PASSER_ETAPE] = preparerPasserEtape,
 }
 
+-- Attend que les données du joueur soient prêtes, tant qu'il est sur le serveur.
+-- Les achats non résolus sont souvent rejoués dès l'arrivée du joueur, AVANT la fin
+-- du chargement de ses données (module 4) : il faut donc patienter un peu.
+local function attendrePreparation(player: Player, preparer: (Player) -> (() -> ())?): (() -> ())?
+	local debut = os.clock()
+	while player.Parent == Players and os.clock() - debut < ATTENTE_MAX_DONNEES do
+		local appliquer = preparer(player)
+		if appliquer then
+			return appliquer
+		end
+		task.wait(1)
+	end
+	return nil -- joueur parti ou données toujours absentes
+end
+
 local function traiterRecu(receiptInfo)
 	-- 1. Le joueur doit être sur CE serveur
 	local player = Players:GetPlayerByUserId(receiptInfo.PlayerId)
@@ -219,7 +236,7 @@ local function traiterRecu(receiptInfo)
 		warn("Produit inconnu : " .. tostring(receiptInfo.ProductId))
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
-	local appliquer = preparer(player)
+	local appliquer = attendrePreparation(player, preparer)
 	if appliquer == nil then
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
@@ -260,7 +277,7 @@ L’ordre des étapes n’est pas un hasard. Chaque étape protège contre un pr
 | Étape | Ce qu’elle protège |
 |---|---|
 | 1. Joueur présent ? | On ne donne rien à un joueur absent : `NotProcessedYet`, le reçu reviendra quand il rejoindra un serveur. |
-| 2. Tout est prêt ? | Si les leaderstats ne sont pas encore chargées (module 4), on réessaiera. On vérifie **avant** d’enregistrer pour que l’application ne puisse pas échouer après. |
+| 2. Tout est prêt ? | Les reçus en attente sont rejoués dès l’arrivée du joueur, souvent **avant** la fin du chargement de ses données (module 4). Comme il n’y a pas de nouvelle tentative automatique, on **attend** (jusqu’à 60 secondes, tant que le joueur est là) plutôt que d’abandonner tout de suite : la référence précise que `ProcessReceipt` peut attendre aussi longtemps que le serveur tourne. Sinon, `NotProcessedYet`. On vérifie **avant** d’enregistrer pour que l’application ne puisse pas échouer après. |
 | 3. Enregistrer le `PurchaseId` | `UpdateAsync` lit et écrit en une seule opération : si le reçu arrive deux fois (deux serveurs, ou enregistrement raté côté Roblox), la seconde fois voit l’achat déjà noté. Si le DataStore est en panne : `NotProcessedYet`, rien n’a été donné. |
 | 4. Appliquer | Seulement si c’est la première fois. |
 | 5. `PurchaseGranted` | Uniquement quand le produit a été donné (ou l’avait déjà été). |
@@ -277,7 +294,7 @@ Aucun système n’est parfait, et il vaut mieux connaître ses angles morts :
 
 - L’effet (l’étape gagnée) vit dans les **leaderstats**, sauvegardées par ton système du module 4. Si le serveur plante entre l’achat et la sauvegarde suivante, l’étape peut être perdue alors que l’achat est noté comme traité.
 - Si le joueur quitte le serveur pendant l’enregistrement (une fraction de seconde), l’achat est noté mais l’effet n’est pas appliqué : le cas est rare, mais il existe.
-- La solution la plus solide consiste à enregistrer le `PurchaseId` **dans les mêmes données que la progression du joueur**, et à les sauvegarder ensemble avant de renvoyer `PurchaseGranted`. C’est ce que font les bibliothèques communautaires reconnues comme ProfileStore, évoquées au module 4.
+- La solution la plus solide consiste à enregistrer le `PurchaseId` **dans les mêmes données que la progression du joueur**, et à les sauvegarder ensemble avant de renvoyer `PurchaseGranted`. C’est l’approche décrite par le guide officiel « Implement player data and purchasing systems » (vérifier le `PurchaseId`, donner l’objet dans les données en mémoire, y noter le `PurchaseId`, sauvegarder, puis seulement renvoyer `PurchaseGranted`), et celle des bibliothèques communautaires comme ProfileStore, évoquées au module 4.
 
 Pour un produit à faible enjeu comme « Passer l’étape », la version de la leçon est un bon compromis. Pour une monnaie premium vendue en grande quantité, investis dans l’approche « même sauvegarde ».
 
@@ -286,16 +303,16 @@ Le DataStore `AchatsTraites_v1` contient, pour chaque achat, le joueur, le produ
 </Astuce>
 
 <Info titre="BindReceiptHandler, l’alternative récente">
-La référence de l’API présente désormais `MarketplaceService:BindReceiptHandler` comme une alternative plus récente à `ProcessReceipt` : on peut enregistrer un traitement par produit (ou un traitement « par défaut »), et il renvoie `Enum.ReceiptDecision.Processed` ou `NotProcessedYet`. Les principes restent exactement les mêmes : idempotence avec le `PurchaseId`, et ne confirmer qu’une fois le produit donné. `ProcessReceipt` reste documenté et non déprécié en octobre 2026.
+La référence de l’API présente désormais `MarketplaceService:BindReceiptHandler` comme une alternative plus récente à `ProcessReceipt` : on peut enregistrer un traitement par produit (ou un traitement « par défaut »), et il renvoie `Enum.ReceiptDecision.Processed` ou `NotProcessedYet`. Les principes restent exactement les mêmes : idempotence avec le `PurchaseId`, et ne confirmer qu’une fois le produit donné. En octobre 2026, la référence qualifie `ProcessReceipt` de callback « legacy » (historique), mais il n’est **pas** déprécié et reste celui qu’utilise le guide officiel des Developer Products ; un handler lié par `BindReceiptHandler` passe en priorité, et les reçus qu’aucun handler ne prend en charge retombent sur `ProcessReceipt`.
 </Info>
 
 ## Tester sans se ruiner
 
-Dans Studio, les achats de Developer Products sont **simulés** et déclenchent bien `ProcessReceipt`, selon l’annonce officielle de 2016 sur le DevForum. Pour que le DataStore fonctionne en test, active l’accès aux API dans les paramètres du jeu (vu au module 4). Teste ces scénarios :
+Selon une annonce du staff Roblox sur le DevForum, les achats faits dans Studio sont **simulés** : aucun Robux n’est débité, et un achat de Developer Product déclenche bien `ProcessReceipt`. Attention, cette annonce date de **2016** et la documentation actuelle ne décrit plus ce comportement : vérifie-le toi-même, et fais un dernier test dans le jeu publié. Des développeurs signalent aussi sur le DevForum (2025) que `ProcessReceipt` n’est **pas** appelé en mode **Team Test** : teste en Play classique. Pour que le DataStore fonctionne en test, active l’accès aux API dans les paramètres du jeu (vu au module 4). Teste ces scénarios :
 
 1. achat normal : l’étape augmente et tu es téléporté ;
 2. achat annulé : rien ne se passe ;
-3. DataStore inaccessible (désactive l’accès aux API) : le script affiche un avertissement et ne donne rien ;
+3. panne de DataStore : ajoute **temporairement** `error("Panne simulée")` au début de la fonction passée au `pcall` de l’étape 3 ; le script doit afficher un avertissement et ne rien donner (retire la ligne ensuite) ;
 4. joueur à la dernière étape : le bouton ne propose rien.
 
 <Defi>
@@ -314,5 +331,7 @@ Ajoute un second Developer Product « Sac de 100 pièces ». Il te suffit d’é
 - [Developer Products — guide officiel (création, vente, traitement des achats)](https://create.roblox.com/docs/production/monetization/developer-products)
 - [MarketplaceService.ProcessReceipt et BindReceiptHandler — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/MarketplaceService)
 - [Data stores — guide officiel](https://create.roblox.com/docs/cloud-services/data-stores)
-- [Mock purchases in Studio — annonce du DevForum (2016)](https://devforum.roblox.com/t/mock-purchases-in-studio/26974)
+- [Implement player data and purchasing systems — attendre le chargement des données dans ProcessReceipt (guide officiel)](https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing)
+- [Mock purchases in Studio — annonce du staff Roblox sur le DevForum (2016, ancienne)](https://devforum.roblox.com/t/mock-purchases-in-studio/26974)
+- [ProcessReceipt non appelé en Team Test — rapport de développeurs sur le DevForum (2025)](https://devforum.roblox.com/t/marketplaceserviceprocessreceipt-is-not-called-in-team-test/3983692)
 </Sources>

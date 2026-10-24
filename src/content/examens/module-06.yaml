@@ -4,7 +4,7 @@ description: Vérifie que tu sais vendre honnêtement et de façon fiable dans l
 seuil: 70
 questions:
   - type: qcm
-    question: Un joueur dépense 250 Robux pour un Developer Product de ton jeu. Combien de Robux arrivent sur ton compte, en attente, au taux en vigueur en octobre 2026 ?
+    question: Un joueur non abonné à Roblox Plus dépense 250 Robux pour un Developer Product de ton jeu. Combien de Robux arrivent sur ton compte, en attente, au taux en vigueur en octobre 2026 ?
     options:
       - texte: "250"
       - texte: "175"

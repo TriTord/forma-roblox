@@ -51,9 +51,9 @@ quiz:
         correct: true
     explication: "`GetUserSubscriptionStatusAsync` renvoie une **table** avec les clés `IsSubscribed` et `IsRenewing`. Une table est toujours considérée comme vraie en Luau, même si le joueur n’est pas abonné. L’ID d’abonnement est bien une chaîne (format `EXP-…`) et la fonction attend l’objet `Player`."
   - type: vrai-faux
-    question: En 2026, Roblox a lancé Roblox Plus et annoncé qu’il cessait de vendre l’abonnement Premium aux nouveaux abonnés.
+    question: En 2026, Roblox a lancé Roblox Plus et cessé de vendre l’abonnement Premium aux nouveaux abonnés.
     reponse: true
-    explication: "L’annonce officielle « Introducing Roblox Plus » annonce le lancement de Roblox Plus le 30 avril 2026 et l’arrêt de la vente de Premium aux nouveaux abonnés. Côté code, `Player.MembershipType` est désormais déprécié au profit de `Player.HasRobloxSubscription`."
+    explication: "Roblox Plus est disponible depuis le 30 avril 2026, et la page d’aide officielle indique que Premium n’est plus vendu depuis cette même date (les abonnés existants peuvent le garder, sans pouvoir s’y réabonner). Côté code, `Player.MembershipType` est désormais déprécié au profit de `Player.HasRobloxSubscription`."
 ---
 
 Un Game Pass se paie une fois, un Developer Product à chaque utilisation. Il existe une troisième voie : l’**abonnement d’expérience**, payé chaque mois. Dans cette leçon, tu vas voir comment il fonctionne, comment le vérifier proprement, puis faire le point sur un sujet qui a beaucoup changé : les **Premium Payouts**, remplacés par de nouveaux programmes en 2025 et 2026.
@@ -104,7 +104,7 @@ Roblox impose notamment : des noms clairs, les **mêmes avantages sur toutes les
 Pour l’Obby des Nuages, imaginons un abonnement « Nuage+ » qui **double les pièces ramassées**. Trois outils officiels suffisent :
 
 - `MarketplaceService:GetUserSubscriptionStatusAsync(player, subscriptionId)` : renvoie une table avec `IsSubscribed` (l’abonnement est actif) et `IsRenewing` (il se renouvellera). À appeler **côté serveur**, dans un `pcall`.
-- `Players.UserSubscriptionStatusChanged` : événement déclenché quand le serveur constate qu’un abonnement a changé. Il reçoit `(player, subscriptionId)` et n’est reçu **que par les scripts serveur**.
+- `Players.UserSubscriptionStatusChanged` : événement déclenché quand le serveur constate qu’un abonnement a changé. Il reçoit `(player, subscriptionId)` et n’est reçu **que par les scripts serveur**. D’après la référence, le serveur ne revérifie le statut qu’**après la fermeture d’une fenêtre d’achat d’abonnement** : c’est pourquoi on revérifie aussi à chaque arrivée du joueur.
 - `PolicyService:GetPolicyInfoForPlayerAsync(player)` : indique notamment, avec `IsEligibleToPurchaseSubscription`, si ce joueur a le droit d’acheter un abonnement (selon son pays, son âge, sa plateforme).
 
 ```luau
@@ -141,7 +141,7 @@ Players.PlayerAdded:Connect(function(player)
 	verifierAbonnement(player)
 end)
 
--- Abonnement acheté, résilié ou expiré pendant la partie
+-- Statut modifié (le serveur le revérifie après la fermeture d'une fenêtre d'achat d'abonnement)
 Players.UserSubscriptionStatusChanged:Connect(function(player, idAbonnement)
 	if idAbonnement == ID_ABONNEMENT then
 		verifierAbonnement(player)
@@ -209,7 +209,7 @@ Pendant des années, les créateurs touchaient des **Premium Payouts** (appelés
 
 Les Creator Rewards (« récompenses des créateurs ») ont deux volets, selon la page officielle consultée en octobre 2026 :
 
-- **Daily Engagement Rewards** : tu reçois **5 Robux par jour** pour chaque « Active Spender » qui joue **au moins 10 minutes** à ton jeu, à condition que ton jeu fasse partie des **trois premiers** jeux qu’il lance ce jour-là. Un Active Spender est un joueur actif depuis au moins 60 jours qui a dépensé au moins 9,99 $ sur Roblox au cours des 60 derniers jours. Aucune inscription n’est nécessaire.
+- **Daily Engagement Rewards** : tu reçois **5 Robux par jour** pour chaque « Active Spender » qui joue **au moins 10 minutes** à ton jeu, à condition que ton jeu fasse partie des **trois premiers** jeux qu’il lance ce jour-là. Un Active Spender est un joueur qui a dépensé au moins 9,99 $ sur Roblox au cours des 60 derniers jours (achats de Robux ou d’abonnements) et qui n’était pas un nouveau joueur ou un joueur de retour durant cette période. Aucune inscription n’est nécessaire.
 - **Audience Expansion Rewards** : quand ton jeu fait venir sur Roblox un **nouveau joueur** ou en fait **revenir un ancien** (absent depuis 60 jours), par exemple grâce à un lien de partage, tu touches **35 %** de ses premiers 100 $ d’achats qualifiants pendant 60 jours. Conditions supplémentaires : un compte vérifié par pièce d’identité et en règle, et un jeu qui maintient en moyenne au moins 100 joueurs actifs par jour sur la période.
 
 Ces récompenses sont versées en Earned Robux avec une **attente de 60 jours**. Roblox surveille activement les abus (bots, faux comptes, encouragement à créer des comptes secondaires) et peut retirer les gains, voire exclure le créateur.
@@ -220,11 +220,11 @@ Tu n’as rien à coder pour les Creator Rewards : c’est automatique. Ton seul
 
 ### Roblox Plus, le successeur de Premium
 
-Deuxième changement : Roblox a lancé **Roblox Plus** le **30 avril 2026** (4,99 $ par mois selon l’annonce officielle) et a annoncé qu’il **cessait de vendre Premium** aux nouveaux abonnés. Les abonnés Premium existants ont vu leurs avantages modifiés à partir du 30 mai 2026. Pour toi, créateur, Roblox Plus apporte, selon la documentation (octobre 2026) :
+Deuxième changement : Roblox a lancé **Roblox Plus** le **30 avril 2026** (4,99 $ par mois selon l’annonce officielle) et, le même jour, a **cessé de vendre Premium** : d’après la page d’aide officielle, les abonnés Premium existants peuvent garder leur abonnement, mais ne peuvent plus s’y réabonner s’ils l’annulent, et leurs avantages ont été modifiés à partir du 30 mai 2026. Pour toi, créateur, Roblox Plus apporte, selon la documentation (octobre 2026) :
 
 - des **réductions payées par Roblox** : les abonnés Plus paient tes objets 10 % puis 20 % moins cher, mais tu touches la même somme ;
-- un **bonus d’inscription** : jusqu’à **750 Robux** (250 Robux par mois pendant 3 mois) pour chaque joueur qui s’abonne à Plus **depuis ton jeu** via `MarketplaceService:PromptRobloxSubscriptionPurchase` ; ces gains ont une attente de 60 jours ;
-- une **compensation pour les serveurs privés payants**, gratuits pour les abonnés Plus : jusqu’à 100 Robux par abonné qui y passe au moins 60 minutes sur 30 jours ;
+- un **bonus d’inscription** : jusqu’à **750 Robux** (250 Robux par mois pendant 3 mois consécutifs, une fois l’abonnement payant, hors essai gratuit) pour chaque joueur qui s’abonne à Plus **depuis ton jeu** via `MarketplaceService:PromptRobloxSubscriptionPurchase` ; ces gains ont une attente de 60 jours ;
+- une **compensation pour les serveurs privés payants**, gratuits pour les abonnés Plus : jusqu’à 100 Robux par abonné qui passe au moins 60 minutes sur 30 jours dans le serveur privé qu’il a créé dans ton jeu ;
 - **10 %** des transferts de Robux faits par des abonnés Plus dans ton jeu, via l’API dédiée.
 
 ### Reconnaître un abonné Roblox Plus en jeu
@@ -268,7 +268,7 @@ Dans un document, décris un abonnement « Nuage+ » réaliste pour l’Obby des
 - Vérifie-le **côté serveur** avec `GetUserSubscriptionStatusAsync` (champ `IsSubscribed`) et `Players.UserSubscriptionStatusChanged`, et l’éligibilité avec `PolicyService`.
 - L’avantage doit **s’arrêter** quand l’abonnement prend fin.
 - Les **Premium Payouts** ont été remplacés le 24 juillet 2025 par les **Creator Rewards** (engagement quotidien et nouveaux joueurs).
-- **Roblox Plus** (lancé le 30 avril 2026) succède à Premium, qui n’est plus vendu aux nouveaux abonnés ; utilise `Player.HasRobloxSubscription` au lieu de `MembershipType`.
+- **Roblox Plus** (lancé le 30 avril 2026) succède à Premium, qui n’est plus vendu depuis cette date ; utilise `Player.HasRobloxSubscription` au lieu de `MembershipType`.
 </Resume>
 
 <Sources>
@@ -279,5 +279,7 @@ Dans un document, décris un abonnement « Nuage+ » réaliste pour l’Obby des
 - [Engagement-based payouts — ancienne page, avec l’avis de remplacement](https://create.roblox.com/docs/production/monetization/engagement-based-payouts)
 - [Roblox Plus — gains des créateurs](https://create.roblox.com/docs/production/monetization/roblox-plus)
 - [Introducing Roblox Plus — annonce officielle sur le DevForum](https://devforum.roblox.com/t/introducing-roblox-plus/4567894)
+- [Roblox Premium Membership — fin de la vente de Premium (aide officielle)](https://en.help.roblox.com/hc/en-us/articles/360024256251)
+- [Players.UserSubscriptionStatusChanged — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/Players)
 - [Player.HasRobloxSubscription — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/Player)
 </Sources>

@@ -79,7 +79,7 @@ Ton jeu doit d’abord être **publié** et accessible sur Roblox (tu l’as fai
 6. Choisis une catégorie (elle sert à ranger les objets dans la boutique en jeu).
 7. Clique sur **Create pass**.
 
-Il te reste à fixer le **prix** et à **mettre le pass en vente** depuis la page du pass (onglet de vente, **Sales**). Les écrans du Creator Hub évoluent souvent : si un libellé a changé, cherche l’option de prix dans la page du pass.
+Il te reste à fixer le **prix** et à **mettre le pass en vente** depuis la page du pass dans le Creator Hub. La documentation officielle ne détaille plus cette étape (octobre 2026) ; elle mentionne seulement une page **Sales** du pass, qui affiche notamment ses prix par pays. Les écrans du Creator Hub évoluent souvent : si un libellé a changé, cherche l’option de prix et de mise en vente dans la page du pass.
 
 ### Récupérer l’identifiant du pass
 
@@ -268,14 +268,12 @@ Un joueur peut aussi acheter ton pass depuis la page de ton jeu, en dehors de la
 
 ## Tester ton Game Pass
 
-Dans Studio, lance un test (**Play**) et clique sur le bouton. Une annonce officielle du DevForum (2016) indique que les achats faits dans Studio sont **simulés** : aucun Robux n’est débité. Vérifie à chaque test que :
+Tester l’achat d’un pass demande un peu de méthode, car **Studio ne simule pas vraiment l’achat de passes**. La page officielle du kit « Season Passes » (documentation Roblox, consultée en octobre 2026) le dit clairement : pour tester l’achat d’un pass, il faut **publier le jeu et tester dans le client Roblox**. Une ancienne annonce du staff Roblox (DevForum, 2016) précisait déjà qu’aucun Robux n’est débité pour un achat fait dans Studio, mais que la vérification de possession d’un pass pouvait y renvoyer une valeur incorrecte.
 
-- la traînée apparaît après un achat réussi ;
-- rien ne se passe si tu cliques sur **Annuler** ;
-- la traînée revient après une mort (réapparition) ;
-- le bouton affiche « possédée » une fois le pass obtenu.
+Procède donc en deux temps :
 
-Pour tester la vérification à l’arrivée (`UserOwnsGamePassAsync`), le plus fiable reste de rejoindre le jeu publié avec un compte qui possède réellement le pass.
+1. **Dans Studio** (Play) : vérifie que le bouton affiche le prix et ouvre la fenêtre d’achat, et que rien ne se passe si tu cliques sur **Annuler**. Pour tester l’effet lui-même, ajoute **temporairement** `accorderPass(player)` au début de `onPlayerAdded` : la traînée doit apparaître, revenir après une mort (réapparition), et le bouton doit afficher « possédée ». Retire cette ligne avant de publier !
+2. **Dans le jeu publié** : rejoins le jeu avec un compte qui possède réellement le pass pour tester la vérification à l’arrivée (`UserOwnsGamePassAsync`), et, si tu veux tester `PromptGamePassPurchaseFinished` en conditions réelles, fais un véritable achat (il coûte de vrais Robux).
 
 <Defi>
 Crée le Game Pass « Traînée dorée » dans le Creator Hub, colle son ID dans les deux scripts, puis teste dans Studio. Bonus : ajoute un second pass (par exemple « Traînée arc-en-ciel ») en transformant `ID_PASS_TRAIL_DORE` en une petite table qui associe chaque ID de pass à une couleur de traînée.
@@ -294,5 +292,6 @@ Crée le Game Pass « Traînée dorée » dans le Creator Hub, colle son ID dans
 - [MarketplaceService — référence de l’API](https://create.roblox.com/docs/reference/engine/classes/MarketplaceService)
 - [Regional pricing — prix régionaux et Managed Pricing](https://create.roblox.com/docs/production/monetization/regional-pricing)
 - [Roblox Plus — avertissement sur les prix écrits en dur](https://create.roblox.com/docs/production/monetization/roblox-plus)
-- [Mock purchases in Studio — annonce du DevForum (2016)](https://devforum.roblox.com/t/mock-purchases-in-studio/26974)
+- [Season Passes — « Studio does not mock pass purchasing » (documentation Roblox)](https://create.roblox.com/docs/resources/feature-packages/season-passes)
+- [Mock purchases in Studio — annonce du staff Roblox sur le DevForum (2016, ancienne)](https://devforum.roblox.com/t/mock-purchases-in-studio/26974)
 </Sources>

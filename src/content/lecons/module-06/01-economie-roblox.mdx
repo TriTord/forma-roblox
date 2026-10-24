@@ -17,7 +17,7 @@ quiz:
       - texte: "70"
         correct: true
       - texte: "30"
-    explication: "Pour un achat en Robux (Game Pass, Developer Product, abonnement payé en Robux), le créateur reçoit **70 %** du prix. Les 30 % restants reviennent à la plateforme."
+    explication: "Pour un achat en Robux (Game Pass, Developer Product, abonnement payé en Robux), le créateur reçoit **70 %** du prix (« You receive 70% of Robux spent », selon la documentation officielle d’octobre 2026). Les 30 % restants sont la commission de la plateforme."
   - type: vrai-faux
     question: Les Robux que tu gagnes avec une vente sont utilisables immédiatement, à la seconde où le joueur clique sur « Acheter ».
     reponse: false
@@ -71,18 +71,18 @@ Voici les principales façons de gagner des Robux avec un jeu, d’après la doc
 | **Accès payant** | Payer pour entrer dans le jeu (en Robux ou en monnaie locale) | Peu adapté à un premier jeu |
 | **Publicités immersives** | Des emplacements publicitaires dans ton monde | Un panneau dans le lobby |
 | **Creator Rewards** | Robux versés par Roblox selon l’engagement et les nouveaux joueurs que tu amènes | Automatique |
-| **Roblox Plus** | Bonus quand des abonnés Plus achètent, s’abonnent depuis ton jeu ou utilisent tes serveurs privés | Automatique ou via une API |
+| **Roblox Plus** | Bonus quand un joueur s’abonne à Plus depuis ton jeu, compensation quand des abonnés Plus utilisent tes serveurs privés payants, part des transferts de Robux faits dans ton jeu | Via des API ou automatique |
 | **Objets d’avatar** | Commission quand un objet du Marketplace est acheté depuis ton jeu | Aperçu seulement |
 
 Dans ce module, on se concentre sur les trois premières lignes, les plus utiles pour un premier jeu, puis on explique Creator Rewards et Roblox Plus à la leçon 4.
 
 <Attention titre="Les programmes changent souvent">
-L’ancien système de **Premium Payouts** (paiements selon le temps passé par les abonnés Premium) a été **remplacé par les Creator Rewards le 24 juillet 2025**. Et en 2026, Roblox a lancé **Roblox Plus** (disponible depuis le 30 avril 2026) et a annoncé qu’il **cessait de vendre Premium** aux nouveaux abonnés. Si tu lis un vieux tutoriel qui parle de Premium Payouts, il est dépassé. Vérifie toujours la page officielle avant de te fier à un chiffre.
+L’ancien système de **Premium Payouts** (paiements selon le temps passé par les abonnés Premium) a été **remplacé par les Creator Rewards le 24 juillet 2025**. Et le **30 avril 2026**, Roblox a lancé **Roblox Plus** et a **cessé de vendre Premium** : selon la page d’aide officielle, les abonnés Premium existants peuvent garder leur abonnement, mais ne peuvent plus s’y réabonner s’ils l’annulent. Si tu lis un vieux tutoriel qui parle de Premium Payouts, il est dépassé. Vérifie toujours la page officielle avant de te fier à un chiffre.
 </Attention>
 
 ## Quelle part revient au créateur ?
 
-Quand un joueur paie un objet en Robux dans ton jeu (Game Pass, Developer Product, abonnement payé en Robux, serveur privé payant), tu reçois **70 % du prix**. Au moment de la rédaction (octobre 2026), c’est la part indiquée dans la documentation officielle de Roblox.
+Quand un joueur paie un objet en Robux dans ton jeu (Game Pass, Developer Product, abonnement payé en Robux, serveur privé payant), tu reçois **70 % du prix**. Au moment de la rédaction (octobre 2026), la page officielle « How do I make money? » l’écrit en toutes lettres pour les achats en jeu : « You receive 70% of Robux spent », les 30 % restants étant la commission de Roblox (« Marketplace Fee »). Les pages officielles « Subscriptions » et « Roblox Plus » donnent la même part de 70 % pour les abonnements payés en Robux et les serveurs privés payants.
 
 Exemple concret :
 
@@ -90,11 +90,11 @@ Exemple concret :
 - le joueur dépense 100 Robux ;
 - tu reçois **70 Robux**.
 
-Les 30 % restants reviennent à la plateforme Roblox.
+Les 30 % restants reviennent à la plateforme Roblox (sa commission).
 
 ### Et si le joueur a une réduction ?
 
-Les abonnés **Roblox Plus** paient leurs achats 10 % moins cher, puis 20 % moins cher à partir du troisième mois. Bonne nouvelle : c’est **Roblox qui paie la réduction**. Sur un objet à 100 Robux, l’abonné paie 90 ou 80 Robux, mais tu reçois toujours 70 Robux.
+Les abonnés **Roblox Plus** paient leurs achats éligibles en Robux (passes, Developer Products, abonnements, accès payant, objets d’avatar…) 10 % moins cher, puis 20 % moins cher à partir du troisième mois. Bonne nouvelle : c’est **Roblox qui paie la réduction**. Sur un objet à 100 Robux, l’abonné paie 90 ou 80 Robux, mais tu reçois toujours 70 Robux.
 
 <Astuce titre="N’écris jamais un prix « en dur »">
 Comme le prix vu par un joueur peut varier (réduction Roblox Plus, prix régionaux, tests de prix), la documentation recommande de récupérer le prix réel avec `MarketplaceService:GetProductInfoAsync` au lieu d’écrire « 100 Robux » directement dans ton interface. On le mettra en pratique dès la leçon suivante.
@@ -109,7 +109,7 @@ Les Robux d’une vente n’arrivent pas instantanément sur ton solde utilisabl
 | Game Passes, Developer Products, abonnements en Robux | environ **5 jours** |
 | Accès payant en Robux | jusqu’à **7 jours** |
 | Abonnements payés en monnaie locale | **30 jours** |
-| Creator Rewards et bonus Roblox Plus | **60 jours** |
+| Creator Rewards et bonus d’inscription Roblox Plus | **60 jours** |
 
 Tu peux suivre tes transactions et tes Robux en attente depuis ta page de transactions Roblox et le **Creator Dashboard** (le tableau de bord des créateurs).
 
@@ -171,6 +171,7 @@ Ouvre le Creator Hub, va dans **Creations**, choisis ton Obby des Nuages, puis o
 </Resume>
 
 <Sources>
+- [How do I make money? — « You receive 70% of Robux spent » (Roblox Creator Hub)](https://create.roblox.com/docs/get-started/monetization)
 - [Monetization — vue d’ensemble et règles (Roblox Creator Hub)](https://create.roblox.com/docs/production/monetization)
 - [Roblox Plus — gains des créateurs et réductions subventionnées](https://create.roblox.com/docs/production/monetization/roblox-plus)
 - [Subscriptions — parts et délais de paiement](https://create.roblox.com/docs/production/monetization/subscriptions)
@@ -178,5 +179,6 @@ Ouvre le Creator Hub, va dans **Creations**, choisis ton Obby des Nuages, puis o
 - [Creator Rewards — programme qui remplace les Engagement-Based Payouts](https://create.roblox.com/docs/creator-rewards)
 - [Engagement-based payouts — page indiquant le remplacement au 24 juillet 2025](https://create.roblox.com/docs/production/monetization/engagement-based-payouts)
 - [Introducing Roblox Plus — annonce officielle sur le DevForum](https://devforum.roblox.com/t/introducing-roblox-plus/4567894)
+- [Roblox Premium Membership — fin de la vente de Premium le 30 avril 2026 (aide officielle)](https://en.help.roblox.com/hc/en-us/articles/360024256251)
 - [Developer Exchange — définition des Earned Robux](https://create.roblox.com/docs/production/monetization/developer-exchange)
 </Sources>
