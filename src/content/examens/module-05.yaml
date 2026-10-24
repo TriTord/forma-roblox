@@ -87,30 +87,30 @@ questions:
     explication: Les Community Standards de Roblox imposent l’affichage exact et chiffré des probabilités avant l’achat, un bénéfice pour chaque résultat et un accès réservé aux utilisateurs éligibles. Le détail est vu au module 6.
 
   - type: trouve-le-bug
-    question: "Cette fonction de Config doit donner 2 pièces par étape dans la zone 1 (étapes 1 à 5), plus un bonus de 10 à la dernière étape de la zone. Le bonus n’est jamais versé. Où est le bug ?"
+    question: "Cette fonction de Config doit donner 2 pièces par étape dans le niveau 1 (étapes 1 à 5), plus un bonus de 10 à la dernière étape du niveau. Le bonus n’est jamais versé. Où est le bug ?"
     code: |
-      local Zone1 = { premiereEtape = 1, derniereEtape = 5, piecesParEtape = 2 }
-      local BONUS_FIN_DE_ZONE = 10
+      local Niveau1 = {etapeDebut = 1, etapeFin = 5, piecesParEtape = 2}
+      local BONUS_FIN_DE_NIVEAU = 10
 
       local function recompensePourEtape(etape: number): number
-      	if etape < Zone1.premiereEtape or etape >= Zone1.derniereEtape then
+      	if etape < Niveau1.etapeDebut or etape >= Niveau1.etapeFin then
       		return 0
       	end
-      	local gain = Zone1.piecesParEtape
-      	if etape == Zone1.derniereEtape then
-      		gain += BONUS_FIN_DE_ZONE
+      	local gain = Niveau1.piecesParEtape
+      	if etape == Niveau1.etapeFin then
+      		gain += BONUS_FIN_DE_NIVEAU
       	end
       	return gain
       end
 
       print(recompensePourEtape(5))
     options:
-      - texte: "Ligne 5 : `>=` exclut la dernière étape de la zone, il faut `>`"
+      - texte: "Ligne 5 : `>=` exclut la dernière étape du niveau, il faut `>`"
         correct: true
       - texte: "Ligne 9 : il faut `=` au lieu de `==`"
       - texte: "Ligne 10 : `+=` n’existe pas en Luau"
       - texte: "Ligne 1 : une table ne peut pas contenir de nombres"
-    explication: "Pour l’étape 5, `5 >= 5` est vrai : la fonction renvoie 0 avant même d’arriver au bonus. Avec `etape > Zone1.derniereEtape`, l’étape 5 reçoit ses 2 pièces plus le bonus de 10. À la ligne 9, `==` est bien la comparaison attendue."
+    explication: "Pour l’étape 5, `5 >= 5` est vrai : la fonction renvoie 0 avant même d’arriver au bonus. Avec `etape > Niveau1.etapeFin`, l’étape 5 reçoit ses 2 pièces plus le bonus de 10. À la ligne 9, `==` est bien la comparaison attendue."
 
   - type: qcm
     question: Quelles affirmations sur les notifications d’expérience sont exactes selon la documentation Roblox ? (plusieurs réponses possibles)

@@ -143,15 +143,18 @@ return ObjectifsQuotidiens
 
 Les champs `jourObjectif`, `piecesDuJour` et `bonusReclame` n’existent pas dans les anciennes sauvegardes : ce n’est pas grave, `mettreAJour` les crée au premier appel (un champ absent vaut `nil`, donc différent du jour actuel).
 
-Dans ton Script serveur « Pieces » (module 3), ajoute cette fonction et appelle-la juste après la ligne `pieces.Value += VALEUR_PIECE` :
+Reste à le brancher dans ton Script serveur « Pieces » (module 3, leçon 5) :
+
+1. colle le bloc ci-dessous en haut du script, sous les `require` existants et **au-dessus** de la fonction `preparerPiece` (une fonction locale doit être définie avant le code qui l’utilise) ;
+2. dans `preparerPiece`, juste après la ligne qui ajoute la pièce (`pieces.Value += VALEUR_PIECE`), ajoute l’appel `verifierObjectifDuJour(player, pieces)`.
 
 ```luau
 -- À ajouter dans ton Script serveur « Pieces » (ServerScriptService, module 3)
-local ServerScriptService = game:GetService("ServerScriptService")
+local ServerScriptService = game:GetService("ServerScriptService") -- déjà présent ? ne le répète pas
 local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs"))
 local ObjectifsQuotidiens = require(ServerScriptService:WaitForChild("ObjectifsQuotidiens"))
 
--- À appeler juste après avoir validé une pièce : verifierObjectifDuJour(player, pieces)
+-- Ajoute le bonus du jour si l'objectif vient d'être atteint.
 -- « pieces » est l'IntValue leaderstats.Pieces du joueur.
 local function verifierObjectifDuJour(player: Player, pieces: IntValue)
 	local donnees = DonneesJoueurs.Obtenir(player) -- table en mémoire (module 4)
@@ -189,13 +192,13 @@ La même page conseille de ne pas rendre les serveurs privés trop chers, car ce
 
 ## Levier 4 : les collections et les badges
 
-Collectionner donne un objectif à long terme. Les traînées de la boutique en sont déjà une ; les **badges** en sont une autre. Un badge est une récompense Roblox attribuée quand un joueur atteint un objectif dans ton jeu (« Sommet de l’Orage atteint », « Toutes les pièces dorées trouvées »).
+Collectionner donne un objectif à long terme. Les traînées de la boutique en sont déjà une ; les **badges** en sont une autre. Un badge est une récompense Roblox attribuée quand un joueur atteint un objectif dans ton jeu (« Sommet atteint », « Toutes les pièces dorées trouvées »).
 
 - Ils se créent depuis le Creator Dashboard. Au moment de la rédaction (octobre 2026), la documentation indique que tu peux en créer **5 gratuitement par période de 24 heures** (GMT) et par jeu, puis 100 Robux par badge supplémentaire dans cette période. Vérifie la page officielle avant de compter dessus.
 - Ils s’attribuent depuis un Script serveur avec `BadgeService:AwardBadgeAsync()` dans un `pcall` (l’ancienne méthode `AwardBadge` est dépréciée).
 
 <Astuce titre="Un badge doit raconter quelque chose">
-Un badge « Tu as rejoint le jeu » ne raconte rien. Réserve les badges aux étapes marquantes de ta progression (fin de zone, défi secret, parcours sans chute) : ils deviennent des objectifs à long terme que le joueur a envie de compléter.
+Notre conseil : un badge « Tu as rejoint le jeu » ne raconte rien. Réserve les badges aux étapes marquantes de ta progression (fin de niveau, défi secret, parcours sans chute) : ils deviennent des objectifs à long terme que le joueur a envie de compléter.
 </Astuce>
 
 ## Levier 5 : du contenu renouvelé
@@ -220,7 +223,7 @@ Roblox permet d’envoyer des **notifications d’expérience** personnalisées 
 - chaque utilisateur peut recevoir **au maximum une notification par jour** d’une même expérience (une limite quotidienne globale, toutes expériences confondues, s’applique aussi) ;
 - la demande d’autorisation (*opt-in*) a un texte standard non modifiable. Elle ne s’affiche pas si l’utilisateur a déjà activé les notifications ou s’il a déjà vu la demande pour ton jeu dans les 30 derniers jours.
 
-Le bon moment pour demander l’autorisation est un moment où une future notification aurait du sens : par exemple quand le joueur vient de **terminer le parcours**, pour être prévenu de la prochaine zone. Ce LocalScript reprend le modèle officiel (vérification avec `CanPromptOptInAsync`, puis `PromptOptIn`, chacun dans un `pcall`) :
+La documentation conseille de demander l’autorisation dans un contexte qui justifie une future notification : par exemple quand le joueur vient de **terminer le parcours**, pour être prévenu de la prochaine zone. Ce LocalScript reprend le modèle officiel (vérification avec `CanPromptOptInAsync`, puis `PromptOptIn`, chacun dans un `pcall`) :
 
 ```luau
 -- LocalScript à placer dans StarterPlayer > StarterPlayerScripts
@@ -230,8 +233,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ExperienceNotificationService = game:GetService("ExperienceNotificationService")
 
 local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
--- Dernière étape du parcours, tirée des zones définies dans Config (leçon 3)
-local DERNIERE_ETAPE = Config.Zones[#Config.Zones].derniereEtape
+-- Dernière étape du parcours : etapeFin du dernier niveau de Config.Niveaux (module 2, leçon 6)
+local DERNIERE_ETAPE = Config.Niveaux[#Config.Niveaux].etapeFin
 
 local joueur = Players.LocalPlayer
 local etape = joueur:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
@@ -264,7 +267,7 @@ Le module 4 crée `Etape` directement avec la valeur chargée : `Changed` ne se 
 
 L’envoi des notifications se fait ensuite côté serveur (avec le package Open Cloud fourni par Roblox sur le Creator Store) ou par l’API Open Cloud, à partir de textes préparés dans le Creator Dashboard (99 caractères maximum au moment de la rédaction). Suis la page officielle pas à pas le jour où ton jeu remplit les conditions.
 
-Roblox recommande des notifications **personnalisées**, liées à l’activité du joueur, qui l’invitent à une action immédiate, plutôt que des messages publicitaires génériques. Exemple dans l’esprit de la documentation : « Plus que 2 étapes pour finir le Sommet de l’Orage ! ».
+Roblox recommande des notifications **personnalisées**, liées à l’activité du joueur, qui l’invitent à une action immédiate, plutôt que des messages publicitaires génériques. Exemple dans l’esprit de la documentation : « Plus que 2 étapes pour atteindre le Sommet ! ».
 
 ## Respecter le temps du joueur : les dark patterns
 

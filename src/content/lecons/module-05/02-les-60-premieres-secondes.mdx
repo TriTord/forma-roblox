@@ -269,7 +269,7 @@ Si l’un de ces temps te surprend, change **une seule chose** (orientation du s
 
 Tes impressions ne suffisent pas : il faut des chiffres. Roblox propose deux outils que tu utiliseras plus tard.
 
-- **La rétention à J1** (D1) : selon la documentation, c’est le pourcentage de nouveaux joueurs qui reviennent dans ton jeu après leur première visite. Roblox relie directement ce chiffre à la core loop, à la FTUE et aux performances.
+- **La rétention à J1** (D1) : selon la documentation, elle mesure combien de joueurs reviennent dans ton jeu un jour après leur première visite (J7 et J30 : 7 et 30 jours après). Roblox relie directement ce chiffre à la core loop, à la FTUE et aux performances.
 - **L’entonnoir d’onboarding** (*onboarding funnel*) : avec `AnalyticsService`, ton serveur enregistre chaque étape franchie (« Arrivé », « Premier saut », « Checkpoint 1 »…). La page **Funnel** du tableau de bord Analytics (Creator Hub) te montre ensuite à quelle étape les joueurs décrochent. Ces événements ne s’envoient que depuis le serveur et dans un jeu publié. On construira cet entonnoir étape par étape au module 8.
 
 La documentation conseille de lister les étapes de ta boucle, de suivre le taux de réussite de chacune et de corriger en priorité les plus grosses chutes. Elle mentionne aussi les **Experiments** (tests A/B), par exemple pour comparer un dialogue plus court et une flèche de guidage. Mais attention : au moment de la rédaction (octobre 2026), Roblox prévient que les jeux de moins de 1 000 utilisateurs actifs par jour risquent d’avoir du mal à obtenir des résultats utiles avec ces tests. Pour un premier jeu, les playtests de la leçon 5 seront bien plus parlants.
