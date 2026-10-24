@@ -23,7 +23,7 @@
 | 04 | en cours | | |
 | 05 | FAIT | en cours | |
 | 06 | en cours | | |
-| 07 | en cours | | |
+| 07 | FAIT | en cours | |
 | 08 | FAIT | en cours | |
 | 09 | en cours | | |
 | 10 | en cours | | |
