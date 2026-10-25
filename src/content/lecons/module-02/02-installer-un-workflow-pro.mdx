@@ -67,6 +67,8 @@ quiz:
 
 Jusqu’ici, ton code vivait dans Studio. Pour piloter une IA de code comme un pro, on va le mettre **en fichiers sur ton ordinateur**, dans un dossier où tout est rangé, versionné et vérifié automatiquement. C’est la leçon la plus « technique » du module, mais tu n’as besoin d’aucune connaissance préalable : chaque commande est donnée, avec le résultat attendu et quoi faire si ça échoue. Prévois une bonne heure et avance étape par étape.
 
+**Par où commencer ?** Fais les étapes 0 à 6 dans l’ordre : elles ne demandent pas Claude Code. L’étape 7 (brancher Studio à Claude Code) se fait **après** la leçon 3, où tu installes Claude Code. Les deux sections de la fin (« Migrer un jeu existant » et « Script Sync ») sont facultatives si ton jeu ne contient encore aucun script, ce qui est le cas si tu as suivi le module 1.
+
 ## Ce que tu vas installer
 
 | Outil | À quoi il sert |
@@ -94,7 +96,7 @@ Dans ce tutoriel, tu utiliseras surtout le **terminal intégré de VS Code** (é
 
 ### Les cinq gestes à connaître
 
-1. **Le dossier de travail** : chaque terminal « est » dans un dossier. Tape `pwd` puis `Entrée` pour l’afficher. Les commandes de Rojo, Git ou Rokit agissent sur ce dossier : il doit être celui de ton projet.
+1. **Le dossier de travail** : chaque terminal « est » dans un dossier. Tape `pwd` puis `Entrée` pour l’afficher (sous Windows, PowerShell écrit `Path`, une ligne de tirets, puis le chemin du dossier ; sur Mac, seulement le chemin). Les commandes de Rojo, Git ou Rokit agissent sur ce dossier : il doit être celui de ton projet.
 2. **Copier une commande** depuis cette page (sélectionne-la ou utilise le bouton de copie du bloc), puis **colle-la** dans le terminal avec `Ctrl`+`V` (Windows) ou `Cmd`+`V` (Mac). Appuie sur `Entrée`.
 3. **Lire la réponse** : compare-la au « résultat attendu » donné ici. Les numéros de version peuvent être plus récents, c’est normal.
 4. **Arrêter une commande** qui tourne en continu (comme `rojo serve`) : `Ctrl`+`C`, sur Windows comme sur Mac.
@@ -107,9 +109,9 @@ Si le terminal répond `rokit : Le terme « rokit » n’est pas reconnu…` (Wi
 ## Étape 1 : VS Code et le dossier du projet
 
 1. Télécharge VS Code sur **code.visualstudio.com** et installe-le avec les options par défaut.
-2. Lance VS Code, puis **File** › **Open Folder…**.
-3. Va dans ton dossier **Documents**, crée un **nouveau dossier** nommé `ObbyDesNuages` (sans espace ni accent) et ouvre-le. Si VS Code demande si tu fais confiance aux auteurs de ce dossier, réponds oui : c’est le tien.
-4. Ouvre le terminal intégré : menu **Terminal** › **New Terminal** (raccourci `Ctrl`+`` ` ``). Il apparaît en bas de la fenêtre, déjà placé dans `ObbyDesNuages`.
+2. Lance VS Code, puis **File** › **Open Folder…** (les menus sont cités en anglais, la langue par défaut de VS Code ; en français : **Fichier** › **Ouvrir le dossier…**).
+3. Dans la fenêtre qui s’ouvre, va dans ton dossier **Documents**, crée un **nouveau dossier** (bouton **Nouveau dossier**) nommé `ObbyDesNuages` (sans espace ni accent) et ouvre-le. Si VS Code demande si tu fais confiance aux auteurs de ce dossier, réponds oui : c’est le tien.
+4. Ouvre le terminal intégré : menu **Terminal** › **New Terminal** (raccourci `Ctrl`+`` ` `` ; sur un clavier français, le raccourci peut être différent : passe par le menu). Il apparaît en bas de la fenêtre, déjà placé dans `ObbyDesNuages`.
 5. Tape `pwd` : le chemin affiché doit se terminer par `ObbyDesNuages`.
 
 Ce dossier sera la **racine** de ton projet : toutes les commandes qui suivent se tapent ici.
@@ -121,7 +123,7 @@ Ce dossier sera la **racine** de ton projet : toutes les commandes qui suivent s
 **Installer Git**
 
 - **Windows** : télécharge **Git for Windows** sur la page officielle (git-scm.com, rubrique *Install*, *Windows*), lance l’installateur et garde **toutes les options par défaut**. Claude Code s’en sert aussi sous Windows.
-- **Mac** : dans le terminal, tape la commande ci-dessous et accepte l’installation des « outils de ligne de commande » proposée par macOS.
+- **Mac** : dans le terminal, tape la commande ci-dessous et accepte l’installation des « outils de ligne de commande » proposée par macOS. Si macOS répond que ces outils sont déjà installés, tant mieux : passe à la suite.
 
 ```bash
 xcode-select --install
@@ -135,7 +137,7 @@ git --version
 
 Résultat attendu : une ligne comme `git version 2.56.0.windows.3` (Windows, version d’octobre 2026) ou `git version 2.xx.x` (Mac).
 
-**Te présenter à Git** (une seule fois par ordinateur). Remplace le pseudo et l’adresse, en gardant les guillemets :
+**Te présenter à Git** (une seule fois par ordinateur). Remplace `TonPseudo` et l’adresse par les tiens, en gardant les guillemets (Git ne vérifie pas l’adresse : si tu ne comptes pas publier ton projet en ligne, l’exemple fonctionne aussi) :
 
 ```bash
 git config --global user.name "TonPseudo"
@@ -244,7 +246,7 @@ mkdir -p src/ServerScriptService src/ReplicatedStorage/Modules src/StarterPlayer
 
 Sous Windows, PowerShell affiche ensuite la liste des dossiers créés (colonnes `Mode`, `LastWriteTime`, `Name`) : c’est normal. Sur Mac, `mkdir -p` n’affiche rien quand tout va bien. Dans l’explorateur de VS Code, `src` contient maintenant `ReplicatedStorage`, `ServerScriptService`, `StarterGui` et `StarterPlayer`.
 
-2. Dans VS Code, ouvre `default.project.json`, efface tout son contenu et remplace-le par celui-ci, puis enregistre (`Ctrl`+`S` ou `Cmd`+`S`) :
+2. Dans VS Code, ouvre `default.project.json` (clic sur son nom, dans l’explorateur de fichiers à gauche), efface tout son contenu (`Ctrl`+`A` puis `Suppr`, ou `Cmd`+`A` puis la touche d’effacement sur Mac) et remplace-le par celui-ci, puis enregistre (`Ctrl`+`S` ou `Cmd`+`S`) :
 
 ```json
 {
@@ -329,7 +331,7 @@ Avant de connecter Rojo pour la première fois :
 
 1. ouvre ton place dans Studio et fais **File** › **Save to Roblox** : une version est gardée dans l’historique des versions (module 1, leçon 5) ;
 2. fais aussi **File** › **Save to File As…** pour garder une copie datée, par exemple `ObbyDesNuages-sauvegarde-2026-10-24.rbxl`, **en dehors** du dossier du projet ;
-3. pour ton tout premier essai, connecte Rojo à une **copie** du place plutôt qu’à l’original.
+3. pour ton tout premier essai, connecte Rojo à une **copie** du place plutôt qu’à l’original : enregistre une deuxième copie avec **Save to File As…**, par exemple `ObbyDesNuages-essai-rojo.rbxl`, puis ouvre ce fichier dans Studio (menu **File**, commande d’ouverture d’un fichier local). Ta sauvegarde datée reste ainsi intacte.
 
 Le niveau (plateformes, checkpoints, SpawnLocation) n’existe **que** dans ce fichier de lieu : Git ne le sauvegarde pas.
 
@@ -364,7 +366,7 @@ Visit http://localhost:34872/ in your browser for more information.
 print("Rojo fonctionne : bonjour depuis le serveur de l'Obby des Nuages !")
 ```
 
-Quelques instants plus tard, un Script `Bonjour` apparaît dans ServerScriptService. Lance **Play** : le message s’affiche dans l’Output. Arrête le test, change le texte dans VS Code, enregistre : le script change aussi dans Studio. Enfin, **supprime** le fichier dans VS Code : le script disparaît de Studio. Tu viens de voir le principe : **les fichiers sont la source de vérité**.
+Quelques instants plus tard, un Script `Bonjour` apparaît dans ServerScriptService. Lance un test (mode **Test**, bouton **Play**, module 1, leçon 4) : le message s’affiche dans l’Output. Arrête le test, change le texte dans VS Code, enregistre : le script change aussi dans Studio. Enfin, **supprime** le fichier dans VS Code : le script disparaît de Studio. Tu viens de voir le principe : **les fichiers sont la source de vérité**.
 
 Pour arrêter : bouton **Disconnect** dans le plugin, puis `Ctrl`+`C` dans le terminal.
 
@@ -388,13 +390,13 @@ Tu peux aussi fabriquer un fichier de lieu avec `rojo build -o ObbyDesNuages-tes
 
 1. Dans VS Code, ouvre le panneau **Extensions** (`Ctrl`+`Shift`+`X`, ou `Cmd`+`Shift`+`X` sur Mac).
 2. Cherche **Luau Language Server** (identifiant `JohnnyMorganz.luau-lsp`) et installe-le.
-3. C’est tout : l’extension charge par défaut les définitions de l’API Roblox (le « mode Roblox »). Elle repère ton `default.project.json` et génère seule un fichier `sourcemap.json` avec Rojo, pour savoir quel fichier correspond à quelle instance (utile pour les `require`). Ce fichier est déjà exclu de Git par le `.gitignore` de Rojo.
+3. C’est tout : l’extension charge par défaut les définitions de l’API Roblox (le « mode Roblox »). Elle repère ton `default.project.json` et génère seule un fichier `sourcemap.json` avec Rojo, pour savoir quel fichier correspond à quelle instance (utile pour les `require`, qui relient les scripts entre eux : tu les verras au module 3). Ce fichier est déjà exclu de Git par le `.gitignore` de Rojo.
 
 Tu peux aussi installer les extensions **selene** (`Kampfkarren.selene-vscode`) et **StyLua** (`JohnnyMorganz.stylua`) pour voir leurs remarques directement dans l’éditeur.
 
 ### selene et StyLua : trois fichiers de configuration
 
-À la racine du projet, crée trois fichiers (clic droit dans l’explorateur de VS Code › **New File**), les mêmes que ceux du corrigé de la formation.
+À la racine du projet, crée trois fichiers, les mêmes que ceux du corrigé de la formation : fais un clic droit dans la **zone vide** de l’explorateur de VS Code, sous la liste des fichiers (pas sur le dossier `src`, sinon le fichier serait créé dedans), puis **New File**, et tape le nom exact du fichier.
 
 `selene.toml` : il dit à selene quelle « bibliothèque standard » utiliser, c’est-à-dire la liste des fonctions qui existent (sans elle, `game` ou `Instance` lui seraient inconnus).
 
@@ -501,7 +503,7 @@ git commit -m "Projet Rojo de l'Obby des Nuages : structure, Rokit, selene, StyL
 - `git add .` les prépare pour la photo (le point veut dire « tout le dossier »).
 - `git commit -m "…"` prend la photo, avec un message qui dit ce qui a changé. Résultat attendu : une ligne comme `[master (root-commit) 7882bbd] Projet Rojo…` (le nom de branche peut aussi être `main`), puis le nombre de fichiers.
 
-Sous Windows, une ligne `warning: in the working copy of '…', CRLF will be replaced by LF…` peut apparaître : c’est le fichier `.gitattributes` qui fait son travail, c’est sans gravité. Tape `git log --oneline` pour voir ton historique.
+Sous Windows, une ligne `warning: in the working copy of '…', CRLF will be replaced by LF…` peut apparaître : c’est le fichier `.gitattributes` qui fait son travail, c’est sans gravité. Si Git répond `Author identity unknown`, refais les deux commandes `git config` de l’étape 2, puis relance `git commit`. Tape `git log --oneline` pour voir ton historique.
 
 <Erreur titre="Les dossiers vides disparaissent dans Git">
 Git n’enregistre que des fichiers : un dossier encore vide (comme `src/ReplicatedStorage/Modules` au début) n’est pas sauvegardé. Si tu récupères le projet ailleurs, Rojo affichera `Rojo project referred to a file using $path that could not be turned into a Roblox Instance`, suivi du dossier manquant. Il suffit de recréer ce dossier. Le problème disparaîtra dès que chaque dossier contiendra un script.
@@ -523,7 +525,7 @@ Selon la version de Studio, le libellé peut légèrement changer : cherche la s
 
 ### 2. Brancher Claude Code : le Quick connect (méthode officielle)
 
-Dans les réglages de l’Assistant, section **MCP Servers**, ouvre la liste **Quick connect** : elle montre les clients installés sur ton ordinateur. Active **Claude Code**. Si Claude Code n’apparaît pas, installe-le, puis redémarre Studio. Ensuite, redémarre Claude Code pour qu’il charge le serveur.
+Dans les réglages de l’Assistant, section **MCP Servers**, ouvre la liste **Quick connect** : elle montre les clients installés sur ton ordinateur. Active **Claude Code**. Si Claude Code n’apparaît pas, installe-le, puis redémarre Studio. Ensuite, redémarre Claude Code pour qu’il charge le serveur (tape `/exit` dans Claude Code, puis relance `claude` dans le terminal du projet).
 
 ### 2 bis. Ou bien : la configuration manuelle
 
@@ -632,7 +634,7 @@ Depuis juin 2026, Studio propose en version finale **Script Sync** : clic droit 
 - [ ] (Après la leçon 3) `claude mcp list` affiche `Roblox_Studio … ✔ Connected`
 
 <Defi>
-Ajoute un septième RemoteEvent `DemanderReapparition` dans `Remotes`, directement dans `default.project.json` (copie une ligne existante et n’oublie pas la virgule). Rojo étant connecté, vérifie qu’il apparaît dans l’Explorer (sinon, clique sur **Disconnect** puis **Connect**). Lance `git status`, puis fais un commit avec un message clair. Enfin, tape `git diff HEAD~1` pour voir exactement ce qui a changé.
+Ajoute un septième RemoteEvent `DemanderReapparition` dans `Remotes`, directement dans `default.project.json` (copie une ligne existante et n’oublie pas la virgule). Rojo étant connecté, vérifie qu’il apparaît dans l’Explorer (sinon, clique sur **Disconnect** puis **Connect**). Lance `git status`, puis fais un commit avec un message clair. Enfin, tape `git diff HEAD~1` pour voir exactement ce qui a changé (si l’affichage s’arrête avec un `:` en bas du terminal, appuie sur `q` pour en sortir).
 </Defi>
 
 <Resume>

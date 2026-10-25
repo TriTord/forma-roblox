@@ -129,7 +129,7 @@ Vérification : (comment prouver que ça marche : test dans Studio, messages att
 
 </Prompt>
 
-Tu peux omettre une rubrique sans objet (pas de « Sécurité » pour un effet purement visuel), mais **jamais** « Objectif » ni « Vérification ». Pour un gros changement, commence le prompt par « Commence par me proposer un plan (mode plan), sans modifier de fichier. », ou active le mode plan avec `Shift+Tab` ([leçon 3](/modules/02/claude-code-de-a-a-z/)).
+Pour t’en servir, remplace le texte entre parenthèses de chaque rubrique par les informations de ta tâche (et supprime les parenthèses). Tu peux omettre une rubrique sans objet (pas de « Sécurité » pour un effet purement visuel), mais **jamais** « Objectif » ni « Vérification ». Pour un gros changement, commence le prompt par « Commence par me proposer un plan (mode plan), sans modifier de fichier. », ou active le mode plan avec `Shift+Tab` ([leçon 3](/modules/02/claude-code-de-a-a-z/)).
 
 ### Ce que change chaque rubrique
 
@@ -155,6 +155,10 @@ Le guide d’Anthropic montre qu’une consigne accompagnée de sa raison est mi
 </Astuce>
 
 Passons à la pratique. Pour chaque exemple : le mauvais prompt, ce qu’une IA produit typiquement avec lui, le bon prompt, et ce qu’il change. Les défauts décrits ne sont pas inventés pour faire peur : ce sont des choix par défaut fréquents d’une IA à qui on n’a rien précisé (une IA peut aussi faire mieux, ou autrement). Tu apprendras à les repérer dans les modules 3 à 7.
+
+<Info titre="Tu ne comprends pas encore tous les mots ? C’est normal">
+Ces exemples contiennent des termes que tu découvriras aux modules 3 à 5 (`pcall`, RemoteEvent, `UpdateAsync`, DataStore…). Pour l’instant, ne cherche pas à comprendre chaque ligne de code : regarde **ce que chaque rubrique ajoute** au prompt et quel défaut elle évite. N’envoie pas non plus ces prompts tels quels à Claude Code maintenant : ils citent des fichiers que ton projet ne contient pas encore. Des prompts du même genre t’attendent, au bon moment, dans les encadrés « Avec Claude Code » des leçons techniques et dans la bibliothèque de prompts.
+</Info>
 
 ## Exemple 1 : la sauvegarde des joueurs (DataStore)
 
@@ -479,7 +483,7 @@ Ta méthode : chaque rubrique de ton prompt devient une **question de relecture*
 1. Choisis un système qui manque encore à ton Obby (par exemple un panneau qui affiche « Étape X / 12 »).
 2. Écris d’abord le prompt vague que tu aurais envoyé spontanément, puis devine, par écrit, ce que l’IA en ferait.
 3. Réécris-le avec les huit rubriques. Fais le test du collègue : relis-le en te mettant à la place de quelqu’un qui n’a jamais vu ton jeu.
-4. Envoie-le en mode plan, corrige le plan, laisse Claude coder, puis relis le code en transformant chaque rubrique en question. Si tout passe, commit.
+4. Envoie-le en mode plan, corrige le plan, laisse Claude coder, puis relis le code en transformant chaque rubrique en question. Si tout passe, commit. Si ton projet ne contient pas encore ce dont ton prompt dépend (par exemple les leaderstats, construites au module 5), garde le prompt pour plus tard : l’écrire était déjà l’essentiel de l’exercice.
 
 </Defi>
 

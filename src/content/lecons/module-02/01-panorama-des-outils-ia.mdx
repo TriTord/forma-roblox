@@ -25,7 +25,7 @@ quiz:
       - texte: Claude Code dans un terminal, avec Rojo et Git
       - texte: La version web de Claude Code, qui travaille dans le cloud
       - texte: Aucun, une IA ne peut pas agir dans Studio
-    explication: "Pour une petite retouche dans le place ouvert, l’Assistant est déjà là : il voit le data model et agit dans Studio. Claude Code devient intéressant dès que le code est en fichiers (Rojo), versionné (Git) et que la tâche touche plusieurs scripts. La version web travaille dans le cloud : elle ne peut pas atteindre ton Studio local."
+    explication: "Pour une petite retouche dans le place ouvert, l’Assistant est déjà là : il voit le contenu du place ouvert (le « data model ») et agit dans Studio. Claude Code devient intéressant dès que le code est en fichiers (Rojo), versionné (Git) et que la tâche touche plusieurs scripts. La version web travaille dans le cloud : elle ne peut pas atteindre ton Studio local."
   - type: qcm
     question: "Mise en situation : tu veux réorganiser la boutique de l’Obby, répartie dans quatre scripts et deux RemoteEvents, puis faire relire le résultat. Quel environnement la formation recommande-t-elle ?"
     options:
@@ -61,6 +61,18 @@ quiz:
 ---
 
 En 2026, une IA peut écrire en quelques secondes un script qui t’aurait pris une heure. Il en existe beaucoup, et elles ne font pas toutes la même chose. Certaines complètent la ligne que tu tapes, d’autres travaillent seules dans ton projet pendant de longues minutes. Cette leçon fait le tour des outils utiles pour créer l’Obby des Nuages, de ce qu’ils coûtent au moment de la rédaction (octobre 2026) et de ce qu’ils ne feront jamais à ta place.
+
+<Info titre="Quelques mots que tu vas croiser">
+
+Pas besoin de tout retenir maintenant : chaque outil est installé et expliqué pas à pas dans les leçons 2 et 3.
+
+- **Prompt** : la demande écrite que tu envoies à l’IA.
+- **Terminal** : une fenêtre où l’on tape des commandes au clavier au lieu de cliquer (PowerShell sous Windows, Terminal sur Mac).
+- **Rojo** : l’outil qui met le code de ton jeu en fichiers sur ton ordinateur et les synchronise avec Studio.
+- **Git** : l’outil qui garde l’historique de ces fichiers. Un **commit** est une version enregistrée, à laquelle tu peux revenir ; le **dépôt** est le dossier dont Git suit l’historique.
+- **selene** et **StyLua** : deux petits programmes qui vérifient et mettent en forme le code Luau.
+
+</Info>
 
 ## Deux familles d’IA de code
 
@@ -155,8 +167,8 @@ En 2026, des offres ont été renommées, des outils remplacés (Gemini CLI, pou
 | Comprendre un script ou une erreur de l’Output | Assistant de Studio, ou Claude Code | Les deux expliquent bien ; Claude Code voit aussi les autres fichiers du projet |
 | Générer un modèle 3D, une texture, un matériau | Outils IA de Roblox (leçon 9) | Ce sont des outils spécialisés, intégrés à Studio |
 | Nouveau système de jeu (checkpoints, boutique, sauvegarde) | Claude Code + Rojo + Git | Plusieurs fichiers, un plan validé, un commit par étape |
-| Refactorisation, renommage dans tout le projet | Claude Code en mode plan | Il trouve toutes les occurrences, et tu valides le plan avant |
-| Relecture de sécurité ou de performances | Claude Code (sous-agent relecteur, leçon 6) | Il lit tout le code d’un coup, avec ta checklist |
+| Refactorisation (réorganiser le code sans changer ce que fait le jeu), renommage dans tout le projet | Claude Code en mode plan | Il trouve toutes les occurrences, et tu valides le plan avant |
+| Relecture de sécurité ou de performances | Claude Code (un sous-agent, c’est-à-dire une IA chargée seulement de relire, leçon 6) | Il lit tout le code d’un coup, avec ta checklist |
 | Tester le jeu en vrai, lire la console de Studio | Claude Code + serveur MCP de Studio | Il lance le test et lit l’Output lui-même |
 
 <Astuce titre="Combiner plutôt que choisir">
@@ -181,7 +193,7 @@ C’est une **décision de la formation**, pas un classement objectif. D’autre
 
 1. Il travaille sur un projet **entièrement décrit en fichiers** (Rojo), versionné avec Git, comme le corrigé de la formation.
 2. Un fichier **CLAUDE.md** lui rappelle à chaque session l’architecture et les règles de sécurité de l’Obby (leçon 3).
-3. Le **mode plan**, les **permissions** et les **hooks** te gardent aux commandes : il propose, tu valides, et `selene` et StyLua vérifient automatiquement.
+3. Le **mode plan**, les **permissions** et les **hooks** (des vérifications lancées automatiquement, leçon 3) te gardent aux commandes : il propose, tu valides, et `selene` et StyLua vérifient automatiquement.
 4. Il sait **relire** avec un sous-agent et **tester** dans Studio grâce au serveur MCP, qui prend en charge Claude Code en branchement rapide.
 5. Sa documentation officielle est détaillée et à jour, ce qui nous permet de vérifier chaque commande enseignée.
 

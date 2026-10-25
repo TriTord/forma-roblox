@@ -82,6 +82,8 @@ quiz:
 
 Dans la [leçon précédente](/modules/02/l-art-du-prompt-precis/), tu as appris à écrire **un** prompt précis. Mais un jeu, même petit, c’est des dizaines de décisions et plusieurs scripts qui dépendent les uns des autres. La tentation est grande d’écrire « fais-moi un simulator entier » et d’attendre le miracle. Cette leçon te donne la méthode des pros pour l’éviter : **découper**. Et tu vas la voir appliquée de bout en bout, sur un vrai mini-jeu construit prompt par prompt avec Claude Code.
 
+**Si tu es pressé**, lis d’abord la méthode (jusqu’à « Exemple complet »), puis la tâche 6, celle où le premier résultat ne marche pas : c’est le cœur de la leçon. Tu construiras le mini-jeu en entier quand tu auras une séance devant toi. Et pas d’inquiétude si tu ne comprends pas encore chaque ligne du code Luau : tu apprendras à le lire aux modules 3 à 5. Ici, suis surtout l’enchaînement plan, tâche, test, commit.
+
 ## Pourquoi « fais-moi un simulator entier » ne marche pas
 
 Un prompt géant donne un résultat géant, et c’est justement le problème.
@@ -152,7 +154,7 @@ C’est un projet séparé de l’Obby des Nuages : tu peux le réaliser comme e
 
 ### Étape 0 : préparer le projet
 
-Crée un projet Rojo versionné avec Git ([leçon 2](/modules/02/installer-un-workflow-pro/)), avec les outils `selene` et `StyLua`, et un `CLAUDE.md` (leçon 3). Pour ce mini-jeu, le `CLAUDE.md` reprend le modèle de la leçon 3 en l’adaptant : il précise en plus que tous les réglages chiffrés vont dans le module `Config`, et que le module `ReglesRound` ne contient que des calculs (sans service Roblox), pour pouvoir le tester automatiquement (leçon 6).
+Crée un projet Rojo versionné avec Git ([leçon 2](/modules/02/installer-un-workflow-pro/)), avec les outils `selene` et `StyLua`, et un `CLAUDE.md` (leçon 3). Concrètement : dans VS Code, ouvre un nouveau dossier `LaveMontante` (à côté de `ObbyDesNuages`, pas dedans), puis refais dans ce dossier les étapes 3 à 6 de la leçon 2 (la configuration de Git de l’étape 2 est déjà faite pour tout l’ordinateur). Seul le contenu de `default.project.json` change, voir ci-dessous. Dans Studio, crée un nouveau place à partir du modèle **Baseplate** (module 1, leçon 1) et enregistre-le. Pour ce mini-jeu, le `CLAUDE.md` reprend le modèle de la leçon 3 en l’adaptant : il précise en plus que tous les réglages chiffrés vont dans le module `Config`, et que le module `ReglesRound` ne contient que des calculs (sans service Roblox), pour pouvoir le tester automatiquement (leçon 6).
 
 Dans `default.project.json`, déclare dans `ReplicatedStorage` un Folder `Remotes` contenant un RemoteEvent `Notification`, et un Folder vide `EtatRound` (le serveur y publiera l’état du round sous forme d’**attributs**, des valeurs attachées à une instance et répliquées aux clients). Remplace tout le contenu du fichier par celui-ci :
 
@@ -193,7 +195,7 @@ Dans `default.project.json`, déclare dans `ReplicatedStorage` un Folder `Remote
 }
 ```
 
-Crée aussi les dossiers vides qu’il cite (`src/ReplicatedStorage/Modules`, `src/ServerScriptService`, `src/StarterGui`, `src/StarterPlayer/StarterPlayerScripts`), sinon Rojo refuse de démarrer. Le `Workspace` n’y figure pas : Rojo ne touche pas au décor que tu construis dans Studio.
+Crée aussi les dossiers vides qu’il cite (`src/ReplicatedStorage/Modules`, `src/ServerScriptService`, `src/StarterGui`, `src/StarterPlayer/StarterPlayerScripts`), sinon Rojo refuse de démarrer : même méthode qu’à l’étape 4 de la leçon 2 (supprime les dossiers d’exemple de Rojo, puis crée ceux-ci ; ici, pas de `StarterCharacterScripts`). Le `Workspace` n’y figure pas : Rojo ne touche pas au décor que tu construis dans Studio.
 
 Puis construis le décor **à la main** dans Studio (le module 1 t’a appris à le faire) :
 

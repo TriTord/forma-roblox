@@ -66,6 +66,8 @@ quiz:
 
 Tu as maintenant un vrai projet : l’Obby des Nuages en fichiers sur ton ordinateur, synchronisé avec Studio par Rojo et suivi par Git ([leçon 2 de ce module](/modules/02/installer-un-workflow-pro/)). Il manque l’essentiel : **l’IA qui va écrire le code avec toi**. Cette leçon est longue, car elle couvre tout Claude Code, de l’installation aux réglages avancés. Prends-la en plusieurs fois : chaque section `##` est une étape que tu peux faire, tester, puis enregistrer avec Git.
 
+**Si tu es pressé**, fais d’abord l’installation, le premier lancement, le `CLAUDE.md` et le fichier de permissions : c’est le minimum pour suivre les leçons 4 et 5. Garde les skills, le sous-agent et le hook pour une deuxième séance, avant le module 3.
+
 ## Claude Code en deux minutes
 
 Claude Code est un **agent de code** : un programme qui tourne dans ton **terminal** (la fenêtre où l’on tape des commandes) et qui peut lire les fichiers de ton projet, lancer des commandes et modifier des fichiers. Tu lui écris en français ce que tu veux, il explore, propose, modifie, vérifie. Toi, tu diriges et tu relis.
@@ -112,7 +114,7 @@ irm https://claude.ai/install.ps1 | iex
 ```
 
 3. Attends : l’installeur n’affiche **aucune barre de progression** pendant le téléchargement. C’est normal.
-4. Quand il a fini, **ferme PowerShell et ouvre une nouvelle fenêtre**. Une fenêtre déjà ouverte ne voit pas encore le nouveau programme.
+4. Quand il a fini (la ligne `PS C:\Users\TonNom>` réapparaît), **ferme PowerShell et ouvre une nouvelle fenêtre**. Une fenêtre déjà ouverte ne voit pas encore le nouveau programme.
 
 Git for Windows, que tu as installé à la leçon précédente, est recommandé par Anthropic : il fournit **Git Bash**, que Claude Code peut utiliser pour lancer ses commandes (sans lui, il passe uniquement par PowerShell). Il servira aussi pour le hook de vérification, plus bas.
 
@@ -125,7 +127,7 @@ Git for Windows, que tu as installé à la leçon précédente, est recommandé 
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-3. À la fin, ferme le Terminal (`Cmd+Q`) et rouvre-le.
+3. À la fin (la ligne qui se termine par `%` réapparaît), ferme le Terminal (`Cmd+Q`) et rouvre-le.
 
 ### Vérifier que tout marche
 
@@ -168,14 +170,16 @@ claude
 Au premier lancement :
 
 1. **Confiance dans le dossier** : Claude Code te demande si tu fais confiance aux fichiers de ce dossier. C’est ton propre projet : accepte. Ne le fais pas pour un projet téléchargé que tu ne connais pas, car ses fichiers de réglages peuvent lancer des commandes.
-2. **Connexion** : ton navigateur s’ouvre sur la page de connexion de Claude. Connecte-toi avec le compte claude.ai qui a l’abonnement (le tien, si tu as 18 ans ou plus). Si le navigateur ne s’ouvre pas, appuie sur `c` pour copier l’adresse et colle-la dans ton navigateur. Si la page affiche un code, colle-le dans le terminal, à la ligne `Paste code here if prompted`. Quand c’est fini, le terminal affiche `Login successful` : appuie sur `Entrée`.
-3. La zone de saisie apparaît, avec la version, le modèle et le dossier de travail au-dessus. La connexion est mémorisée : tu n’auras pas à la refaire.
+2. **Connexion** : si Claude Code te demande quel type de compte utiliser, choisis le compte Claude avec abonnement (Pro ou Max), pas la Console ni « 3rd-party platform ». Ton navigateur s’ouvre ensuite sur la page de connexion de Claude. Connecte-toi avec le compte claude.ai qui a l’abonnement (le tien, si tu as 18 ans ou plus). Si le navigateur ne s’ouvre pas, appuie sur `c` pour copier l’adresse et colle-la dans ton navigateur. Si la page affiche un code, colle-le dans le terminal, à la ligne `Paste code here if prompted`. Quand c’est fini, le terminal affiche `Login successful` : appuie sur `Entrée`.
+3. Selon la version, d’autres questions de configuration du premier lancement peuvent s’afficher : lis-les, et garde le choix proposé si tu as un doute. Puis la zone de saisie apparaît, avec la version, le modèle et le dossier de travail au-dessus. La connexion est mémorisée : tu n’auras pas à la refaire. Le mode de permission actif s’affiche en bas de l’écran : on le règle plus loin, dans « Les modes de permission ».
 
 Pose une première question, sans rien demander de modifier :
 
 ```text
 Explique-moi la structure de ce projet Rojo : à quoi sert default.project.json et où ira chaque type de script dans Studio ?
 ```
+
+Pour un deuxième essai sans risque, envoie le prompt « Vérifier l’ancrage des plateformes » de la [leçon 5 du module 1](/modules/01/premier-niveau-et-publication/) : il ne demande qu’un code à coller dans la Command Bar, sans rien modifier. Compare la réponse avec le code de cette leçon.
 
 Quelques gestes à connaître tout de suite :
 
@@ -423,7 +427,7 @@ Une commande slash se tape **au début** d’un message. Tape `/` seul pour voir
 
 Une **skill** est un fichier d’instructions que Claude charge quand il en a besoin, ou que tu déclenches avec `/nom`. Parfait pour une routine que tu répètes : « vérifie tout avant le commit ». Les anciennes « commandes personnalisées » (`.claude/commands/`) fonctionnent encore, mais elles ont été fusionnées dans les skills : on utilise désormais les skills.
 
-Une skill de projet vit dans `.claude/skills/<nom>/SKILL.md`. En haut, un en-tête entre deux lignes `---` (tous ses champs sont facultatifs, `description` est recommandé) ; en dessous, les instructions. Crée `.claude/skills/verifier/SKILL.md` :
+Une skill de projet vit dans `.claude/skills/<nom>/SKILL.md`. En haut, un en-tête entre deux lignes `---` (tous ses champs sont facultatifs, `description` est recommandé) ; en dessous, les instructions. Crée `.claude/skills/verifier/SKILL.md` (dans VS Code : clic droit sur le dossier `.claude` › **New File**, puis tape `skills/verifier/SKILL.md` ; les dossiers manquants sont créés automatiquement) :
 
 ```markdown
 ---
@@ -641,7 +645,7 @@ Pour annuler :
 |---|---|
 | Annuler les changements non commités d’**un** fichier | `git restore src/ServerScriptService/Pieces.server.luau` |
 | Annuler **tous** les changements non commités | `git restore .` (lis `git status` avant : c’est définitif) |
-| Annuler le dernier commit déjà fait, proprement | `git revert HEAD` (crée un nouveau commit qui défait le précédent ; l’historique est conservé) |
+| Annuler le dernier commit déjà fait, proprement | `git revert HEAD` (crée un nouveau commit qui défait le précédent ; l’historique est conservé). Git ouvre alors un éditeur de texte pour le message de ce commit : si c’est Vim (écran sombre avec des `~` à gauche), tape `:wq` puis `Entrée` pour valider. Pour éviter l’éditeur : `git revert --no-edit HEAD` |
 
 `git restore` ne supprime pas les **nouveaux** fichiers que Claude a créés : `git status` les liste sous « Untracked files ». Supprime-les à la main si tu n’en veux pas. Et laisse de côté `git reset --hard`, qui efface sans retour : c’est pour ça que notre `settings.json` l’interdit à Claude.
 
@@ -670,7 +674,8 @@ Prépare ton projet de l’Obby des Nuages pour toute la suite de la formation (
 2. Lance `/init`, compare son résultat au modèle de cette leçon, puis écris ton `CLAUDE.md`.
 3. Crée `.claude/settings.json` (permissions + hook), `.claude/skills/verifier/SKILL.md` et `.claude/agents/relecteur-roblox.md`. Vérifie avec `claude doctor`, `/hooks` et `/skills`.
 4. Fais le test du hook avec `local inutile=5`, puis supprime le fichier de test.
-5. Termine par un commit : `git add -A` puis `git commit -m "Configuration de Claude Code : CLAUDE.md, permissions, skill, sous-agent, hook"`.
+5. Si tu as sauté l’étape 7 de la [leçon 2](/modules/02/installer-un-workflow-pro/) (brancher le serveur MCP de Studio), fais-la maintenant, puis vérifie avec `claude mcp list`.
+6. Termine par un commit : `git add -A` puis `git commit -m "Configuration de Claude Code : CLAUDE.md, permissions, skill, sous-agent, hook"`.
 
 </Defi>
 
