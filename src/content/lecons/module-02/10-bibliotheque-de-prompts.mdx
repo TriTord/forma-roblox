@@ -243,7 +243,7 @@ Objectif : quand un joueur touche le checkpoint qui suit son étape actuelle, Et
 Fichiers concernés : crée ou modifie src/ServerScriptService/Progression.server.luau. Ne modifie rien d'autre.
 Contraintes techniques : Script serveur ; BasePart.Touched sur chaque checkpoint et Players:GetPlayerFromCharacter ; numéro lu avec tonumber(part.Name) ; replacement avec character:PivotTo(checkpoint.CFrame + Config.HAUTEUR_REAPPARITION) dans CharacterAdded ; checkpoints ajoutés plus tard gérés (ChildAdded).
 Sécurité : aucun RemoteEvent ; seul le serveur modifie Etape ; un checkpoint n'est accepté que si numero == Etape.Value + 1 ET si Validation.estAPortee(player, checkpoint.Position, [DISTANCE_MAX]). Un passage d'une étape à la suivante en moins de [TEMPS_MIN_ETAPE] secondes est seulement journalisé avec warn, jamais sanctionné.
-Cas limites : checkpoint déjà validé retouché (rien) ; checkpoint sauté (refusé) ; personnage mort (ignoré) ; Part dont le nom n'est pas un nombre (ignorée) ; leaderstats pas encore créées à l'arrivée (attendre 60 s au plus) ; joueur qui part (vider ses entrées dans les tables).
+Cas limites : checkpoint déjà validé retouché (rien) ; checkpoint sauté (refusé) ; personnage mort (ignoré) ; Part dont le nom n'est pas un nombre (ignorée) ; leaderstats pas encore créées à l'arrivée (attendre 60 s au plus) ; replacement écrasé par Roblox (dans CharacterAdded, attendre que le personnage soit dans Workspace, puis un task.wait(), et vérifier qu'il est toujours le personnage du joueur avant PivotTo) ; joueur qui part (vider ses entrées dans les tables).
 Vérification : en Play, toucher 1 puis 2 donne Etape = 2 ; toucher 3 avant 2 ne change rien ; après une chute, je réapparais sur le 2 ; en Test serveur avec 2 clients, chaque joueur a sa propre étape. selene src et stylua --check src sans erreur.
 ```
 
@@ -255,6 +255,7 @@ Vérification : en Play, toucher 1 puis 2 donne Etape = 2 ; toucher 3 avant 2 ne
 - `tonumber(part.Name)` est testé contre `nil` avant toute comparaison ;
 - aucun RemoteEvent ne permet au client de changer `Etape` ;
 - la détection de passage trop rapide fait un `warn`, sans `Kick` ni bannissement ;
+- le `PivotTo` de réapparition n’est pas fait tout de suite dans `CharacterAdded` (sinon Roblox replace le personnage sur la SpawnLocation juste après) : meurs après l’étape 2 pour le vérifier ;
 - les tables indexées par joueur sont vidées à `PlayerRemoving`.
 
 ### Kill bricks
@@ -379,12 +380,13 @@ Contraintes techniques :
 - Chaque appel DataStore dans un pcall, avec [MAX_TENTATIVES] tentatives et une attente croissante (environ 2 s puis 4 s) plus un peu de hasard.
 - Lecture avec GetAsync ; écriture avec UpdateAsync (pas SetAsync), dont la fonction renvoie la table ET { player.UserId } ; cette fonction n'attend jamais (pas de task.wait ni d'appel réseau).
 - Champ version (VERSION_DONNEES = 1) et fonction completer qui ajoute les champs manquants aux anciennes sauvegardes ; UpdateAsync annule l'écriture (renvoie nil) si la sauvegarde existante a une version plus récente.
-- game:BindToClose : sauvegardes en parallèle (task.spawn) et attente de TOUTES les sauvegardes en cours, 25 secondes au maximum ; ne rien faire dans Studio si RunService:IsStudio() et que la constante SAUVEGARDER_EN_STUDIO vaut false.
+- Un compteur sauvegardesEnCours compte toutes les sauvegardes en cours, quelle que soit leur origine. game:BindToClose appelle SauvegarderTout, qui parcourt les sessions en mémoire (pas Players:GetPlayers()), lance leurs sauvegardes en parallèle (task.spawn) et attend que sauvegardesEnCours revienne à 0, 25 secondes au maximum ; ne rien faire dans Studio si RunService:IsStudio() et que la constante SAUVEGARDER_EN_STUDIO vaut false.
 - Sauvegarde automatique toutes les [INTERVALLE_SAUVEGARDE] secondes + math.random(0, 30).
 Sécurité : DataStores uniquement côté serveur ; le client ne peut ni déclencher ni modifier une sauvegarde ; les leaderstats sont recopiées dans la table avant chaque sauvegarde.
 Cas limites :
 - GetAsync renvoie nil = nouveau joueur (données par défaut). GetAsync échoue = ce n'est PAS un nouveau joueur : aucune session n'est créée, rien ne sera sauvegardé pour lui, et il est expulsé avec un message poli (player:Kick).
-- Joueur parti pendant le chargement : libérer sa session sans créer de leaderstats.
+- Joueur parti pendant le chargement (player.Parent vaut nil après Charger) : libérer sa session sans créer de leaderstats.
+- Joueurs déjà présents quand le script démarre (boucle sur Players:GetPlayers()).
 - Même joueur sauvegardé deux fois de suite (départ puis fermeture) : sans danger.
 Vérification : sur une copie de test publiée, avec « Enable Studio Access to API Services » activé et SAUVEGARDER_EN_STUDIO à true, je gagne des pièces, j'arrête, je relance : elles sont revenues. Avec un échec de GetAsync simulé (une constante de test que tu me diras comment retirer), je suis expulsé et ma sauvegarde reste intacte dans le Data Stores Manager. selene src et stylua --check src sans erreur.
 ```
@@ -396,7 +398,7 @@ Vérification : sur une copie de test publiée, avec « Enable Studio Access to 
 - un échec de `GetAsync` (`succes == false`) ne crée **jamais** de données par défaut : c’est le piège qui détruit des sauvegardes ;
 - l’écriture passe par `UpdateAsync`, et la fonction passée ne contient ni `task.wait` ni appel réseau ;
 - `Sauvegarder` renvoie `false` quand rien n’a été écrit (échec, chargement raté, écriture annulée) ;
-- `BindToClose` lance les sauvegardes en parallèle et attend aussi celles déjà lancées par `PlayerRemoving` ;
+- `BindToClose` lance les sauvegardes des **sessions** en parallèle et attend aussi celles déjà lancées par `PlayerRemoving` (grâce au compteur `sauvegardesEnCours`) ;
 - le nom du DataStore reste `DonneesJoueurs_v1` : le renommer ferait repartir tous les joueurs de zéro.
 
 <Info>
@@ -445,9 +447,9 @@ Vérification : sur une copie de test publiée avec l'accès aux API activé, je
 ```text
 Contexte : jeu [NOM_DU_JEU]. Une boutique vend des objets cosmétiques contre la monnaie du jeu ([MONNAIE, ex. Pieces]).
 Ce qui existe déjà : le ModuleScript src/ReplicatedStorage/Modules/Catalogue.luau (identifiant -> nom, prix…) ; src/ServerScriptService/DonneesJoueurs.luau (Obtenir(player) renvoie la table en mémoire, qui contient inventaire = {}) ; src/ServerScriptService/Validation.luau (estTexte, creerCooldown) ; leaderstats.[MONNAIE], recopié dans la table à chaque sauvegarde.
-Objectif : quand le joueur demande à acheter un objet, le serveur vérifie tout, retire le prix et ajoute l'objet à son inventaire ; l'interface peut savoir ce que le joueur possède.
+Objectif : quand le joueur demande à acheter un objet, le serveur vérifie tout, retire le prix de leaderstats.[MONNAIE] (pas du champ de la table, qui est écrasé par les leaderstats à la sauvegarde) et ajoute l'objet à donnees.inventaire ; l'interface peut savoir ce que le joueur possède.
 Fichiers concernés : déclare le RemoteEvent AcheterObjet sous ReplicatedStorage.Remotes dans default.project.json (sans toucher aux autres entrées) ; crée ou modifie src/ServerScriptService/Boutique.server.luau. Ne modifie rien d'autre (l'interface viendra dans une autre tâche).
-Contraintes techniques : Script serveur ; le client envoie UNIQUEMENT l'identifiant de l'objet (un texte) ; après chaque achat, le serveur publie l'inventaire dans des attributs du joueur (Possede_<identifiant> = true ou false), lus par l'interface.
+Contraintes techniques : Script serveur ; le client envoie UNIQUEMENT l'identifiant de l'objet (un texte) ; à l'arrivée (une fois les données chargées) et après chaque achat, le serveur publie l'inventaire dans des attributs du joueur (Possede_<identifiant> = true ou false), lus par l'interface ; ces attributs ne servent qu'à l'affichage, la possession se vérifie toujours dans donnees.inventaire.
 Sécurité : vérifications dans cet ordre : 1) idObjet est un texte de 50 caractères au plus (Validation.estTexte) ; 2) un achat par seconde au plus par joueur (Validation.creerCooldown(1)) ; 3) Catalogue[idObjet] existe ; 4) les données du joueur sont chargées ; 5) il ne possède pas déjà l'objet ; 6) son solde suffit. Le prix est lu dans Catalogue côté serveur : n'accepte JAMAIS un prix, un solde ou un inventaire envoyé par le client.
 Cas limites : double clic (un seul achat) ; arguments absurdes (nil, nombre, table, NaN, texte énorme) ignorés sans erreur ; solde insuffisant ; joueur qui part pendant l'achat ; objet retiré du catalogue alors qu'un joueur le possède déjà.
 Vérification : en Play, depuis la Command Bar en vue client, game.ReplicatedStorage.Remotes.AcheterObjet:FireServer("[ID_D_UN_OBJET]", 0) achète l'objet au VRAI prix du catalogue ; FireServer("ObjetInexistant") et FireServer({}) ne font rien et n'affichent aucune erreur ; un second achat du même objet est refusé. selene src et stylua --check src sans erreur.
@@ -459,7 +461,7 @@ Vérification : en Play, depuis la Command Bar en vue client, game.ReplicatedSto
 
 - la fonction connectée à `OnServerEvent` n’a que deux paramètres, `player` et `idObjet` : aucun prix ne vient du client ;
 - le prix est lu dans `Catalogue[idObjet].prix`, **après** avoir vérifié que l’entrée existe ;
-- la vérification « déjà possédé » et celle du solde sont faites avant de débiter ;
+- la vérification « déjà possédé » (dans `donnees.inventaire`, jamais d’après un attribut) et celle du solde sont faites avant de débiter ;
 - le RemoteEvent est déclaré dans `default.project.json`, pas créé avec `Instance.new` dans un script.
 
 ### Inventaire et équipement
@@ -500,7 +502,7 @@ Ce qui existe déjà : le pass est créé dans le Creator Hub, son ID est [ID_DU
 Objectif : un joueur qui possède le pass reçoit l'avantage à chaque arrivée et à chaque réapparition ; un joueur qui l'achète en jeu le reçoit tout de suite ; le bouton affiche le vrai prix et ouvre la fenêtre d'achat officielle.
 Fichiers concernés : crée src/ServerScriptService/GamePass[NOM].server.luau et le LocalScript ScriptBouton.client.luau dans le dossier du bouton. Ne modifie rien d'autre.
 Contraintes techniques :
-- Serveur : MarketplaceService:UserOwnsGamePassAsync(player.UserId, ID) dans un pcall, avec 2 nouvelles tentatives, à l'arrivée ; résultat mémorisé dans un attribut du joueur Possede[NOM], que les autres scripts lisent ; MarketplaceService.PromptGamePassPurchaseFinished écouté CÔTÉ SERVEUR, avantage donné seulement si wasPurchased vaut true et si gamePassId correspond ; une fonction accorderPass(player) réutilisée partout ; avantage reposé dans CharacterAdded.
+- Serveur : MarketplaceService:UserOwnsGamePassAsync(player.UserId, ID) dans un pcall, avec 2 nouvelles tentatives, à l'arrivée ; résultat mémorisé dans un attribut du joueur Possede[NOM], que les autres scripts lisent ; MarketplaceService.PromptGamePassPurchaseFinished écouté CÔTÉ SERVEUR, avantage donné seulement si wasPurchased vaut true et si gamePassId correspond ; une fonction accorderPass(player) réutilisée partout, sans danger si elle est appelée deux fois (arrivée puis achat : un seul avantage, pas deux traînées) ; avantage reposé dans CharacterAdded.
 - Client : prix lu avec MarketplaceService:GetProductInfoAsync(ID, Enum.InfoType.GamePass) dans un pcall ; clic = MarketplaceService:PromptGamePassPurchase(joueur, ID) ; le bouton affiche « Possédé » quand l'attribut est vrai.
 - Une constante ID par script, avec le commentaire « remplace par l'ID de ton pass ».
 Sécurité : seul le serveur accorde l'avantage ; le client ne fait qu'ouvrir la fenêtre d'achat. L'avantage reste cosmétique (pas de pay-to-win).
@@ -816,7 +818,7 @@ Vérification : montre-moi le fichier créé. Je le testerai ensuite sur un fich
 
 ```text
 Objectif : faire relire par le sous-agent relecteur-roblox tous les fichiers .luau modifiés ou créés depuis le dernier commit.
-Contraintes techniques : liste d'abord ces fichiers avec git status --short, puis confie leur relecture au sous-agent relecteur-roblox.
+Contraintes techniques : liste d'abord ces fichiers avec git status --short --untracked-files=all (pour voir aussi chaque nouveau fichier), puis confie leur relecture au sous-agent relecteur-roblox.
 Fichiers concernés : aucun. Ne corrige rien.
 Vérification : donne-moi le rapport du sous-agent tel quel, puis ton avis sur chaque point (d'accord ou pas, et pourquoi). Je choisirai ensuite les corrections, une par une.
 ```

@@ -62,7 +62,7 @@ quiz:
   - type: vrai-faux
     question: "Après `/clear` dans Claude Code, les fichiers que Claude a modifiés reviennent à leur état d’avant."
     reponse: false
-    explication: "`/clear` vide seulement la **conversation** (le contexte). Les fichiers restent tels quels. Pour annuler du code, utilise Git (`git restore`, `git stash`) ou le menu de retour en arrière de Claude Code (`Esc` deux fois ou `/rewind`), qui ne suit pas les fichiers modifiés par des commandes du terminal."
+    explication: "`/clear` vide seulement la **conversation** (le contexte). Les fichiers restent tels quels. Pour annuler du code, utilise Git (`git restore`, `git stash`) ou le menu de retour en arrière de Claude Code (`Esc` deux fois ou `/rewind`), qui ne suit pas un fichier modifié uniquement par des commandes du terminal."
   - type: qcm
     question: "Claude Code a proposé deux corrections pour le même bug, et l’erreur est toujours là. Que fais-tu ? (plusieurs réponses possibles)"
     options:
@@ -242,7 +242,7 @@ git stash pop              # … et les ressort plus tard si tu en as besoin
 git log --oneline          # la liste de tes commits
 ```
 
-`git restore` efface définitivement les changements non commités du fichier : regarde d’abord `git diff`. `git stash` est plus prudent, puisqu’il garde les changements de côté. Attention aux **nouveaux fichiers** créés par l’IA (marqués `??` dans `git status`) : `git diff` ne les montre pas, `git restore` ne les touche pas, et `git stash` sans `-u` les laisse en place. Claude Code a aussi son propre retour en arrière : `Esc` arrête une réponse en cours, et `Esc` deux fois (champ vide) ou `/rewind` ouvre un menu pour restaurer le code et/ou la conversation. Mais ces points de restauration ne suivent pas les fichiers modifiés par des commandes du terminal : ils ne remplacent pas Git. D’où la règle de la [leçon 5](/modules/02/decouper-un-gros-projet/) : un commit après chaque étape qui marche.
+`git restore` efface définitivement les changements non commités du fichier : regarde d’abord `git diff`. `git stash` est plus prudent, puisqu’il garde les changements de côté. Attention aux **nouveaux fichiers** créés par l’IA (marqués `??` dans `git status`) : `git diff` ne les montre pas, `git restore` ne les touche pas, et `git stash` sans `-u` les laisse en place. Claude Code a aussi son propre retour en arrière : `Esc` arrête une réponse en cours, et `Esc` deux fois (champ vide) ou `/rewind` ouvre un menu pour restaurer le code et/ou la conversation. Mais ces points de restauration ne suivent pas un fichier modifié uniquement par des commandes du terminal (sans que Claude l’ait touché avec ses outils d’édition) : ils ne remplacent pas Git. D’où la règle de la [leçon 5](/modules/02/decouper-un-gros-projet/) : un commit après chaque étape qui marche.
 
 ### 6. `/clear`, puis repartir d’un résumé court
 
