@@ -346,7 +346,7 @@ Demande à Claude Code le système « Retour au checkpoint » de cette leçon. L
 Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Un joueur coincé doit pouvoir demander à réapparaître en appuyant sur la touche R. Le client demande, le serveur décide.
 Ce qui existe déjà : le Folder ReplicatedStorage.Remotes, déclaré dans default.project.json avec ses RemoteEvents. Les conventions sont dans CLAUDE.md.
 Objectif : quand le joueur appuie sur R (sauf s'il tape dans le chat), son personnage réapparaît, au plus une fois toutes les 5 secondes.
-Fichiers concernés : default.project.json (ajoute le RemoteEvent DemanderReapparition dans ReplicatedStorage.Remotes) ; crée src/StarterPlayer/StarterPlayerScripts/DemandeReapparition.client.luau et src/ServerScriptService/Reapparition.server.luau. Ne modifie rien d'autre.
+Fichiers concernés : default.project.json (le RemoteEvent DemanderReapparition doit être déclaré dans ReplicatedStorage.Remotes : ajoute-le seulement s'il n'y est pas déjà, le défi de la leçon 2 du module 2 l'a peut-être fait) ; crée src/StarterPlayer/StarterPlayerScripts/DemandeReapparition.client.luau et src/ServerScriptService/Reapparition.server.luau. Ne modifie rien d'autre.
 Contraintes techniques : côté client, UserInputService.InputBegan ; ignore l'entrée si son second paramètre (gameProcessedEvent) est vrai ; récupère le remote avec WaitForChild puis appelle FireServer() sans argument. Côté serveur, OnServerEvent : le premier paramètre est le joueur ajouté par Roblox ; recrée le personnage avec player:LoadCharacterAsync() (pas LoadCharacter, déprécié). Annotations de type :: RemoteEvent.
 Sécurité : le client n'envoie aucun argument, surtout pas un joueur ; le serveur n'utilise que le player reçu en premier paramètre. Délai minimum de 5 secondes par joueur vérifié sur le serveur (table [Player] = os.clock() de la dernière demande acceptée), pas seulement côté client.
 Cas limites : demandes en rafale (ignorées pendant 5 s) ; joueur qui quitte la partie (supprime son entrée de la table à PlayerRemoving) ; touche R tapée dans le chat.
@@ -370,7 +370,7 @@ Un RemoteEvent est une porte ouverte sur ton serveur. Un tricheur peut appeler `
 </Erreur>
 
 <Defi>
-Crée le dossier `ReplicatedStorage.Remotes` et le RemoteEvent `DemanderReapparition`, puis ajoute les deux scripts de la section « Du client vers le serveur ». Teste : la touche R doit faire réapparaître ton personnage, mais pas plus d’une fois toutes les 5 secondes. Ajoute un `print` côté serveur pour voir les demandes ignorées. Tu peux aussi faire écrire ces fichiers par Claude Code avec le prompt de l’encadré « Avec Claude Code » ci-dessus, puis les relire avec ce que tu viens d’apprendre avant de tester.
+Crée le dossier `ReplicatedStorage.Remotes` et le RemoteEvent `DemanderReapparition` (dans ton projet Rojo, `Remotes` existe déjà : il suffit de déclarer `DemanderReapparition` dans `default.project.json`, s'il n'y est pas encore), puis ajoute les deux scripts de la section « Du client vers le serveur ». Teste : la touche R doit faire réapparaître ton personnage, mais pas plus d’une fois toutes les 5 secondes. Ajoute un `print` côté serveur pour voir les demandes ignorées. Tu peux aussi faire écrire ces fichiers par Claude Code avec le prompt de l’encadré « Avec Claude Code » ci-dessus, puis les relire avec ce que tu viens d’apprendre avant de tester.
 </Defi>
 
 <Resume>

@@ -325,7 +325,7 @@ Même pour trois lignes, un prompt précis dit **où** créer le fichier, **quoi
 ```text
 Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (arborescence décrite dans CLAUDE.md). Je débute en Luau et je veux comprendre chaque ligne de ce script.
 Objectif : au lancement de la partie, l'Output affiche « Bienvenue dans l'Obby des Nuages ! », puis le nombre d'objets contenus dans le Workspace.
-Fichiers concernés : crée uniquement src/ServerScriptService/Bienvenue.server.luau (un Script serveur). Ne modifie rien d'autre.
+Fichiers concernés : uniquement src/ServerScriptService/Bienvenue.server.luau (un Script serveur). S'il existe déjà (il contient print("Hello world!")), remplace son contenu ; sinon, crée-le. Ne modifie rien d'autre.
 Contraintes techniques : récupère le Workspace avec game:GetService("Workspace") ; utilise print ; mets un commentaire en français au-dessus de chaque ligne pour me l'expliquer ; n'ajoute rien de plus que ce qui est demandé.
 Vérification : explique-moi comment le tester en Play et quels messages je dois voir dans l'Output.
 ```

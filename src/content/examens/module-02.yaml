@@ -34,7 +34,7 @@ questions:
         correct: true
       - texte: Il reste dans Studio, car Rojo ne touche qu’aux fichiers modifiés après la connexion
       - texte: Il est déplacé dans Workspace, que Rojo ne gère pas
-    explication: "ServerScriptService est relié à `src/ServerScriptService` par `$path` : à la connexion, Rojo y met exactement ce que contiennent tes fichiers, et un script qui n’existe que dans Studio est supprimé. La synchronisation de Studio vers les fichiers est désactivée par défaut. La fenêtre « Sync changes » annonçait cette suppression : il fallait cliquer sur **Abort**, recréer le fichier (à la main ou avec `rojo syncback --dry-run --list` d’abord), et toujours garder une sauvegarde du place."
+    explication: "ServerScriptService est relié à `src/ServerScriptService` par `$path` : à la connexion, Rojo y met exactement ce que contiennent tes fichiers, et un script qui n’existe que dans Studio est supprimé. La synchronisation de Studio vers les fichiers est désactivée par défaut. La fenêtre « Sync changes » annonçait cette suppression : il fallait cliquer sur **Abort**, recréer le fichier (à la main, ou avec `rojo syncback --input … --dry-run --list` d’abord), et toujours garder une sauvegarde du place."
 
   - type: vrai-faux
     question: "Claude Code a modifié `Boutique.server.luau` et créé un nouveau fichier `BoutiqueTest.server.luau`, jamais commité. Si tu tapes `git restore .`, les deux changements sont annulés : `Boutique.server.luau` revient au dernier commit et `BoutiqueTest.server.luau` est supprimé."
@@ -62,7 +62,7 @@ questions:
         correct: true
       - texte: "Seulement si tu as aussi écrit « jamais de git push » dans CLAUDE.md"
       - texte: "Oui, car l’étoile de `git push *` ne couvre pas les mots « origin main »"
-    explication: "Claude Code évalue les règles dans l’ordre `deny`, puis `ask`, puis `allow`, et c’est le programme qui les applique, pas le modèle : l’IA ne peut pas passer outre. L’étoile précédée d’une espace remplace n’importe quelle suite (`origin main` comprise). Sous Windows, double la règle avec `PowerShell(git push *)`, car les règles `Bash(…)` ne concernent que l’outil Bash. Une phrase dans CLAUDE.md, elle, n’est qu’un conseil."
+    explication: "Claude Code évalue les règles dans l’ordre `deny`, puis `ask`, puis `allow`, et c’est le programme qui les applique, pas le modèle : l’IA ne peut pas passer outre. L’étoile précédée d’une espace remplace n’importe quelle suite (`origin main` comprise). Sous Windows avec Git for Windows, cette règle `Bash(…)` désactive même l’outil PowerShell pour la session, pour qu’il ne serve pas de contournement. Une phrase dans CLAUDE.md, elle, n’est qu’un conseil."
 
   - type: qcm
     question: "Tu es au milieu d’une longue tâche (la sauvegarde DataStore). `/context` montre que le contexte est presque plein, mais tu veux continuer **la même** tâche. Quelle commande convient le mieux ?"
@@ -77,7 +77,7 @@ questions:
   - type: vrai-faux
     question: "Ton hook `PostToolUse` (matcher `\"Edit|Write\"`) lance StyLua puis selene. Si Claude modifie un script par une commande du terminal (outil Bash) au lieu de l’outil Edit, le hook se déclenche quand même."
     reponse: false
-    explication: "Le matcher limite le hook aux outils `Edit` et `Write` : une modification faite par une commande du terminal passe inaperçue. C’est pour ça que la skill `/verifier` (qui relance `stylua --check src` et `selene src`) reste utile avant chaque commit. Même limite pour `/rewind`, qui ne suit pas les fichiers changés par Bash : Git, lui, voit tout."
+    explication: "Le matcher limite le hook aux outils `Edit` et `Write` : une modification faite par une commande du terminal passe inaperçue. C’est pour ça que la skill `/verifier` (qui relance `stylua --check src` et `selene src`) reste utile avant chaque commit. Même limite pour `/rewind`, qui ne suit pas un fichier changé uniquement par Bash : Git, lui, voit tout."
 
   - type: ameliore-le-prompt
     question: "Tu veux qu’un message s’affiche quand un joueur termine l’Obby des Nuages. Quelle version du prompt donnera le meilleur résultat ?"
@@ -193,29 +193,30 @@ questions:
     explication: "Ton CLAUDE.md l’impose : chaque appel MarketplaceService est dans un `pcall`. Ici, une panne passagère du service (ou un ID resté à 0) fait planter la fonction : le joueur n’a ni l’attribut, ni son avantage. La bonne version fait 2 nouvelles tentatives, puis un `warn` et considère le pass comme non possédé pour cette session. `UserOwnsGamePassAsync` attend bien un `UserId`, et les attributs posés par le serveur sont répliqués aux clients."
 
   - type: trouve-le-bug
-    question: "Trouve la faille dans ce code généré par IA. Ce Script serveur replace le joueur sur son dernier checkpoint à chaque réapparition. Il fonctionne, mais une ligne utilise une API que Roblox marque Deprecated. Laquelle ?"
+    question: "Trouve la faille dans ce code généré par IA. Ce ModuleScript, appelé par le script des manches à la fin de chaque partie, ramène tous les joueurs au lobby. Il fonctionne, mais une ligne utilise une API que Roblox marque Deprecated. Laquelle ?"
     code: |
       local Players = game:GetService("Players")
       local Workspace = game:GetService("Workspace")
 
-      local checkpoints = Workspace:WaitForChild("Checkpoints")
+      local spawnLobby = Workspace:WaitForChild("Lobby"):WaitForChild("SpawnLocation") :: BasePart
+      local Lobby = {}
 
-      Players.PlayerAdded:Connect(function(player: Player)
-      	player.CharacterAdded:Connect(function(personnage: Model)
-      		local etape = player:WaitForChild("leaderstats"):WaitForChild("Etape") :: IntValue
-      		local checkpoint = checkpoints:FindFirstChild(tostring(etape.Value))
-      		if checkpoint and checkpoint:IsA("BasePart") then
-      			personnage:SetPrimaryPartCFrame(checkpoint.CFrame + Vector3.new(0, 3, 0))
+      function Lobby.ramenerTous()
+      	for _, player in Players:GetPlayers() do
+      		local personnage = player.Character
+      		if personnage and personnage.PrimaryPart then
+      			personnage:SetPrimaryPartCFrame(spawnLobby.CFrame + Vector3.new(0, 3, 0))
       		end
-      	end)
-      end)
+      	end
+      end
+      return Lobby
     options:
-      - texte: "Ligne 7 : `CharacterAdded` ne se déclenche qu’à la première apparition du personnage"
-      - texte: "Ligne 8 : `WaitForChild` est déprécié dans un Script serveur"
-      - texte: "Ligne 9 : `tostring` est inutile, `FindFirstChild` accepte directement un nombre"
+      - texte: "Ligne 4 : `WaitForChild` est déprécié dans un ModuleScript"
+      - texte: "Ligne 8 : `Players:GetPlayers()` est déprécié, il faut parcourir `Players:GetChildren()`"
+      - texte: "Ligne 10 : la propriété `PrimaryPart` est dépréciée"
       - texte: "Ligne 11 : `SetPrimaryPartCFrame` est déprécié ; on déplace un modèle avec `personnage:PivotTo(...)`"
         correct: true
-    explication: "La référence de l’API marque `Model:SetPrimaryPartCFrame()` comme dépréciée, remplacée par `PVInstance:PivotTo()` : une IA entraînée sur de vieux tutoriels la propose encore souvent, et luau-lsp la souligne (`DeprecatedApi`). `CharacterAdded` se déclenche à chaque apparition, `WaitForChild` est parfaitement actuel, et `FindFirstChild` attend un nom (un texte), d’où le `tostring`. En cas de doute, cherche le nom exact dans la référence officielle : la mention **Deprecated** y figure."
+    explication: "La référence de l’API marque `Model:SetPrimaryPartCFrame()` comme dépréciée, remplacée par `PVInstance:PivotTo()` : une IA entraînée sur de vieux tutoriels la propose encore souvent, et luau-lsp la souligne en mode strict (`DeprecatedApi`). `WaitForChild`, `GetPlayers` et `PrimaryPart` sont parfaitement actuels (avec `PivotTo`, le test de `PrimaryPart` devient même inutile). En cas de doute, cherche le nom exact dans la référence officielle : la mention **Deprecated** y figure."
 
   - type: ameliore-le-prompt
     question: "Ton jeu doit envoyer, depuis le serveur, le nombre de joueurs arrivés au bout à un service de statistiques qui demande une clé d’API. Quelle version du prompt est la plus précise et la plus sûre ?"
@@ -243,7 +244,7 @@ questions:
         correct: true
       - texte: Tu gardes le texte, mais tu ajoutes « texte généré par IA » à la fin
       - texte: Tu ajoutes plusieurs fois les mots « obby » et « Robux » pour que le jeu soit mieux trouvé
-    explication: "Les Community Standards interdisent les métadonnées trompeuses (nom, description, images), et les conditions de Roblox te rendent responsable de ce que tu fais des résultats d’une IA. Mentionner l’IA n’excuse pas une promesse fausse, et le bourrage de mots-clés peut faire rétrograder le jeu. D’où le prompt de la leçon : le contenu réel en entrée, aucune fonctionnalité inventée, et la liste des affirmations à contrôler en jouant."
+    explication: "Les Community Standards interdisent les contenus et métadonnées trompeurs utilisés pour gagner en visibilité (la description en fait partie), et les conditions de Roblox te rendent responsable de ce que tu fais des résultats d’une IA. Mentionner l’IA n’excuse pas une promesse fausse, et le bourrage de mots-clés peut faire rétrograder le jeu. D’où le prompt de la leçon : le contenu réel en entrée, aucune fonctionnalité inventée, et la liste des affirmations à contrôler en jouant."
 
   - type: ameliore-le-prompt
     question: "Tu as copié un extrait du prompt « Checkpoints sécurisés » de la bibliothèque pour ton obby « Tour des Étoiles », qui a 20 checkpoints. Quelle version est prête à être envoyée ?"

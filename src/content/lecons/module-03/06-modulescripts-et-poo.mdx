@@ -329,6 +329,8 @@ Chaque objet a sa propre vitesse et son propre état, mais toutes les pièces pa
 
 Pour tester cette version, **désactive** ton Script `PiecesTournantes` (propriété **Enabled** décochée) : sinon, les deux scripts feraient tourner les mêmes pièces en même temps. Une fois tes essais terminés, fais l’inverse : désactive ce script de démonstration et réactive `PiecesTournantes` (la version branchée sur `Config`). C’est elle que les modules suivants reprennent, notamment au module 10 pour mesurer et alléger son coût.
 
+Dans ton projet Rojo, le script de démonstration est lui aussi un fichier, par exemple `src/ServerScriptService/DemoPieceTournante.server.luau`. Pour mettre `PiecesTournantes` en pause sans risquer que Rojo rétablisse le script, le plus simple est d’entourer temporairement tout le contenu de `PiecesTournantes.server.luau` d’un commentaire long `--[[ ... ]]` (leçon 1). Une fois tes essais terminés, **supprime** les deux fichiers de démonstration (`PieceTournante.luau` et `DemoPieceTournante.server.luau`) et retire le commentaire : la suite de la formation ne les utilise pas.
+
 <Erreur titre="Appeler une méthode avec un point">
 `maPiece.arreter()` (avec un point) n’envoie pas l’objet : dans la méthode, `self` vaut `nil` et tu obtiens « attempt to index nil with 'active' ». Règle simple : **méthode déclarée avec `:`, méthode appelée avec `:`**. Le constructeur `new`, lui, se déclare et s’appelle avec un point, car il n’y a pas encore d’objet.
 </Erreur>

@@ -303,7 +303,11 @@ Vérification : dans Studio, avec Rojo connecté, l'Output affiche « Je possèd
 </AvecClaudeCode>
 
 <Defi>
+
 Crée la RemoteFunction `ObtenirInventaire` et les deux scripts de l’exemple (toi-même, ou avec Claude Code et le prompt de l’encadré ci-dessus, puis relis-les avec les trois règles de la leçon). Côté serveur, ajoute temporairement `"TrailNuage"` dans l’inventaire de chaque nouveau joueur et vérifie que le LocalScript l’affiche. Ensuite, ajoute un `task.wait(3)` dans le callback serveur : observe que le LocalScript attend trois secondes avant d’afficher le résultat.
+
+Ces deux scripts sont un exercice : une fois le défi terminé, supprime-les, ainsi que la RemoteFunction `ObtenirInventaire` de `default.project.json` si tu travailles avec Rojo. À la leçon 5, c’est le Script `Boutique` qui gardera l’inventaire, puis le module 5 le sauvegardera : deux inventaires différents dans le même jeu finiraient par se contredire.
+
 </Defi>
 
 <Resume>
