@@ -63,7 +63,7 @@ La règle d’or reste la même que pour le code : **plus ta demande est précis
 
 ## Vue d’ensemble des outils officiels
 
-La page « AI on Roblox » de la documentation regroupe les outils d’IA de Roblox ; la traduction automatique, elle, est documentée à part, dans la section Localization. Pour le contenu (hors code), voici ceux qui nous intéressent :
+La page « AI on Roblox » de la documentation regroupe les outils d’IA de Roblox ; la traduction automatique, elle, est documentée à part, dans la section Localization. Pour le contenu (hors code), voici ceux qui nous intéressent. Un mot revient souvent : un **maillage** (*mesh* en anglais) est un objet 3D fait de petits triangles ; dans Studio, il devient une `MeshPart`.
 
 | Outil | Ce qu’il fait | Où le trouver |
 |---|---|---|
@@ -105,7 +105,7 @@ Avec `/generate_procedural_model`, l’Assistant construit un objet à partir de
 
 ### Avatar Setup
 
-**Avatar Setup** prend un modèle 3D importé (par exemple depuis Blender) et ajoute ce qui manque pour en faire un avatar : armature R15, *skinning*, animation faciale, cages pour les vêtements superposés, découpage en 15 parties et points d’attache. Sélectionne le modèle, puis **Avatar › Avatar Setup**. Choisis le préréglage **Development Avatar** pour un PNJ de ton jeu, **Platform Avatar** pour vendre l’objet sur le Marketplace (plus strict). La documentation prévient que tout modèle importé passe en **file de modération**, et que la publication sur le Marketplace demande des frais et une modération.
+**Avatar Setup** prend un modèle 3D importé (par exemple depuis Blender) et ajoute ce qui manque pour en faire un avatar : armature R15 (le squelette qui permet de l’animer), *skinning* (le lien entre ce squelette et la surface du modèle), animation faciale, cages pour les vêtements superposés, découpage en 15 parties et points d’attache. Sélectionne le modèle, puis **Avatar › Avatar Setup**. Choisis le préréglage **Development Avatar** pour un PNJ (personnage non joueur) de ton jeu, **Platform Avatar** pour vendre l’objet sur le Marketplace (plus strict). La documentation prévient que tout modèle importé passe en **file de modération**, et que la publication sur le Marketplace demande des frais et une modération.
 
 <Erreur titre="Accepter le premier modèle généré">
 Un modèle généré peut être trop détaillé (lourd sur mobile), mal proportionné, ou avoir une collision mal ajustée. Vérifie sa taille par rapport au personnage, son nombre de triangles et sa collision avant de le dupliquer partout. Tu verras au [module 10](/modules/10/reduire-le-lag/) pourquoi chaque MeshPart compte pour les performances.
@@ -118,7 +118,7 @@ Un modèle généré peut être trop détaillé (lourd sur mobile), mal proporti
 Sélectionne un mesh, puis **Model › Texture**. Décris la texture voulue (ou ajoute une image de référence, utilisée comme guide de style), clique sur **Preview** : trois aperçus arrivent en une dizaine de secondes. Choisis ensuite un mode :
 
 - **Fast** : une texture 1K en moins de 30 secondes, pour prototyper ;
-- **Quality** : une texture 4K plus détaillée (PBR, via une `SurfaceAppearance`), qui peut prendre quelques minutes.
+- **Quality** : une texture 4K plus détaillée (PBR, c’est-à-dire qui réagit à la lumière de façon réaliste, via une `SurfaceAppearance`), qui peut prendre quelques minutes.
 
 La documentation est très claire sur les prompts, et c’est le message central de ce module : les prompts **courts et vagues** donnent des résultats incohérents ; décris les matériaux, couleurs, motifs et détails. Elle déconseille aussi de parler de la forme du mesh, d’une texture générée avant, ou de la transparence. Pendant la génération, ne modifie pas l’objet ; si le résultat ne te plaît pas, `Ctrl+Z` (`Cmd+Z` sur Mac) annule.
 
@@ -174,6 +174,8 @@ Contraintes : ne modifie ni les clés ni la colonne Source ; ne traduis pas les 
 Vérification : liste à part les textes ambigus ou les jeux de mots que tu n'as pas pu traduire fidèlement, pour que je les fasse relire par un locuteur natif.
 ```
 
+Enregistre d’abord le fichier exporté dans ton projet (ici dans un dossier `localisation`), puis adapte le chemin après le `@`, l’âge des joueurs et les langues voulues.
+
 </Prompt>
 
 Tu importes ensuite tes traductions **après les avoir relues** : elles deviennent des traductions manuelles, prioritaires sur la traduction automatique.
@@ -194,6 +196,8 @@ Objectif : un brouillon de description de page de jeu, en français.
 Contraintes : une accroche de 160 caractères maximum ; puis 3 à 5 lignes sur ce qu'on fait dans le jeu ; puis les contrôles. N'invente aucune fonctionnalité absente de la liste ci-dessus, aucun chiffre, aucune promesse de mise à jour ou de récompense. Pas de répétition de mots-clés.
 Vérification : termine par la liste des affirmations de ton texte, pour que je vérifie chacune dans le jeu.
 ```
+
+Remplace `[NOMBRE]` par le vrai nombre d’étapes, et corrige la liste du contenu pour qu’elle décrive **exactement** ton jeu actuel : l’IA n’écrira rien d’autre.
 
 </Prompt>
 
@@ -227,11 +231,11 @@ Côté données d’entraînement, la page « AI data sharing » indique que le 
 - Les conditions interdisent de faire croire qu’un résultat généré a été créé par un humain.
 
 <Attention titre="Disponibilité et gratuité, à vérifier avant de compter dessus">
-Au moment de la rédaction (octobre 2026), la documentation ne donne **aucun prix** pour les générateurs de Studio (maillages, modèles procéduraux, textures, matériaux, Avatar Setup). Les seules limites chiffrées trouvées sont les 50 modèles procéduraux par 24 heures, les quotas de traduction et les limites du text-to-speech (dont le volume supplémentaire est payant). Lors de la RDC 2026, Roblox a aussi annoncé pour fin 2026 une génération de scènes et des comportements dynamiques de PNJ : tant qu’ils ne sont pas documentés, ne construis pas ton projet autour. Ces outils changent vite : vérifie la page « AI on Roblox » avant de les utiliser.
+Au moment de la rédaction (octobre 2026), la documentation ne donne **aucun prix** pour les générateurs de Studio (maillages, modèles procéduraux, textures, matériaux, Avatar Setup). Les seules limites chiffrées trouvées sont les 50 modèles procéduraux par 24 heures, les quotas de traduction et les limites du text-to-speech (dont le volume supplémentaire est payant). Lors de la RDC 2026 (la conférence annuelle de Roblox pour les créateurs), Roblox a aussi annoncé pour fin 2026 une génération de scènes et des comportements dynamiques de PNJ : tant qu’ils ne sont pas documentés, ne construis pas ton projet autour. Ces outils changent vite : vérifie la page « AI on Roblox » avant de les utiliser.
 </Attention>
 
 <Defi>
-Ouvre la place de l’Obby des Nuages. Avec le **Material Generator**, crée un matériau « pierre de nuage » (essaie au moins deux prompts : un court, puis un détaillé avec « top down », « texture », des couleurs et un style) et applique la meilleure version à trois plateformes. Note ce qui a changé entre les deux prompts. Ensuite, fais écrire à Claude un brouillon de description avec le prompt ci-dessus, et vérifie chaque affirmation dans le jeu avant de l’utiliser.
+Ouvre le place de l’Obby des Nuages. Avec le **Material Generator**, crée un matériau « pierre de nuage » (essaie au moins deux prompts : un court, puis un détaillé avec « top down », « texture », des couleurs et un style) et applique la meilleure version à trois plateformes. Note ce qui a changé entre les deux prompts. Ensuite, fais écrire à Claude un brouillon de description avec le prompt ci-dessus, et vérifie chaque affirmation dans le jeu avant de l’utiliser. Claude est réservé aux 18 ans et plus : si tu as moins de 18 ans, fais cette étape avec un adulte qui utilise son propre compte, ou écris le brouillon toi-même en suivant les mêmes contraintes.
 </Defi>
 
 <Resume>

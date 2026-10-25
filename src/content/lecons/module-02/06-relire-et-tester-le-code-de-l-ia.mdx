@@ -135,7 +135,7 @@ warning[unused_variable]: inutilisee is assigned a value, but never used
 DeprecatedApi: Function 'wait' is deprecated, use 'task.wait' instead
 ```
 
-Pour qu’il repère aussi les **méthodes inventées** par l’IA, ajoute `--!strict` en première ligne du script (le mode strict, présenté au module 3, leçon 6). Sur un script qui appelle `magasin:SaveAsync(…)` (qui n’existe pas : la vraie méthode est `SetAsync` ou `UpdateAsync`), luau-lsp répond seulement en mode strict :
+Pour qu’il repère aussi les **méthodes inventées** par l’IA, ajoute `--!strict` en première ligne du script : ce **mode strict** demande à luau-lsp de vérifier les types beaucoup plus sévèrement (il est présenté en détail au module 3, leçon 6). Sur un script qui appelle `magasin:SaveAsync(…)` (qui n’existe pas : la vraie méthode est `SetAsync` ou `UpdateAsync`), luau-lsp répond seulement en mode strict :
 
 ```text
 TypeError: Key 'SaveAsync' not found in external type 'DataStore'
@@ -494,6 +494,8 @@ Contexte utile pour lui : ce mini-jeu n'a aucun RemoteEvent client → serveur ;
 Quand il a fini, montre-moi son rapport tel quel, sans rien corriger. J'indiquerai ensuite les points à corriger.
 ```
 
+Pour une autre tâche, remplace les deux chemins, le numéro de tâche et la ligne « Contexte utile » par ceux de ton propre changement.
+
 </Prompt>
 
 Tu peux aussi taper `@`, choisir `relecteur-roblox` dans la liste, puis écrire ta demande : la documentation précise que la mention garantit que ce sous-agent est utilisé. Ensuite, **lis le rapport d’un œil critique** : vérifie chaque point dans le code, ignore ceux qui sont faux, et demande les corrections dans ta session principale, avec un prompt ciblé.
@@ -506,14 +508,14 @@ Un relecteur IA peut signaler un faux problème ou en manquer un vrai. Demande-l
 
 Claude Code fournit aussi une commande de relecture toute prête : **`/code-review`** (alias `/review`). D’après la documentation (octobre 2026) :
 
-- tapée seule, elle relit les changements de ta branche Git **et** ceux qui ne sont pas encore commités, à la recherche de bugs. Ton projet doit donc être un dépôt Git (leçon 2) ;
+- tapée seule, elle relit les changements de ta branche Git **et** ceux qui ne sont pas encore commités, à la recherche de bugs. Ton projet doit donc être un dépôt Git (leçon 2). Une **branche** est une ligne d’historique de ton dépôt : pour l’instant, ton projet n’en a qu’une, nommée `main` ou `master` ;
 - tu peux viser un dossier ou un fichier : `/code-review src/ServerScriptService` ;
 - elle suit les règles de ton `CLAUDE.md` ;
 - elle tourne en arrière-plan, comme un sous-agent, et ses résultats arrivent dans la conversation quand elle a fini. Sans option, elle rend seulement un rapport ; avec `--fix`, elle applique aussi les corrections (en respectant ton mode de permission) ;
 - un niveau d’effort peut être précisé : `/code-review low` ne rapporte que ce dont elle est le plus sûre (moins de fausses alertes) ; `medium` à `max` élargissent la recherche. Sans niveau, elle reprend le dernier que tu as tapé (ou, la toute première fois, l’effort de ta session) ;
 - elle consomme ton forfait comme le reste de la session.
 
-Il existe aussi une relecture approfondie dans le cloud (`/code-review ultra`), avec quelques essais gratuits sur les offres Pro et Max, puis des crédits payants : n’en lance pas sans l’accord de l’adulte qui gère l’abonnement. Et `/security-review` analyse les failles de sécurité, mais elle compare ta branche à un dépôt distant `origin` (sur GitHub, par exemple), qu’un projet purement local n’a pas.
+Il existe aussi une relecture approfondie dans le cloud (`/code-review ultra`), avec quelques essais gratuits sur les offres Pro et Max, puis des crédits payants : n’en lance pas sans l’accord de la personne qui paie l’abonnement. Et `/security-review` analyse les failles de sécurité, mais elle compare ta branche à un dépôt distant `origin` (une copie en ligne de ton dépôt, sur GitHub par exemple), qu’un projet purement local n’a pas.
 
 Sous-agent maison ou `/code-review` ? Les deux se complètent : `/code-review` cherche les bugs en général, ton relecteur applique **ta** checklist Roblox. Garde ton jugement pour la fin.
 
@@ -532,7 +534,7 @@ Beaucoup de tutoriels datent : voici l’état vérifié sur les dépôts offici
 | **Jest Lua** (`jsdotlua/jest-lua`) | Version communautaire du même outil, plus mise à jour ; dernière version 3.10.0 (décembre 2024). Son README précise : « Jest Lua can currently only run inside of Roblox » | Non : préfère la version de Roblox |
 | **run-in-roblox** | Lance un script dans Studio depuis le terminal ; dernière version 0.3.0 (juillet 2020) | Non |
 | **Lune** | Exécute du Luau **en dehors de Roblox**, comme un programme normal ; version 0.11.1 (21 octobre 2026) ; s’installe avec Rokit | **Oui**, pour la logique pure |
-| **Luau Execution** (Open Cloud) | API officielle de Roblox qui exécute du Luau dans une place publiée, présentée « for automated testing » ; demande une clé d’API | Avancé, plus tard (une clé d’API ne se colle jamais dans un prompt) |
+| **Luau Execution** (Open Cloud) | API officielle de Roblox qui exécute du Luau dans un place publié, présentée « for automated testing » ; demande une clé d’API | Avancé, plus tard (une clé d’API ne se colle jamais dans un prompt) |
 
 ### La solution réaliste : tester la logique pure avec Lune
 
@@ -540,7 +542,7 @@ Lune n’a pas le moteur de Roblox : pas de `game`, pas de personnages, pas de p
 
 D’où l’astuce de Lave Montante (leçon 5) : toutes les règles de calcul vivent dans le ModuleScript `ReglesRound`, qui ne contient **aucun** `game:GetService`. Le serveur s’en sert dans Studio, et Lune le teste en dehors. Cette séparation est une bonne habitude pour tout jeu : prix, récompenses, niveaux, dégâts, chronomètres.
 
-**Installer Lune** (Windows et Mac, même commande) : dans un terminal ouvert dans le dossier du projet, tape :
+**Installer Lune** (Windows et Mac, même commande ; si tu l’as déjà fait pendant la tâche 3 de la leçon 5, passe directement à la vérification avec `lune --version`) : dans un terminal ouvert dans le dossier du projet, tape :
 
 ```bash
 rokit add lune-org/lune
@@ -550,7 +552,7 @@ Rokit télécharge Lune et l’ajoute à ton `rokit.toml`. S’il te demande si 
 
 ### Le fichier de test complet
 
-Crée le dossier `tests` à la racine du projet (à côté de `src`), puis le fichier `tests/ReglesRound.spec.luau` :
+Le fichier vit dans un dossier `tests` à la racine du projet (à côté de `src`). Si tu as suivi Lave Montante, Claude Code l’a déjà créé aux tâches 3 et 6 : compare-le à cette version de référence. Sinon, crée-le dans VS Code : clic droit dans la zone vide de l’explorateur, sous la liste des fichiers › **New File**, puis tape `tests/ReglesRound.spec.luau` (le dossier manquant est créé automatiquement). Colle ce contenu et enregistre :
 
 ```luau
 -- Tests automatiques de la logique pure du round, exécutés avec Lune (hors de Studio) :

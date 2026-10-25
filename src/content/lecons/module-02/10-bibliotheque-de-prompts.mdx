@@ -92,6 +92,8 @@ quiz:
 
 Tu connais maintenant la méthode : un prompt précis, une tâche à la fois, une vérification à la fin. Cette page est ta **boîte à outils** : un prompt prêt à copier pour chaque système courant d’un jeu Roblox, de la sauvegarde au combat en passant par la boutique. Chaque prompt suit le gabarit en huit rubriques de la [leçon 4](/modules/02/l-art-du-prompt-precis/) et reprend exactement les règles enseignées dans les leçons techniques de la formation. Garde-la sous la main : tu y reviendras à chaque nouveau système.
 
+**Cette page ne se lit pas d’une traite.** Lis d’abord la section « Comment utiliser cette bibliothèque » juste en dessous (cinq minutes), puis va directement au prompt dont tu as besoin grâce au tableau « Quel prompt pour quel besoin ? » ou à la table des matières. Beaucoup de ces systèmes sont construits plus loin dans la formation (modules 3 à 10) : n’utilise un prompt qu’après avoir lu la leçon indiquée dans « Détails », sinon tu ne pourras pas vérifier le code produit.
+
 ## Comment utiliser cette bibliothèque
 
 Chaque prompt est présenté de la même façon :
@@ -100,9 +102,28 @@ Chaque prompt est présenté de la même façon :
 2. **Le prompt**, dans un cadre avec un bouton **Copier**.
 3. **Après le prompt** : les points à vérifier dans le code produit par Claude Code.
 
+### Quel prompt pour quel besoin ?
+
+| Tu veux… | Prompt | Section |
+|---|---|---|
+| Démarrer un projet ou planifier un jeu | « Générer ou adapter le CLAUDE.md », « Planifier le jeu à partir du GDD », « Module Validation » | Démarrage de projet |
+| Faire progresser le joueur dans un obby | « Checkpoints sécurisés », « Kill bricks », « Pièces à ramasser », « Plateformes mobiles » | Bases de l’obby |
+| Afficher et sauvegarder ses statistiques | « Leaderstats », « Sauvegarde DataStore fiable », « Classement global » | Données |
+| Vendre des objets ou des avantages | « Boutique sécurisée », « Inventaire et équipement », « Game Pass », « Developer Product », « Récompense quotidienne » | Économie |
+| Ajouter des règles de jeu | « Système de manches », « Combat à l’épée », « Zones et portes à débloquer » | Gameplay |
+| Créer ce que le joueur voit à l’écran | « Interface adaptée au mobile », « Notifications à l’écran », « Interface de la boutique » | Interface |
+| Contrôler et améliorer ton code | « Audit anti-exploit », sous-agent relecteur, « Tests de la logique pure avec Lune », « Optimisation mobile », « Analytics » | Sécurité et qualité |
+| Comprendre une erreur rouge | « Déboguer une erreur » | Débogage |
+
 ### Adapter les crochets
 
 Tout ce qui est écrit `[EN_MAJUSCULES_ENTRE_CROCHETS]` est à remplacer par **ta** valeur : le nom de ton jeu, un prix, une durée, l’ID d’un produit. Quand un exemple est donné (`[DUREE_PARTIE, ex. 120]`), remplace tout le crochet, exemple compris. Le plus simple : colle d’abord le prompt dans un éditeur de texte (Bloc-notes sous Windows, TextEdit sous Mac, ou VS Code), remplis les crochets, puis copie le résultat dans Claude Code. Si une rubrique ne concerne pas ton jeu, supprime la ligne, mais garde toujours « Objectif » et « Vérification ».
+
+Trois formes particulières :
+
+- un crochet qui propose un **choix** (`[RIEN / le ModuleScript …]`, `[OU : contre des PNJ]`) : garde seulement la version qui correspond à ton jeu, sans les crochets ni le « OU » ;
+- un crochet qui commence par **COLLE** (`[COLLE ICI L'ERREUR]`, `[COLLE TES CHIFFRES …]`) : colle à sa place le texte exact, sans le résumer ;
+- les petits noms comme `[NOM]` : un mot court sans espace ni accent (par exemple `TrailDore`), parce qu’il entre dans un nom de fichier ou d’attribut.
 
 Les prompts utilisent les noms du fil rouge (`DonneesJoueurs`, `Validation`, `ReplicatedStorage.Remotes`, DataStore `DonneesJoueurs_v1`…). Si ton jeu utilise d’autres noms, remplace-les partout, sans en oublier un.
 
@@ -134,7 +155,11 @@ Si le système suivant casse tout, tu pourras toujours revenir à ce commit.
 Ces prompts supposent que ton projet a déjà son fichier **CLAUDE.md** ([leçon 3](/modules/02/claude-code-de-a-a-z/)). Il rappelle à chaque session l’architecture, les conventions de nommage, « toujours `task.wait`, jamais `wait` », les `pcall` autour des DataStores et de MarketplaceService, et la règle d’or : le serveur valide tout. C’est pour ça que les prompts ne répètent pas toutes ces règles et se concentrent sur ce qui est propre à chaque système.
 
 <Attention>
+
 Ne colle **jamais** dans un prompt un mot de passe, ton cookie `.ROBLOSECURITY`, une clé d’API ou un autre secret, même pour « aider » Claude Code. Les IDs de Game Pass et de Developer Product ne sont pas des secrets : tu peux les écrire. Et pour tout ce qui touche aux Robux (créer un produit, faire un vrai achat de test), si tu es mineur, fais-le avec un adulte.
+
+Rappel : Claude Code est réservé aux 18 ans et plus (conditions d’utilisation d’Anthropic, octobre 2026). Si tu as moins de 18 ans, utilise ces prompts avec un adulte qui a son propre compte, ou sers-t’en comme d’un plan pour écrire le code toi-même (ou avec l’Assistant de Studio) : les points « À vérifier » restent les mêmes.
+
 </Attention>
 
 ## Démarrage de projet

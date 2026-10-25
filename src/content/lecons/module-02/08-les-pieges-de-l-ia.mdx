@@ -140,7 +140,7 @@ TypeError: Key 'GetPlayerByName' not found in external type 'Players'
 TypeError: Key 'SetWalkSpeed' not found in external type 'Humanoid'
 ```
 
-Pour activer le mode strict sur un fichier suspect, ajoute `--!strict` en toute première ligne. Pour tout le projet, crée à la racine un fichier `.luaurc` :
+Pour activer le mode strict sur un fichier suspect, ajoute `--!strict` en toute première ligne. Pour tout le projet, crée à la racine un fichier `.luaurc` (dans VS Code : clic droit dans la zone vide de l’explorateur › **New File**, comme à la leçon 2, sans oublier le point au début du nom) :
 
 ```json
 {
@@ -214,7 +214,7 @@ Avec un prompt vague, une IA écrit souvent un code qui **marche** dans Studio�
 
 - **la confiance au client** : un RemoteEvent `DonnerPieces` qui ajoute la somme que le client envoie, un `ValiderCheckpoint` sans vérifier la distance ni l’ordre des étapes ;
 - **le prix envoyé par le client** : le client dit « j’achète, ça coûte 0 » ;
-- **l’absence de cadence** : aucune limite au nombre de demandes par seconde, donc le spam d’un remote ;
+- **l’absence de cadence** : aucune limite au nombre de demandes par seconde, donc un tricheur peut envoyer la même demande des centaines de fois par seconde (le « spam » d’un RemoteEvent) ;
 - **`loadstring`** : cette fonction exécute du texte comme du code. Elle est désactivée par défaut (`ServerScriptService.LoadStringEnabled` vaut `false`) et la documentation recommande de la laisser désactivée, car mal utilisée elle ouvre la porte à l’exécution de code à distance. Si une IA te propose de l’activer, refuse ;
 - **les clés dans le code** : une clé d’API écrite en clair dans un script pour appeler un service web avec `HttpService`.
 
@@ -286,7 +286,7 @@ Tout ce que tu écris dans un prompt part chez le fournisseur de l’IA. Avec le
 | Clé d’API **Open Cloud** | la documentation Roblox la compare à un **mot de passe** et demande de ne jamais la stocker dans le code, dans un système de versions ou dans un script |
 | Cookie **`.ROBLOSECURITY`** | c’est ta session Roblox : qui l’a peut agir sur ton compte. L’aide Roblox dit de ne jamais partager mot de passe, cookies, codes de vérification en deux étapes ni codes de secours |
 | URL de **webhook Discord** | selon la documentation de Discord, un webhook s’utilise sans authentification : qui a l’URL peut poster dans ton salon |
-| **Mots de passe**, codes 2SV | évident, mais ça arrive : « voici mon compte pour que tu testes » |
+| **Mots de passe**, codes 2SV (vérification en deux étapes) | évident, mais ça arrive : « voici mon compte pour que tu testes » |
 
 ### Où ranger une clé, alors ?
 
@@ -348,7 +348,7 @@ La section « AI Features » des conditions d’utilisation (mise à jour le 7 o
 - **les droits** : entre toi et Roblox, tu conserves les droits que tu as sur tes prompts et sur les résultats, mais tu accordes à Roblox une **licence** pour les utiliser, y compris pour entraîner des modèles (sans changer tes préférences de partage de données) ;
 - **interdits**, entre autres : mettre des informations sensibles, confidentielles ou personnelles dans un prompt ; faire croire qu’un résultat a été créé par un humain ; retirer les marqueurs de provenance d’un résultat ; neutraliser les filtres de sécurité ou de confidentialité.
 
-Les **Creator Terms** ajoutent, pour l’IA dans un jeu (un PNJ qui discute, par exemple) : informer clairement les joueurs que l’IA **n’est pas humaine**, que ses réponses sont générées et peuvent être fausses, et qu’ils parlent à un chatbot **dès le début** de l’échange (« before or at the commencement »). Roblox peut aussi restreindre certains outils d’IA selon l’âge des joueurs.
+Les **Creator Terms** ajoutent, pour l’IA dans un jeu (un PNJ, c’est-à-dire un personnage non joueur, qui discute, par exemple) : informer clairement les joueurs que l’IA **n’est pas humaine**, que ses réponses sont générées et peuvent être fausses, et qu’ils parlent à un chatbot **dès le début** de l’échange (« before or at the commencement »). Roblox peut aussi restreindre certains outils d’IA selon l’âge des joueurs.
 
 ### La page « Games with Generative AI »
 

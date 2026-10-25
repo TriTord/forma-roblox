@@ -170,6 +170,8 @@ Sécurité : la correction ne doit retirer aucune vérification côté serveur n
 Vérification : quand la cause est confirmée et corrigée, retire les print [DEBUG] et dis-moi quoi refaire dans Studio pour prouver que l'erreur a disparu. selene src et stylua --check src sans erreur.
 ```
 
+Chaque passage `[EN MAJUSCULES ENTRE CROCHETS]` est à remplacer par **tes** informations, crochets et exemple compris (`[QUAND, ex. mon dernier commit]` devient par exemple « hier soir, après l’ajout de la boutique »). Seul `[DEBUG]` reste tel quel : c’est l’étiquette des `print` de diagnostic.
+
 </Prompt>
 
 Ton **CLAUDE.md** ([leçon 3](/modules/02/claude-code-de-a-a-z/)) rappelle déjà l’architecture, les conventions et les règles de sécurité : pas besoin de les répéter ici.
@@ -182,10 +184,10 @@ Ton **CLAUDE.md** ([leçon 3](/modules/02/claude-code-de-a-a-z/)) rappelle déj�
 
 Si tu as connecté le serveur MCP de Studio à Claude Code ([leçon 2](/modules/02/installer-un-workflow-pro/)), Claude Code peut aller chercher certaines informations lui-même. La documentation officielle du serveur MCP liste notamment ces outils :
 
-| Outil | Ce qu’il fait | Modifie la place ? |
+| Outil | Ce qu’il fait | Modifie le place ? |
 |---|---|---|
 | `get_console_output` | lit la sortie de l’Output de Studio | non |
-| `get_studio_state` | indique si un test est en cours et quels data models sont disponibles (Edit, Client, Server) | non |
+| `get_studio_state` | indique si un test est en cours et quels data models (les versions du jeu ouvertes dans Studio : Edit, Client, Server) sont disponibles | non |
 | `start_stop_play` | lance ou arrête un test | oui (démarre un test) |
 | `script_read`, `script_grep` | lit un script, cherche un texte dans tous les scripts | non |
 | `search_game_tree`, `inspect_instance` | explore l’arborescence, affiche les propriétés et attributs d’un objet | non |
@@ -194,8 +196,8 @@ Si tu as connecté le serveur MCP de Studio à Claude Code ([leçon 2](/modules/
 
 Tu peux alors écrire : « Lance un test, attends 5 secondes, lis la console avec `get_console_output`, arrête le test, puis donne-moi ton diagnostic sans rien modifier. » Pour vérifier un nom, plus besoin de deviner : « Avec `search_game_tree`, vérifie le nom exact du dossier des checkpoints dans Workspace. »
 
-<Attention titre="Le MCP agit sur ta place ouverte">
-La documentation de Roblox prévient que les clients MCP peuvent **lire et modifier** le contenu de tes places ouvertes. Des outils comme `execute_luau` ou `start_stop_play` changent quelque chose dans Studio : Claude Code te demandera la permission, lis bien ce qu’il veut exécuter. Enregistre ou publie une version de ta place avant de lui laisser faire de gros changements.
+<Attention titre="Le MCP agit sur ton place ouvert">
+La documentation de Roblox prévient que les clients MCP peuvent **lire et modifier** le contenu de tes places ouverts. Des outils comme `execute_luau` ou `start_stop_play` changent quelque chose dans Studio : Claude Code te demandera la permission, lis bien ce qu’il veut exécuter. Enregistre ou publie une version de ton place avant de lui laisser faire de gros changements.
 </Attention>
 
 ## La méthode pour ne pas tourner en rond
@@ -242,7 +244,11 @@ git stash pop              # … et les ressort plus tard si tu en as besoin
 git log --oneline          # la liste de tes commits
 ```
 
-`git restore` efface définitivement les changements non commités du fichier : regarde d’abord `git diff`. `git stash` est plus prudent, puisqu’il garde les changements de côté. Attention aux **nouveaux fichiers** créés par l’IA (marqués `??` dans `git status`) : `git diff` ne les montre pas, `git restore` ne les touche pas, et `git stash` sans `-u` les laisse en place. Claude Code a aussi son propre retour en arrière : `Esc` arrête une réponse en cours, et `Esc` deux fois (champ vide) ou `/rewind` ouvre un menu pour restaurer le code et/ou la conversation. Mais ces points de restauration ne suivent pas un fichier modifié uniquement par des commandes du terminal (sans que Claude l’ait touché avec ses outils d’édition) : ils ne remplacent pas Git. D’où la règle de la [leçon 5](/modules/02/decouper-un-gros-projet/) : un commit après chaque étape qui marche.
+`git restore` efface définitivement les changements non commités du fichier : regarde d’abord `git diff`. `git stash` est plus prudent, puisqu’il garde les changements de côté.
+
+Attention aux **nouveaux fichiers** créés par l’IA (marqués `??` dans `git status`) : `git diff` ne les montre pas, `git restore` ne les touche pas, et `git stash` sans `-u` les laisse en place.
+
+Claude Code a aussi son propre retour en arrière : `Esc` arrête une réponse en cours, et `Esc` deux fois (champ vide) ou `/rewind` ouvre un menu pour restaurer le code et/ou la conversation. Mais ces points de restauration ne suivent pas un fichier modifié uniquement par des commandes du terminal (sans que Claude l’ait touché avec ses outils d’édition) : ils ne remplacent pas Git. D’où la règle de la [leçon 5](/modules/02/decouper-un-gros-projet/) : un commit après chaque étape qui marche.
 
 ### 6. `/clear`, puis repartir d’un résumé court
 
