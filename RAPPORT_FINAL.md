@@ -74,6 +74,10 @@ npm run preview    # sert dist/ sur http://localhost:4321 (recherche incluse)
 
 ## 4. Déployer
 
+**En production (25/10/2026)** : le site est en ligne sur **https://sig-agency.com** (GitHub Pages, dépôt public `TriTord/forma-roblox`). Chaque push sur `main` relance le build et la publication (workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml), `SITE_URL=https://sig-agency.com`). Le domaine a été retiré du dépôt `TriTord/sig-agency` (ancien site d’agence), dont les fichiers restent intacts et visibles sur https://tritord.github.io/sig-agency/. Les DNS n’ont pas changé (enregistrements A vers GitHub Pages, `www` en CNAME vers `tritord.github.io`).
+
+Autres hébergeurs possibles :
+
 Le site est 100 % statique : commande de build `npm run build`, dossier publié `dist/`.
 
 Avant le premier déploiement, indique l'URL publique (balises canoniques, Open Graph, sitemap) via la variable d'environnement **`SITE_URL`** (par défaut `https://forma-roblox.vercel.app`).

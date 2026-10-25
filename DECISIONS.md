@@ -46,3 +46,5 @@ Décisions prises de façon autonome par le chef d'orchestre (l'utilisateur n'é
 | 40 | 2026-10-25 | « place » (fichier de jeu Roblox) au masculin partout (« ton place », « le place ») | Usage majoritaire du site (≈ 70 occurrences) et des modules 01-02 ; les rares formes féminines désignant le fichier ont été corrigées. |
 | 41 | 2026-10-25 | Numéros de ligne affichés sur tous les blocs Luau des leçons (CSS, non copiés) | Les exercices de lecture du module 03 et les encadrés citent des numéros de ligne ; même rendu que les « trouve-le-bug ». |
 | 42 | 2026-10-25 | Prompts qui dépendent d'un fichier créé uniquement par un encadré facultatif (ex. `DemoAchat`) : nom entre crochets à adapter | Un élève qui a construit le système à la main sans Claude Code ne doit pas être bloqué. |
+
+| 43 | 2026-10-25 | Mise en ligne sur sig-agency.com via un nouveau dépôt public `TriTord/forma-roblox` (GitHub Pages + Actions), domaine retiré de `sig-agency` sans effacer ce dépôt | Remplace le site à l’adresse demandée tout en gardant l’ancien site récupérable ; Pages gratuit exige un dépôt public ; aucun changement DNS nécessaire. |
