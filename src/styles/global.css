@@ -91,6 +91,29 @@
 .dark .code-lignes .line::before {
   color: var(--color-slate-400) !important;
 }
+/* Mêmes numéros sur les blocs Luau des leçons : les exercices de lecture citent des numéros de ligne.
+   3ch de marge : certains scripts complets dépassent 99 lignes. Les numéros ne sont pas copiés (user-select). */
+.prose pre[data-language="luau"] code {
+  counter-reset: ligne;
+  display: block;
+  position: relative;
+  width: max-content;
+  min-width: 100%;
+  padding-left: calc(3ch + 1.25rem);
+}
+.prose pre[data-language="luau"] .line::before {
+  counter-increment: ligne;
+  content: counter(ligne);
+  position: absolute;
+  left: 0;
+  width: 3ch;
+  text-align: right;
+  color: var(--color-slate-500);
+  user-select: none;
+}
+.dark .prose pre[data-language="luau"] .line::before {
+  color: var(--color-slate-400) !important;
+}
 
 /* Extrait de code décoratif de l'accueil : plus compact sur téléphone pour limiter le défilement horizontal. */
 @media (max-width: 639px) {
