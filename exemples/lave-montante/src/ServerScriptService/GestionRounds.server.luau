@@ -66,14 +66,21 @@ local function listerPointsApparition(): { BasePart }
 	return points
 end
 
--- Remet tout à zéro : appelée à la fin de CHAQUE round, même après une erreur
+-- Remet tout à zéro : appelée à la fin de CHAQUE round, même après une erreur.
+-- Les participants encore en vie reviennent au lobby : personne ne reste coincé dans l'arène.
 local function nettoyerRound()
-	for player in participants do
-		retirerParticipant(player)
-	end
 	if laveActuelle then
 		laveActuelle:Destroy()
 		laveActuelle = nil
+	end
+	for player, participant in participants do
+		retirerParticipant(player)
+		local personnage = participant.personnage
+		local humanoid = personnage:FindFirstChildOfClass("Humanoid")
+		-- Ceux qui sont morts ou partis ont déjà été retirés (connexion Died, PlayerRemoving)
+		if personnage.Parent ~= nil and humanoid and humanoid.Health > 0 then
+			teleporter(personnage, apparitionLobby)
+		end
 	end
 end
 
@@ -166,7 +173,7 @@ local function recompenser(player: Player, gain: number)
 	end
 end
 
--- Récompense les survivants, affiche le résultat, puis les ramène au lobby
+-- Récompense les survivants et affiche le résultat (nettoyerRound les ramène ensuite au lobby)
 local function terminerRound(nombreDepart: number)
 	local survivants: { Player } = {}
 	for player in participants do
@@ -182,11 +189,6 @@ local function terminerRound(nombreDepart: number)
 	etatRound:SetAttribute("Survivants", #survivants)
 	changerPhase("Fin", Config.DUREE_FIN_ROUND)
 	task.wait(Config.DUREE_FIN_ROUND)
-
-	-- Ceux qui sont morts pendant la pause ont déjà été retirés (connexion Died)
-	for _, participant in participants do
-		teleporter(participant.personnage, apparitionLobby)
-	end
 end
 
 local function jouerUnCycle()
@@ -210,6 +212,6 @@ while true do
 		if not ok then
 			warn("Round interrompu :", erreur)
 		end
-		nettoyerRound()
+		nettoyerRound() -- toujours appelé, même après une erreur : retour au lobby, connexions coupées, lave détruite
 	end
 end

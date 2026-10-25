@@ -199,6 +199,7 @@ Puis construis le décor **à la main** dans Studio (le module 1 t’a appris à
 
 - supprime la SpawnLocation du modèle Baseplate ;
 - crée un Folder `Lobby` avec un sol et une **SpawnLocation** nommée `ApparitionLobby` (la seule du jeu, pour que les éliminés réapparaissent au lobby) ;
+- sélectionne `Workspace` et, dans la fenêtre Properties, décoche `StreamingEnabled` : le mini-jeu est petit, et chaque joueur aura ainsi l’arène déjà chargée quand le serveur l’y téléportera (sinon, son jeu peut se mettre en pause le temps de la charger) ;
 - crée un Folder `Arene`, loin du lobby, avec des plateformes ancrées jusqu’à 45 studs de haut, un Folder `PointsApparition` (quelques Parts ancrées, invisibles, sans collision, posées au sol de l’arène) et une Part `DepartLave` (ancrée, à plat, invisible, sans collision, aussi large que l’arène et posée à son niveau de sol).
 
 ### Le mini game design doc
@@ -449,6 +450,8 @@ Vérification : un joueur immobile au sol est éliminé quand la lave atteint sa
 
 **À relire :** plus aucun `Touched` ; la boucle de `jouerRound` contient un `task.wait` ; un participant est retiré **avant** de passer au suivant (pas d’élimination comptée deux fois).
 
+Si Claude propose de faire monter la lave avec `TweenService` côté serveur pour un mouvement « plus fluide », refuse : la documentation de Roblox sur les performances explique qu’un tween lancé sur le serveur renvoie la propriété à chaque client à chaque image, ce qui rend le mouvement saccadé quand la latence varie et charge le réseau. Ici, la lave monte de 40 studs en 55 s : avec une mise à jour toutes les 0,2 s, chaque pas fait environ 0,15 stud, un mouvement très régulier. Pour une animation vraiment continue, il faudrait l’interpoler côté client, ce qui dépasse cette v1.
+
 **Commit :** `git commit -m "Tâche 6 : lave montante et élimination par le serveur"`
 
 <Info titre="La leçon à retenir de ce raté">
@@ -463,9 +466,9 @@ Le premier résultat n’était pas « bête » : `Touched` est la solution qu�
 Contexte : tâche 7 de TACHES.md. Les phases, la téléportation et la lave fonctionnent (tâches 4 à 6).
 Objectif : à la fin du round, chaque survivant gagne ReglesRound.recompense(...) pièces et 1 victoire, et reçoit le message « Tu as survécu ! +N pièces » ; entre deux rounds, il ne reste plus rien du round précédent.
 Fichiers concernés : modifie uniquement src/ServerScriptService/GestionRounds.server.luau.
-Contraintes techniques : terminerRound calcule le gain une fois (nombre de survivants, nombre de participants au départ, Config.RECOMPENSE_SURVIE, Config.BONUS_DERNIER_SURVIVANT), met à jour leaderstats.Pieces et leaderstats.Victoires (vérifie qu'elles existent), envoie le message avec Remotes.Notification:FireClient, publie l'attribut Survivants sur EtatRound, attend Config.DUREE_FIN_ROUND, puis ramène les survivants au lobby. Une fonction nettoyerRound() retire tous les participants (avec Disconnect) et détruit la lave avec Destroy.
+Contraintes techniques : terminerRound calcule le gain une fois (nombre de survivants, nombre de participants au départ, Config.RECOMPENSE_SURVIE, Config.BONUS_DERNIER_SURVIVANT), met à jour leaderstats.Pieces et leaderstats.Victoires (vérifie qu'elles existent), envoie le message avec Remotes.Notification:FireClient, publie l'attribut Survivants sur EtatRound, puis attend Config.DUREE_FIN_ROUND. Une fonction nettoyerRound() détruit la lave avec Destroy, puis retire tous les participants (avec Disconnect) en ramenant au lobby ceux qui sont encore en vie : le retour au lobby se fait donc là, et plus à la fin de terminerRound.
 Sécurité : le gain est calculé par le serveur ; aucun montant ne vient du client.
-Cas limites : Players.PlayerRemoving retire le joueur des participants ; le cycle d'un round est exécuté dans un pcall et nettoyerRound() est appelé après, même en cas d'erreur (warn de l'erreur), pour que le jeu ne s'arrête jamais.
+Cas limites : Players.PlayerRemoving retire le joueur des participants ; le cycle d'un round est exécuté dans un pcall et nettoyerRound() est appelé après, même en cas d'erreur (warn de l'erreur), pour que le jeu ne s'arrête jamais et que personne ne reste coincé dans l'arène.
 Vérification : en Server & Clients avec 2 clients et JOUEURS_MIN = 2 : si un seul survit, il gagne 50 pièces ; si les deux survivent, 25 chacun ; si un client quitte en plein round, le round continue sans erreur ; après 3 rounds, Workspace.Arene ne contient aucune Part « Lave ».
 ```
 
@@ -473,7 +476,7 @@ Vérification : en Server & Clients avec 2 clients et JOUEURS_MIN = 2 : si un se
 
 **À tester dans Studio :** le test à 2 clients de la ligne « Vérification » (module 1, leçon 4). Pendant la phase Attente, vérifie dans l’Explorer (vue Server) qu’aucune Part `Lave` ne traîne dans `Arene`.
 
-**À relire :** `nettoyerRound` appelle bien `Destroy` sur la lave et `Disconnect` sur chaque connexion ; les pièces sont ajoutées côté serveur ; le `pcall` entoure le round entier et le nettoyage est fait après.
+**À relire :** `nettoyerRound` appelle bien `Destroy` sur la lave et `Disconnect` sur chaque connexion ; c’est elle qui ramène les survivants au lobby, donc même après une erreur ; les pièces sont ajoutées côté serveur ; le `pcall` entoure le round entier et le nettoyage est fait après, hors du `pcall`.
 
 **Commit :** `git commit -m "Tâche 7 : récompenses, nettoyage et cas limites"`
 
@@ -718,14 +721,21 @@ local function listerPointsApparition(): { BasePart }
 	return points
 end
 
--- Remet tout à zéro : appelée à la fin de CHAQUE round, même après une erreur
+-- Remet tout à zéro : appelée à la fin de CHAQUE round, même après une erreur.
+-- Les participants encore en vie reviennent au lobby : personne ne reste coincé dans l'arène.
 local function nettoyerRound()
-	for player in participants do
-		retirerParticipant(player)
-	end
 	if laveActuelle then
 		laveActuelle:Destroy()
 		laveActuelle = nil
+	end
+	for player, participant in participants do
+		retirerParticipant(player)
+		local personnage = participant.personnage
+		local humanoid = personnage:FindFirstChildOfClass("Humanoid")
+		-- Ceux qui sont morts ou partis ont déjà été retirés (connexion Died, PlayerRemoving)
+		if personnage.Parent ~= nil and humanoid and humanoid.Health > 0 then
+			teleporter(personnage, apparitionLobby)
+		end
 	end
 end
 
@@ -818,7 +828,7 @@ local function recompenser(player: Player, gain: number)
 	end
 end
 
--- Récompense les survivants, affiche le résultat, puis les ramène au lobby
+-- Récompense les survivants et affiche le résultat (nettoyerRound les ramène ensuite au lobby)
 local function terminerRound(nombreDepart: number)
 	local survivants: { Player } = {}
 	for player in participants do
@@ -834,11 +844,6 @@ local function terminerRound(nombreDepart: number)
 	etatRound:SetAttribute("Survivants", #survivants)
 	changerPhase("Fin", Config.DUREE_FIN_ROUND)
 	task.wait(Config.DUREE_FIN_ROUND)
-
-	-- Ceux qui sont morts pendant la pause ont déjà été retirés (connexion Died)
-	for _, participant in participants do
-		teleporter(participant.personnage, apparitionLobby)
-	end
 end
 
 local function jouerUnCycle()
@@ -862,7 +867,7 @@ while true do
 		if not ok then
 			warn("Round interrompu :", erreur)
 		end
-		nettoyerRound()
+		nettoyerRound() -- toujours appelé, même après une erreur : retour au lobby, connexions coupées, lave détruite
 	end
 end
 ```
@@ -948,5 +953,8 @@ Si, en cours de route, tu découvres une tâche oubliée (un bug, un cas limite)
 - [PVInstance — référence de l’API Roblox (PivotTo)](https://create.roblox.com/docs/reference/engine/classes/PVInstance)
 - [Instance — référence de l’API Roblox (Destroy, attributs)](https://create.roblox.com/docs/reference/engine/classes/Instance)
 - [Attributes — documentation Roblox](https://create.roblox.com/docs/scripting/attributes)
+- [Improve performance — documentation Roblox (TweenService côté serveur déconseillé)](https://create.roblox.com/docs/performance-optimization/improve)
+- [Instance streaming — documentation Roblox (StreamingEnabled)](https://create.roblox.com/docs/workspace/streaming)
+- [Player:RequestStreamAroundAsync — documentation Roblox (téléportation et pause de streaming)](https://create.roblox.com/docs/reference/engine/classes/Player#RequestStreamAroundAsync)
 - [Rojo — documentation officielle](https://rojo.space/docs/v7/)
 </Sources>

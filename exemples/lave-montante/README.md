@@ -26,6 +26,7 @@ Le mini-jeu construit prompt par prompt avec Claude Code dans la leçon « Déco
 Rojo ne gère que le code et l'interface. Dans `Workspace` :
 
 - **Supprime la SpawnLocation du modèle Baseplate** (sinon les joueurs éliminés réapparaissent au mauvais endroit).
+- Dans les propriétés de `Workspace`, **décoche `StreamingEnabled`** : le mini-jeu est petit, et chaque joueur a ainsi l'arène déjà chargée quand le serveur l'y téléporte (sinon, son jeu peut se mettre en pause le temps de la charger).
 - Un Model ou Folder **`Lobby`** : un sol ancré et une **SpawnLocation** nommée **`ApparitionLobby`** (la seule SpawnLocation du jeu).
 - Un Model ou Folder **`Arene`**, loin du lobby, contenant :
   - des plateformes ancrées à différentes hauteurs, jusqu'à au moins 45 studs au-dessus du sol de l'arène (la lave monte de 40 studs) ;

@@ -30,7 +30,7 @@ quiz:
       - texte: "Noter ce que tu as appris, lancer `/clear`, puis écrire un prompt plus précis qui inclut l’erreur exacte et les pistes déjà écartées"
         correct: true
       - texte: Passer en mode `bypassPermissions` pour qu’il travaille plus vite
-    explication: "Les bonnes pratiques officielles sont claires : après deux corrections ratées sur le même problème, le contexte est encombré de mauvaises pistes. On repart d’une conversation vide (`/clear`) avec un meilleur prompt. Ton code reste sur le disque et ton CLAUDE.md est rechargé. `bypassPermissions` ne règle rien et retire tes garde-fous."
+    explication: "Les bonnes pratiques officielles sont claires : au-delà de deux corrections ratées sur le même problème, le contexte est encombré de mauvaises pistes. On repart d’une conversation vide (`/clear`) avec un meilleur prompt. Ton code reste sur le disque et ton CLAUDE.md est rechargé. `bypassPermissions` ne règle rien et retire tes garde-fous."
   - type: qcm
     question: "Claude Code a lancé une commande Bash qui a réécrit `Config.luau` (il n’avait pas touché ce fichier avec ses outils d’édition), puis tu veux annuler. Quel outil est le plus sûr ?"
     options:
@@ -187,7 +187,7 @@ Quelques gestes à connaître tout de suite :
 | `@` puis un début de nom | Mentionner un fichier, par exemple `@src/ReplicatedStorage/Modules/Config.luau` |
 | `!` en début de ligne | Lancer toi-même une commande du terminal sans quitter Claude Code (ex. `!git status`) |
 | Flèche du haut | Retrouver un message précédent |
-| `/exit`, ou `Ctrl+C` deux fois | Quitter Claude Code |
+| `/exit`, ou `Ctrl+C` deux fois (quand Claude ne travaille pas) | Quitter Claude Code |
 
 <Astuce titre="Garde Rojo dans un autre terminal">
 `rojo serve` doit tourner pendant que tu travailles, et il occupe son terminal. Ouvre donc **deux** terminaux dans VS Code (le bouton **+** du panneau Terminal) : un pour `rojo serve`, un pour `claude`. Ainsi, chaque fichier modifié par Claude Code arrive dans Studio dès que le plugin Rojo est connecté.
@@ -330,7 +330,7 @@ Claude Code demande ta permission avant certaines actions. Le **mode de permissi
 | `bypassPermissions` | Tout, sans aucune vérification | **Jamais** sur ton ordinateur : la doc le réserve aux conteneurs et machines virtuelles isolés |
 
 <Info titre="Changé récemment : le mode de départ est « auto »">
-Depuis la version 2.1.283 (d’après la [documentation des modes](https://code.claude.com/docs/en/permission-modes)), une session interactive démarre en mode **`auto`** si tu n’as rien configuré. Beaucoup de tutoriels plus anciens disent l’inverse. Pour tes premières semaines, on te conseille de démarrer en **Manual** pour voir chaque action : le fichier de réglages ci-dessous le fait pour toi. Tu peux aussi appuyer une fois sur `Shift+Tab` (depuis `auto`, la première pression passe en Manual).
+Dans les versions actuelles (2.1.283 et suivantes d’après la [documentation des modes](https://code.claude.com/docs/en/permission-modes), et même avant sur les offres Pro, Max et Team), une session interactive démarre en mode **`auto`** si tu n’as rien configuré. Beaucoup de tutoriels plus anciens disent l’inverse. Pour tes premières semaines, on te conseille de démarrer en **Manual** pour voir chaque action : le fichier de réglages ci-dessous le fait pour toi. Tu peux aussi appuyer une fois sur `Shift+Tab` (depuis `auto`, la première pression passe en Manual).
 </Info>
 
 ### Répondre à une demande de permission
@@ -507,6 +507,8 @@ selene src
 git add -A
 git commit -m "Formatage initial avec StyLua"
 ```
+
+Si Git répond `nothing to commit, working tree clean`, c’est que tout était déjà enregistré : passe à la suite.
 
 ### Le fichier complet
 
