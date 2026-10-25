@@ -188,6 +188,8 @@ Crée un **RemoteEvent** `Victoire` dans **ReplicatedStorage › Remotes** (bout
 
 ### Côté serveur : détecter la victoire
 
+Si tu as fait le défi de la leçon 5 du module 4 (annonce de victoire avec `AnnonceVictoire` et une `LigneArrivee`), supprime ce script de démonstration et le RemoteEvent `AnnonceVictoire` : le Script `Victoire` ci-dessous le remplace, sinon ton jeu aurait deux systèmes de victoire.
+
 Rappel de la convention : `Etape` contient le numéro du dernier checkpoint validé. Le joueur a gagné quand `Etape` atteint le numéro du dernier checkpoint. Crée un **Script** `Victoire` dans **ServerScriptService** avec ce code :
 
 ```luau

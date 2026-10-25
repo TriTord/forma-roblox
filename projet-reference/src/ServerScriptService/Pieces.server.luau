@@ -1,15 +1,17 @@
 -- Script « Pieces » placé dans ServerScriptService (côté serveur)
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Workspace = game:GetService("Workspace")
 
+local Config = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Config"))
 local Validation = require(ServerScriptService:WaitForChild("Validation"))
 local DonneesJoueurs = require(ServerScriptService:WaitForChild("DonneesJoueurs"))
 local ObjectifsQuotidiens = require(ServerScriptService:WaitForChild("ObjectifsQuotidiens"))
 
 local dossierPieces = Workspace:WaitForChild("Pieces")
 
-local VALEUR_PIECE = 1 -- pièces gagnées par ramassage (valeur décidée par le SERVEUR)
+local VALEUR_PIECE = Config.VALEUR_PIECE -- réglage commun du module Config (valeur décidée par le SERVEUR)
 local DISTANCE_MAX = 12 -- studs
 local DELAI_REAPPARITION = 10 -- secondes avant que la pièce revienne
 

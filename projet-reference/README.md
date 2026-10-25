@@ -63,3 +63,7 @@ stylua --check src     # mise en forme : aucune différence attendue
 ```
 
 `selene.toml` utilise la bibliothèque standard `luau_recent` (fichier `luau_recent.yml`) : c’est la bibliothèque `roblox` de selene, complétée par `math.isfinite`, une fonction récente de Luau (utilisée par `Validation`) que selene 0.32 ne connaît pas encore. Sans ce complément, selene signalerait à tort une erreur.
+
+## Scripts des leçons absents du corrigé
+
+Certaines leçons font créer des scripts de démonstration ou facultatifs, volontairement absents de ce corrigé : `Reapparition` / `DemandeReapparition` (module 4, leçon 2), le script de démonstration `AnnonceVictoire` (défi du module 4, leçon 5, remplacé par `Victoire` au module 5), `RetourCheckpoint` (module 4, leçon 4), `Inventaire` / `ObtenirInventaire` (exemple du module 4, leçon 3), `SourcesArrivee` (module 8, leçon 3) et `RolesCommunaute` (module 8, leçon 5). Les avoir en plus dans ton projet n'est pas une erreur, tant qu'ils ne font pas double emploi avec un script du corrigé.
