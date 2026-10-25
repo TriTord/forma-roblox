@@ -31,8 +31,8 @@ Progression du fil rouge (chaque module ajoute une brique) :
 
 ## Règles communes à tous les modules
 
-- 4 à 6 questions de quiz par leçon (3 types possibles : `qcm`, `vrai-faux`, `trouve-le-bug`), dont **au moins un `trouve-le-bug`** dans chaque leçon qui contient du code.
-- Examen de module : **10 à 15 questions**, couvrant toutes les leçons du module, seuil 70 %.
+- 4 à 6 questions de quiz par leçon, 8 au plus (4 types possibles : `qcm`, `vrai-faux`, `trouve-le-bug`, `ameliore-le-prompt`), dont **au moins un `trouve-le-bug`** dans chaque leçon qui contient du code.
+- Examen de module : **10 à 15 questions** visées (le schéma en accepte de 5 à 30 ; la phase IA en a porté certains jusqu’à 18), couvrant toutes les leçons du module, seuil 70 %.
 - Tout chiffre susceptible d’évoluer (commissions, taux DevEx, limites d’API, conditions d’âge, fonctionnalités du Creator Hub) doit être **sourcé** (documentation officielle de préférence), assorti d’une date `miseAJour` dans le frontmatter et formulé avec prudence (« au moment de la rédaction… »). Dans le doute, renvoyer vers la page officielle plutôt qu’avancer un chiffre.
 - Aucune promesse de revenus ou de succès. Pas de « recette virale ».
 

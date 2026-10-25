@@ -81,7 +81,7 @@ quiz:
           Vérification : git diff ne montre que ces deux lignes ; je mesure ensuite moi-même dans le MicroProfiler du jeu publié.
         correct: true
       - texte: "Ajoute un print au début et à la fin de chaque fonction de tous mes scripts pour voir lesquelles sont lentes."
-    explication: "La bonne version demande un repérage sans correction, une instrumentation minimale et vérifiable, puis laisse la mesure à l’outil fait pour ça. « Optimise tout » change dix choses à l’aveugle ; l’IA ne peut pas mesurer les FPS de ton téléphone ; des `print` partout inondent l’Output, coûtent eux-mêmes du temps et ne disent pas combien de millisecondes prend chaque tâche."
+    explication: "La bonne version demande un repérage sans correction, une instrumentation minimale et vérifiable, puis laisse la mesure à l’outil fait pour ça. « Optimise tout » risque de changer dix choses à l’aveugle ; l’IA ne peut pas mesurer les FPS de ton téléphone ; des `print` partout inondent l’Output, coûtent eux-mêmes du temps et ne disent pas combien de millisecondes prend chaque tâche."
 ---
 
 À la leçon précédente, tu as vu que ton jeu doit tourner sur des appareils modestes. Mais *qu’est-ce* qui ralentit ton obby, exactement ? Un script ? Trop de pièces ? Des ombres ? Optimiser au hasard fait perdre des heures et casse parfois le jeu. Les développeurs expérimentés suivent une règle simple : **on mesure d’abord, on optimise ensuite**. Dans cette leçon, tu découvres les outils de mesure intégrés à Roblox.

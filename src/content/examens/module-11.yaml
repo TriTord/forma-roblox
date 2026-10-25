@@ -168,11 +168,14 @@ questions:
     question: "Trouve la faille dans ce code généré par IA. Ce Script serveur doit afficher à tout le serveur le nom que le joueur donne à son familier (l’affichage lit l’attribut `NomFamilier`). Où est la faille ?"
     code: |
       local ReplicatedStorage = game:GetService("ReplicatedStorage")
+      local ServerScriptService = game:GetService("ServerScriptService")
       local TextService = game:GetService("TextService")
+      local Validation = require(ServerScriptService:WaitForChild("Validation") :: ModuleScript)
       local nommer = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("NommerFamilier") :: RemoteEvent
+      local peutNommer = Validation.creerCooldown(2)
 
       nommer.OnServerEvent:Connect(function(player: Player, nom: unknown)
-      	if typeof(nom) ~= "string" or #nom > 20 then
+      	if not peutNommer(player) or typeof(nom) ~= "string" or #nom > 20 then
       		return
       	end
       	local ok, resultat = pcall(function()
@@ -183,9 +186,9 @@ questions:
       	end
       end)
     options:
-      - texte: "Ligne 6 : il ne faut pas limiter la longueur du nom"
-      - texte: "Ligne 10 : `FilterStringAsync` ne doit jamais être entouré d’un `pcall`"
-      - texte: "Ligne 13 : c’est le texte d’origine `nom` qui est affiché, pas le texte filtré (il faut `resultat:GetNonChatStringForBroadcastAsync()`)"
+      - texte: "Ligne 9 : il ne faut pas limiter la longueur du nom"
+      - texte: "Ligne 13 : `FilterStringAsync` ne doit jamais être entouré d’un `pcall`"
+      - texte: "Ligne 16 : c’est le texte d’origine `nom` qui est affiché, pas le texte filtré (il faut `resultat:GetNonChatStringForBroadcastAsync()`)"
         correct: true
-      - texte: "Ligne 5 : `OnServerEvent` ne reçoit pas le joueur en premier argument"
-    explication: "Le code filtre bien… puis jette le résultat et affiche le texte brut. Tout texte saisi par un joueur et montré aux autres doit être filtré : on récupère la version pour tout le serveur avec `GetNonChatStringForBroadcastAsync()`, elle aussi dans un `pcall`. Le `pcall` autour de `FilterStringAsync` est justement recommandé (l’appel peut échouer), et limiter la longueur est une bonne validation."
+      - texte: "Ligne 8 : `OnServerEvent` ne reçoit pas le joueur en premier argument"
+    explication: "Le code filtre bien… puis jette le résultat et affiche le texte brut. Tout texte saisi par un joueur et montré aux autres doit être filtré : on récupère la version pour tout le serveur avec `GetNonChatStringForBroadcastAsync()`, elle aussi dans un `pcall`. Le `pcall` autour de `FilterStringAsync` est justement recommandé (l’appel peut échouer), et le délai par joueur comme la limite de longueur sont de bonnes validations."
