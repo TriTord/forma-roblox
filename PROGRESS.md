@@ -7,11 +7,11 @@
 - [x] 3. RÉDACTEURS : modules 0 à 10 (58 leçons + 11 examens)
 - [x] 4. VÉRIFICATEURS passe 1 (faits + sources) — 11 modules
 - [x] 5. VÉRIFICATEURS passe 2 (indépendants : code Luau + quiz + re-vérif faits) — 11 modules
-- [ ] 6. Consolidation VERIFICATION.md
-- [ ] 7. QA : build, tests auto (Playwright/Vitest), bugs — phase 1 (infra de tests) EN COURS
-- [ ] 8. Corrections + re-tests
+- [x] 6. Consolidation VERIFICATION.md
+- [x] 7. QA : build, tests auto (Playwright/Vitest), bugs (phases 1 et 2 de recette)
+- [x] 8. Corrections + re-tests
 - [x] 9. RELECTEUR FINAL (3 relecteurs, ~150 corrections de forme)
-- [ ] 10. RAPPORT_FINAL.md
+- [x] 10. RAPPORT_FINAL.md
 
 ## Suivi par module
 | Module | Rédaction | Vérif passe 1 | Vérif passe 2 |
@@ -42,7 +42,7 @@
 - Cohérence : harmoniser la présentation des seuils Kids & Select entre modules 01, 07, 10 (07 : 500 en juin puis 250 depuis le 19/08/2026).
 - Creator Rewards (modules 06 et 08) : règle revérifiée par le chef d'orchestre sur la source officielle (exemples 1 et 2) : parmi les jeux où l'Active Spender passe ≥ 10 min, les 3 premiers dans l'ordre des visites. Les deux modules sont cohérents.
 - Étape 5b FAITE : cohérence inter-modules (19 incohérences éditoriales + ~12 d intégration code) ; projet-reference/ (0 diagnostic luau-lsp).
-- Étape 9 FAITE. Étape 7/8 (EN COURS) : QA phase 2 (recette finale : tests exhaustifs quiz/examens, liens externes, recette visuelle, perf).
+- Étape 9 FAITE. Étapes 7/8 FAITES : QA phase 2 (recette finale : tests exhaustifs quiz/examens, liens externes, recette visuelle, perf).
 
 ---
 
@@ -58,23 +58,28 @@ Objectif : apprendre à créer un jeu Roblox en pilotant des IA de code (surtout
 - [x] 4. RÉDACTEURS module 02 : R1 (leçons 01-02), R2 (03-04), R3 (05-06 + `exemples/lave-montante/`), R4 (07-09), R5 (10 bibliothèque)
 - [x] 5. ADAPTATEURS : A1 (module 03 réorienté lecture), A2 (04-05), A3 (06-08), A4 (01, 09-11), A5 (accueil, programme, FAQ, module 00, 01/05)
 - [x] 6. Examen du module 02
-- [ ] 7. VÉRIFICATEURS passe 1 (FAIT, 5 lots, ~550 éléments) puis passe 2 (EN COURS, 4 lots) (indépendants) — module 02 et encadrés « Avec Claude Code »
-- [ ] 8. Corrections + re-vérification
-- [ ] 9. QA : build, tests existants + nouveaux (prompts, Copier, quiz, progression, navigation, liens, mobile)
-- [ ] 10. RELECTEUR FINAL (débutant total en IA de code)
-- [ ] 11. VERIFICATION.md + RAPPORT_FINAL.md (section « Phase IA »)
+- [x] 7. VÉRIFICATEURS passe 1 (5 lots) puis passe 2 (4 lots, découpage différent) — 9 rapports (indépendants) — module 02 et encadrés « Avec Claude Code »
+- [x] 8. Corrections + re-vérification (10 signalements transverses résolus, voir VERIFICATION.md)
+- [x] 9. QA : build, tests existants + nouveaux (prompts, Copier, quiz, progression, navigation, liens, mobile)
+- [x] 10. RELECTEUR FINAL (débutant total en IA de code)
+- [x] 11. VERIFICATION.md + RAPPORT_FINAL.md (section « Phase IA »)
 
 ## Suivi
 | Lot | Rédaction | Vérif passe 1 | Vérif passe 2 |
 |---|---|---|---|
-| 02/01-02 (R1) | FAIT | FAIT | EN COURS |
-| 02/03-04 (R2) | FAIT | FAIT | EN COURS |
-| 02/05-06 (R3) | FAIT | FAIT | EN COURS |
-| 02/07-09 (R4) | FAIT | FAIT | EN COURS |
-| 02/10 (R5) | FAIT | FAIT | EN COURS |
-| Module 03 (A1) | FAIT | FAIT | EN COURS |
-| Modules 04-05 (A2) | FAIT | FAIT | EN COURS |
-| Modules 06-08 (A3) | FAIT | FAIT | EN COURS |
-| Modules 01, 09-11 (A4) | FAIT | FAIT | EN COURS |
-| Accueil, FAQ, 00 (A5) | FAIT | FAIT | EN COURS |
-| Examen 02 | FAIT | (passe 2 directe) | EN COURS |
+| 02/01-02 (R1) | FAIT | FAIT | FAIT ✅ |
+| 02/03-04 (R2) | FAIT | FAIT | FAIT ✅ |
+| 02/05-06 (R3) | FAIT | FAIT | FAIT ✅ |
+| 02/07-09 (R4) | FAIT | FAIT | FAIT ✅ |
+| 02/10 (R5) | FAIT | FAIT | FAIT ✅ |
+| Module 03 (A1) | FAIT | FAIT | FAIT ✅ |
+| Modules 04-05 (A2) | FAIT | FAIT | FAIT ✅ |
+| Modules 06-08 (A3) | FAIT | FAIT | FAIT ✅ |
+| Modules 01, 09-11 (A4) | FAIT | FAIT | FAIT ✅ |
+| Accueil, FAQ, 00 (A5) | FAIT | FAIT | FAIT ✅ |
+| Examen 02 | FAIT | (passe 2 directe) | FAIT ✅ |
+
+## Résultat final de la phase IA
+- Build OK ; Vitest 58/58 ; Playwright 154/154 ; 367 liens externes, 0 mort ; luau-lsp : aucun diagnostic réel (301 extraits) ; projet-reference et exemples/lave-montante : 0 diagnostic (luau-lsp, selene, StyLua), 12 tests Lune.
+- Relecture finale « débutant total » : 3 relecteurs (02/01-05 + accueil, 02/06-10 + examen, module 03 + ajouts 04-11).
+- Détails : RAPPORT_FINAL.md section 10, VERIFICATION.md section Phase IA.
