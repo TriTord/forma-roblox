@@ -18,7 +18,7 @@ function ReglesRound.hauteurLave(tempsEcoule: number, delai: number, dureeRound:
 	return math.clamp(progression, 0, 1) * hauteurMax
 end
 
--- Vrai si le centre du personnage (sa HumanoidRootPart) est passé sous le dessus de la lave
+-- Vrai si le centre du personnage (sa PrimaryPart, la HumanoidRootPart) est passé sous le dessus de la lave
 function ReglesRound.estSousLaLave(hauteurJoueur: number, hauteurDessusLave: number): boolean
 	return hauteurJoueur < hauteurDessusLave
 end

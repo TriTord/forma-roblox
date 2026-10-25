@@ -13,7 +13,7 @@ local Lave = require(ServerScriptService:WaitForChild("Lave"))
 local etatRound = ReplicatedStorage:WaitForChild("EtatRound")
 local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
 
--- Construits à la main dans Studio (voir le README)
+-- Construits à la main dans Studio (étape 0 de la leçon, README du projet)
 local apparitionLobby = Workspace:WaitForChild("Lobby"):WaitForChild("ApparitionLobby") :: BasePart
 local arene = Workspace:WaitForChild("Arene")
 local dossierPoints = arene:WaitForChild("PointsApparition")

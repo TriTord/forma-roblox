@@ -562,7 +562,7 @@ function ReglesRound.hauteurLave(tempsEcoule: number, delai: number, dureeRound:
 	return math.clamp(progression, 0, 1) * hauteurMax
 end
 
--- Vrai si le centre du personnage (sa HumanoidRootPart) est passé sous le dessus de la lave
+-- Vrai si le centre du personnage (sa PrimaryPart, la HumanoidRootPart) est passé sous le dessus de la lave
 function ReglesRound.estSousLaLave(hauteurJoueur: number, hauteurDessusLave: number): boolean
 	return hauteurJoueur < hauteurDessusLave
 end
@@ -670,7 +670,7 @@ local Lave = require(ServerScriptService:WaitForChild("Lave"))
 local etatRound = ReplicatedStorage:WaitForChild("EtatRound")
 local notification = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Notification") :: RemoteEvent
 
--- Construits à la main dans Studio (voir le README)
+-- Construits à la main dans Studio (étape 0 de la leçon, README du projet)
 local apparitionLobby = Workspace:WaitForChild("Lobby"):WaitForChild("ApparitionLobby") :: BasePart
 local arene = Workspace:WaitForChild("Arene")
 local dossierPoints = arene:WaitForChild("PointsApparition")
