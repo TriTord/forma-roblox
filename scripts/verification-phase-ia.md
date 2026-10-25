@@ -1,0 +1,30 @@
+# Phase IA — « Scripter avec l'IA » (octobre 2026)
+
+La phase IA a ajouté le module **02 « Scripter avec l'IA : piloter Claude Code »** (10 leçons + examen), réorienté le module 03 vers la lecture du code (« Lire et comprendre Luau (pour diriger l'IA) »), ajouté un encadré **« Avec Claude Code »** (prompt précis + points à vérifier) dans chaque leçon technique des modules 01 et 03 à 11, et mis à jour l'accueil, le programme et la FAQ. Les anciens modules 02 à 10 sont devenus 03 à 11.
+
+## Méthode de la phase IA
+
+1. **Veille factuelle** avant rédaction (deux fiches sourcées : [Claude Code et IA de code](verification/phase-ia/veille-claude-code.md), [outils Roblox, MCP, Rojo, tests, règles IA](verification/phase-ia/veille-roblox-ia.md)). Elle a établi notamment : serveur MCP intégré à Studio depuis mars 2026 (ancien dépôt archivé), Script Sync natif en version finale depuis juin 2026, Rojo 7.7.1 via Rokit, TestEZ archivé et Jest Roblox maintenu, raccourci `#` de Claude Code supprimé, mode de départ `auto`, `/agents` et `/hooks` en lecture seule.
+2. **Rédaction** par 5 rédacteurs (module 02) et 5 adaptateurs (modules existants, accueil), avec un gabarit de prompt commun en 8 rubriques et des notes de sources (`verification/phase-ia/notes-*.md`).
+3. **Vérification passe 1** (5 lots) puis **passe 2** (4 lots, découpage différent, sans faire confiance à la passe 1), sur les sources officielles : code.claude.com/docs, CHANGELOG de Claude Code, claude.com/pricing, conditions d'Anthropic, create.roblox.com/docs et `Roblox/creator-docs`, annonces du DevForum, dépôts officiels de Rojo, Rokit, selene, StyLua, luau-lsp, Jest Roblox, Lune, pages de prix officielles des autres outils.
+4. **Tests réels sur la machine (Windows 11)** : tutoriels des leçons 02/02 et 02/03 suivis à la lettre plusieurs fois (Rokit, `rojo init/build/serve/sourcemap/syncback`, selene, StyLua, Git, fins de ligne) ; `claude mcp add/list/remove` (configurations de test retirées) ; validité JSON des `settings.json` ; hook StyLua + selene testé de bout en bout avec `claude -p` sous Git Bash et PowerShell ; sous-agent `relecteur-roblox` lancé avec `claude -p` ; mini-jeu `exemples/lave-montante/` : `rojo build`, luau-lsp avec sourcemap (0 diagnostic), selene, StyLua, 12 tests Lune + simulation multijoueur ; Luau pur des exercices du module 03 exécuté avec `luau.exe` ; `projet-reference/` : selene, StyLua et luau-lsp sans aucun diagnostic.
+5. **Contrôle d'exécution dans Roblox Studio** : un Studio de l'utilisateur étant connecté au MCP, un script **non modifiant** a confirmé l'existence de 17 API utilisées par les prompts (et l'inexistence de l'API inventée citée en exemple) — [controle-studio.md](verification/phase-ia/controle-studio.md).
+6. **QA** : build, 58 tests unitaires et 154 tests e2e (dont 30 nouveaux : prompts et bouton Copier, quiz « Améliore ce prompt », encadrés, migration de la progression, navigation renumérotée, mobile, accessibilité), 361 liens externes — [qa-phase-ia.md](verification/phase-ia/qa-phase-ia.md).
+7. **Relecture finale** comme un débutant total qui n'a jamais utilisé d'IA de code (`verification/phase-ia/relecture-finale-*.md`).
+
+## Signalements transverses de la phase IA (tous résolus)
+
+| # | Signalé par | Problème | Résolution |
+|---|---|---|---|
+| 1 | Adaptateur A5 | Les conditions d'Anthropic exigent 18 ans (sans clause parentale) alors que le public a 12-16 ans | Décision 38 : formulation commune appliquée partout (accueil, FAQ, modules 00, 01, 02) ; vérifiée en passes 1 et 2 |
+| 2 | Rédacteur R1 | Le corrigé `projet-reference/` échouait à `selene src` (`math.isfinite` inconnu de selene 0.32) et à `stylua --check` | Bibliothèque selene `luau_recent` (roblox + `math.isfinite`), corrigé reformaté, `rokit.toml`/`selene.toml`/`stylua.toml`/`.gitattributes` ajoutés ; `math.isfinite` confirmé dans Studio |
+| 3 | Rédacteur R1 | Avec Rojo, une interface construite à la main dans StarterGui est supprimée à la connexion | Encadrés « Si ton projet utilise Rojo » en 05/04 et 05/06 (construire Rojo déconnecté, puis décrire l'UI en fichiers via Claude Code + MCP) ; vérifiés en passes 1 et 2 |
+| 4 | Vérificateur V1 | Clé `StyLua` vs `stylua` dans `rokit.toml` ; pas de `.gitattributes` dans les exemples (StyLua échoue après un clone Windows) | Exemples alignés sur la leçon 02/02 |
+| 5 | Vérificateur V1 | La configuration selene du tutoriel aurait fait échouer le hook à chaque modification (code utilisant `math.isfinite`) | Tutoriel passé à `std = "luau_recent"` |
+| 6 | Vérificateur V2 | Lave Montante : après une erreur en plein round, les survivants restaient dans l'arène | Retour au lobby garanti dans `nettoyerRound()` (passe 2), confirmé par simulation Lune |
+| 7 | QA | Bouton Copier : nom accessible incohérent, annonce non répétée ; débordements mobiles (options longues, accueil) | Corrigé dans le code (`Prompt.astro`, `prompt.ts`, CSS) ; tests ajoutés |
+| 8 | QA | 4 liens redirigés | Remplacés par leur URL finale (passes 2) |
+| 9 | Vérificateur W4 | Tableau « Le bilan » de 11/05 resté à l'ancienne numérotation | Renuméroté, module 02 ajouté |
+| 10 | Vérificateur W3 | Démo `AnnonceVictoire` et Script `Victoire` : deux systèmes de victoire ; `VALEUR_PIECE` dupliqué entre `Pieces` et `Config` ; scripts de leçons absents du corrigé | Note de remplacement en 05/05 ; `Pieces` lit `Config.VALEUR_PIECE` (leçon + corrigé) ; scripts facultatifs listés dans `projet-reference/README.md` |
+
+**Limites connues de la phase IA** : aucune étape n'a pu être testée sur Mac (vérifiée sur les documentations officielles) ; les prompts n'ont pas été exécutés un par un dans une vraie session interactive de Claude Code (seuls le hook, le sous-agent relecteur et la configuration MCP l'ont été, avec `claude -p`) ; aucun jeu n'a tourné en multijoueur réel dans Studio (le contrôle Studio s'est limité à l'existence des API, sans modifier les places de l'utilisateur). Les prix et fonctionnalités des outils d'IA sont datés du 24-25 octobre 2026 et évoluent vite.

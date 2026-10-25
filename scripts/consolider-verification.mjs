@@ -1,4 +1,5 @@
-// Consolide les rapports de vérification (verification/module-XX-passe-N.md) dans VERIFICATION.md.
+// Consolide les rapports de vérification dans VERIFICATION.md :
+// phase 1 (verification/module-XX-passe-N.md) et phase IA (verification/phase-ia/<lot>-passe-N.md).
 // Usage : node scripts/consolider-verification.mjs
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -61,6 +62,38 @@ for (const [module, passes] of parModule) {
   }
 }
 
+// Phase IA : un rapport par lot et par passe (verification/phase-ia/<lot>-passe-N.md).
+const dossierIA = join(dossier, "phase-ia");
+const fichiersIA = readdirSync(dossierIA).filter((f) => /-passe-\d+\.md$/.test(f)).sort();
+const totalIA = { OK: 0, "CORRIGÉ": 0, "SUPPRIMÉ": 0, "REFORMULÉ": 0 };
+let tableauIA = "| Lot | Passe | Lignes OK | Corrigées | Reformulées | Supprimées | Rapport |\n|---|---|---|---|---|---|---|\n";
+let corpsIA = "";
+for (const f of fichiersIA) {
+  const [, lot, passe] = f.match(/^(.*)-passe-(\d+)\.md$/);
+  const texte = readFileSync(join(dossierIA, f), "utf8");
+  const v = verdicts(section(texte, "détail") || texte);
+  for (const k of Object.keys(totalIA)) totalIA[k] += v[k];
+  tableauIA += `| ${lot} | ${passe} | ${v.OK} | ${v["CORRIGÉ"]} | ${v["REFORMULÉ"]} | ${v["SUPPRIMÉ"]} | [${f}](verification/phase-ia/${f}) |
+`;
+  corpsIA += `
+### ${lot} — passe ${passe} ([rapport détaillé](verification/phase-ia/${f}))
+
+${section(texte, "résumé")}
+`;
+  const desaccords = section(texte, "désaccords");
+  if (desaccords) corpsIA += `
+**Désaccords avec la passe précédente :**
+
+${desaccords}
+`;
+  corpsIA += `
+**Erreurs restantes non corrigées :**
+
+${section(texte, "erreurs restantes") || "_(section absente)_"}
+`;
+}
+const introIA = readFileSync(join(racine, "scripts", "verification-phase-ia.md"), "utf8");
+
 const annexes = readdirSync(dossier).filter((f) => /^(coherence|relecture|qa)-.*.md$/.test(f)).sort();
 const intro = readFileSync(join(racine, "scripts", "verification-intro.md"), "utf8");
 const suivi = readFileSync(join(racine, "scripts", "verification-suivi.md"), "utf8");
@@ -79,7 +112,18 @@ ${tableau.trimEnd()}
 ${suivi.trim()}
 
 ${annexes.length ? `Rapports transverses : ${annexes.map((f) => `[${f}](verification/${f})`).join(", ")}.\n` : ""}
-# Résumés par module
+${introIA.trim()}
+
+### Tableau de bord de la phase IA
+
+${tableauIA.trimEnd()}
+| **Total phase IA** | | **${totalIA.OK}** | **${totalIA["CORRIGÉ"]}** | **${totalIA["REFORMULÉ"]}** | **${totalIA["SUPPRIMÉ"]}** | |
+
+## Résumés des rapports de la phase IA
+${corpsIA}
+# Résumés par module (phase 1)
+
+Les rapports de la phase 1 ont été écrits avant l'insertion du module 02 : à l'intérieur, l'ancien module N (N ≥ 2) correspond au nouveau module N + 1.
 ${corps}`,
 );
-console.log(`VERIFICATION.md écrit : ${fichiers.length} rapports, total`, total);
+console.log(`VERIFICATION.md écrit : ${fichiers.length} rapports (phase 1), total`, total, `; ${fichiersIA.length} rapports (phase IA), total`, totalIA);
