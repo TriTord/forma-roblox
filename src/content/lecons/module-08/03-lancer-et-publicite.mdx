@@ -216,7 +216,7 @@ Le script est court, mais il lit une donnée qui vient de l’extérieur du jeu.
 <Prompt titre="Source d’arrivée (LaunchData)">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je lance une petite campagne Ads Manager et des liens de partage, avec des données de lancement (launch data) différentes pour chaque source.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je lance une petite campagne Ads Manager et des liens de partage, avec des données de lancement (launch data) différentes pour chaque source.
 Ce qui existe déjà : la campagne utilise la launch data "pub_lancement" et mon lien Discord "lien_discord". Aucun script ne lit encore ces données.
 Objectif : quand un joueur arrive par une source connue, le serveur la note dans l'attribut SourceArrivee du joueur (pour que l'onboarding puisse adapter l'accueil) et l'écrit dans la sortie du serveur.
 Fichiers concernés : crée uniquement le Script src/ServerScriptService/SourcesArrivee.server.luau. Ne modifie aucun autre fichier.
@@ -230,7 +230,7 @@ Vérification : en Play dans Studio, aucun message et aucune erreur ; dans le je
 
 **À vérifier dans le code produit :**
 
-- `player:GetJoinData()` est appelé avec deux-points (avec un point, l’appel échoue : le bug du quiz) ;
+- `player:GetJoinData()` est appelé avec deux-points (avec un point, l’appel échoue : le bug du quiz de fin de leçon) ;
 - `LaunchData` est testé avant usage (il peut valoir `nil`), et seule une valeur présente dans `SOURCES_CONNUES` est acceptée ;
 - aucune ligne ne donne de pièces, d’étape ou d’objet payant à partir de `LaunchData` ;
 - c’est un Script serveur (suffixe `.server.luau`) dans ServerScriptService.

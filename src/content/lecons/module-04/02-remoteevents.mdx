@@ -343,7 +343,7 @@ Demande à Claude Code le système « Retour au checkpoint » de cette leçon. L
 <Prompt titre="Retour au checkpoint (touche R)">
 
 ```text
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Un joueur coincé doit pouvoir demander à réapparaître en appuyant sur la touche R. Le client demande, le serveur décide.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. Un joueur coincé doit pouvoir demander à réapparaître en appuyant sur la touche R. Le client demande, le serveur décide.
 Ce qui existe déjà : le Folder ReplicatedStorage.Remotes, déclaré dans default.project.json avec ses RemoteEvents. Les conventions sont dans CLAUDE.md.
 Objectif : quand le joueur appuie sur R (sauf s'il tape dans le chat), son personnage réapparaît, au plus une fois toutes les 5 secondes.
 Fichiers concernés : default.project.json (le RemoteEvent DemanderReapparition doit être déclaré dans ReplicatedStorage.Remotes : ajoute-le seulement s'il n'y est pas déjà, le défi de la leçon 2 du module 2 l'a peut-être fait) ; crée src/StarterPlayer/StarterPlayerScripts/DemandeReapparition.client.luau et src/ServerScriptService/Reapparition.server.luau. Ne modifie rien d'autre.

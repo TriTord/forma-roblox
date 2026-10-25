@@ -279,7 +279,7 @@ Le prompt nomme l’API actuelle et interdit les anciennes, sinon l’IA risque 
 <Prompt titre="Rôles de la communauté en jeu">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Le jeu a une communauté Roblox avec les rôles "Moderateur" et "Testeur", et je veux afficher plus tard un badge à côté de leur nom.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Le jeu a une communauté Roblox avec les rôles "Moderateur" et "Testeur", et je veux afficher plus tard un badge à côté de leur nom.
 Ce qui existe déjà : l'identifiant de la communauté (visible dans son adresse) ira dans une constante ID_COMMUNAUTE, 0 en attendant. Aucun script ne lit encore les rôles.
 Objectif : à son arrivée, chaque joueur reçoit l'attribut RoleCommunaute : "Moderateur" ou "Testeur" s'il a ce rôle (le plus important en premier), "Membre" s'il est membre sans rôle spécial, "Joueur" s'il n'est pas membre.
 Fichiers concernés : crée uniquement le Script src/ServerScriptService/RolesCommunaute.server.luau. Ne modifie aucun autre fichier.
@@ -293,7 +293,7 @@ Vérification : avec le vrai ID et mon compte, en Play, l'Output affiche « MonN
 
 **À vérifier dans le code produit :**
 
-- `ok` est testé **avant** de lire `resultat` : en cas d’échec, `resultat` est un message d’erreur (le bug du quiz) ;
+- `ok` est testé **avant** de lire `resultat` : en cas d’échec, `resultat` est un message d’erreur (le bug du quiz de fin de leçon) ;
 - l’appel est `GroupService:GetRolesInGroupAsync(player.UserId, ID_COMMUNAUTE)`, dans un `pcall`, sans aucune méthode dépréciée ;
 - tous les rôles de `resultat.Roles` sont parcourus, pas seulement le premier ;
 - aucun code ne donne de commande, de pouvoir ou d’avantage selon `RoleCommunaute`.

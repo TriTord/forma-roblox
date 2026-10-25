@@ -248,7 +248,7 @@ Cette leçon ne construit pas de nouveau système : tu vas plutôt demander à C
 ```text
 Lecture seule : ne crée, ne modifie et ne supprime aucun fichier.
 
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Je veux vérifier que chaque script s'exécute du bon côté. Rappel des règles : le serveur est la source de vérité ; un changement fait par un client n'est pas répliqué au serveur, sauf la position de son propre personnage, la physique des Parts non ancrées dont il est propriétaire réseau et les animations de son personnage.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. Je veux vérifier que chaque script s'exécute du bon côté. Rappel des règles : le serveur est la source de vérité ; un changement fait par un client n'est pas répliqué au serveur, sauf la position de son propre personnage, la physique des Parts non ancrées dont il est propriétaire réseau et les animations de son personnage.
 Ce qui existe déjà : les fichiers de src/ et default.project.json. Les conventions sont dans CLAUDE.md.
 Objectif : un rapport sous forme de tableau, une ligne par fichier de src/ : nom, type (Script, LocalScript ou ModuleScript), service où Rojo le place, côté où il s'exécute (serveur, client, ou là où il est requis), verdict « OK » ou « À corriger » avec la raison.
 Fichiers concernés : aucun (lecture seule).
@@ -260,7 +260,7 @@ Vérification : pour chaque « À corriger », cite la ligne concernée et expli
 
 </Prompt>
 
-**À vérifier dans le code produit :**
+**À vérifier dans le rapport produit :**
 
 - Claude Code n’a modifié aucun fichier : `git status` ne doit montrer aucun changement ;
 - chaque fichier `.client.luau` du rapport est bien rangé dans StarterPlayerScripts, StarterCharacterScripts ou StarterGui, jamais dans ReplicatedStorage ni ServerScriptService ;

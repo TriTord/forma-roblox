@@ -313,7 +313,7 @@ Pour la sécurité des remotes et les autres points techniques, demande une seco
 
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
-Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je passe la checklist de lancement avant de publier et je veux une seconde lecture des points qui se vérifient dans le code.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je passe la checklist de lancement avant de publier et je veux une seconde lecture des points qui se vérifient dans le code.
 Ce qui existe déjà : tout le code dans src/, default.project.json, et le script src/ServerScriptService/AutoVerification.server.luau.
 Objectif : pour chaque point ci-dessous, réponds « OK », « À corriger » ou « Impossible à vérifier dans les fichiers », avec le fichier et la ligne qui le prouvent.
 - Technique : aucune API dépréciée (wait, spawn, delay, BodyVelocity, Humanoid:LoadAnimation...) ; aucun WaitForChild sans délai sur un objet qui peut manquer.
@@ -330,7 +330,7 @@ Vérification : lance selene src et stylua --check src et recopie leur résultat
 
 </Prompt>
 
-**À vérifier dans le code produit :**
+**À vérifier dans le rapport produit :**
 
 - chaque « OK » cite un fichier et une ligne que tu as ouverts toi-même : un « OK » sans preuve ne vaut rien ;
 - les points « Impossible à vérifier » (page du jeu, questionnaire, playtests, téléphone) restent sur **ta** liste ;

@@ -165,7 +165,7 @@ Deux façons de faire. La plus directe : faire écrire les fichiers de l’inter
 <Prompt titre="Décrire l’interface de Studio en fichiers Rojo">
 
 ```text
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). J'ai construit et réglé à la main, dans Studio, Rojo déconnecté, le ScreenGui StarterGui.InterfaceObby de la leçon « Créer des interfaces lisibles partout ». default.project.json synchronise StarterGui depuis src/StarterGui avec "$path" : à la connexion, Rojo supprimerait cette interface. Il faut donc la décrire en fichiers.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. J'ai construit et réglé à la main, dans Studio, Rojo déconnecté, le ScreenGui StarterGui.InterfaceObby de la leçon « Créer des interfaces lisibles partout ». default.project.json synchronise StarterGui depuis src/StarterGui avec "$path" : à la connexion, Rojo supprimerait cette interface. Il faut donc la décrire en fichiers.
 Ce qui existe déjà : le serveur MCP de Roblox Studio est branché à Claude Code et Studio est ouvert sur ma place ; une copie de secours d'InterfaceObby est dans ServerStorage (ignore-la). Les conventions sont dans CLAUDE.md.
 Objectif : après reconnexion de Rojo, l'interface dans Studio est identique à celle que j'ai construite : mêmes noms, même hiérarchie, mêmes propriétés.
 Fichiers concernés : crée le dossier src/StarterGui/InterfaceObby avec un init.meta.json (className ScreenGui et ses propriétés), un init.meta.json par Frame qui contient d'autres objets (dans son propre sous-dossier), un fichier Nom.model.json par élément simple, et ScriptInterface.client.luau avec le code actuel du LocalScript. Ne modifie aucun autre fichier.
@@ -324,7 +324,7 @@ Dans ton projet Rojo, l’interface aussi peut être décrite dans des fichiers 
 <Prompt titre="Interface de l’Obby (compteur et boutique)">
 
 ```text
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Il faut une interface lisible sur PC comme sur téléphone : un compteur de pièces toujours visible et une boutique de traînées qui s'ouvre avec un bouton.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. Il faut une interface lisible sur PC comme sur téléphone : un compteur de pièces toujours visible et une boutique de traînées qui s'ouvre avec un bouton.
 Ce qui existe déjà : leaderstats.Pieces (IntValue créée par le serveur) ; src/ReplicatedStorage/Modules/Catalogue.luau (nom, prix, couleurDebut, couleurFin) ; les RemoteEvents AcheterObjet et EquiperObjet ; les attributs Possede_<identifiant> et TrailEquipe posés par le serveur sur le Player ; le LocalScript TestInventaire.client.luau. Les conventions sont dans CLAUDE.md.
 Objectif : en haut à gauche, « Pièces : N » se met à jour à chaque gain ; un bouton « Boutique » au bord gauche, à mi-hauteur, ouvre et ferme une fenêtre centrée ; chaque traînée du Catalogue y a un bouton qui affiche son prix, « Équiper » ou « Équipé » selon l'état publié par le serveur.
 Fichiers concernés : crée le dossier src/StarterGui/InterfaceObby avec un init.meta.json (le ScreenGui), CompteurPieces.model.json et BoutonBoutique.model.json (avec leurs enfants), un sous-dossier Boutique (init.meta.json de la Frame, UICorner.model.json, UIPadding.model.json) qui contient un sous-dossier Liste (init.meta.json de la Frame, UIGridLayout.model.json), et le LocalScript src/StarterGui/InterfaceObby/ScriptInterface.client.luau ; supprime TestInventaire.client.luau. Ne modifie rien d'autre.
@@ -341,7 +341,7 @@ Vérification : en Play, le compteur suit mes pièces et la boutique s'ouvre et 
 - dans les fichiers `.model.json` et `init.meta.json`, les `Size` et `Position` principales utilisent le Scale (le second nombre de chaque axe vaut 0) ;
 - `init.meta.json` met bien `ResetOnSpawn` à `false` ;
 - `ScriptInterface` ne modifie jamais `pieces.Value` ni un attribut : il lit, puis appelle `FireServer` avec un identifiant ;
-- le compteur affiche `pieces.Value`, pas l’objet `pieces` (le bug du quiz) ;
+- le compteur affiche `pieces.Value`, pas l’objet `pieces` (le bug du quiz de fin de leçon) ;
 - les boutons réagissent à `Activated`, qui marche à la souris, au toucher et à la manette ;
 - `BoutonBoutique` n’est pas dans un coin inférieur, là où sont le joystick et le bouton de saut sur mobile.
 

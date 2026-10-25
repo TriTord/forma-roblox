@@ -282,7 +282,7 @@ Le Game Pass touche à de vrais Robux : le prompt impose donc les règles de la 
 <Prompt titre="Game Pass « Traînée dorée »">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je vends un Game Pass cosmétique « Traînée dorée » : achat unique, avantage permanent, purement visuel.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je vends un Game Pass cosmétique « Traînée dorée » : achat unique, avantage permanent, purement visuel.
 Ce qui existe déjà : le pass est créé dans le Creator Hub (son ID ira dans une constante ID_PASS_TRAIL_DORE, 0 en attendant). La boutique est dans src/StarterGui/InterfaceObby/Boutique/Liste (Frame avec un UIGridLayout qui range les boutons).
 Objectif : un joueur qui possède le pass (acheté en jeu ou avant) a une traînée dorée en permanence, y compris après une mort. Le bouton de la boutique affiche le vrai prix, ouvre la fenêtre d'achat officielle et affiche « Traînée dorée : possédée » une fois le pass obtenu.
 Fichiers concernés : 1) crée le Script src/ServerScriptService/GamePassTrail.server.luau ; 2) crée le TextButton BoutonTrailDore sous forme de dossier src/StarterGui/InterfaceObby/Boutique/Liste/BoutonTrailDore/ avec un init.meta.json (className TextButton) et le LocalScript ScriptBouton.client.luau. Ne modifie rien d'autre.
@@ -297,7 +297,7 @@ Vérification : Studio ne simule pas vraiment l'achat de passes. En Play : le bo
 **À vérifier dans le code produit :**
 
 - `UserOwnsGamePassAsync` reçoit `player.UserId` (un nombre, pas l’objet `Player`) et se trouve dans un `pcall` ;
-- le callback de `PromptGamePassPurchaseFinished` teste `wasPurchased` **et** l’ID du pass (sans `wasPurchased`, Annuler donne la traînée : le bug du quiz) ;
+- le callback de `PromptGamePassPurchaseFinished` teste `wasPurchased` **et** l’ID du pass (sans `wasPurchased`, Annuler donne la traînée : le bug du quiz de fin de leçon) ;
 - `PromptGamePassPurchaseFinished` est écouté dans le Script serveur, pas dans le LocalScript ;
 - aucun LocalScript n’appelle `SetAttribute("PossedeTrailDore", …)` ni ne crée de `Trail` ;
 - le prix affiché vient de `GetProductInfoAsync` (`PriceInRobux`), jamais d’un nombre écrit à la main ;

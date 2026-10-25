@@ -377,13 +377,13 @@ Ce qui change : **zéro** trafic réseau pour la rotation, et chaque appareil ne
 
 <AvecClaudeCode>
 
-Une IA à qui l’on dit seulement « réduis le lag » risque de changer dix choses à la fois, et de casser le gameplay au passage (le fameux `CanTouch = false` sur les kill bricks). Donne-lui plutôt **tes mesures** et **une** cause précise : ici, la rotation des pièces. Elle propose, tu mesures avant et après.
+Une IA à qui l’on dit seulement « réduis le lag » risque de changer dix choses à la fois, et de casser le gameplay au passage (le fameux `CanTouch = false` sur les kill bricks). Donne-lui plutôt **tes mesures** et **une** cause précise : ici, la rotation des pièces. Elle propose, tu mesures avant et après. Avant d’envoyer le prompt, remplace le passage entre crochets par les chiffres notés à la leçon 2.
 
 <Prompt titre="Rotation des pièces côté client">
 
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
-Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Mes mesures de la leçon 2 : [colle ici tes chiffres : FPS, couleur des barres du MicroProfiler, données réseau, mémoire]. Côté serveur, l'étiquette ObbyRotationPieces est la plus large du MicroProfiler.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Mes mesures de la leçon 2 : [colle ici tes chiffres : FPS, couleur des barres du MicroProfiler, données réseau, mémoire]. Côté serveur, l'étiquette ObbyRotationPieces est la plus large du MicroProfiler.
 Ce qui existe déjà : src/ServerScriptService/PiecesTournantes.server.luau (fait tourner toutes les pièces côté serveur, environ 60 fois par seconde) ; src/ServerScriptService/Pieces.server.luau (ramassage validé par le serveur) ; Config.VITESSE_ROTATION_PIECES (degrés par seconde) dans src/ReplicatedStorage/Modules/Config.luau.
 Objectif : la rotation des pièces se fait côté client, seulement pour les pièces chargées chez le joueur, sans aucun trafic réseau. Ensuite seulement, liste SANS LES CORRIGER les autres sources de lag de src/ : travail à chaque image remplaçable par un événement, connexions ou tables par joueur jamais nettoyées à PlayerRemoving, propriétés modifiées côté serveur à chaque image, RemoteEvents déclenchés trop souvent (fichier et ligne pour chacune).
 Fichiers concernés : crée src/StarterPlayer/StarterPlayerScripts/PiecesTournantesClient.client.luau et supprime src/ServerScriptService/PiecesTournantes.server.luau. Ne modifie pas Pieces.server.luau.

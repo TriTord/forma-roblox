@@ -333,7 +333,7 @@ end
 print(`{#dossierKillBricks:GetChildren()} objets dans le dossier KillBricks`)
 ```
 
-`:IsA("BasePart")` vérifie que l’objet est bien une Part (de n’importe quelle forme). Désormais, pour ajouter une kill brick, il suffit de **glisser une Part dans le dossier** : aucun script à copier.
+`:IsA("BasePart")` vérifie que l’objet est bien une Part (de n’importe quelle forme). Dans `surContact`, la ligne `personnage and personnage:FindFirstChildOfClass("Humanoid")` utilise `and` comme le `or` de la leçon 2 : si `personnage` vaut `nil`, `and` s’arrête là et renvoie `nil` sans appeler la méthode (pas d’erreur) ; sinon, il renvoie le résultat de la recherche. Désormais, pour ajouter une kill brick, il suffit de **glisser une Part dans le dossier** : aucun script à copier.
 
 ### Fil rouge : toutes les pièces qui tournent
 

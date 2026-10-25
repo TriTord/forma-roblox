@@ -368,7 +368,7 @@ L’Output affiche `Invité a des pièces`, puis `Invité : 5 pièces`.
 
 ### Exercice 2 : quelle ligne est dangereuse, laquelle est inutile ?
 
-Une IA a proposé cette kill brick. Elle semble marcher quand tu sautes dessus…
+Une IA a proposé cette kill brick. Elle semble marcher quand tu sautes dessus… (Pour les numéros de ligne de la réponse, compte à partir du commentaire du haut, comme à la leçon 1.)
 
 ```luau
 -- Script placé DANS une Part de Workspace.KillBricks (proposé par une IA)
@@ -415,7 +415,7 @@ Vérification : explique-moi comment tester en Play : mon personnage meurt au co
 - la condition est dans le bon sens : on agit quand le Humanoid **existe** et que `Health > 0` (pas `== nil`) ;
 - la santé est mise à `0` avec `=`, et les comparaisons utilisent `>`, `==` ou `~=` (jamais `!=`) ;
 - toutes les variables sont déclarées avec `local`, et aucune n’est inutile ;
-- la fonction est passée à `Connect` **sans parenthèses** : `Touched:Connect(surContact)`.
+- la fonction est passée à `Connect` **sans parenthèses** : `Touched:Connect(surContact)`, comme dans le code de la leçon (tu verras pourquoi à la leçon 5).
 
 </AvecClaudeCode>
 

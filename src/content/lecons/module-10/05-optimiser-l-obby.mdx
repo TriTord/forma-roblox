@@ -243,13 +243,13 @@ La documentation propose une méthode : joue sur ton appareil de référence ave
 
 <AvecClaudeCode>
 
-Le script ci-dessus inventorie le **niveau** (dans Studio). Pour le **code**, Claude Code peut passer la checklist à ta place, fichier par fichier. Le prompt lui donne tes mesures pour classer les problèmes, et lui interdit de corriger quoi que ce soit avant ton accord : c’est l’étape 2 de l’audit, « d’abord l’inventaire ».
+Le script ci-dessus inventorie le **niveau** (dans Studio). Pour le **code**, Claude Code peut passer la checklist à ta place, fichier par fichier. Le prompt lui donne tes mesures pour classer les problèmes, et lui interdit de corriger quoi que ce soit avant ton accord : c’est l’étape 2 de l’audit, « d’abord l’inventaire ». Avant de l’envoyer, remplace les deux passages entre crochets par ta fiche de mesure « avant » et par ce qu’a affiché le script d’audit dans l’Output.
 
 <Prompt titre="Audit de performance du code">
 
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
-Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je mène l'audit de performance du jeu. Ma fiche de mesure « avant » (téléphone de référence) : [colle ici ta fiche]. Sortie du script d'audit de la Command Bar : [colle ici ce qu'affiche l'Output].
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je mène l'audit de performance du jeu. Ma fiche de mesure « avant » (téléphone de référence) : [colle ici ta fiche]. Sortie du script d'audit de la Command Bar : [colle ici ce qu'affiche l'Output].
 Ce qui existe déjà : tout le code est dans src/. Le niveau (Parts, décors, lumières, particules) est construit dans Studio : tu ne le vois pas dans les fichiers.
 Objectif : un rapport d'audit du CODE, sous forme de tableau, selon les catégories de ma checklist vérifiables dans les fichiers :
 - Scripts : boucles while true, connexions Heartbeat ou PreRender remplaçables par un événement, GetService ou WaitForChild appelés à chaque image ;
@@ -266,7 +266,7 @@ Vérification : après chaque correction, je rejoue tout l'obby, je mesure dans 
 
 </Prompt>
 
-**À vérifier dans le code produit :**
+**À vérifier dans le rapport et le code produits :**
 
 - chaque problème du rapport existe vraiment : ouvre le fichier à la ligne indiquée (une IA peut se tromper de ligne, voire inventer un problème) ;
 - aucune correction ne déplace une règle du jeu (pièces gagnées, achats, checkpoints) du serveur vers le client ;

@@ -298,7 +298,7 @@ Demande à Claude Code les deux changements de cette leçon : le nouveau Script 
 <Prompt titre="Script Leaderstats">
 
 ```text
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Les leaderstats (tableau des scores) doivent avoir leur propre script, car à la leçon suivante elles seront créées à partir de la sauvegarde.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. Les leaderstats (tableau des scores) doivent avoir leur propre script, car à la leçon suivante elles seront créées à partir de la sauvegarde.
 Ce qui existe déjà : src/ServerScriptService/Progression.server.luau (module 4) : sa fonction initialiserJoueur crée les leaderstats Etape et Pieces et replace le personnage sur son dernier checkpoint ; sa fonction surContactCheckpoint valide les checkpoints (Etape + 1, Validation.estAPortee, journalisation des passages trop rapides) ; obtenirEtape, dossierCheckpoints et Workspace y sont déjà définis. Pieces.server.luau ajoute des pièces après ses vérifications. Les conventions sont dans CLAUDE.md.
 Objectif : chaque joueur voit deux colonnes, Etape (en premier) et Pieces, à 0 au départ, et réapparaît toujours sur son dernier checkpoint validé.
 Fichiers concernés : crée src/ServerScriptService/Leaderstats.server.luau ; dans Progression.server.luau, remplace uniquement la fonction initialiserJoueur, par deux fonctions : placerAuCheckpoint et une nouvelle initialiserJoueur. Ne touche ni à surContactCheckpoint, ni à Pieces.server.luau, ni à aucun autre fichier.

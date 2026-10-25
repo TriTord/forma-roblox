@@ -249,7 +249,7 @@ Ce petit système est idéal pour t’entraîner : il tient dans un seul fichier
 <Prompt titre="Feedback de la boucle (MessagesProgression)">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je veux rendre visible la récompense de la boucle de jeu : le joueur doit voir un message bref quand il gagne des pièces ou atteint une nouvelle étape.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je veux rendre visible la récompense de la boucle de jeu : le joueur doit voir un message bref quand il gagne des pièces ou atteint une nouvelle étape.
 Ce qui existe déjà : le serveur crée les leaderstats (IntValue Etape et Pieces) avec les valeurs chargées (src/ServerScriptService/GestionJoueurs.server.luau). Le Script src/ServerScriptService/Progression.server.luau envoie "Étape N atteinte !" au joueur avec le RemoteEvent ReplicatedStorage.Remotes.Notification (déclaré dans default.project.json) après chaque checkpoint validé.
 Objectif : un message doré apparaît en haut et au centre de l'écran (« +1 pièce », « +3 pièces », « Étape 4 atteinte ! ») puis disparaît en fondu en 1,5 seconde.
 Fichiers concernés : crée uniquement src/StarterPlayer/StarterPlayerScripts/MessagesProgression.client.luau (LocalScript). Ne modifie aucun autre fichier.
@@ -265,7 +265,7 @@ Vérification : en Play Solo, ramasser une pièce affiche « +1 pièce » qui s'
 
 - c’est un LocalScript (suffixe `.client.luau`) dans StarterPlayerScripts, qui n’écrit jamais dans `Pieces` ou `Etape` et n’appelle aucun `FireServer` ;
 - l’ancienne valeur des pièces est mémorisée pour calculer le gain, et seul un gain positif est affiché ;
-- `Connect` reçoit bien une **fonction**, pas le résultat d’un appel comme `Connect(afficher("+1 pièce"))` (le piège du quiz) ;
+- `Connect` reçoit bien une **fonction**, pas le résultat d’un appel comme `Connect(afficher("+1 pièce"))` (le piège du quiz de fin de leçon) ;
 - le ScreenGui a `ResetOnSpawn = false`, sinon le message disparaît à chaque réapparition ;
 - le fondu passe par `TweenService:Create`, sans boucle ni `wait`.
 

@@ -277,7 +277,7 @@ Les deux LocalScripts forment un seul petit système d’onboarding : un prompt 
 <Prompt titre="Onboarding : faisceau et indice minuté">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je refais les 60 premières secondes : je veux guider le nouveau joueur vers les premiers checkpoints sans mur de texte et sans le bloquer.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je refais les 60 premières secondes : je veux guider le nouveau joueur vers les premiers checkpoints sans mur de texte et sans le bloquer.
 Ce qui existe déjà : leaderstats.Etape (IntValue, créée par le serveur, vaut 0 tant qu'aucun checkpoint n'est atteint) ; Workspace.Checkpoints contient des Parts nommées "1", "2", "3"… Le streaming d'instances peut être activé plus tard.
 Objectif : 1) un faisceau doré relie le personnage au prochain checkpoint, seulement pour les checkpoints 1 et 2, puis disparaît pour de bon ; 2) si le joueur est toujours à l'étape 0 après 15 secondes, un indice apparaît en bas de l'écran : « Suis le rayon doré et saute sur le premier nuage ! », et il disparaît dès l'étape 1.
 Fichiers concernés : crée src/StarterPlayer/StarterPlayerScripts/GuideCheckpoint.client.luau et src/StarterPlayer/StarterPlayerScripts/IndiceDepart.client.luau (deux LocalScripts). Ne modifie aucun autre fichier.
@@ -291,7 +291,7 @@ Vérification : en Play Solo avec un nouveau joueur, le faisceau vise le checkpo
 
 **À vérifier dans le code produit :**
 
-- l’indice teste `etape.Value == 0` (et non `> 0`, le bug du quiz), avec `task.delay` et pas `wait` ;
+- l’indice teste `etape.Value == 0` (et non `> 0`, le bug du quiz de fin de leçon), avec `task.delay` et pas `wait` ;
 - les Attachments et le Beam sont créés dans un LocalScript, donc visibles par ce seul joueur ;
 - `retirerGuide()` détruit les anciens objets **avant** chaque nouveau placement : sinon les faisceaux s’empilent à chaque étape ;
 - la condition `prochaine > ETAPES_GUIDEES` arrête bien le guide après le checkpoint 2 ;

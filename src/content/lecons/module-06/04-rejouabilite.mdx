@@ -198,7 +198,7 @@ Demande l’objectif quotidien en un seul prompt, mais avec les choix de concept
 <Prompt titre="Objectif quotidien (ObjectifsQuotidiens)">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute un objectif quotidien respectueux du temps du joueur : « Ramasse 20 pièces aujourd'hui », bonus de 15 pièces.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). J'ajoute un objectif quotidien respectueux du temps du joueur : « Ramasse 20 pièces aujourd'hui », bonus de 15 pièces.
 Ce qui existe déjà : src/ServerScriptService/DonneesJoueurs.luau (DonneesJoueurs.Obtenir(player) renvoie la table de données du joueur en mémoire, ou nil si elle n'est pas chargée ; cette table est sauvegardée en entier dans le DataStore "DonneesJoueurs_v1"). src/ServerScriptService/Pieces.server.luau valide chaque ramassage côté serveur (distance, cooldown) dans la fonction preparerPiece, puis fait pieces.Value += VALEUR_PIECE.
 Objectif : chaque jour (UTC), la 20e pièce ramassée rapporte en plus un bonus de 15 pièces, une seule fois par jour. Un jour manqué ne fait rien perdre : l'objectif repart simplement de zéro.
 Fichiers concernés : 1) crée le ModuleScript src/ServerScriptService/ObjectifsQuotidiens.luau avec PIECES_A_RAMASSER = 20, BONUS = 15, enregistrerPiece(donnees): number (renvoie le bonus à verser, 0 la plupart du temps) et progression(donnees): (number, number). 2) Dans Pieces.server.luau : ajoute les require de DonneesJoueurs et ObjectifsQuotidiens, une fonction locale verifierObjectifDuJour(player, pieces) placée au-dessus de preparerPiece, et son appel juste après pieces.Value += VALEUR_PIECE. Ne modifie rien d'autre.
@@ -212,7 +212,7 @@ Vérification : en Play Solo, avec PIECES_A_RAMASSER mis temporairement à 3, la
 
 **À vérifier dans le code produit :**
 
-- le jour est calculé avec `math.floor(os.time() / 86400)` : sans `math.floor`, l’objectif se réinitialise à chaque seconde (le bug du quiz) ;
+- le jour est calculé avec `math.floor(os.time() / 86400)` : sans `math.floor`, l’objectif se réinitialise à chaque seconde (le bug du quiz de fin de leçon) ;
 - `ObjectifsQuotidiens` ne contient aucun `GetDataStore`, `SetAsync` ou `UpdateAsync` ;
 - `bonusReclame` passe à `true` au moment où le bonus est renvoyé, donc il n’est versé qu’une fois par jour ;
 - rien n’est retiré au joueur quand le jour change : pas de série, pas de pénalité ;

@@ -273,12 +273,12 @@ Le RemoteEvent ne transporte aucune donnée sensible : il dit juste « joue l’
 
 <AvecClaudeCode>
 
-La création et la publication de l’animation se font à la main, dans l’Animation Editor : Claude Code ne peut pas le faire pour toi. Il peut en revanche écrire les deux scripts. Le prompt est précis parce qu’il donne l’ID de **ton** animation (ce n’est pas un secret, tu peux le coller), impose `Animator:LoadAnimation` appelé une seule fois et laisse le serveur seul juge de la victoire.
+La création et la publication de l’animation se font à la main, dans l’Animation Editor : Claude Code ne peut pas le faire pour toi. Il peut en revanche écrire les deux scripts. Le prompt est précis parce qu’il donne l’ID de **ton** animation (ce n’est pas un secret, tu peux le coller), impose `Animator:LoadAnimation` appelé une seule fois et laisse le serveur seul juge de la victoire. Avant de l’envoyer, remplace `REMPLACE_PAR_TON_ID` (dans la ligne « Contexte ») par le numéro de ton animation publiée.
 
 <Prompt titre="Animation de victoire">
 
 ```text
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox, avatars R15). Quand un joueur valide le dernier checkpoint, son personnage joue une animation de victoire que tous les joueurs voient. J'ai créé et publié l'animation moi-même, avec le même propriétaire que le jeu : son ID est rbxassetid://REMPLACE_PAR_TON_ID.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo, avec des avatars R15. Quand un joueur valide le dernier checkpoint, son personnage joue une animation de victoire que tous les joueurs voient. J'ai créé et publié l'animation moi-même, avec le même propriétaire que le jeu : son ID est rbxassetid://REMPLACE_PAR_TON_ID.
 Ce qui existe déjà : leaderstats.Etape (IntValue, numéro du dernier checkpoint validé, créée par GestionJoueurs une fois la sauvegarde chargée) ; dans Studio, Workspace.Checkpoints ne contient que les Parts "1", "2", "3"… ; ReplicatedStorage.Remotes est déclaré dans default.project.json. Les conventions sont dans CLAUDE.md.
 Objectif : au moment où Etape atteint le numéro du dernier checkpoint, le personnage du joueur joue l'animation une fois.
 Fichiers concernés : default.project.json (le RemoteEvent Victoire doit être déclaré dans ReplicatedStorage.Remotes : ajoute-le seulement s'il manque) ; crée src/ServerScriptService/Victoire.server.luau et src/StarterPlayer/StarterCharacterScripts/AnimationVictoire.client.luau. Ne modifie rien d'autre.

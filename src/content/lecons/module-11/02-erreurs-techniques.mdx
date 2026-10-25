@@ -501,7 +501,7 @@ Avant de lancer ces tests, fais passer tout ton code au crible par Claude Code. 
 
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
-Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md), bientôt publié. Je veux traquer les six erreurs techniques qui font fuir les joueurs.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md), bientôt publié. Je veux traquer les six erreurs techniques qui font fuir les joueurs.
 Ce qui existe déjà : tout le code est dans src/ (notamment DonneesJoueurs.luau, GestionJoueurs.server.luau, Progression.server.luau, Pieces.server.luau, Boutique.server.luau, Achats.server.luau dans src/ServerScriptService) ; les RemoteEvents de ReplicatedStorage.Remotes sont déclarés dans default.project.json.
 Objectif : un rapport d'audit en six parties, sans rien modifier :
 1) Données : un joueur dont le chargement a échoué peut-il être sauvegardé quand même ? pcall et nouvelles tentatives autour de GetAsync et UpdateAsync ? sauvegarde à PlayerRemoving et dans game:BindToClose ?
@@ -520,7 +520,7 @@ Vérification : termine par la liste des tests que je ferai moi-même dans Studi
 
 </Prompt>
 
-**À vérifier dans le code produit :**
+**À vérifier dans le rapport et le code produits :**
 
 - chaque faille signalée existe bien à la ligne indiquée, et chaque « rien à signaler » aussi : relis toi-même au moins tous les `OnServerEvent` ;
 - les corrections lisent le prix dans `Catalogue` et valident tout côté serveur, jamais l’inverse ;

@@ -319,7 +319,7 @@ Ce script, Claude Code peut l’écrire pour toi… à condition de lui donner l
 <Prompt titre="Entonnoirs de l’Obby des Nuages">
 
 ```text
-Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je veux savoir où les nouveaux joueurs abandonnent, avec AnalyticsService.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je veux savoir où les nouveaux joueurs abandonnent, avec AnalyticsService.
 Ce qui existe déjà : leaderstats.Etape (IntValue), créée et modifiée uniquement par le serveur (dans src/ServerScriptService : GestionJoueurs.server.luau qui la crée et y charge la sauvegarde, Progression.server.luau via le ModuleScript RecompensesEtapes.luau, et Achats.server.luau pour « passer l'étape »). Au chargement de la sauvegarde, Etape peut passer d'un coup de 0 à la valeur sauvegardée.
 Objectif :
 - Entonnoir d'onboarding avec LogOnboardingFunnelStepEvent : 1 "Arrivée" (PlayerAdded), 2 "Personnage apparu" (premier CharacterAdded), 3 "Checkpoint 1", 4 "Checkpoint 2", 5 "Checkpoint 3" (Etape passe à 1, 2, 3).

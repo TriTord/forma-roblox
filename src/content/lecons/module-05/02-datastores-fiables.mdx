@@ -523,7 +523,7 @@ Demande à Claude Code le système de sauvegarde complet de cette leçon. Le pro
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
 
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). Je veux une sauvegarde fiable de l'étape, des pièces et (à la leçon suivante) de l'inventaire : aucun joueur ne doit perdre sa progression, même si le DataStore a un raté ou si le serveur ferme.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. Je veux une sauvegarde fiable de l'étape, des pièces et (à la leçon suivante) de l'inventaire : aucun joueur ne doit perdre sa progression, même si le DataStore a un raté ou si le serveur ferme.
 Ce qui existe déjà : src/ServerScriptService/Leaderstats.server.luau crée leaderstats.Etape et leaderstats.Pieces (IntValue), avec IsPrimary sur Etape ; Progression.server.luau attend les leaderstats (WaitForChild("leaderstats", 60)) et ne les crée plus. CLAUDE.md impose un pcall autour de chaque appel au DataStore.
 Objectif : en revenant dans le jeu, le joueur retrouve son étape et ses pièces ; si ses données ne peuvent pas être chargées, il est expulsé avec un message poli et rien n'est jamais écrit par-dessus sa sauvegarde.
 Fichiers concernés : crée src/ServerScriptService/DonneesJoueurs.luau (ModuleScript) et src/ServerScriptService/GestionJoueurs.server.luau ; supprime Leaderstats.server.luau (GestionJoueurs le remplace et crée les leaderstats à partir des données chargées, IsPrimary compris). Ne modifie rien d'autre.

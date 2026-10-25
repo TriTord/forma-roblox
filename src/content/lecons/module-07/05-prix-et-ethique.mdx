@@ -155,7 +155,7 @@ Une IA à qui l’on demande un bouton « qui donne envie d’acheter » peut te
 <Prompt titre="Bouton « Passer l’étape » au prix réel">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute à la boutique le bouton du Developer Product « Passer l'étape », avec un prix toujours exact et une présentation honnête.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). J'ajoute à la boutique le bouton du Developer Product « Passer l'étape », avec un prix toujours exact et une présentation honnête.
 Ce qui existe déjà : src/ServerScriptService/DemandesAchat.server.luau écoute le RemoteEvent ReplicatedStorage.Remotes.DemanderPasserEtape, vérifie qu'une étape suivante existe puis ouvre la fenêtre d'achat ; src/ServerScriptService/Achats.server.luau traite les reçus. La boutique est dans src/StarterGui/InterfaceObby/Boutique/Liste (UIGridLayout).
 Objectif : un bouton affiche « Passer l'étape (N Robux) » avec le prix réel du joueur (régional, réduit ou en test) ; un clic demande l'achat au serveur.
 Fichiers concernés : crée le TextButton src/StarterGui/InterfaceObby/Boutique/Liste/BoutonPasserEtape/ (init.meta.json avec className TextButton) et son LocalScript ScriptBouton.client.luau. Ne modifie ni DemandesAchat ni Achats, ni aucun autre fichier.

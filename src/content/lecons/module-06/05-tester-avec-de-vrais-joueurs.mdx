@@ -202,7 +202,7 @@ Un outil de mesure doit être **neutre** : il observe sans rien changer au jeu. 
 <Prompt titre="Mesure de playtest (SuiviPlaytest)">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). Je prépare des playtests avec de vrais joueurs et je veux mesurer, pour chaque étape, le temps passé et le nombre de chutes.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je prépare des playtests avec de vrais joueurs et je veux mesurer, pour chaque étape, le temps passé et le nombre de chutes.
 Ce qui existe déjà : leaderstats.Etape (IntValue créée par le serveur après le chargement de la sauvegarde, elle augmente de 1 à chaque checkpoint validé) ; les kill bricks et les chutes dans le vide tuent le personnage (Humanoid.Died).
 Objectif : à chaque nouvelle étape, l'Output affiche une ligne au format exact « [PLAYTEST] NomDuJoueur : étape N en X s, Y chute(s) (total : Z s) », puis le chrono et les chutes repartent de zéro pour l'étape suivante.
 Fichiers concernés : crée uniquement src/ServerScriptService/SuiviPlaytest.server.luau (Script serveur). Ne modifie aucun autre fichier.
@@ -216,7 +216,7 @@ Vérification : en Play Solo, meurs deux fois avant le checkpoint 1 puis atteins
 
 **À vérifier dans le code produit :**
 
-- `debutEtape` est créé **avant** `etape.Changed:Connect`, puis remis à `os.clock()` après chaque affichage (sinon la durée vaut toujours 0, le bug du quiz) ;
+- `debutEtape` est créé **avant** `etape.Changed:Connect`, puis remis à `os.clock()` après chaque affichage (sinon la durée vaut toujours 0, le bug du quiz de fin de leçon) ;
 - `chutes` est remis à 0 après chaque étape, et `Humanoid.Died` est connecté à **chaque** nouveau personnage ;
 - le script ne contient aucune écriture dans `Etape` ou `Pieces`, aucun RemoteEvent, aucun DataStore, aucun `HttpService` ;
 - `MODE_PLAYTEST` encadre bien toutes les connexions, et tu sais où le passer à `false` avant le lancement public.

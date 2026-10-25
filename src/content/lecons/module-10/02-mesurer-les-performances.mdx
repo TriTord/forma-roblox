@@ -217,7 +217,7 @@ Claude Code ne peut pas mesurer ton jeu : il ne voit ni tes FPS, ni ton téléph
 <Prompt titre="Repérer et étiqueter avant de mesurer">
 
 ```text
-Contexte : jeu Roblox « Obby des Nuages », projet Rojo (voir CLAUDE.md). Je veux savoir ce qui coûte cher AVANT d'optimiser quoi que ce soit. Je mesure moi-même dans le jeu publié (Performance Stats, MicroProfiler, Script Profiler, Developer Console).
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). Je veux savoir ce qui coûte cher AVANT d'optimiser quoi que ce soit. Je mesure moi-même dans le jeu publié (Performance Stats, MicroProfiler, Script Profiler, Developer Console).
 Ce qui existe déjà : src/ServerScriptService/PiecesTournantes.server.luau, une boucle while true avec task.wait() qui fait tourner toutes les pièces de Workspace.Pieces (vitesse Config.VITESSE_ROTATION_PIECES).
 Objectif :
 1) Liste les scripts de src/ qui travaillent à chaque image ou en boucle (while true, task.wait() sans durée, RunService.Heartbeat, PreRender...), avec fichier, ligne et ce qu'ils font. Ne corrige rien.

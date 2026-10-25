@@ -280,7 +280,7 @@ Demande à Claude Code l’exemple « demander son inventaire ». Le prompt est 
 <Prompt titre="RemoteFunction ObtenirInventaire">
 
 ```text
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). La future boutique doit savoir quelles traînées le joueur possède : le client pose la question, le serveur répond. L'inventaire vit sur le serveur (il sera sauvegardé au module 5).
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. La future boutique doit savoir quelles traînées le joueur possède : le client pose la question, le serveur répond. L'inventaire vit sur le serveur (il sera sauvegardé au module 5).
 Ce qui existe déjà : le Folder ReplicatedStorage.Remotes, déclaré dans default.project.json. Les conventions sont dans CLAUDE.md.
 Objectif : au démarrage, le client demande son inventaire au serveur et affiche dans l'Output « Je possède N objet(s) : … ».
 Fichiers concernés : default.project.json (ajoute la RemoteFunction ObtenirInventaire dans ReplicatedStorage.Remotes) ; crée src/ServerScriptService/Inventaire.server.luau et src/StarterPlayer/StarterPlayerScripts/LireInventaire.client.luau. Ne modifie rien d'autre.

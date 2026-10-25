@@ -249,7 +249,7 @@ Ici, Claude Code doit toucher **trois** fichiers dont deux existent déjà : c�
 
 ```text
 Commence par me proposer un plan (mode plan), sans modifier de fichier.
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute des récompenses en pièces qui grandissent avec la difficulté des niveaux.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). J'ajoute des récompenses en pièces qui grandissent avec la difficulté des niveaux.
 Ce qui existe déjà : src/ReplicatedStorage/Modules/Config.luau contient Config.Niveaux (trois niveaux avec nom, etapeDebut, etapeFin : 1-5, 6-10, 11-12) et Config.obtenirNiveau(etape). src/ServerScriptService/Progression.server.luau valide les checkpoints (uniquement l'étape suivante, distance vérifiée avec Validation.estAPortee) puis fait etape.Value = numero. Les leaderstats Etape et Pieces sont des IntValue créées par le serveur.
 Objectif : atteindre une étape pour la première fois rapporte les pièces de son niveau (2, 3 puis 5 par étape), plus un bonus de 10 à la dernière étape de chaque niveau. Exemple : l'étape 10 rapporte 13 pièces.
 Fichiers concernés : 1) Config.luau : ajoute piecesParEtape à chaque niveau, puis sous Config.obtenirNiveau ajoute Config.BONUS_FIN_DE_NIVEAU = 10 et la fonction Config.recompensePourEtape(etape: number): number qui réutilise obtenirNiveau ; garde return Config en dernière ligne (et un éventuel table.freeze juste avant, après les ajouts). 2) Crée le ModuleScript src/ServerScriptService/RecompensesEtapes.luau avec RecompensesEtapes.valider(player: Player, nouvelleEtape: number): boolean qui met Etape à jour et verse Config.recompensePourEtape(nouvelleEtape). 3) Progression.server.luau : ajoute le require de RecompensesEtapes et remplace seulement la ligne etape.Value = numero par RecompensesEtapes.valider(player, numero), en gardant toutes les vérifications existantes. Ne modifie rien d'autre.
@@ -263,7 +263,7 @@ Vérification : un print temporaire montre Config.recompensePourEtape(5) = 12, (
 
 **À vérifier dans le code produit :**
 
-- `valider` refuse avec `nouvelleEtape ~= etape.Value + 1` (et non `nouvelleEtape < etape.Value`, la faille du quiz qui permet de « farmer » un checkpoint) ;
+- `valider` refuse avec `nouvelleEtape ~= etape.Value + 1` (et non `nouvelleEtape < etape.Value`, la faille du quiz de fin de leçon, qui permet de « farmer » un checkpoint) ;
 - `Config.recompensePourEtape` réutilise `Config.obtenirNiveau` et renvoie `0` hors des niveaux ;
 - `return Config` est toujours la dernière ligne, et les nouveaux champs sont ajoutés **avant** un éventuel `table.freeze` ;
 - dans `Progression`, les vérifications existantes (étape suivante, `Validation.estAPortee`) sont toujours **avant** l’appel à `RecompensesEtapes.valider` ;

@@ -313,7 +313,7 @@ Demande à Claude Code les deux systèmes de cette leçon : les plateformes mobi
 <Prompt titre="Plateformes mobiles et interface animée">
 
 ```text
-Contexte : projet Rojo de l'Obby des Nuages (jeu Roblox). J'anime le jeu avec TweenService : des plateformes qui font des allers-retours, une boutique qui glisse à l'écran et un compteur de pièces qui rebondit.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo. J'anime le jeu avec TweenService : des plateformes qui font des allers-retours, une boutique qui glisse à l'écran et un compteur de pièces qui rebondit.
 Ce qui existe déjà : dans Studio, un Folder Workspace.PlateformesMobiles contient les Parts à animer, avec deux attributs facultatifs, Deplacement (Vector3, en studs) et Duree (number, durée d'un aller en secondes) ; src/StarterGui/InterfaceObby contient CompteurPieces, BoutonBoutique, Boutique et ScriptInterface.client.luau, dont le bloc « 2. OUVRIR / FERMER LA BOUTIQUE » ouvre et ferme la fenêtre ; leaderstats.Pieces (IntValue). Les conventions sont dans CLAUDE.md.
 Objectif : chaque plateforme du dossier va et vient sans fin, en douceur ; la boutique arrive du bas de l'écran avec un léger rebond et repart vers le bas ; le compteur grossit puis revient à sa taille à chaque changement de pièces.
 Fichiers concernés : crée src/ServerScriptService/PlateformesMobiles.server.luau et src/StarterGui/InterfaceObby/AnimationsInterface.client.luau ; dans ScriptInterface.client.luau, supprime seulement le bloc 2 et la variable boutonBoutique devenue inutile. Ne modifie rien d'autre.

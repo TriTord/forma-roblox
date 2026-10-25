@@ -216,7 +216,7 @@ Si tu crées vraiment « Nuage+ », ces trois morceaux (Script serveur, calcul d
 <Prompt titre="Abonnement « Nuage+ » (pièces doublées)">
 
 ```text
-Contexte : je développe l'Obby des Nuages, un obby Roblox géré avec Rojo (voir CLAUDE.md). J'ajoute un abonnement d'expérience « Nuage+ » qui double les pièces ramassées tant que le joueur est abonné.
+Contexte : mon jeu Roblox « Obby des Nuages » est un projet Rojo (voir CLAUDE.md). J'ajoute un abonnement d'expérience « Nuage+ » qui double les pièces ramassées tant que le joueur est abonné.
 Ce qui existe déjà : l'abonnement est créé dans le Creator Hub (son ID est une chaîne "EXP-…", à mettre dans une constante ID_ABONNEMENT). src/ServerScriptService/Pieces.server.luau valide chaque ramassage côté serveur dans preparerPiece et ajoute VALEUR_PIECE à leaderstats.Pieces. La boutique est dans src/StarterGui/InterfaceObby/Boutique/Liste.
 Objectif : un abonné actif gagne 2 pièces par pièce ramassée au lieu de 1 ; l'avantage disparaît quand l'abonnement prend fin ; un bouton « Nuage+ » n'est visible que pour les joueurs qui ont le droit de s'abonner et ne sont pas déjà abonnés.
 Fichiers concernés : 1) crée le Script src/ServerScriptService/Abonnements.server.luau ; 2) dans Pieces.server.luau, ajoute une fonction calculerGain(player) au-dessus de preparerPiece et utilise-la à la place de VALEUR_PIECE dans la ligne qui ajoute la pièce ; 3) crée le TextButton src/StarterGui/InterfaceObby/Boutique/Liste/BoutonNuagePlus/ (init.meta.json avec className TextButton) et son LocalScript ScriptBouton.client.luau. Ne modifie rien d'autre.
@@ -230,7 +230,7 @@ Vérification : en Play, avec l'ID fictif, un avertissement s'affiche sans erreu
 
 **À vérifier dans le code produit :**
 
-- le test porte sur `statut.IsSubscribed`, pas sur `statut` (une table est toujours « vraie » en Luau : le bug du quiz) ;
+- le test porte sur `statut.IsSubscribed`, pas sur `statut` (une table est toujours « vraie » en Luau : le bug du quiz de fin de leçon) ;
 - `GetUserSubscriptionStatusAsync` et `GetPolicyInfoForPlayerAsync` sont dans des `pcall`, dans le Script serveur ;
 - en cas d’échec réseau, l’attribut `AbonneNuagePlus` n’est **pas** remis à `false` ;
 - aucun code n’enregistre l’abonnement dans le DataStore, et `calculerGain` n’existe que côté serveur ;
